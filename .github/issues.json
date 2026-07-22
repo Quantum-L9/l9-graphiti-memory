@@ -1,0 +1,213 @@
+{
+  "schema": "l9.repo_issue_pack/v1",
+  "repository": "Quantum-L9/l9-graphiti-memory",
+  "target_release": "2.2.0",
+  "production_status": "BLOCKED_ON_EXTERNAL_VALIDATION",
+  "epic_id": "RP-EPIC-001",
+  "creation_order": [
+    "RP-001",
+    "RP-002",
+    "RP-003",
+    "RP-004",
+    "RP-005",
+    "RP-006",
+    "RP-007",
+    "RP-008",
+    "RP-009",
+    "RP-EPIC-001"
+  ],
+  "issues": [
+    {
+      "id": "RP-EPIC-001",
+      "title": "Complete external production proof for l9-graphiti-memory v2.2",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:epic",
+        "priority:p0"
+      ],
+      "depends_on": [],
+      "blocks": [],
+      "owner_layer": "release program",
+      "filename": "issues/rp-epic-001-complete-external-production-proof-for-l9-graphiti-memory-v2-2.md"
+    },
+    {
+      "id": "RP-001",
+      "title": "Integrate the authoritative TransportPacket package",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:integration",
+        "area:constellation",
+        "priority:p0"
+      ],
+      "depends_on": [],
+      "blocks": [
+        "RP-003",
+        "RP-009"
+      ],
+      "owner_layer": "constellation contract integration",
+      "filename": "issues/rp-001-integrate-the-authoritative-transportpacket-package.md"
+    },
+    {
+      "id": "RP-002",
+      "title": "Integrate the production Gate client and dispatch-receipt schema",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:integration",
+        "area:gate",
+        "area:constellation",
+        "priority:p0"
+      ],
+      "depends_on": [],
+      "blocks": [
+        "RP-003",
+        "RP-009"
+      ],
+      "owner_layer": "Gate client integration",
+      "filename": "issues/rp-002-integrate-the-production-gate-client-and-dispatch-receipt-schema.md"
+    },
+    {
+      "id": "RP-003",
+      "title": "Execute a credentialed Gate staging packet-lifecycle rehearsal",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:validation",
+        "area:gate",
+        "area:constellation",
+        "priority:p0"
+      ],
+      "depends_on": [
+        "RP-001",
+        "RP-002"
+      ],
+      "blocks": [
+        "RP-009"
+      ],
+      "owner_layer": "staging validation",
+      "filename": "issues/rp-003-execute-a-credentialed-gate-staging-packet-lifecycle-rehearsal.md"
+    },
+    {
+      "id": "RP-004",
+      "title": "Prove the live Graphiti lifecycle and outbox replay path",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:validation",
+        "area:graphiti",
+        "priority:p0"
+      ],
+      "depends_on": [],
+      "blocks": [
+        "RP-009"
+      ],
+      "owner_layer": "Graphiti provider validation",
+      "filename": "issues/rp-004-prove-the-live-graphiti-lifecycle-and-outbox-replay-path.md"
+    },
+    {
+      "id": "RP-005",
+      "title": "Prove the live Zep lifecycle and outbox replay path",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:validation",
+        "area:zep",
+        "priority:p0"
+      ],
+      "depends_on": [],
+      "blocks": [
+        "RP-009"
+      ],
+      "owner_layer": "Zep provider validation",
+      "filename": "issues/rp-005-prove-the-live-zep-lifecycle-and-outbox-replay-path.md"
+    },
+    {
+      "id": "RP-006",
+      "title": "Rehearse production-like legacy migration and rollback",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:validation",
+        "area:migration",
+        "priority:p0"
+      ],
+      "depends_on": [],
+      "blocks": [
+        "RP-009"
+      ],
+      "owner_layer": "migration and data integrity",
+      "filename": "issues/rp-006-rehearse-production-like-legacy-migration-and-rollback.md"
+    },
+    {
+      "id": "RP-007",
+      "title": "Prove hosted CI, security scanning, branch protection, and release controls",
+      "priority": "P1",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:validation",
+        "area:ci",
+        "priority:p1"
+      ],
+      "depends_on": [],
+      "blocks": [
+        "RP-009"
+      ],
+      "owner_layer": "hosted repository governance",
+      "filename": "issues/rp-007-prove-hosted-ci-security-scanning-branch-protection-and-release-controls.md"
+    },
+    {
+      "id": "RP-008",
+      "title": "Prove external secret loading, rotation, revocation, and no-plaintext persistence",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:validation",
+        "area:security",
+        "priority:p0"
+      ],
+      "depends_on": [],
+      "blocks": [
+        "RP-004",
+        "RP-005",
+        "RP-009"
+      ],
+      "owner_layer": "secret-management boundary",
+      "filename": "issues/rp-008-prove-external-secret-loading-rotation-revocation-and-no-plaintext-persistence.md"
+    },
+    {
+      "id": "RP-009",
+      "title": "Aggregate external evidence and authorize the v2.2 production release",
+      "priority": "P0",
+      "labels": [
+        "release-blocker",
+        "evidence-required",
+        "type:validation",
+        "priority:p0"
+      ],
+      "depends_on": [
+        "RP-001",
+        "RP-002",
+        "RP-003",
+        "RP-004",
+        "RP-005",
+        "RP-006",
+        "RP-007",
+        "RP-008"
+      ],
+      "blocks": [],
+      "owner_layer": "release assurance",
+      "filename": "issues/rp-009-aggregate-external-evidence-and-authorize-the-v2-2-production-release.md"
+    }
+  ]
+}

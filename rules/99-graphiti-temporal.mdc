@@ -1,0 +1,19 @@
+---
+description: Bi-temporal and supersession law
+alwaysApply: true
+---
+
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: rules/99-graphiti-temporal.mdc
+layer: configuration
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
+- Distinguish valid time from transaction time.
+- Corrections create new records and supersession events.
+- Never overwrite historical truth in place.

@@ -1,0 +1,23 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/resources/defaults.yaml
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema_version: 1
+workspace_namespace: l9-workspace
+projection_backend: none
+projection_required: false
+http_auth_required: true
+local_read_namespaces: []
+local_write_namespaces: []
+local_promote_namespaces: []
+local_is_admin: false
+outbox_batch_size: 50
+outbox_max_attempts: 8
+default_search_limit: 20
+default_token_budget: 1200

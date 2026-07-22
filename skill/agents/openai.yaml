@@ -1,0 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: skill/agents/openai.yaml
+#   layer: skill
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+interface:
+  display_name: L9 Graphiti Memory
+  short_description: Governed temporal memory operations and repository integration

@@ -1,0 +1,1 @@
+PASS: core, adapter, service, and integration dependency directions are aligned

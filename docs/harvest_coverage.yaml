@@ -1,0 +1,317 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: docs/harvest_coverage.yaml
+#   layer: documentation
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema: l9.memory.harvest-coverage/v1
+repository: Quantum-L9/l9-graphiti-memory
+release: 2.2.0
+status_values:
+  - implemented
+  - rejected_boundary
+  - blocked_external
+entries:
+  - id: H-001
+    concept: Canonical memory service and single governed write path
+    sources: [current_repo_audit, l9_ops_commit_pack, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/services/memory_service.py]
+    test_paths: [tests/integration/test_memory_service.py, tests/integration/test_mcp.py]
+    adr_paths: [docs/adr/ADR-002-canonical-memory-service.md, docs/adr/ADR-036-canonical-write-bypass-enforcement.md]
+  - id: H-002
+    concept: Full valid-time and transaction-time memory coordinates
+    sources: [legacy_memory_pack, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/contracts/temporal.py, src/l9_graphite_memory/adapters/sqlite_store.py]
+    test_paths: [tests/integration/test_memory_service.py, tests/conformance/test_store_contract.py]
+    adr_paths: [docs/adr/ADR-004-bi-temporal-semantics.md, docs/adr/ADR-029-temporal-coordinate-model.md]
+  - id: H-003
+    concept: Canonical taxonomy for identity preference constraint decision episodic semantic procedural observation insight and meta memory
+    sources: [memory_packs, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/contracts/enums.py]
+    test_paths: [tests/unit/test_contracts.py]
+    adr_paths: [docs/adr/ADR-003-memory-contract-and-taxonomy.md, docs/adr/ADR-027-semantic-episodic-and-meta-memory-ownership.md]
+  - id: H-004
+    concept: Confidence method evidence count provenance and source-range traceability
+    sources: [memory_packs, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/contracts/evidence.py, src/l9_graphite_memory/contracts/memory.py]
+    test_paths: [tests/unit/test_contracts.py, tests/unit/test_atomic_extraction.py]
+    adr_paths: [docs/adr/ADR-005-provenance-and-evidence.md, docs/adr/ADR-044-authority-trust-confidence-and-relevance-separation.md]
+  - id: H-005
+    concept: Atomic memory assertion extraction with source lineage
+    sources: [memory_packs, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/extraction/atomic.py]
+    test_paths: [tests/unit/test_atomic_extraction.py]
+    adr_paths: [docs/adr/ADR-048-atomic-extraction-and-evidence-binding.md]
+  - id: H-006
+    concept: Server-derived principal and namespace authorization
+    sources: [l9_ops_commit_pack, legacy_memory_pack, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/authz/authenticator.py, src/l9_graphite_memory/authz/policy.py]
+    test_paths: [tests/unit/test_authz.py, tests/unit/test_server_principal.py]
+    adr_paths: [docs/adr/ADR-006-namespace-authorization.md, docs/adr/ADR-030-rls-and-transaction-scoped-authorization.md]
+  - id: H-007
+    concept: Admission rejection quarantine normalization redaction and safety signals
+    sources: [l9_ops_commit_pack, legacy_memory_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/admission/engine.py, src/l9_graphite_memory/admission/normalization.py, src/l9_graphite_memory/admission/policy.py]
+    test_paths: [tests/unit/test_normalization.py, tests/integration/test_memory_service.py]
+    adr_paths: [docs/adr/ADR-007-admission-and-quarantine.md]
+  - id: H-008
+    concept: Idempotency deduplication merge-not-replace and supersession
+    sources: [all_packs]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/services/memory_service.py, src/l9_graphite_memory/adapters/sqlite_store.py]
+    test_paths: [tests/integration/test_memory_service.py, tests/conformance/test_store_contract.py]
+    adr_paths: [docs/adr/ADR-008-idempotency-deduplication-and-supersession.md]
+  - id: H-009
+    concept: Typed hydration with authorized namespaces and token budgeting
+    sources: [l9_ops_commit_pack, memory_packs, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/retrieval/budget.py, src/l9_graphite_memory/retrieval/planner.py, src/l9_graphite_memory/services/memory_service.py]
+    test_paths: [tests/integration/test_memory_service.py, tests/unit/test_query_classifier.py]
+    adr_paths: [docs/adr/ADR-011-hydration-and-context-budgeting.md]
+  - id: H-010
+    concept: Strategy-specific graph semantic lexical and temporal retrieval receipts
+    sources: [memory_packs, legacy_memory_pack, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/retrieval/planner.py, src/l9_graphite_memory/adapters/graphiti_projection.py]
+    test_paths: [tests/unit/test_projection_strategies.py]
+    adr_paths: [docs/adr/ADR-012-hybrid-retrieval-strategy.md, docs/adr/ADR-039-retrieval-planning-and-tier-fusion.md, docs/adr/ADR-054-strategy-specific-hybrid-retrieval-receipts.md]
+  - id: H-011
+    concept: Deterministic query classification
+    sources: [legacy_memory_pack, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/retrieval/query_classifier.py]
+    test_paths: [tests/unit/test_query_classifier.py]
+    adr_paths: [docs/adr/ADR-039-retrieval-planning-and-tier-fusion.md]
+  - id: H-012
+    concept: Explainable importance relevance recency and outcome ranking
+    sources: [original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/retrieval/ranking.py]
+    test_paths: [tests/integration/test_memory_service.py]
+    adr_paths: [docs/adr/ADR-040-importance-ranking-and-decay-policy.md, docs/adr/ADR-044-authority-trust-confidence-and-relevance-separation.md]
+  - id: H-013
+    concept: Promotion lifecycle with governed procedural candidates
+    sources: [memory_packs, legacy_memory_pack, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/curation/promotion.py, src/l9_graphite_memory/curation/procedural.py]
+    test_paths: [tests/integration/test_procedural_synthesis.py, tests/integration/test_retention_lineage_phase_lock.py]
+    adr_paths: [docs/adr/ADR-009-memory-promotion-and-curation.md, docs/adr/ADR-045-procedural-synthesis-approval-boundary.md, docs/adr/ADR-052-procedural-synthesis-worker-and-approval-boundary.md]
+  - id: H-014
+    concept: Retention decay reference-aware archive and non-destructive history
+    sources: [memory_packs, legacy_memory_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/curation/retention.py, src/l9_graphite_memory/services/memory_service.py]
+    test_paths: [tests/integration/test_retention_lineage_phase_lock.py]
+    adr_paths: [docs/adr/ADR-010-retention-decay-and-pruning.md]
+  - id: H-015
+    concept: Identity preference behavior session and domain profile isolation with consent
+    sources: [memory_packs]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/contracts/profiles.py, src/l9_graphite_memory/ingestion/profiles.py, src/l9_graphite_memory/contracts/privacy.py]
+    test_paths: [tests/unit/test_profiles.py, tests/integration/test_distillation_profiles_sdk.py, tests/integration/test_privacy_deletion.py]
+    adr_paths: [docs/adr/ADR-024-memory-privacy-consent-and-deletion.md, docs/adr/ADR-049-sensitive-profiles-and-purpose-bound-consent.md]
+  - id: H-016
+    concept: Verified deletion with canonical tombstone and projection erasure
+    sources: [memory_packs, final_audit]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/services/memory_service.py, src/l9_graphite_memory/contracts/projection.py, src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/graphiti_projection.py, src/l9_graphite_memory/zep_transport.py]
+    test_paths: [tests/integration/test_privacy_deletion.py, tests/conformance/test_store_contract.py, tests/unit/test_projection_strategies.py, tests/unit/test_zep_transport.py]
+    adr_paths: [docs/adr/ADR-024-memory-privacy-consent-and-deletion.md, docs/adr/ADR-057-verified-deletion-and-projection-erasure.md]
+  - id: H-017
+    concept: Persistent provider projection locators
+    sources: [recursive_audit]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/contracts/projection.py, src/l9_graphite_memory/adapters/sqlite_store.py, src/l9_graphite_memory/services/outbox_worker.py]
+    test_paths: [tests/conformance/test_store_contract.py, tests/integration/test_privacy_deletion.py]
+    adr_paths: [docs/adr/ADR-057-verified-deletion-and-projection-erasure.md]
+  - id: H-018
+    concept: Durable atomic outbox retries replay and terminal dead-letter state
+    sources: [l9_ops_commit_pack, legacy_memory_pack, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/sqlite_store.py]
+    test_paths: [tests/integration/test_outbox.py]
+    adr_paths: [docs/adr/ADR-018-outbox-and-write-recovery.md, docs/adr/ADR-046-core-commit-versus-asynchronous-enrichment.md]
+  - id: H-019
+    concept: Ingress recovery queue for unavailable canonical service
+    sources: [l9_ops_commit_pack, legacy_memory_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/recovery/write_queue.py]
+    test_paths: [tests/integration/test_write_recovery.py]
+    adr_paths: [docs/adr/ADR-055-canonical-ingress-write-recovery-queue.md]
+  - id: H-020
+    concept: Session ingestion and context restoration adapters
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/integrations/session.py]
+    test_paths: [tests/integration/test_distillation_profiles_sdk.py]
+    adr_paths: [docs/adr/ADR-017-hook-and-agent-integration.md]
+  - id: H-021
+    concept: Offline evidence-preserving source distillation
+    sources: [memory_packs, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/extraction/distiller.py, src/l9_graphite_memory/ingestion/document.py, src/l9_graphite_memory/ingestion/repository.py]
+    test_paths: [tests/integration/test_distillation_profiles_sdk.py, tests/unit/test_ingestion.py]
+    adr_paths: [docs/adr/ADR-042-offline-source-ingestion.md]
+  - id: H-022
+    concept: Provenance replay cycle detection and orphan detection
+    sources: [legacy_memory_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/lineage/replay.py]
+    test_paths: [tests/integration/test_retention_lineage_phase_lock.py]
+    adr_paths: [docs/adr/ADR-031-reasoning-lineage-versus-private-reasoning.md, docs/adr/ADR-051-explicit-references-and-lineage-replay.md]
+  - id: H-023
+    concept: Checkpoint canonicalization and integrity utility without owning agent checkpointing
+    sources: [legacy_memory_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/integrity/checkpoint.py]
+    test_paths: [tests/unit/test_checkpoint_integrity.py]
+    adr_paths: [docs/adr/ADR-028-agent-checkpointing-boundary.md, docs/adr/ADR-053-checkpoint-integrity-utility-boundary.md]
+  - id: H-024
+    concept: Versioned schema registry and mandatory upcasting
+    sources: [original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/schema/registry.py, src/l9_graphite_memory/schema/upcasters.py]
+    test_paths: [tests/unit/test_schema_registry.py]
+    adr_paths: [docs/adr/ADR-035-schema-registry-and-upcasting.md, docs/adr/ADR-047-schema-migration-and-legacy-record-compatibility.md]
+  - id: H-025
+    concept: Canonical-write bypass enforcement
+    sources: [original_repo]
+    status: implemented
+    implementation_paths: [tools/assurance/check_memory_write_bypass.py]
+    test_paths: [tests/regression/test_assurance_tools.py]
+    adr_paths: [docs/adr/ADR-036-canonical-write-bypass-enforcement.md]
+  - id: H-026
+    concept: Canonical configuration authority and drift prevention
+    sources: [current_repo_audit, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/config/models.py, src/l9_graphite_memory/config/loader.py, tools/assurance/check_config_drift.py]
+    test_paths: [tests/unit/test_config.py, tests/regression/test_assurance_tools.py]
+    adr_paths: [docs/adr/ADR-020-package-and-configuration-layout.md, docs/adr/ADR-037-configuration-authority-and-drift-prevention.md]
+  - id: H-027
+    concept: SDK-first interface with thin CLI MCP and hook adapters
+    sources: [original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/sdk.py, src/l9_graphite_memory/cli.py, src/l9_graphite_memory/mcp_tools.py, hooks/graphiti-prefetch.sh]
+    test_paths: [tests/integration/test_distillation_profiles_sdk.py, tests/integration/test_mcp.py, tests/unit/test_cli_parser.py, tests/unit/test_gate.py]
+    adr_paths: [docs/adr/ADR-014-mcp-tool-contracts.md, docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md]
+  - id: H-028
+    concept: Explicit complete partial failed rejected duplicate quarantined and superseded results
+    sources: [all_packs]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/contracts/receipts.py, src/l9_graphite_memory/contracts/enums.py]
+    test_paths: [tests/unit/test_contracts.py, tests/integration/test_memory_service.py]
+    adr_paths: [docs/adr/ADR-015-failure-and-degradation-policy.md, docs/adr/ADR-041-llm-extraction-and-typed-failure-semantics.md]
+  - id: H-029
+    concept: Conflict-aware phase lock with task-bound verification
+    sources: [current_repo_audit]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/services/memory_service.py, src/l9_graphite_memory/contracts/receipts.py]
+    test_paths: [tests/integration/test_retention_lineage_phase_lock.py]
+    adr_paths: [docs/adr/ADR-050-phase-lock-snapshot-verification.md]
+  - id: H-030
+    concept: Vendor-neutral transport and explicit no-silent-fallback selection
+    sources: [handoff_pack, current_repo_audit]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/adapters/factory.py, src/l9_graphite_memory/transport.py, src/l9_graphite_memory/zep_transport.py]
+    test_paths: [tests/unit/test_config.py, tests/unit/test_zep_transport.py]
+    adr_paths: [docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md, docs/adr/ADR-015-failure-and-degradation-policy.md]
+  - id: H-031
+    concept: Packaged registry and wheel-installable resources
+    sources: [current_repo_audit, reconciled_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/resources/group_registry.yaml, src/l9_graphite_memory/group_resolver.py, pyproject.toml]
+    test_paths: [tests/unit/test_group_resolver.py, tests/regression/test_release_shell.py]
+    adr_paths: [docs/adr/ADR-020-package-and-configuration-layout.md]
+  - id: H-032
+    concept: Secret-free generated configurations and committed-secret scanning
+    sources: [current_repo_audit, original_repo]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/secrets.py, tools/assurance/check_secrets.py, scripts/write_cursor_config.py]
+    test_paths: [tests/regression/test_assurance_tools.py]
+    adr_paths: [docs/adr/ADR-016-secret-and-credential-boundaries.md]
+  - id: H-033
+    concept: Package wiring and orphan public API detection
+    sources: [original_repo]
+    status: implemented
+    implementation_paths: [tools/assurance/audit_package_wiring.py]
+    test_paths: [tests/regression/test_assurance_tools.py]
+    adr_paths: [docs/adr/ADR-043-package-wiring-and-public-api-governance.md]
+  - id: H-034
+    concept: Deterministic local SLO benchmark and partial-result policy
+    sources: [legacy_memory_pack, original_repo]
+    status: implemented
+    implementation_paths: [tools/assurance/benchmark_local.py]
+    test_paths: [tests/regression/test_assurance_tools.py]
+    adr_paths: [docs/adr/ADR-032-performance-slos-and-partial-result-policy.md]
+  - id: H-035
+    concept: Complete architecture decision ledger
+    sources: [user_requirement, all_audits]
+    status: implemented
+    implementation_paths: [docs/adr/README.md, tools/assurance/validate_adrs.py]
+    test_paths: [tests/regression/test_assurance_tools.py]
+    adr_paths: [docs/adr/ADR-056-recursive-harvest-convergence.md]
+  - id: H-036
+    concept: TransportPacket as the constellation inter-node boundary
+    sources: [legacy_memory_pack, l9_platform]
+    status: rejected_boundary
+    rationale: This dependency package owns memory contracts and adapters, not constellation inter-node transport. It must consume the canonical TransportPacket contract from its owner rather than define a deprecated envelope or duplicate TransportPacket.
+    adr_paths: [docs/adr/ADR-026-transportpacket-constellation-boundary.md]
+  - id: H-037
+    concept: Agent checkpoints execution plans world model updates and reasoning orchestration inside the memory write path
+    sources: [legacy_memory_pack, original_repo]
+    status: rejected_boundary
+    rationale: These are downstream consumers of committed memory events. Core persistence must not depend on agent execution, world-model, or reasoning services.
+    adr_paths: [docs/adr/ADR-028-agent-checkpointing-boundary.md, docs/adr/ADR-046-core-commit-versus-asynchronous-enrichment.md]
+  - id: H-038
+    concept: Duplicate memory control plane inside L9-Ops-MCP
+    sources: [l9_ops_commit_pack]
+    status: rejected_boundary
+    rationale: L9-Ops-MCP may proxy or orchestrate memory operations but must not own a parallel memory server, admission engine, or durable store.
+    adr_paths: [docs/adr/ADR-001-repository-role-and-boundaries.md, docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md]
+  - id: H-039
+    concept: Mandatory PostgreSQL Redis Neo4j OpenAI LangGraph and broad cognitive runtime dependencies
+    sources: [legacy_memory_pack, original_repo]
+    status: rejected_boundary
+    rationale: The canonical dependency package remains backend-neutral and locally operable. Optional projections and enrichment providers are adapters, not mandatory foundations.
+    adr_paths: [docs/adr/ADR-001-repository-role-and-boundaries.md, docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md]
+  - id: H-040
+    concept: Raw private chat histories and user-specific memory fixtures in the repository
+    sources: [legacy_memory_pack, memory_packs]
+    status: rejected_boundary
+    rationale: Only sanitized contract fixtures belong in source control. Private memory content must remain outside the repository and enter through consent-governed ingestion.
+    adr_paths: [docs/adr/ADR-034-private-data-fixtures-and-repository-hygiene.md]
+  - id: H-041
+    concept: Live Graphiti MCP add search delete and replay verification
+    sources: [current_repo_audit, recursive_audit]
+    status: blocked_external
+    blocker: Requires a reachable authenticated Graphiti MCP deployment with disposable test namespace and provider credentials.
+    adr_paths: [docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md, docs/adr/ADR-057-verified-deletion-and-projection-erasure.md]
+  - id: H-042
+    concept: Live Zep add search delete and replay verification
+    sources: [reconciled_pack, recursive_audit]
+    status: blocked_external
+    blocker: Requires a disposable Zep project and credential supplied outside the repository.
+    adr_paths: [docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md, docs/adr/ADR-057-verified-deletion-and-projection-erasure.md]
+  - id: H-043
+    concept: Hosted Ruff strict mypy CodeQL branch-protection and release-environment proof
+    sources: [current_repo_audit, final_validation]
+    status: blocked_external
+    blocker: Ruff and mypy are not available in the offline build environment; CodeQL branch protection and release environments require GitHub-hosted execution and repository settings inspection.
+    adr_paths: [docs/adr/ADR-021-testing-and-adapter-conformance.md, docs/adr/ADR-022-release-publishing-and-rollback.md]
+  - id: H-044
+    concept: Production data migration rollback and secret-rotation rehearsal
+    sources: [current_repo_audit, final_validation]
+    status: blocked_external
+    blocker: Requires production-like source data, provider credentials, backup target, and an authorized deployment environment.
+    adr_paths: [docs/adr/ADR-022-release-publishing-and-rollback.md, docs/adr/ADR-023-legacy-migration-and-compatibility.md]

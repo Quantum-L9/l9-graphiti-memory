@@ -1,0 +1,48 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/resources/memory_contract.yaml
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema_version: 2.1.0
+memory_classes:
+  - identity
+  - preference
+  - constraint
+  - decision
+  - episodic
+  - semantic
+  - procedural
+  - observation
+  - insight
+  - meta
+lifecycle_states:
+  - candidate
+  - active
+  - superseded
+  - archived
+  - quarantined
+  - rejected
+  - deletion_pending
+  - deleted
+temporal_coordinates:
+  - valid_from
+  - valid_to
+  - recorded_at
+  - source_observed_at
+  - superseded_at
+required_write_controls:
+  - server_derived_principal
+  - namespace_authorization
+  - normalization_digest
+  - admission_decision
+  - idempotency_key
+  - durable_receipt
+  - atomic_outbox
+  - purpose_bound_consent_for_sensitive_classes
+  - explicit_references
+  - verified_deletion_receipt

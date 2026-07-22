@@ -1,0 +1,9 @@
+# Remaining Production Proof
+
+The package is internally aligned and self-policing. Its local architecture, source tree, contracts, manifests, tests, ADRs, alignment gates, wheel, and clean-room rebuild are proven. Production release remains blocked because the authoritative TransportPacket package, production Gate client, dispatch-receipt schema, provider credentials, production-like migration environment, hosted repository controls, and external secret manager were not available inside the pack.
+
+The injected Gate boundary is intentionally generic. It enforces immutable root and follow-up packet handling, `derive_or_with_hop` semantics, trace and lineage preservation, Gate-only egress, and dispatch-receipt correlation without duplicating or guessing shared constellation contracts. Substituting invented TransportPacket or Gate APIs would create a beautifully typed counterfeit and would violate the repository's dependency-package boundary.
+
+The next valid move is to wire the authoritative TransportPacket factory and production Gate client in a disposable staging consumer and prove the complete packet lifecycle. The required evidence includes root and follow-up dispatch, authorization, destination resolution by Gate, packet immutability, trace preservation, lineage growth, receipt correlation, failure handling, retry/replay behavior, and rollback evidence.
+
+Production release also requires credentialed Graphiti and Zep lifecycle proof, production-like legacy migration and rollback rehearsal, hosted Ruff, strict mypy, CodeQL and repository-policy verification, plus external secret loading, rotation, revocation, and no-plaintext-persistence evidence. These requirements are decomposed into the issue set in this pack. Until every release-blocking issue is closed with attached evidence, the production status remains `BLOCKED_ON_EXTERNAL_VALIDATION`.

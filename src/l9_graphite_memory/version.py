@@ -1,0 +1,22 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/version.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+"""Package version and contract versions."""
+
+PACKAGE_VERSION = "2.2.0"
+MEMORY_SCHEMA_VERSION = "2.1.0"
+MCP_PROTOCOL_VERSION = "2024-11-05"
+ADMISSION_POLICY_VERSION = "memory-admission/v2"
+RANKING_POLICY_VERSION = "memory-ranking/v2"
+AUTHORIZATION_POLICY_VERSION = "memory-authz/v1"
+RETENTION_POLICY_VERSION = "memory-retention/v2"
+PHASE_LOCK_POLICY_VERSION = "memory-phase-lock/v2"
+
+CONSTELLATION_BRIDGE_VERSION = "l9-memory-gate/v1"

@@ -1,0 +1,1 @@
+PASS: canonical configuration defaults have no duplicate assignments

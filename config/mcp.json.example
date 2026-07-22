@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "l9-graphite-memory": {
+      "command": "python3",
+      "args": ["-m", "l9_graphite_memory.server", "--transport", "stdio"]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+---
+description: L9 memory use and canonical service boundary
+alwaysApply: true
+---
+
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: rules/03-graphiti-memory.mdc
+layer: configuration
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
+- Search or hydrate relevant memory before high-impact work.
+- Route every write through `l9-memory`, MCP `memory.ingest`, or `MemoryService`.
+- Never write directly to SQLite, Graphiti, Zep, or a provider SDK.
+- Treat search status `partial` or `failed` as operational evidence, not an empty memory result.

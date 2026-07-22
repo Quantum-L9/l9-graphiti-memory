@@ -1,0 +1,37 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: config/group_registry.yaml
+#   layer: configuration
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema_version: 3
+workspace_group: l9-workspace
+forbidden_groups: [main, default, "", test]
+resolution:
+  order: [explicit, environment, git_remote, path_hint]
+  on_failure: abort_write_allow_readonly
+repos:
+  l9-graphiti-memory:
+    github: Quantum-L9/l9-graphiti-memory
+    remote_patterns: ["*/l9-graphiti-memory*", "*/L9-Graphite-Memory*"]
+    path_hints: [l9-graphiti-memory, L9-Graphite-Memory]
+    integrates_with: [cursor-governance]
+  cursor-governance:
+    github: Quantum-L9/Cursor-Governance
+    remote_patterns: ["*/Cursor-Governance*"]
+    path_hints: [Cursor-Governance, GlobalCommands]
+    integrates_with: [l9-graphiti-memory]
+  cognitive-engine-graphs:
+    github: Quantum-L9/Cognitive.Engine.Graphs
+    remote_patterns: ["*/Cognitive.Engine.Graphs*", "*/cognitive-engine-graphs*"]
+    path_hints: [Cognitive.Engine.Graphs, cognitive-engine-graphs, CEG]
+    integrates_with: [l9-graphiti-memory]
+  l9-node-template:
+    github: Quantum-L9/L9-Node-Template
+    remote_patterns: ["*/L9-Node-Template*"]
+    path_hints: [L9-Node-Template]
+    integrates_with: [cursor-governance]

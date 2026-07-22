@@ -1,0 +1,14 @@
+{
+  "<runtime-secret-token>": {
+    "principal_id": "example-agent",
+    "tenant_id": "example-tenant",
+    "organization_id": "example-org",
+    "workspace_id": "example-workspace",
+    "agent_id": "example-agent",
+    "roles": ["memory-client"],
+    "read_namespaces": ["example-repo", "l9-workspace"],
+    "write_namespaces": ["example-repo"],
+    "promote_namespaces": [],
+    "is_admin": false
+  }
+}

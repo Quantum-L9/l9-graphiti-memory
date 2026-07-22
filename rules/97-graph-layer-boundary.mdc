@@ -1,0 +1,19 @@
+---
+description: Memory package ownership boundary
+alwaysApply: true
+---
+
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: rules/97-graph-layer-boundary.mdc
+layer: configuration
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
+- This repository owns memory contracts and controls, not agent execution, checkpoints, world models, or domain workflows.
+- Consumers submit typed candidates and receive receipts.
+- New runtime responsibilities require an ADR.

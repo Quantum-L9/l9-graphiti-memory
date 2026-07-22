@@ -1,0 +1,31 @@
+{
+  "iterations": 40,
+  "metrics": {
+    "hydrate": {
+      "max_ms": 0.5984,
+      "p50_ms": 0.5148,
+      "p95_ms": 0.5984,
+      "passed": true,
+      "samples": 10,
+      "threshold_p95_ms": 500.0
+    },
+    "search": {
+      "max_ms": 0.4951,
+      "p50_ms": 0.343,
+      "p95_ms": 0.396,
+      "passed": true,
+      "samples": 40,
+      "threshold_p95_ms": 250.0
+    },
+    "write": {
+      "max_ms": 0.4128,
+      "p50_ms": 0.0575,
+      "p95_ms": 0.1389,
+      "passed": true,
+      "samples": 40,
+      "threshold_p95_ms": 100.0
+    }
+  },
+  "scope": "in-memory canonical path only; external provider latency is not measured",
+  "status": "PASS"
+}

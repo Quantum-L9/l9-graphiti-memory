@@ -1,0 +1,8 @@
+{
+  "error": null,
+  "group_id": "l9-graphiti-memory",
+  "matches": [],
+  "method": "explicit",
+  "readonly": false,
+  "warning": null
+}

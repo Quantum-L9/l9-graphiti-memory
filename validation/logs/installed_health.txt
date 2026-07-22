@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-07-22T14:09:38.165556Z",
+  "degraded_reasons": [],
+  "outbox_backlog": 0,
+  "package_version": "2.2.0",
+  "projection": {
+    "enabled": false,
+    "healthy": true,
+    "name": "none"
+  },
+  "schema_version": "2.1.0",
+  "status": "complete",
+  "store": {
+    "healthy": true,
+    "name": "sqlite",
+    "path": "/tmp/tmp.riph14EZG7/installed-smoke/data/memory.sqlite3",
+    "records": 0,
+    "schema_version": 4
+  }
+}

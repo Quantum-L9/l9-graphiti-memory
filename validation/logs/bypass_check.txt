@@ -1,0 +1,1 @@
+PASS: no canonical memory write bypasses detected

@@ -1,0 +1,5 @@
+[lint]
+ignore = ["S603", "S607", "S608", "S310", "E402"]
+
+[lint.per-file-ignores]
+"src/l9_graphite_memory/schema/__init__.py" = ["F401"]

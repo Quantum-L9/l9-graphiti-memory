@@ -1,0 +1,11 @@
+WARNING: The directory '/home/oai/.cache/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.
+Looking in indexes: https://reader:****@packages.applied-caas-gateway1.internal.api.openai.org/artifactory/api/pypi/pypi-public/simple
+Processing /mnt/data/l9gm_alignment_update/l9-graphiti-memory-v2.2.0
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: l9-graphite-memory
+  Building wheel for l9-graphite-memory (pyproject.toml): started
+  Building wheel for l9-graphite-memory (pyproject.toml): finished with status 'done'
+  Created wheel for l9-graphite-memory: filename=l9_graphite_memory-2.2.0-py3-none-any.whl size=132977 sha256=2f69b2a66b2d9eddaf71dc1bfa5af37463abb81ec915478df590f93bac4e5181
+  Stored in directory: /tmp/pip-ephem-wheel-cache-st39oqvg/wheels/d8/d2/8a/248a174acbbc9180d6251c17b62d40b50f51bd20d2194ee272
+Successfully built l9-graphite-memory

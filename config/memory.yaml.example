@@ -1,0 +1,39 @@
+# Non-secret operator configuration for l9-graphite-memory v2.
+data_dir: ~/.local/share/l9-memory
+state_dir: ~/.local/state/l9-memory
+workspace_namespace: l9-workspace
+registry_path: null
+
+memory_enabled: true
+write_gates_enabled: false
+gate_ttl_minutes: 30
+
+# none | http | zep
+projection_backend: none
+projection_required: false
+graphiti_mcp_url: null
+zep_api_url: null
+
+# Remote HTTP is authenticated by default.
+http_auth_required: true
+
+# Local CLI/stdio identity. CLI commands derive the active repository namespace.
+# Stdio MCP uses these explicit claims when provided; otherwise it resolves its cwd.
+local_principal_id: local-operator
+local_tenant_id: local
+local_organization_id: local
+local_workspace_id: local
+local_agent_id: l9-memory-cli
+local_read_namespaces: []
+local_write_namespaces: []
+local_promote_namespaces: []
+local_is_admin: false
+
+outbox_batch_size: 50
+outbox_max_attempts: 8
+outbox_base_delay_seconds: 5
+
+default_search_limit: 20
+default_token_budget: 1200
+log_level: INFO
+json_logs: true

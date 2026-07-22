@@ -1,0 +1,19 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: MANIFEST.in
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+include LICENSE README.md ARCHITECTURE.md RUNBOOK.md MIGRATION.md SECURITY.md
+include AGENTS.md CONTRIBUTING.md CHANGE_SUMMARY.md MANIFEST.md VALIDATION.md ROADMAP.md QUICKSTART.md
+recursive-include docs *.md
+recursive-include hooks *.sh
+recursive-include scripts *.sh *.py
+recursive-include config *.yaml *.json *.example
+recursive-include rules *.mdc
+recursive-include tools *.py *.yaml
+recursive-include tests *.py

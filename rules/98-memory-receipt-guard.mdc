@@ -1,0 +1,20 @@
+---
+description: Local memory receipt guard behavior
+alwaysApply: true
+---
+
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: rules/98-memory-receipt-guard.mdc
+layer: configuration
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
+- This rule is not constellation Gate and owns no routing or workflow.
+- Guard decisions are network-free and verify only expiring hydration and phase-lock receipts.
+- When enforcement is enabled, mutating actions require fresh hydration evidence.
+- Governed modifications additionally require a current conflict-free phase-lock receipt.

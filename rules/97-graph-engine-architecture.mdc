@@ -1,0 +1,19 @@
+---
+description: Graph and semantic providers are rebuildable projections
+alwaysApply: true
+---
+
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: rules/97-graph-engine-architecture.mdc
+layer: configuration
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
+- The canonical RecordStore owns records, status, receipts, locks, and outbox.
+- Graphiti and Zep are optional projections.
+- Projection failure must not erase or fabricate canonical memory.

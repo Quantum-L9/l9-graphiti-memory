@@ -1,0 +1,13 @@
+{
+  "blocked_external_checks": 5,
+  "checks_failed": 0,
+  "checks_passed": 20,
+  "checks_unknown": 0,
+  "generated_from": "executed files under validation/logs and explicit external blocker declarations",
+  "local_deterministic_status": "PASS",
+  "production_release_status": "BLOCKED_ON_EXTERNAL_VALIDATION",
+  "release": "2.2.0",
+  "repository": "Quantum-L9/l9-graphiti-memory",
+  "review_package_status": "APPROVED_WITH_FINDINGS",
+  "schema": "l9.validation-report/v1"
+}

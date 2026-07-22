@@ -1,0 +1,1 @@
+PASS: all tracked files carry L9_META inline or through the cryptographic manifest

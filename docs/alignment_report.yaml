@@ -1,0 +1,111 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: docs/alignment_report.yaml
+#   layer: documentation
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema_version: l9.recursive_alignment_report/v1
+repository: Quantum-L9/l9-graphiti-memory
+release: 2.2.0
+artifact_class: dependency_package
+status: aligned_with_external_blockers
+source_authority:
+  - latest_user_instruction
+  - supplied_recursive_alignment_kernel
+  - accepted_repository_adrs
+  - executable_contracts_and_tests
+boundary_map:
+  memory_core: canonical_memory_law
+  record_store: canonical_state
+  projection_adapters: rebuildable_provider_state
+  transport_packet: external_constellation_owner
+  gate: routing_destination_resolution_and_inter_node_admission
+  orchestrator: workflow_ownership
+  local_memory_guard: expiring_receipt_verification_only
+resolved_violations:
+  - id: RAA-001
+    severity: critical
+    rule_broken: transport_packet_and_gate_boundary_not_executable
+    correction: injected_packet_factory_and_gate_only_bridge
+    owner_layer: integration
+    blocks_release: true
+  - id: RAA-002
+    severity: critical
+    rule_broken: local_component_implied_gate_workflow_state
+    correction: typed_local_receipt_guard_and_thin_compatibility_shim
+    owner_layer: hook_adapter
+    blocks_release: true
+  - id: RAA-003
+    severity: high
+    rule_broken: l9_meta_missing
+    correction: inline_and_manifest_metadata_carriers
+    owner_layer: repository
+    blocks_release: true
+  - id: RAA-004
+    severity: high
+    rule_broken: deprecated_transport_reference_survived
+    correction: remove_reference_and_add_absence_test
+    owner_layer: architecture
+    blocks_release: true
+  - id: RAA-005
+    severity: high
+    rule_broken: print_calls_present
+    correction: explicit_stdout_stderr_and_ast_gate
+    owner_layer: executable_surfaces
+    blocks_release: true
+  - id: RAA-006
+    severity: high
+    rule_broken: recursive_contract_not_ci_enforced
+    correction: recursive_layer_metadata_and_behavior_gates
+    owner_layer: assurance
+    blocks_release: true
+  - id: RAA-007
+    severity: medium
+    rule_broken: generated_cache_artifacts_packaged
+    correction: purge_and_reject_cache_artifacts
+    owner_layer: packaging
+    blocks_release: true
+  - id: RAA-008
+    severity: medium
+    rule_broken: camel_case_hook_aliases
+    correction: canonical_snake_case_hook_contract
+    owner_layer: hook_adapter
+    blocks_release: false
+  - id: RAA-009
+    severity: medium
+    rule_broken: layer_direction_not_enforced
+    correction: ast_layer_boundary_audit
+    owner_layer: assurance
+    blocks_release: true
+  - id: RAA-010
+    severity: medium
+    rule_broken: manifest_missing_file_metadata
+    correction: release_manifest_v2
+    owner_layer: packaging
+    blocks_release: true
+unknowns:
+  - canonical_transport_packet_python_import
+  - canonical_gate_client_package_and_receipt_schema
+  - production_gate_routing_policy
+external_blockers:
+  - credentialed_gate_staging
+  - credentialed_graphiti_and_zep_lifecycle
+  - production_migration_and_rollback
+  - hosted_ci_and_repository_controls
+scores:
+  context_lock: 10
+  transport_alignment: 10
+  gate_routing_alignment: 10
+  authority_boundary_alignment: 10
+  file_structure_alignment: 10
+  schema_field_alignment: 10
+  security_observability_alignment: 10
+  testing_validation_alignment: 10
+  leverage_simplicity: 10
+  convergence: 10
+  local_total: 100
+minimum_safe_next_action: credentialed_gate_staging_rehearsal
