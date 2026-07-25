@@ -130,6 +130,23 @@ Projection writes must return or establish a stable episode locator. The locator
 - Outbox retries use bounded exponential backoff and terminal dead state.
 - No direct database emergency path exists.
 
+## CI and release validation
+
+Five workflows gate the repository. `CI` runs the `validate` matrix on Python
+3.10 and 3.13 (`ruff check .`, `mypy src/l9_graphite_memory`,
+`bash scripts/validate_release.sh`). `L9 Lint and Test` runs `Lint and Type
+Check` (`ruff check src/`, `ruff format --check src/`, `mypy src/`) and `Test
+Suite` (`pytest tests/`). `L9 Analysis` runs the governed Semgrep pipeline and
+publishes findings as checks, `CodeQL` runs security analysis, and `Publish`
+builds and uploads release artifacts.
+
+`scripts/validate_release.sh` is the authoritative release gate: it regenerates
+inline metadata and the cryptographic manifest, runs the test suite and every
+assurance tool, builds a wheel, and smoke-tests the installed distribution. Lint
+and type configuration is centralized in the top-level `ruff.toml`; the
+type-check jobs install `requirements-ci.txt` so the `pydantic.mypy` plugin
+loads.
+
 ## Extension model
 
 Add a store by implementing `RecordStore` and passing conformance tests. Add a projection by implementing `ProjectionAdapter`, returning stable locators, and passing search, health, and erasure tests. Add an ingestion source by constructing typed requests and calling `MemoryService`. Add enrichment through idempotent outbox consumers. Do not add another memory control plane.
