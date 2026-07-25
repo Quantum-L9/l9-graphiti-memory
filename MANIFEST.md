@@ -56,14 +56,14 @@ updated: 2026-07-22
 
 | Path | Category | Layer | Bytes | SHA-256 |
 |---|---|---|---:|---|
-| `.github/governance/execution-profiles.yaml` | `ci` | `ci` | 1401 | `108f8cba4dacb981e5775a621408c910009669a2cb4bf9058f7a49c959b58f69` |
-| `.github/governance/promotion-policy.yaml` | `ci` | `ci` | 638 | `9b3204a4e3a6c271d256632ccbc4820a8a1bd08b08def823ca0adc331de3c630` |
-| `.github/governance/provider-requiredness.yaml` | `ci` | `ci` | 532 | `0269594b6a0ee1169c528cfa8d86685d3c31d5245ddab587b1ad1ebba2c03843` |
-| `.github/governance/quality-thresholds.yaml` | `ci` | `ci` | 904 | `0066498b37d8a67cc703c8b60308c25329bd3342021517abca9a8f9be2918905` |
-| `.github/governance/rule-modes.yaml` | `ci` | `ci` | 550 | `788c0aaad0ae46d975315aa6b38c6d3ac71424f28680853d0650c605c367039a` |
-| `.github/governance/semgrep-identity-map.yaml` | `ci` | `ci` | 33359 | `ec610606592ec9aee5f9f3455f7f0a57ee4cdef481ce77f1f880e947d9b71fb1` |
-| `.github/governance/semgrep-policy.yaml` | `ci` | `ci` | 674 | `dae8e4cd32ea7b04dc40f4a898480b10b38e5a67f2cf0de26ed48b20b02da4fc` |
-| `.github/governance/waivers.yaml` | `ci` | `ci` | 267 | `200338ea71165c38fe26067750d131ac4e3326f79c2f154d39f794185870955d` |
+| `.github/governance/execution-profiles.yaml` | `ci` | `ci` | 1172 | `1bc2ba1b7ced36c2699c841d2351abe0cfd87398c355752f2c71a3ad6d4e9603` |
+| `.github/governance/promotion-policy.yaml` | `ci` | `ci` | 411 | `ce4697d2aaad3e41426cdc8537d09def619a73121cdc1dd016e0fc8886a98fa9` |
+| `.github/governance/provider-requiredness.yaml` | `ci` | `ci` | 300 | `fd6da1f5b69bdfcf8cc20cd54169bbee5c02cc548782651000c4443acf89ecf3` |
+| `.github/governance/quality-thresholds.yaml` | `ci` | `ci` | 675 | `3e24d1ed0883e2f5aec7f8635d927da259d9fddf9129d43b81e024e0d83fe0a3` |
+| `.github/governance/rule-modes.yaml` | `ci` | `ci` | 329 | `f12cc7cac66624a1bdac0abb9be11a3e9226528730f0cd9077846074eb4009b8` |
+| `.github/governance/semgrep-identity-map.yaml` | `ci` | `ci` | 33128 | `eae993d8fe43f8753018731686915b26e1ca6f41ef6efc4ea3a0b93f93f18b91` |
+| `.github/governance/semgrep-policy.yaml` | `ci` | `ci` | 449 | `e49de849c182984234789a0ffac165133bf01a904e06238a1089b94ea0746515` |
+| `.github/governance/waivers.yaml` | `ci` | `ci` | 49 | `fefa39bfbf355c58854c27735f3952d0a3e596d95f5b8cd26f0dfd6d5f7aaa07` |
 | `.github/issues.json` | `ci` | `ci` | 5755 | `23cbdff3ae0c9491c419771321766af4f510cd954dc671404994e7c7e3771d28` |
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
 | `.github/workflows/ci.yml` | `ci` | `ci` | 1243 | `fa6d955ce188515b95ea3377f946a41330abb4647a7817e68770df31f8a3f4fc` |
@@ -190,7 +190,7 @@ updated: 2026-07-22
 | `scripts/create_issues.py` | `operations` | `operations` | 3038 | `472a78e1f7aa4c65722f60581112959a3524349eaeff2cf2b80b62fa5255c0c1` |
 | `scripts/install.sh` | `operations` | `operations` | 728 | `355df98cbde85f73aa78627afc3a4131cdf142271e1dbc410c929e41d0536d74` |
 | `scripts/preflight.sh` | `operations` | `operations` | 3435 | `3c746e3cbd546e55d74f5b20f5912eeb083916df77c0cc5d92b599c8bf5eb18f` |
-| `scripts/validate_release.sh` | `operations` | `operations` | 4848 | `27b16cfbd914b38664777412d828c9c29f7e789650e55273bb91e0ffb104b415` |
+| `scripts/validate_release.sh` | `operations` | `operations` | 5089 | `af765e16123c53370eca2320e663ca27abeb82a305ec352c99cd39d3b4614c73` |
 | `scripts/write_claude_config.py` | `operations` | `operations` | 2431 | `ce331a01c03de38b13a58b1ffefe2b03292306f0ffa2bcc621b981d7a083e8e8` |
 | `scripts/write_cursor_config.py` | `operations` | `operations` | 1901 | `059ddf1a0d7b79367f2172a337295b30bf6d45cc9c5cffe528d9f2c662219571` |
 | `skill/SKILL.md` | `skill` | `skill` | 4860 | `9e9af67d407d1448176abf32b476f88d586f7b13d1618fd8f56ced15a2ee3d01` |
@@ -318,17 +318,17 @@ updated: 2026-07-22
 | `tests/unit/test_schema_registry.py` | `tests` | `tests` | 964 | `008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee` |
 | `tests/unit/test_server_principal.py` | `tests` | `tests` | 870 | `ee90435a75d372007b48334e9cbe8b16e05af6a370e4c43af04d34cd9262c982` |
 | `tests/unit/test_zep_transport.py` | `tests` | `tests` | 2614 | `4b08cdd26387ee78c67f27a398a71001cf1805284fd516f8d355af78350db65d` |
-| `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 6253 | `86a4995cfdfa2cd0487ba43cd009b3019eddab876f269ea9c7df1395ba22feee` |
+| `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 6470 | `6869cc7940bbb2913068a7d179c43fb9310c09f8a8d8efdfcd83ba4ad9569f05` |
 | `tools/assurance/audit_package_wiring.py` | `assurance` | `assurance` | 3631 | `06c5478ea1c65ccbfa719cb3a42bd436c939eb3c30bf7e75035ebf276fd3639d` |
 | `tools/assurance/benchmark_local.py` | `assurance` | `assurance` | 4785 | `b42d3c76d88af1a6337869c8bb988bcd36bfa202b026a66aa139db894ce223e1` |
 | `tools/assurance/check_config_drift.py` | `assurance` | `assurance` | 2097 | `e01af6e0cbd31580254bc563be3a4e693acafd981708635b2b80588d07875d11` |
-| `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 3135 | `5601b565d8f3804de1f888b23a231055ef4b880b45b5deaee0feb62c20d48cf5` |
+| `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 3655 | `29b93ec38c9a77ba05e891b39d700f4b15c51565a9145066376e9fbca7879903` |
 | `tools/assurance/check_layer_boundaries.py` | `assurance` | `assurance` | 3341 | `c504e3864969a96f7474641d31dc9d8e25008c871a940ca157c27f5b43e27f92` |
 | `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 4015 | `509ab5a677a56517de8bc9d2f66b3eca3e93cd98e4ac5ff6e4fb0c81fc360269` |
 | `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12054 | `92e67cac7eb728a4de1f17b427084d4e39c3df95a827184b48d9854768309098` |
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4482 | `53a76213ff055197716ac304cd8b6dc36152e68070f65dc38fff0975abb332da` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 6033 | `749012634f3b9d3be0607703fdf64230cecd0199f726714d6eae01e58276e528` |
-| `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 9089 | `32e401c90f7c4d7906218abfb02db92a05a1e19f17c85c8412f8ba67ce41781f` |
+| `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 9219 | `e53cf5cf72d033fbc45685af032cce4f8db6e1533967a122f989754cc634fb4e` |
 | `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 11649 | `79c49c0e28a8d2676595179763ffed5f4c026aa86d197925fb22e311938f7a86` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2624 | `87074e49207fc70c71936543f12a0a5c4b9058781902682cce1df649ffd4098e` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4282 | `dfb473fea080bb880ff9de2f5e9101bc616d2a4a8ed4a1f17be927d7aae75100` |

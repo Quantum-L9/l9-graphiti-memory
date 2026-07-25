@@ -155,6 +155,9 @@ def tracked_comment_safe_files(root: Path) -> tuple[Path, ...]:
         if (
             any(part in EXCLUDED_PARTS for part in relative.parts)
             or relative.as_posix() in EXCLUDED_FILES
+            # .github/governance/* are strict-JSON documents; a comment header
+            # would break the governed-analysis parser (json.loads).
+            or relative.as_posix().startswith(".github/governance/")
         ):
             continue
         if (

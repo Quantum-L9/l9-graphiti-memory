@@ -92,7 +92,11 @@ def _iter_files(
             continue
         relative = path.relative_to(root)
         if any(
-            part in EXCLUDED_ANY_PARTS or part.endswith(".egg-info")
+            part in EXCLUDED_ANY_PARTS
+            or part.endswith(".egg-info")
+            or part == ".coverage"
+            or part.startswith(".coverage.")
+            or part == "coverage.xml"
             for part in relative.parts
         ):
             continue

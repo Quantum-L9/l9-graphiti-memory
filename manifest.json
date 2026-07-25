@@ -14,8 +14,8 @@
         "version": "2.2.0"
       },
       "path": ".github/governance/execution-profiles.yaml",
-      "sha256": "108f8cba4dacb981e5775a621408c910009669a2cb4bf9058f7a49c959b58f69",
-      "size_bytes": 1401
+      "sha256": "1bc2ba1b7ced36c2699c841d2351abe0cfd87398c355752f2c71a3ad6d4e9603",
+      "size_bytes": 1172
     },
     {
       "category": "ci",
@@ -30,8 +30,8 @@
         "version": "2.2.0"
       },
       "path": ".github/governance/promotion-policy.yaml",
-      "sha256": "9b3204a4e3a6c271d256632ccbc4820a8a1bd08b08def823ca0adc331de3c630",
-      "size_bytes": 638
+      "sha256": "ce4697d2aaad3e41426cdc8537d09def619a73121cdc1dd016e0fc8886a98fa9",
+      "size_bytes": 411
     },
     {
       "category": "ci",
@@ -46,8 +46,8 @@
         "version": "2.2.0"
       },
       "path": ".github/governance/provider-requiredness.yaml",
-      "sha256": "0269594b6a0ee1169c528cfa8d86685d3c31d5245ddab587b1ad1ebba2c03843",
-      "size_bytes": 532
+      "sha256": "fd6da1f5b69bdfcf8cc20cd54169bbee5c02cc548782651000c4443acf89ecf3",
+      "size_bytes": 300
     },
     {
       "category": "ci",
@@ -62,8 +62,8 @@
         "version": "2.2.0"
       },
       "path": ".github/governance/quality-thresholds.yaml",
-      "sha256": "0066498b37d8a67cc703c8b60308c25329bd3342021517abca9a8f9be2918905",
-      "size_bytes": 904
+      "sha256": "3e24d1ed0883e2f5aec7f8635d927da259d9fddf9129d43b81e024e0d83fe0a3",
+      "size_bytes": 675
     },
     {
       "category": "ci",
@@ -78,8 +78,8 @@
         "version": "2.2.0"
       },
       "path": ".github/governance/rule-modes.yaml",
-      "sha256": "788c0aaad0ae46d975315aa6b38c6d3ac71424f28680853d0650c605c367039a",
-      "size_bytes": 550
+      "sha256": "f12cc7cac66624a1bdac0abb9be11a3e9226528730f0cd9077846074eb4009b8",
+      "size_bytes": 329
     },
     {
       "category": "ci",
@@ -94,8 +94,8 @@
         "version": "2.2.0"
       },
       "path": ".github/governance/semgrep-identity-map.yaml",
-      "sha256": "ec610606592ec9aee5f9f3455f7f0a57ee4cdef481ce77f1f880e947d9b71fb1",
-      "size_bytes": 33359
+      "sha256": "eae993d8fe43f8753018731686915b26e1ca6f41ef6efc4ea3a0b93f93f18b91",
+      "size_bytes": 33128
     },
     {
       "category": "ci",
@@ -110,8 +110,8 @@
         "version": "2.2.0"
       },
       "path": ".github/governance/semgrep-policy.yaml",
-      "sha256": "dae8e4cd32ea7b04dc40f4a898480b10b38e5a67f2cf0de26ed48b20b02da4fc",
-      "size_bytes": 674
+      "sha256": "e49de849c182984234789a0ffac165133bf01a904e06238a1089b94ea0746515",
+      "size_bytes": 449
     },
     {
       "category": "ci",
@@ -126,8 +126,8 @@
         "version": "2.2.0"
       },
       "path": ".github/governance/waivers.yaml",
-      "sha256": "200338ea71165c38fe26067750d131ac4e3326f79c2f154d39f794185870955d",
-      "size_bytes": 267
+      "sha256": "fefa39bfbf355c58854c27735f3952d0a3e596d95f5b8cd26f0dfd6d5f7aaa07",
+      "size_bytes": 49
     },
     {
       "category": "ci",
@@ -446,8 +446,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "d99c4bc6a6b95ac826b35d6f8bb8653d9e9e2e9c3a56c9d7b9c3d8bec6e90890",
-      "size_bytes": 50233
+      "sha256": "5b27eac30cf251a73085f87b300c1e93a394c154fc32e9c82d6a8ef9bf488f52",
+      "size_bytes": 50232
     },
     {
       "category": "repository_root",
@@ -2174,8 +2174,8 @@
         "version": "2.2.0"
       },
       "path": "scripts/validate_release.sh",
-      "sha256": "27b16cfbd914b38664777412d828c9c29f7e789650e55273bb91e0ffb104b415",
-      "size_bytes": 4848
+      "sha256": "af765e16123c53370eca2320e663ca27abeb82a305ec352c99cd39d3b4614c73",
+      "size_bytes": 5089
     },
     {
       "category": "operations",
@@ -4222,8 +4222,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/apply_l9_meta.py",
-      "sha256": "86a4995cfdfa2cd0487ba43cd009b3019eddab876f269ea9c7df1395ba22feee",
-      "size_bytes": 6253
+      "sha256": "6869cc7940bbb2913068a7d179c43fb9310c09f8a8d8efdfcd83ba4ad9569f05",
+      "size_bytes": 6470
     },
     {
       "category": "assurance",
@@ -4286,8 +4286,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/check_l9_meta.py",
-      "sha256": "5601b565d8f3804de1f888b23a231055ef4b880b45b5deaee0feb62c20d48cf5",
-      "size_bytes": 3135
+      "sha256": "29b93ec38c9a77ba05e891b39d700f4b15c51565a9145066376e9fbca7879903",
+      "size_bytes": 3655
     },
     {
       "category": "assurance",
@@ -4382,8 +4382,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_manifest.py",
-      "sha256": "32e401c90f7c4d7906218abfb02db92a05a1e19f17c85c8412f8ba67ce41781f",
-      "size_bytes": 9089
+      "sha256": "e53cf5cf72d033fbc45685af032cce4f8db6e1533967a122f989754cc634fb4e",
+      "size_bytes": 9219
     },
     {
       "category": "assurance",

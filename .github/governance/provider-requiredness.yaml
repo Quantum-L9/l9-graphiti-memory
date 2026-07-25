@@ -1,13 +1,3 @@
-# L9_META
-#   l9_schema: 1
-#   repo: Quantum-L9/l9-graphiti-memory
-#   path: .github/governance/provider-requiredness.yaml
-#   layer: ci
-#   owner: memory-control-plane
-#   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
-
 {
   "schema": "l9.provider-requiredness/v1",
   "profiles": {

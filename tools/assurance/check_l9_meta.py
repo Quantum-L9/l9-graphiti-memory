@@ -42,7 +42,11 @@ def _tracked_files(root: Path) -> tuple[Path, ...]:
             continue
         relative = path.relative_to(root)
         if any(
-            part in EXCLUDED_PARTS or part.endswith(".egg-info")
+            part in EXCLUDED_PARTS
+            or part.endswith(".egg-info")
+            or part == ".coverage"
+            or part.startswith(".coverage.")
+            or part == "coverage.xml"
             for part in relative.parts
         ):
             continue
@@ -77,7 +81,14 @@ def validate(root: Path) -> tuple[str, ...]:
                 or meta.get("repo") != "Quantum-L9/l9-graphiti-memory"
             ):
                 failures.append(f"invalid manifest l9_meta: {relative}")
-        if path.suffix in INLINE_EXTENSIONS or path.name in INLINE_NAMES:
+        # .github/governance/* are strict-JSON documents consumed by the
+        # governed analysis pipeline (resolve-governance parses them with
+        # json.loads, which rejects comments). They carry metadata through the
+        # manifest only, never an inline header.
+        inline_capable = (
+            path.suffix in INLINE_EXTENSIONS or path.name in INLINE_NAMES
+        ) and not relative.startswith(".github/governance/")
+        if inline_capable:
             head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:50])
             if "L9_META" not in head:
                 failures.append(f"missing inline L9_META: {relative}")
