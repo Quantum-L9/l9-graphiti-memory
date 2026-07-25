@@ -39,7 +39,10 @@ def _tracked_files(root: Path) -> tuple[Path, ...]:
         if not path.is_file():
             continue
         relative = path.relative_to(root)
-        if any(part in EXCLUDED_PARTS for part in relative.parts):
+        if any(
+            part in EXCLUDED_PARTS or part.endswith(".egg-info")
+            for part in relative.parts
+        ):
             continue
         if relative.as_posix() == "manifest.json":
             continue
