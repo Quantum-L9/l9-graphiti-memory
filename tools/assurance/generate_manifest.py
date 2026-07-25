@@ -22,7 +22,14 @@ from pathlib import Path
 
 REPOSITORY = "Quantum-L9/l9-graphiti-memory"
 RELEASE = "2.2.0"
-EXCLUDED_ANY_PARTS = {".git", ".pytest_cache", "__pycache__", ".venv"}
+EXCLUDED_ANY_PARTS = {
+    ".git",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "__pycache__",
+    ".venv",
+}
 EXCLUDED_TOP_LEVEL = {"build", "dist"}
 
 

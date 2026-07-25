@@ -430,8 +430,15 @@ class MemoryService:
         conflicts: list[ConflictItem] = []
         for index, left in enumerate(structured):
             assert left.assertion is not None
+            # is_structured (used to build `structured`) guarantees the triple.
+            assert left.assertion.subject is not None
+            assert left.assertion.predicate is not None
+            assert left.assertion.object is not None
             for right in structured[index + 1 :]:
                 assert right.assertion is not None
+                assert right.assertion.subject is not None
+                assert right.assertion.predicate is not None
+                assert right.assertion.object is not None
                 same_key = (
                     left.assertion.subject.casefold()
                     == right.assertion.subject.casefold()

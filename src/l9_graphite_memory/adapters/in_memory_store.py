@@ -78,8 +78,8 @@ class InMemoryRecordStore:
         self.receipts[receipt.receipt_id] = receipt
         for event in status_events:
             self.transition_state(event)
-        for event in outbox_events:
-            self.outbox[event.event_id] = event
+        for outbox_event in outbox_events:
+            self.outbox[outbox_event.event_id] = outbox_event
 
     def get_record(self, record_id: UUID) -> MemoryRecord | None:
         return self.records.get(record_id)

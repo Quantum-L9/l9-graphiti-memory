@@ -1,0 +1,5 @@
+# Dependencies for the CI lint/type-check job (installed before ruff + mypy).
+# mypy loads the pydantic.mypy plugin declared in pyproject.toml, which requires
+# pydantic to be importable; pyyaml provides the yaml module used across src/.
+pydantic>=2.7,<3
+pyyaml>=6.0,<7

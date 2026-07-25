@@ -33,6 +33,8 @@ MARKDOWN_EXTENSIONS = {".md", ".mdc"}
 EXCLUDED_PARTS = {
     ".git",
     ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
     "__pycache__",
     "build",
     "dist",

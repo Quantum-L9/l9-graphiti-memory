@@ -82,18 +82,9 @@ where = ["src"]
 [tool.setuptools.package-data]
 l9_graphite_memory = ["resources/*.yaml"]
 
-[tool.ruff]
-target-version = "py310"
-line-length = 100
-exclude = ["validation", "dist"]
-
-[tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "S"]
-ignore = ["E501", "S101", "S311"]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101", "S105", "S106"]
-"src/l9_graphite_memory/secrets.py" = ["S110"]
+# Ruff lint/format configuration lives in the top-level ruff.toml so a single
+# source governs both CI and local pre-commit runs (a ruff.toml would otherwise
+# shadow this table).
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

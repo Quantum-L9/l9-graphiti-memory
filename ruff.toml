@@ -8,8 +8,23 @@
 #   version: 2.2.0
 #   updated: 2026-07-22
 
+# Single authoritative Ruff configuration for CI and local pre-commit parity.
+# A bare ruff.toml (no [lint].select) shadows pyproject.toml and silently falls
+# back to Ruff's default rule set, so the full contract is declared here and the
+# duplicate [tool.ruff] table has been removed from pyproject.toml.
+target-version = "py310"
+line-length = 88
+exclude = ["validation", "dist"]
+
 [lint]
-ignore = ["S603", "S607", "S608", "S310", "E402"]
+select = ["E", "F", "W", "I", "UP", "B", "S"]
+# E501: line length is enforced by the formatter, not the linter.
+# S101/S311: asserts and non-crypto randomness are acceptable in this codebase.
+# S310/S603/S607/S608: audited subprocess/urllib/SQL call sites.
+# E402: assurance tools set sys.dont_write_bytecode before their imports.
+ignore = ["E501", "S101", "S311", "S310", "S603", "S607", "S608", "E402"]
 
 [lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S105", "S106"]
+"src/l9_graphite_memory/secrets.py" = ["S110"]
 "src/l9_graphite_memory/schema/__init__.py" = ["F401"]

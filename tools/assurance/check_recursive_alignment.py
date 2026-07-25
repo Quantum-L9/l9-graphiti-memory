@@ -30,6 +30,8 @@ _DEPRECATED_ENVELOPE = "Packet" + "Envelope"
 EXCLUDED_PARTS = {
     ".git",
     ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
     "__pycache__",
     "build",
     "dist",
@@ -53,6 +55,7 @@ ALLOWED_TOP_LEVEL = {
     "MIGRATION.md",
     "QUICKSTART.md",
     "README.md",
+    "requirements-ci.txt",
     "ROADMAP.md",
     "RUNBOOK.md",
     "SECURITY.md",
