@@ -8,16 +8,23 @@
 #   version: 2.2.0
 #   updated: 2026-07-22
 
-# Local hooks that keep L9 metadata and the release manifest current on every
-# commit. Enable once per clone with: pre-commit install
+# Mechanical enforcement before commit. Enable once per clone with:
+#   pre-commit install
+# Run manually with: pre-commit run --all-files
 #
-# These hooks mutate the tree (inject inline L9 metadata headers, then rebuild
-# manifest.json and MANIFEST.md). If a hook changes anything the commit aborts
-# so you can review, git add the result, and commit again. CI remains the
-# authoritative backstop: the same scripts run in check mode in the CI validate
-# job, and the metadata/alignment gates fail the build if any tracked file is
-# unregistered.
+# Order matters: ruff fixes and formats first, then the L9 hooks inject inline
+# metadata headers and rebuild manifest.json / MANIFEST.md over the final tree.
+# The L9 hooks mutate files, so if anything changes the commit aborts for you to
+# review, git add, and commit again. CI stays the authoritative backstop: the
+# same L9 scripts run in --check mode in the CI validate job, and the
+# metadata/alignment gates fail the build if any tracked file is unregistered.
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.5
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
   - repo: local
     hooks:
       - id: l9-apply-meta

@@ -72,7 +72,7 @@ updated: 2026-07-22
 | `.github/workflows/l9-lint-test.yml` | `ci` | `ci` | 5117 | `b061f4395d8b00bd6d4a1be3e75d9e4214ac58524d7fbf56ddd1399c5cfd60a1` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1131 | `fc0c1d03146e25d7ddf704c8d7b434a6ff1491d06ed7862c8ff591238f8638ff` |
 | `.gitignore` | `repository_root` | `repository_root` | 859 | `5742eda9df58ea637c68e20e6fb7897c70c010795171f867acdcf01dcd80d670` |
-| `.pre-commit-config.yaml` | `repository_root` | `repository_root` | 1210 | `049ba5b59381d4e02284afd595d390ba0b9819dbfd8dd61224377eb5e358a3a3` |
+| `.pre-commit-config.yaml` | `repository_root` | `repository_root` | 1421 | `47a34380139005daf7e424f2dd5e6cb399c4e58383a5b30f90c7ae0f23597aff` |
 | `AGENTS.md` | `repository_root` | `repository_root` | 3591 | `415e15f97e57cab584d43b4f287ab8581d3111ea1fb65542e0fa2e87cd519765` |
 | `ALIGNMENT.md` | `repository_root` | `repository_root` | 1675 | `5ce57067860473dbc010cc8ab7ab5ea65d5ff66d9cc02f567745c1eb350cf255` |
 | `ARCHITECTURE.md` | `repository_root` | `repository_root` | 8078 | `f26c8e21be5fb91d874933bb25c249d14abdfe96407abafe24ee4c4487933dca` |
@@ -81,7 +81,7 @@ updated: 2026-07-22
 | `CONVERGENCE_REPORT.yaml` | `repository_root` | `repository_root` | 2369 | `1b049f9264b7fa1ffbbf65ee663c10ccad1a3ed15b9bd1d457e1965baf66bc49` |
 | `DELTA_REPORT.md` | `repository_root` | `repository_root` | 2642 | `6a387ff4ea95b5cc034deed28cc3cc8255c85595d07364842c19b347df579b22` |
 | `IMPROVEMENT_REPORT.md` | `repository_root` | `repository_root` | 3181 | `351078f7327e2579509baec85a809b9a636f02636cc76612f0f598d33d4b9876` |
-| `LICENSE` | `repository_root` | `repository_root` | 1067 | `01a08e5ca5f089101e81b14770940654805667c8ccbac9fa50429e20500af2a3` |
+| `LICENSE` | `repository_root` | `repository_root` | 4658 | `40480115927c1985499925b32072e1bcb4f48e86432af9bffbf9d2a718e28a2d` |
 | `MANIFEST.in` | `repository_root` | `repository_root` | 624 | `0b09fe70fcf48900117c6dfd3a56a4037d93e3b1c50f2dad9cfa1e5286b54986` |
 | `MIGRATION.md` | `repository_root` | `repository_root` | 3306 | `07f086cc8f907cc98ac550198bfd65f25038e566abc77f755b7d0ea36688fc49` |
 | `QUICKSTART.md` | `repository_root` | `repository_root` | 1211 | `4e24f79cb5bf490fa7aec8e9a8cac13bb71811fc0d83d8d172ac953bad8dd4d6` |
@@ -177,7 +177,7 @@ updated: 2026-07-22
 | `hooks/graphiti_common.sh` | `hooks` | `hooks` | 1345 | `76ee5c40245b76f699fc5d6ec767a570da4b376ce9d61b59f5fa8e1ad7b3c71d` |
 | `hooks/graphiti_gate_runner.sh` | `hooks` | `hooks` | 880 | `58203955f07dd049ed12c117f13405c7b651aa4f8d8df099a2e698d8a4e7174a` |
 | `improvement_log.jsonl` | `repository_root` | `repository_root` | 2364 | `7a1b20557352284372622d9b11bc363a92b04286d61fecc2c4b2105f0280cab4` |
-| `pyproject.toml` | `repository_root` | `repository_root` | 2997 | `ae35094f8335a39d93a3efbb8b3e001c8d3bc4a88faac3857fd97d576ee14937` |
+| `pyproject.toml` | `repository_root` | `repository_root` | 2961 | `5f0134a370351a639968b5d64d778fae928fe22688889d9fb4634f9abe423a40` |
 | `requirements-ci.txt` | `repository_root` | `repository_root` | 270 | `05ac11d4fda4f1ef4d27732ff5244907654792692db97a3503a6cc79e944042d` |
 | `ruff.toml` | `repository_root` | `repository_root` | 1169 | `6b4404e7fbde2d2ddb786ae1523a3d7014842023eddb4d43945a04a001f20748` |
 | `rules/03-graphiti-memory.mdc` | `configuration` | `configuration` | 603 | `20e03434589675053d739e5fa182eb650aaf821acf0cf757a913e60df7c879a6` |

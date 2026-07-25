@@ -270,8 +270,8 @@
         "version": "2.2.0"
       },
       "path": ".pre-commit-config.yaml",
-      "sha256": "049ba5b59381d4e02284afd595d390ba0b9819dbfd8dd61224377eb5e358a3a3",
-      "size_bytes": 1210
+      "sha256": "47a34380139005daf7e424f2dd5e6cb399c4e58383a5b30f90c7ae0f23597aff",
+      "size_bytes": 1421
     },
     {
       "category": "repository_root",
@@ -414,8 +414,8 @@
         "version": "2.2.0"
       },
       "path": "LICENSE",
-      "sha256": "01a08e5ca5f089101e81b14770940654805667c8ccbac9fa50429e20500af2a3",
-      "size_bytes": 1067
+      "sha256": "40480115927c1985499925b32072e1bcb4f48e86432af9bffbf9d2a718e28a2d",
+      "size_bytes": 4658
     },
     {
       "category": "repository_root",
@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "7c12229e63479298dcf4c3202b2e2e8b6b2013f19a79afe6c1c769ebe468971e",
+      "sha256": "fdd1fb3219d032acec078969da939f86fb3383d5e64b6e38f79ba3bc378de2e2",
       "size_bytes": 50233
     },
     {
@@ -1966,8 +1966,8 @@
         "version": "2.2.0"
       },
       "path": "pyproject.toml",
-      "sha256": "ae35094f8335a39d93a3efbb8b3e001c8d3bc4a88faac3857fd97d576ee14937",
-      "size_bytes": 2997
+      "sha256": "5f0134a370351a639968b5d64d778fae928fe22688889d9fb4634f9abe423a40",
+      "size_bytes": 2961
     },
     {
       "category": "repository_root",
