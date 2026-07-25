@@ -42,12 +42,12 @@ updated: 2026-07-22
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 89 |
-| `repository_root` | 22 |
+| `repository_root` | 23 |
 | `skill` | 2 |
 | `tests` | 34 |
 | `validation_evidence` | 27 |
 
-- Hashed inventory files below: **303**
+- Hashed inventory files below: **304**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -66,12 +66,13 @@ updated: 2026-07-22
 | `.github/governance/waivers.yaml` | `ci` | `ci` | 267 | `200338ea71165c38fe26067750d131ac4e3326f79c2f154d39f794185870955d` |
 | `.github/issues.json` | `ci` | `ci` | 5755 | `23cbdff3ae0c9491c419771321766af4f510cd954dc671404994e7c7e3771d28` |
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
-| `.github/workflows/ci.yml` | `ci` | `ci` | 964 | `d366e14b0d6e605958cc0a2f5ae59eca47810dcbc168cc8a08777ab5b3c462b5` |
+| `.github/workflows/ci.yml` | `ci` | `ci` | 1243 | `fa6d955ce188515b95ea3377f946a41330abb4647a7817e68770df31f8a3f4fc` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
 | `.github/workflows/l9-analysis.yml` | `ci` | `ci` | 7369 | `bc672bdb95747937063633f8cb5df192172a77afbb956090c1fe2bbee3c478f4` |
 | `.github/workflows/l9-lint-test.yml` | `ci` | `ci` | 5117 | `b061f4395d8b00bd6d4a1be3e75d9e4214ac58524d7fbf56ddd1399c5cfd60a1` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1131 | `fc0c1d03146e25d7ddf704c8d7b434a6ff1491d06ed7862c8ff591238f8638ff` |
 | `.gitignore` | `repository_root` | `repository_root` | 859 | `5742eda9df58ea637c68e20e6fb7897c70c010795171f867acdcf01dcd80d670` |
+| `.pre-commit-config.yaml` | `repository_root` | `repository_root` | 1210 | `049ba5b59381d4e02284afd595d390ba0b9819dbfd8dd61224377eb5e358a3a3` |
 | `AGENTS.md` | `repository_root` | `repository_root` | 3591 | `415e15f97e57cab584d43b4f287ab8581d3111ea1fb65542e0fa2e87cd519765` |
 | `ALIGNMENT.md` | `repository_root` | `repository_root` | 1675 | `5ce57067860473dbc010cc8ab7ab5ea65d5ff66d9cc02f567745c1eb350cf255` |
 | `ARCHITECTURE.md` | `repository_root` | `repository_root` | 8078 | `f26c8e21be5fb91d874933bb25c249d14abdfe96407abafe24ee4c4487933dca` |
@@ -317,17 +318,17 @@ updated: 2026-07-22
 | `tests/unit/test_schema_registry.py` | `tests` | `tests` | 964 | `008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee` |
 | `tests/unit/test_server_principal.py` | `tests` | `tests` | 870 | `ee90435a75d372007b48334e9cbe8b16e05af6a370e4c43af04d34cd9262c982` |
 | `tests/unit/test_zep_transport.py` | `tests` | `tests` | 2614 | `4b08cdd26387ee78c67f27a398a71001cf1805284fd516f8d355af78350db65d` |
-| `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 5601 | `050c2e124533b0587c4e8dc206491223b5fcdd2d818e5dee0d7639efd41388fe` |
+| `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 6253 | `86a4995cfdfa2cd0487ba43cd009b3019eddab876f269ea9c7df1395ba22feee` |
 | `tools/assurance/audit_package_wiring.py` | `assurance` | `assurance` | 3631 | `06c5478ea1c65ccbfa719cb3a42bd436c939eb3c30bf7e75035ebf276fd3639d` |
 | `tools/assurance/benchmark_local.py` | `assurance` | `assurance` | 4785 | `b42d3c76d88af1a6337869c8bb988bcd36bfa202b026a66aa139db894ce223e1` |
 | `tools/assurance/check_config_drift.py` | `assurance` | `assurance` | 2097 | `e01af6e0cbd31580254bc563be3a4e693acafd981708635b2b80588d07875d11` |
 | `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 3135 | `5601b565d8f3804de1f888b23a231055ef4b880b45b5deaee0feb62c20d48cf5` |
 | `tools/assurance/check_layer_boundaries.py` | `assurance` | `assurance` | 3341 | `c504e3864969a96f7474641d31dc9d8e25008c871a940ca157c27f5b43e27f92` |
 | `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 4015 | `509ab5a677a56517de8bc9d2f66b3eca3e93cd98e4ac5ff6e4fb0c81fc360269` |
-| `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12023 | `b17c34344bb21ac5297833e5036b4e8713075339f4def1edeb7909555167ea4a` |
+| `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12054 | `92e67cac7eb728a4de1f17b427084d4e39c3df95a827184b48d9854768309098` |
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4482 | `53a76213ff055197716ac304cd8b6dc36152e68070f65dc38fff0975abb332da` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 6033 | `749012634f3b9d3be0607703fdf64230cecd0199f726714d6eae01e58276e528` |
-| `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 7381 | `a4a1e6db8bab1f533c10e02e2a22745c9c01f83271c6aa4291f75ad3fcdc3828` |
+| `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 9089 | `32e401c90f7c4d7906218abfb02db92a05a1e19f17c85c8412f8ba67ce41781f` |
 | `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 11649 | `79c49c0e28a8d2676595179763ffed5f4c026aa86d197925fb22e311938f7a86` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2624 | `87074e49207fc70c71936543f12a0a5c4b9058781902682cce1df649ffd4098e` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4282 | `dfb473fea080bb880ff9de2f5e9101bc616d2a4a8ed4a1f17be927d7aae75100` |

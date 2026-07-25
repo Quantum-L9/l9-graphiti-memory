@@ -91,7 +91,10 @@ def _iter_files(
         if not path.is_file():
             continue
         relative = path.relative_to(root)
-        if any(part in EXCLUDED_ANY_PARTS for part in relative.parts):
+        if any(
+            part in EXCLUDED_ANY_PARTS or part.endswith(".egg-info")
+            for part in relative.parts
+        ):
             continue
         if relative.parts and relative.parts[0] in EXCLUDED_TOP_LEVEL:
             continue
@@ -103,8 +106,16 @@ def _iter_files(
     return tuple(sorted(result))
 
 
-def _entry(root: Path, path: Path) -> dict[str, object]:
+def _entry(
+    root: Path, path: Path, *, override_bytes: bytes | None = None
+) -> dict[str, object]:
     relative = path.relative_to(root)
+    if override_bytes is None:
+        digest = _sha256(path)
+        size = path.stat().st_size
+    else:
+        digest = hashlib.sha256(override_bytes).hexdigest()
+        size = len(override_bytes)
     return {
         "category": _category(relative),
         "l9_meta": {
@@ -118,12 +129,12 @@ def _entry(root: Path, path: Path) -> dict[str, object]:
             "updated": "2026-07-22",
         },
         "path": relative.as_posix(),
-        "sha256": _sha256(path),
-        "size_bytes": path.stat().st_size,
+        "sha256": digest,
+        "size_bytes": size,
     }
 
 
-def _write_markdown(root: Path) -> None:
+def _markdown_content(root: Path) -> str:
     entries = [
         _entry(root, path) for path in _iter_files(root, exclude_manifest_markdown=True)
     ]
@@ -190,12 +201,23 @@ def _write_markdown(root: Path) -> None:
             f"| `{entry['path']}` | `{entry['category']}` | `{meta['layer']}` | "
             f"{entry['size_bytes']} | `{entry['sha256']}` |"
         )
-    (root / "MANIFEST.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return "\n".join(lines) + "\n"
 
 
-def generate(root: Path) -> int:
-    _write_markdown(root)
-    entries = [_entry(root, path) for path in _iter_files(root)]
+def _manifest_content(root: Path, *, markdown_text: str) -> tuple[str, int]:
+    markdown_bytes = markdown_text.encode("utf-8")
+    entries = [
+        _entry(
+            root,
+            path,
+            override_bytes=(
+                markdown_bytes
+                if path.relative_to(root).as_posix() == "MANIFEST.md"
+                else None
+            ),
+        )
+        for path in _iter_files(root)
+    ]
     payload = {
         "file_count": len(entries),
         "files": entries,
@@ -214,10 +236,34 @@ def generate(root: Path) -> int:
         "repository": REPOSITORY,
         "schema": "l9.release-manifest/v2",
     }
-    (root / "manifest.json").write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
-    sys.stdout.write(f"Generated manifest for {len(entries)} files\n")
+    return json.dumps(payload, indent=2, sort_keys=True) + "\n", len(entries)
+
+
+def generate(root: Path, *, check: bool = False) -> int:
+    markdown_text = _markdown_content(root)
+    manifest_text, count = _manifest_content(root, markdown_text=markdown_text)
+    artifacts = {"MANIFEST.md": markdown_text, "manifest.json": manifest_text}
+    if check:
+        stale: list[str] = []
+        for name, content in artifacts.items():
+            try:
+                current: str | None = (root / name).read_text(encoding="utf-8")
+            except FileNotFoundError:
+                current = None
+            if current != content:
+                stale.append(name)
+        if stale:
+            sys.stdout.write(
+                "stale release manifest (run tools/assurance/generate_manifest.py): "
+                + ", ".join(sorted(stale))
+                + "\n"
+            )
+            return 1
+        sys.stdout.write(f"PASS: release manifest current for {count} files\n")
+        return 0
+    for name, content in artifacts.items():
+        (root / name).write_text(content, encoding="utf-8")
+    sys.stdout.write(f"Generated manifest for {count} files\n")
     return 0
 
 
@@ -226,7 +272,13 @@ def main() -> int:
     parser.add_argument(
         "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
     )
-    return generate(parser.parse_args().repo_root.resolve())
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="report stale manifest artifacts and exit non-zero without writing",
+    )
+    args = parser.parse_args()
+    return generate(args.repo_root.resolve(), check=args.check)
 
 
 if __name__ == "__main__":

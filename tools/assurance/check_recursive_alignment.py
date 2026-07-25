@@ -41,6 +41,7 @@ EXCLUDED_PARTS = {
 ALLOWED_TOP_LEVEL = {
     ".github",
     ".gitignore",
+    ".pre-commit-config.yaml",
     "AGENTS.md",
     "ALIGNMENT.md",
     "ARCHITECTURE.md",

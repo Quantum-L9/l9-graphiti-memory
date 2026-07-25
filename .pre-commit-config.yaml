@@ -1,0 +1,34 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .pre-commit-config.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+# Local hooks that keep L9 metadata and the release manifest current on every
+# commit. Enable once per clone with: pre-commit install
+#
+# These hooks mutate the tree (inject inline L9 metadata headers, then rebuild
+# manifest.json and MANIFEST.md). If a hook changes anything the commit aborts
+# so you can review, git add the result, and commit again. CI remains the
+# authoritative backstop: the same scripts run in check mode in the CI validate
+# job, and the metadata/alignment gates fail the build if any tracked file is
+# unregistered.
+repos:
+  - repo: local
+    hooks:
+      - id: l9-apply-meta
+        name: inject L9 metadata headers
+        entry: python3 tools/assurance/apply_l9_meta.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: l9-generate-manifest
+        name: rebuild release manifest
+        entry: python3 tools/assurance/generate_manifest.py
+        language: system
+        pass_filenames: false
+        always_run: true

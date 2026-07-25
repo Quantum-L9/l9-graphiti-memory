@@ -166,8 +166,8 @@ def tracked_comment_safe_files(root: Path) -> tuple[Path, ...]:
     return tuple(sorted(paths))
 
 
-def apply(root: Path) -> int:
-    changed = 0
+def apply(root: Path, *, check: bool = False) -> int:
+    changed: list[str] = []
     for path in tracked_comment_safe_files(root):
         relative = path.relative_to(root)
         text = path.read_text(encoding="utf-8")
@@ -177,9 +177,20 @@ def apply(root: Path) -> int:
             prefix = COMMENT_EXTENSIONS.get(path.suffix, "#")
             updated = _insert_comments(text, relative, prefix)
         if updated != text:
-            path.write_text(updated, encoding="utf-8")
-            changed += 1
-    sys.stdout.write(f"Applied L9_META to {changed} files\n")
+            changed.append(relative.as_posix())
+            if not check:
+                path.write_text(updated, encoding="utf-8")
+    if check:
+        if changed:
+            sys.stdout.write(
+                "missing inline L9_META (run tools/assurance/apply_l9_meta.py):\n"
+                + "\n".join(f"  {name}" for name in changed)
+                + "\n"
+            )
+            return 1
+        sys.stdout.write("PASS: every comment-safe file carries inline L9_META\n")
+        return 0
+    sys.stdout.write(f"Applied L9_META to {len(changed)} files\n")
     return 0
 
 
@@ -188,7 +199,13 @@ def main() -> int:
     parser.add_argument(
         "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
     )
-    return apply(parser.parse_args().repo_root.resolve())
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="report files missing headers and exit non-zero without writing",
+    )
+    args = parser.parse_args()
+    return apply(args.repo_root.resolve(), check=args.check)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 {
-  "file_count": 304,
+  "file_count": 305,
   "files": [
     {
       "category": "ci",
@@ -174,8 +174,8 @@
         "version": "2.2.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "d366e14b0d6e605958cc0a2f5ae59eca47810dcbc168cc8a08777ab5b3c462b5",
-      "size_bytes": 964
+      "sha256": "fa6d955ce188515b95ea3377f946a41330abb4647a7817e68770df31f8a3f4fc",
+      "size_bytes": 1243
     },
     {
       "category": "ci",
@@ -256,6 +256,22 @@
       "path": ".gitignore",
       "sha256": "5742eda9df58ea637c68e20e6fb7897c70c010795171f867acdcf01dcd80d670",
       "size_bytes": 859
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".pre-commit-config.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".pre-commit-config.yaml",
+      "sha256": "049ba5b59381d4e02284afd595d390ba0b9819dbfd8dd61224377eb5e358a3a3",
+      "size_bytes": 1210
     },
     {
       "category": "repository_root",
@@ -430,8 +446,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "5f1a09be4db547911dd83feb1bd7e679f3214d4a04e1c809a83aacd41d82863a",
-      "size_bytes": 50086
+      "sha256": "7c12229e63479298dcf4c3202b2e2e8b6b2013f19a79afe6c1c769ebe468971e",
+      "size_bytes": 50233
     },
     {
       "category": "repository_root",
@@ -4206,8 +4222,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/apply_l9_meta.py",
-      "sha256": "050c2e124533b0587c4e8dc206491223b5fcdd2d818e5dee0d7639efd41388fe",
-      "size_bytes": 5601
+      "sha256": "86a4995cfdfa2cd0487ba43cd009b3019eddab876f269ea9c7df1395ba22feee",
+      "size_bytes": 6253
     },
     {
       "category": "assurance",
@@ -4318,8 +4334,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/check_recursive_alignment.py",
-      "sha256": "b17c34344bb21ac5297833e5036b4e8713075339f4def1edeb7909555167ea4a",
-      "size_bytes": 12023
+      "sha256": "92e67cac7eb728a4de1f17b427084d4e39c3df95a827184b48d9854768309098",
+      "size_bytes": 12054
     },
     {
       "category": "assurance",
@@ -4366,8 +4382,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_manifest.py",
-      "sha256": "a4a1e6db8bab1f533c10e02e2a22745c9c01f83271c6aa4291f75ad3fcdc3828",
-      "size_bytes": 7381
+      "sha256": "32e401c90f7c4d7906218abfb02db92a05a1e19f17c85c8412f8ba67ce41781f",
+      "size_bytes": 9089
     },
     {
       "category": "assurance",
