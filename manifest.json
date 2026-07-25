@@ -286,8 +286,8 @@
         "version": "2.2.0"
       },
       "path": "AGENTS.md",
-      "sha256": "415e15f97e57cab584d43b4f287ab8581d3111ea1fb65542e0fa2e87cd519765",
-      "size_bytes": 3591
+      "sha256": "e5eddd9d67c1514b9794c64b14df4e9638ed379d0028d08f73d77f08fd7c465b",
+      "size_bytes": 1100
     },
     {
       "category": "repository_root",
@@ -318,8 +318,8 @@
         "version": "2.2.0"
       },
       "path": "ARCHITECTURE.md",
-      "sha256": "f26c8e21be5fb91d874933bb25c249d14abdfe96407abafe24ee4c4487933dca",
-      "size_bytes": 8078
+      "sha256": "e50a1d7fe1081241b14fac9d2aa4e5e2ac80e6b080573a0807f4f9f4212a4238",
+      "size_bytes": 7164
     },
     {
       "category": "repository_root",
@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "fdd1fb3219d032acec078969da939f86fb3383d5e64b6e38f79ba3bc378de2e2",
+      "sha256": "d99c4bc6a6b95ac826b35d6f8bb8653d9e9e2e9c3a56c9d7b9c3d8bec6e90890",
       "size_bytes": 50233
     },
     {
