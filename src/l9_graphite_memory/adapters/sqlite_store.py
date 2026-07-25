@@ -525,7 +525,15 @@ class SQLiteRecordStore:
             class_marks = ",".join("?" for _ in request.memory_classes)
             where.append(f"memory_class IN ({class_marks})")
             params.extend(item.value for item in request.memory_classes)
-        sql = f"SELECT record_json FROM memory_records WHERE {' AND '.join(where)} ORDER BY recorded_at DESC LIMIT ?"  # noqa: S608
+        # Every WHERE fragment in `where` is a hard-coded literal; the only
+        # dynamic part is the NUMBER of `?` placeholders (namespace_marks /
+        # state_marks / class_marks), and every value is bound through `params`.
+        # No caller-supplied value is ever interpolated into the SQL text, so
+        # this is not an injection vector. ruff globally ignores S608 for this
+        # audited pattern (see ruff.toml); the trailing NOSONAR applies the same
+        # accepted-false-positive decision to SonarCloud's python:S3649, which
+        # does not honor the ruff ignore and otherwise drops the Security Rating.
+        sql = f"SELECT record_json FROM memory_records WHERE {' AND '.join(where)} ORDER BY recorded_at DESC LIMIT ?"  # noqa: S608  # NOSONAR
         params.append(request.limit * 20)
         rows = self._connection().execute(sql, params).fetchall()
         return [self._row_to_record(row) for row in rows]
