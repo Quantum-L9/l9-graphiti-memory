@@ -87,6 +87,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-060 | [Gate-Only Constellation Dispatch](ADR-060-gate-only-constellation-dispatch.md) | Accepted |
 | ADR-061 | [Local Receipt Guard Boundary](ADR-061-local-receipt-guard-boundary.md) | Accepted |
 | ADR-062 | [L9 Metadata and File Provenance](ADR-062-l9-meta-and-file-provenance.md) | Accepted |
+| ADR-063 | [Projection Manifest, Compiler, and Control-Plane Boundaries](ADR-063-projection-manifest-compiler-and-control-plane-boundaries.md) | Accepted |
 
 ## Validation
 
@@ -96,4 +97,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires ADR-001 through ADR-058 and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-063 ledger and all mandatory sections.
