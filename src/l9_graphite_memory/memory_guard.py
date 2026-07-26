@@ -249,7 +249,7 @@ def main(argv: list[str] | None = None) -> int:
     }
     try:
         result = handlers[values[0]](payload)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         result = (
             _deny(f"L9 memory guard error: {type(exc).__name__}")
             if guard_enabled()

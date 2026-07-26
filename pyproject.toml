@@ -79,7 +79,10 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-l9_graphite_memory = ["resources/*.yaml"]
+l9_graphite_memory = [
+  "resources/*.yaml",
+  "resources/projections/*.json",
+]
 
 [tool.ruff]
 target-version = "py310"

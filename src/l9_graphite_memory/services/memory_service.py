@@ -433,15 +433,14 @@ class MemoryService:
             for right in structured[index + 1 :]:
                 assert right.assertion is not None
                 same_key = (
-                    left.assertion.subject.casefold()
-                    == right.assertion.subject.casefold()
-                    and left.assertion.predicate.casefold()
-                    == right.assertion.predicate.casefold()
+                    (left.assertion.subject or "").casefold()
+                    == (right.assertion.subject or "").casefold()
+                    and (left.assertion.predicate or "").casefold()
+                    == (right.assertion.predicate or "").casefold()
                 )
-                different_value = (
-                    left.assertion.object.casefold()
-                    != right.assertion.object.casefold()
-                )
+                different_value = (left.assertion.object or "").casefold() != (
+                    right.assertion.object or ""
+                ).casefold()
                 if same_key and different_value and self._overlaps(left, right):
                     conflicts.append(
                         ConflictItem(

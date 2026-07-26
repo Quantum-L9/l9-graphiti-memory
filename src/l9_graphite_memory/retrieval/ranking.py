@@ -62,7 +62,7 @@ class RankingPolicy:
     importance_weight: float = 0.20
     recency_weight: float = 0.15
     policy_version: str = RANKING_POLICY_VERSION
-    retention_policy: RetentionPolicy = RetentionPolicy()
+    retention_policy: RetentionPolicy = RetentionPolicy()  # noqa: RUF009
 
     def __post_init__(self) -> None:
         total = (

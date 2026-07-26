@@ -27,7 +27,7 @@ _RECORD_ID_PATTERN = re.compile(r'"record_id"\s*:\s*"([0-9a-fA-F-]{36})"')
 
 class GraphitiProjection:
     name = "graphiti"
-    capabilities = ("graph-search", "semantic-search")
+    capabilities: tuple[str, ...] = ("graph-search", "semantic-search")
 
     def __init__(self, transport: MemoryTransport) -> None:
         self.transport = transport
@@ -123,10 +123,12 @@ class GraphitiProjection:
 
     @staticmethod
     def _extract_record_id(item: dict[str, Any]) -> UUID | None:
-        for container in (
+        metadata = item.get("metadata")
+        containers: tuple[dict[str, Any], ...] = (
             item,
-            item.get("metadata") if isinstance(item.get("metadata"), dict) else {},
-        ):
+            metadata if isinstance(metadata, dict) else {},
+        )
+        for container in containers:
             value = container.get("record_id")
             if value:
                 try:

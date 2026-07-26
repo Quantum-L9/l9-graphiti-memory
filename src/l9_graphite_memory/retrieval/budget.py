@@ -17,6 +17,7 @@ from collections import defaultdict
 
 from l9_graphite_memory.admission.normalization import canonical_json, sha256_text
 from l9_graphite_memory.contracts import ContextSection, HydrationResult, SearchReceipt
+from l9_graphite_memory.contracts.receipts import SearchHit
 
 _CLASS_ORDER = {
     "constraint": 0,
@@ -43,7 +44,7 @@ class ContextBudgetAllocator:
     def allocate(
         self, search: SearchReceipt, *, task: str, token_budget: int
     ) -> HydrationResult:
-        grouped: dict[str, list[tuple[str, object]]] = defaultdict(list)
+        grouped: dict[str, list[tuple[str, SearchHit]]] = defaultdict(list)
         remaining = token_budget
         used = 0
         for hit in sorted(

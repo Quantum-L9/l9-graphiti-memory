@@ -1,0 +1,16 @@
+{
+  "failures": [],
+  "results": [
+    {
+      "compiled_artifact_digest": "6bac7cb482e62f9a93e56a38af12e4c6018742198b0f2c005258815a0d70a40d",
+      "deterministic": true,
+      "manifest_digest": "7d640ed2cd599a663f747d46525aa50ca4f4ef800671dc910fbd45a19e854fd4",
+      "name": "facts",
+      "path": "config/projections/facts-v8.yaml",
+      "render_contract_digest": "4a6f3ba1418430d3b349badb25364738b71390192b10b4a87a98a7bedcd7579b",
+      "target_count": 2,
+      "version": 8
+    }
+  ],
+  "valid": true
+}

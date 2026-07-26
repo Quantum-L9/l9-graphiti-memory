@@ -1,0 +1,87 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: config/projections/facts-v8.yaml
+#   layer: configuration
+#   owner: memory-control-plane
+#   status: accepted
+#   version: 2.3.0
+#   updated: 2026-07-26
+api_version: memory.quantum-l9.dev/v1
+kind: Projection
+metadata:
+  name: facts
+  version: 8
+  status: shadow
+spec:
+  providers:
+    - id: graphiti-primary
+      type: graphiti_mcp
+      target: primary
+      required: false
+    - id: zep-primary
+      type: zep
+      target: primary
+      required: false
+  source:
+    event_types:
+      - memory.record.project
+      - memory.record.supersede
+      - memory.record.erase
+    minimum_schema_version: 2.1.0
+  authority:
+    record_store: canonical
+    vector_is_authoritative: false
+  render:
+    template: facts.render.v3
+    fields:
+      - record_id
+      - schema_version
+      - tenant_id
+      - namespace
+      - memory_class
+      - content
+      - assertion
+      - temporal
+      - provenance
+      - confidence
+      - tags
+    normalization: unicode-nfc
+    chunk_policy: atomic-record-v1
+  embedding:
+    ownership: provider
+    model: text-embedding-3-large@provider-pinned-revision
+    dimensions: 3072
+    distance: cosine
+    similarity_space: facts-v8-3072-cosine
+    cache_policy: content-addressed-v1
+  scope:
+    required:
+      - tenant_id
+      - namespace
+    fail_closed: true
+  replay:
+    ordering: tenant-subject-stream-sequence
+    strategy: partitioned
+    partition_key: tenant_id
+    side_effects: prohibited
+  determinism:
+    structural: exact
+    render: exact
+    embedding_mode: provider-managed
+    retrieval_mode: bounded-equivalence
+  deletion:
+    propagation:
+      - projection
+      - vector_index
+      - cache
+      - summary
+    attestation_required: true
+  slo:
+    incremental_lag_warning_seconds: 30
+    incremental_lag_critical_seconds: 120
+    query_p95_milliseconds: 250
+    query_p99_milliseconds: 750
+    rebuild_maximum_seconds: 21600
+    deletion_attestation_deadline_seconds: 86400
+    dead_letter_maximum_count: 0

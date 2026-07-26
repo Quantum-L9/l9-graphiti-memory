@@ -46,8 +46,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        "103 tests pass",
-        r"103 passed",
+        "115 tests pass",
+        r"115 passed",
     ),
     CheckSpec(
         "V-002",
@@ -64,8 +64,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "docs/adr/",
         "validate_adrs.py",
         "logs/adr_validation.txt",
-        "62 ADRs complete and indexed",
-        r"PASS: 62 ADRs",
+        "63 ADRs complete and indexed",
+        r"PASS: 63 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -136,8 +136,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "production Python",
         "check_source_quality.py",
         "logs/source_quality.txt",
-        "86 production files pass",
-        r"PASS: 86 production Python files",
+        "91 production files pass",
+        r"PASS: 91 production Python files",
     ),
     CheckSpec(
         "V-012",

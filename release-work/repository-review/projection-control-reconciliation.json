@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "repository": "Quantum-L9/l9-graphiti-memory",
+  "review_base_commit": "16d5305c0124d85bf06b719c5bac4c516bfe9085",
+  "review_merge_commit": "2624201",
+  "updated": "2026-07-26",
+  "decisions": [
+    {
+      "id": "PCR-001",
+      "title": "ADR acceptance and sequencing",
+      "status": "resolved",
+      "phase_1_blocker": false,
+      "decision": {
+        "adr_063": "accepted_with_phase_1",
+        "adr_064": "deferred",
+        "runtime_activation": "not_authorized"
+      }
+    },
+    {
+      "id": "PCR-002",
+      "title": "Scalar compatibility versus multi-target compilation",
+      "status": "resolved",
+      "phase_1_blocker": false,
+      "decision": {
+        "legacy_scalar_modes": ["none", "http", "zep"],
+        "compiled_targets": "inert",
+        "fanout": "deferred",
+        "configuration_changes": false
+      }
+    },
+    {
+      "id": "PCR-003",
+      "title": "Cross-target deletion attestation",
+      "status": "semantics_resolved",
+      "phase_1_blocker": false,
+      "decision": {
+        "erasure_set": "all_durable_projection_links_for_record",
+        "partial_erasure": "pending_and_retryable",
+        "runtime_implementation": "deferred"
+      }
+    },
+    {
+      "id": "PCR-004",
+      "title": "Compiler-only Phase 1",
+      "status": "resolved",
+      "phase_1_blocker": false,
+      "decision": {
+        "runtime_changes": false,
+        "database_changes": false,
+        "provider_calls": false,
+        "compiler_side_effects": false
+      }
+    },
+    {
+      "id": "PCR-005",
+      "title": "Existing validation remains authoritative",
+      "status": "resolved",
+      "phase_1_blocker": false,
+      "decision": {
+        "release_entrypoint": "scripts/validate_release.sh",
+        "parallel_release_authority": false,
+        "projection_manifest_gate": "required"
+      }
+    }
+  ],
+  "remaining_blockers": [
+    "ADR-064",
+    "target-aware projection-link persistence",
+    "multi-target runtime delivery",
+    "durable replay",
+    "verification and promotion",
+    "cross-target deletion-attestation persistence",
+    "authenticated public mutation surfaces",
+    "isolated live-provider validation"
+  ]
+}

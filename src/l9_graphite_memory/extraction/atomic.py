@@ -31,12 +31,12 @@ from l9_graphite_memory.contracts import (
 _SENTENCE = re.compile(r"(?<=[.!?])\s+|\n+")
 _ASSERTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (
-        re.compile(r"^(?P<subject>.+?)\s+(?:is|are|was|were)\s+(?P<object>.+)$", re.I),
+        re.compile(r"^(?P<subject>.+?)\s+(?:is|are|was|were)\s+(?P<object>.+)$", re.IGNORECASE),
         "is",
     ),
-    (re.compile(r"^(?P<subject>.+?)\s+prefers?\s+(?P<object>.+)$", re.I), "prefers"),
-    (re.compile(r"^(?P<subject>.+?)\s+uses?\s+(?P<object>.+)$", re.I), "uses"),
-    (re.compile(r"^(?P<subject>.+?)\s+requires?\s+(?P<object>.+)$", re.I), "requires"),
+    (re.compile(r"^(?P<subject>.+?)\s+prefers?\s+(?P<object>.+)$", re.IGNORECASE), "prefers"),
+    (re.compile(r"^(?P<subject>.+?)\s+uses?\s+(?P<object>.+)$", re.IGNORECASE), "uses"),
+    (re.compile(r"^(?P<subject>.+?)\s+requires?\s+(?P<object>.+)$", re.IGNORECASE), "requires"),
 )
 
 

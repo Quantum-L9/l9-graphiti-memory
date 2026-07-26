@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import ast
 import re
+import subprocess
 import sys
 
 sys.dont_write_bytecode = True
@@ -29,6 +30,8 @@ _DEPRECATED_ENVELOPE = "Packet" + "Envelope"
 EXCLUDED_PARTS = {
     ".git",
     ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
     "__pycache__",
     "build",
     "dist",
@@ -38,6 +41,7 @@ EXCLUDED_PARTS = {
 ALLOWED_TOP_LEVEL = {
     ".github",
     ".gitignore",
+    ".pre-commit-config.yaml",
     "AGENTS.md",
     "ALIGNMENT.md",
     "ARCHITECTURE.md",
@@ -52,6 +56,7 @@ ALLOWED_TOP_LEVEL = {
     "MIGRATION.md",
     "QUICKSTART.md",
     "README.md",
+    "requirements-ci.txt",
     "ROADMAP.md",
     "RUNBOOK.md",
     "SECURITY.md",
@@ -62,6 +67,8 @@ ALLOWED_TOP_LEVEL = {
     "improvement_log.jsonl",
     "manifest.json",
     "pyproject.toml",
+    "release-work",
+    "ruff.toml",
     "rules",
     "scripts",
     "skill",
@@ -97,7 +104,10 @@ def _text_files(root: Path) -> tuple[Path, ...]:
         if not path.is_file():
             continue
         relative = path.relative_to(root)
-        if any(part in EXCLUDED_PARTS for part in relative.parts):
+        if any(
+            part in EXCLUDED_PARTS or part.endswith(".egg-info")
+            for part in relative.parts
+        ):
             continue
         try:
             path.read_text(encoding="utf-8")
@@ -105,6 +115,22 @@ def _text_files(root: Path) -> tuple[Path, ...]:
             continue
         result.append(path)
     return tuple(sorted(result))
+
+
+def _tracked_paths(root: Path) -> frozenset[str]:
+    """Return git-tracked paths (posix) so transient tooling artifacts such as
+    ``.git``, editable-install ``*.egg-info`` and pytest-generated
+    ``__pycache__`` are never mistaken for committed repository content."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z"],
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return frozenset()
+    return frozenset(entry for entry in result.stdout.split("\0") if entry)
 
 
 def _python_calls(path: Path) -> tuple[tuple[int, str], ...]:
@@ -125,19 +151,25 @@ def _python_calls(path: Path) -> tuple[tuple[int, str], ...]:
 def scan(root: Path) -> tuple[Violation, ...]:
     violations: list[Violation] = []
 
+    tracked = _tracked_paths(root)
+    tracked_top_level = {entry.split("/", 1)[0] for entry in tracked}
+
     for item in root.iterdir():
-        if item.name not in ALLOWED_TOP_LEVEL:
+        # Only tracked top-level entries can be a structural violation; untracked
+        # tooling directories (.git, .venv, *.egg-info, __pycache__) are ignored.
+        if item.name not in ALLOWED_TOP_LEVEL and item.name in tracked_top_level:
             violations.append(
                 Violation("file_structure", item.name, 1, "forbidden top-level entry")
             )
 
-    for path in root.rglob("*"):
-        relative = path.relative_to(root)
-        if "__pycache__" in relative.parts or path.suffix == ".pyc":
+    for relative_posix in tracked:
+        if relative_posix.endswith(".pyc") or "__pycache__" in relative_posix.split(
+            "/"
+        ):
             violations.append(
                 Violation(
                     "file_structure",
-                    relative.as_posix(),
+                    relative_posix,
                     1,
                     "generated cache committed",
                 )

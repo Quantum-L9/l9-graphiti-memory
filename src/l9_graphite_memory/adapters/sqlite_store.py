@@ -445,10 +445,10 @@ class SQLiteRecordStore:
                 if record is not None:
                     self._insert_record(tx, record)
                 self._insert_receipt(tx, receipt)
-                for event in status_events:
-                    self._insert_status_event(tx, event)
-                for event in outbox_events:
-                    self._insert_outbox(tx, event)
+                for status_event in status_events:
+                    self._insert_status_event(tx, status_event)
+                for outbox_event in outbox_events:
+                    self._insert_outbox(tx, outbox_event)
         except sqlite3.IntegrityError as exc:
             raise StoreError(
                 f"atomic memory write violated store constraints: {exc}"
@@ -525,7 +525,7 @@ class SQLiteRecordStore:
             class_marks = ",".join("?" for _ in request.memory_classes)
             where.append(f"memory_class IN ({class_marks})")
             params.extend(item.value for item in request.memory_classes)
-        sql = f"SELECT record_json FROM memory_records WHERE {' AND '.join(where)} ORDER BY recorded_at DESC LIMIT ?"  # noqa: S608
+        sql = f"SELECT record_json FROM memory_records WHERE {' AND '.join(where)} ORDER BY recorded_at DESC LIMIT ?"
         params.append(request.limit * 20)
         rows = self._connection().execute(sql, params).fetchall()
         return [self._row_to_record(row) for row in rows]

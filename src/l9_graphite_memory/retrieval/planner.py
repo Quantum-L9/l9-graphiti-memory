@@ -67,7 +67,7 @@ class RetrievalPlanner:
                 for strategy in classification.strategies
                 if strategy in {"lexical-ranking", "temporal-filter"}
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             records = []
             stores_failed[self.store.name] = str(exc)
             for strategy in classification.strategies:
@@ -107,7 +107,7 @@ class RetrievalPlanner:
                         projection_scores.get(hit.record_id, 0.0),
                         hit.score,
                     )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 stores_failed[store_label] = str(exc)
                 strategies_failed[strategy] = str(exc)
         if not projection_attempted:
@@ -117,9 +117,7 @@ class RetrievalPlanner:
                 if strategy not in {"graph-search", "semantic-search"}
             ]
 
-        if self.store.name in stores_failed:
-            status = OperationStatus.FAILED
-        elif self.projection_required and any(
+        if self.store.name in stores_failed or self.projection_required and any(
             key.startswith(f"{self.projection.name}:") for key in stores_failed
         ):
             status = OperationStatus.FAILED

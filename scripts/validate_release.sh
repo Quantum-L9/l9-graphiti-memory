@@ -41,6 +41,7 @@ run compileall python3 -m compileall -q src tests tools scripts
 find "$ROOT" -type d -name "__pycache__" -prune -exec rm -rf {} +
 find "$ROOT" -type f -name '*.pyc' -delete
 run adr_validation python3 tools/assurance/validate_adrs.py
+run projection_manifests python3 tools/assurance/validate_projection_manifests.py config/projections/facts-v8.yaml
 run harvest_coverage python3 tools/assurance/validate_harvest_coverage.py
 run l9_meta python3 tools/assurance/check_l9_meta.py
 run layer_boundaries python3 tools/assurance/check_layer_boundaries.py
@@ -56,7 +57,7 @@ run preflight bash scripts/preflight.sh
 for hook in hooks/*.sh scripts/*.sh; do bash -n "$hook"; done
 printf 'All shell files parse.\n' > "$OUT/logs/shell_syntax.txt"
 
-run wheel_build python3 -m pip wheel . --no-deps --no-build-isolation --wheel-dir "$OUT/dist"
+run wheel_build python3 -m pip wheel . --no-deps --wheel-dir "$OUT/dist"
 WHEEL="$(find "$OUT/dist" -maxdepth 1 -name '*.whl' -print -quit)"
 [ -n "$WHEEL" ]
 SITE="$TMP_ROOT/wheel-site"
@@ -80,6 +81,7 @@ from l9_graphite_memory.mcp_tools import tool_definitions
 names={item['name'] for item in tool_definitions()}
 assert {'memory.ingest','memory.delete','memory.distill','memory.synthesize_procedures','write'} <= names
 assert files('l9_graphite_memory').joinpath('resources/group_registry.yaml').is_file()
+assert files('l9_graphite_memory').joinpath('resources/projections/schema.json').is_file()
 assert GateMemoryBridge.__name__ == 'GateMemoryBridge'
 eps={ep.name for ep in distribution('l9-graphite-memory').entry_points}
 assert {'l9-memory','l9-memory-server','l9-memory-worker'} <= eps

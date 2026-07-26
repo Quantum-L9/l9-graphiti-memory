@@ -28,3 +28,8 @@ Repository: `Quantum-L9/l9-graphiti-memory` at pinned SHA `16d5305c0124d85bf06b7
 | `reconciliation-ledger.json` | Machine-readable mirror of REV-001 through REV-005 with authority, evidence, classification, status, and residual risk per decision |
 | `open-questions.md` | Ten open questions (OQ-1 to OQ-10) mapped to trackers RP-001 through RP-009 plus review observations, with disposition summary |
 | `source-citations.json` | Fifty citations (S-01 to S-50) tracing every factual claim to a tracked repository file |
+
+## Projection-control extension
+
+- projection-control-reconciliation.md — PCR-001 through PCR-005 projection-control decisions.
+- projection-control-reconciliation.json — machine-readable projection-control reconciliation register.

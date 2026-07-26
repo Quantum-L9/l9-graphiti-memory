@@ -1,0 +1,408 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memory.quantum-l9.dev/schemas/projection-v1.json",
+  "title": "L9 Projection Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "memory.quantum-l9.dev/v1"
+    },
+    "kind": {
+      "const": "Projection"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "status"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,61}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "shadow",
+            "active",
+            "retired"
+          ]
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providers",
+        "source",
+        "authority",
+        "render",
+        "embedding",
+        "scope",
+        "replay",
+        "determinism",
+        "deletion",
+        "slo"
+      ],
+      "properties": {
+        "providers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "target",
+              "required"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,61}$"
+              },
+              "type": {
+                "enum": [
+                  "graphiti_mcp",
+                  "zep"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,126}$"
+              },
+              "required": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "event_types",
+            "minimum_schema_version"
+          ],
+          "properties": {
+            "event_types": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "minimum_schema_version": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            }
+          }
+        },
+        "authority": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "record_store",
+            "vector_is_authoritative"
+          ],
+          "properties": {
+            "record_store": {
+              "const": "canonical"
+            },
+            "vector_is_authoritative": {
+              "const": false
+            }
+          }
+        },
+        "render": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "template",
+            "fields",
+            "normalization",
+            "chunk_policy"
+          ],
+          "properties": {
+            "template": {
+              "type": "string",
+              "minLength": 3
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 4,
+              "uniqueItems": true,
+              "allOf": [
+                {
+                  "contains": {
+                    "const": "record_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "tenant_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "namespace"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "content"
+                  }
+                }
+              ],
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "normalization": {
+              "const": "unicode-nfc"
+            },
+            "chunk_policy": {
+              "const": "atomic-record-v1"
+            }
+          }
+        },
+        "embedding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ownership",
+            "model",
+            "dimensions",
+            "distance",
+            "similarity_space",
+            "cache_policy"
+          ],
+          "properties": {
+            "ownership": {
+              "const": "provider"
+            },
+            "model": {
+              "type": "string",
+              "pattern": "^.+@.+$"
+            },
+            "dimensions": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65536
+            },
+            "distance": {
+              "enum": [
+                "cosine",
+                "dot_product",
+                "euclidean"
+              ]
+            },
+            "similarity_space": {
+              "type": "string",
+              "minLength": 3
+            },
+            "cache_policy": {
+              "enum": [
+                "none",
+                "content-addressed-v1"
+              ]
+            }
+          }
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required",
+            "fail_closed"
+          ],
+          "properties": {
+            "required": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "allOf": [
+                {
+                  "contains": {
+                    "const": "tenant_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "namespace"
+                  }
+                }
+              ],
+              "items": {
+                "type": "string"
+              }
+            },
+            "fail_closed": {
+              "const": true
+            }
+          }
+        },
+        "replay": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ordering",
+            "strategy",
+            "partition_key",
+            "side_effects"
+          ],
+          "properties": {
+            "ordering": {
+              "const": "tenant-subject-stream-sequence"
+            },
+            "strategy": {
+              "enum": [
+                "full",
+                "incremental",
+                "partitioned"
+              ]
+            },
+            "partition_key": {
+              "const": "tenant_id"
+            },
+            "side_effects": {
+              "const": "prohibited"
+            }
+          }
+        },
+        "determinism": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "structural",
+            "render",
+            "embedding_mode",
+            "retrieval_mode"
+          ],
+          "properties": {
+            "structural": {
+              "const": "exact"
+            },
+            "render": {
+              "const": "exact"
+            },
+            "embedding_mode": {
+              "const": "provider-managed"
+            },
+            "retrieval_mode": {
+              "const": "bounded-equivalence"
+            }
+          }
+        },
+        "deletion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "propagation",
+            "attestation_required"
+          ],
+          "properties": {
+            "propagation": {
+              "type": "array",
+              "uniqueItems": true,
+              "allOf": [
+                {
+                  "contains": {
+                    "const": "projection"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "vector_index"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "cache"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "summary"
+                  }
+                }
+              ],
+              "items": {
+                "enum": [
+                  "projection",
+                  "vector_index",
+                  "cache",
+                  "summary"
+                ]
+              }
+            },
+            "attestation_required": {
+              "const": true
+            }
+          }
+        },
+        "slo": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "incremental_lag_warning_seconds",
+            "incremental_lag_critical_seconds",
+            "query_p95_milliseconds",
+            "query_p99_milliseconds",
+            "rebuild_maximum_seconds",
+            "deletion_attestation_deadline_seconds",
+            "dead_letter_maximum_count"
+          ],
+          "properties": {
+            "incremental_lag_warning_seconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "incremental_lag_critical_seconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "query_p95_milliseconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "query_p99_milliseconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "rebuild_maximum_seconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "deletion_attestation_deadline_seconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "dead_letter_maximum_count": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

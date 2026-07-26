@@ -53,7 +53,7 @@ class DocumentIngestor:
             return json.dumps(parsed, indent=2, sort_keys=True)
         if suffix in {".yaml", ".yml"}:
             parsed = yaml.safe_load(path.read_text(encoding="utf-8"))
-            return yaml.safe_dump(parsed, sort_keys=True)
+            return str(yaml.safe_dump(parsed, sort_keys=True))
         return path.read_text(encoding="utf-8")
 
     @staticmethod

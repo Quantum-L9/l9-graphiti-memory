@@ -32,7 +32,7 @@ from l9_graphite_memory.contracts import (
 from l9_graphite_memory.ports import RecordStore, SynthesizedProcedure
 from l9_graphite_memory.services import MemoryService
 
-_WHEN = re.compile(r"^when\s+(?P<condition>.+?)(?:,|\s+then\s+)(?P<action>.+)$", re.I)
+_WHEN = re.compile(r"^when\s+(?P<condition>.+?)(?:,|\s+then\s+)(?P<action>.+)$", re.IGNORECASE)
 
 
 class ProceduralSynthesisReport(BaseModel):

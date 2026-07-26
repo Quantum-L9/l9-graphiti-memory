@@ -81,6 +81,7 @@ def main() -> int:
     compatibility = {
         "l9_graphite_memory.episode_contract": "v0.2 import compatibility",
         "l9_graphite_memory.prune": "v0.2 programmatic prune compatibility",
+        "l9_graphite_memory.projections": "ADR-063 projection control-plane surface",
     }
     foundational = {
         "l9_graphite_memory",

@@ -110,39 +110,42 @@ def inspect_file(root: Path, path: Path) -> list[Finding]:
                         "print used outside CLI/server/assurance",
                     )
                 )
-            if isinstance(node.func, ast.Attribute) and node.func.attr in {
-                "run",
-                "Popen",
-                "call",
-                "check_call",
-                "check_output",
-            }:
-                if any(
+            if (
+                isinstance(node.func, ast.Attribute)
+                and node.func.attr
+                in {
+                    "run",
+                    "Popen",
+                    "call",
+                    "check_call",
+                    "check_output",
+                }
+                and any(
                     keyword.arg == "shell"
                     and isinstance(keyword.value, ast.Constant)
                     and keyword.value.value is True
                     for keyword in node.keywords
-                ):
-                    findings.append(
-                        Finding(relative, node.lineno, "S602", "subprocess shell=True")
-                    )
+                )
+            ):
+                findings.append(
+                    Finding(relative, node.lineno, "S602", "subprocess shell=True")
+                )
             if (
                 isinstance(node.func, ast.Attribute)
                 and node.func.attr == "now"
                 and isinstance(node.func.value, ast.Name)
                 and node.func.value.id == "datetime"
+                and not node.args
+                and not any(keyword.arg == "tz" for keyword in node.keywords)
             ):
-                if not node.args and not any(
-                    keyword.arg == "tz" for keyword in node.keywords
-                ):
-                    findings.append(
-                        Finding(
-                            relative,
-                            node.lineno,
-                            "DTZ005",
-                            "datetime.now() without timezone",
-                        )
+                findings.append(
+                    Finding(
+                        relative,
+                        node.lineno,
+                        "DTZ005",
+                        "datetime.now() without timezone",
                     )
+                )
     for line_number, line in enumerate(text.splitlines(), start=1):
         upper = line.upper()
         if ("TODO" in upper or "FIXME" in upper) and not relative.startswith(

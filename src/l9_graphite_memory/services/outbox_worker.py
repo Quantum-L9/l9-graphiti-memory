@@ -117,7 +117,7 @@ class OutboxWorker:
                     delivered_at=now,
                 )
                 delivered += 1
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 if attempts >= self.settings.outbox_max_attempts:
                     status = OutboxStatus.DEAD
                     dead += 1

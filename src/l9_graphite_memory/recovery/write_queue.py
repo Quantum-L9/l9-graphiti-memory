@@ -166,7 +166,7 @@ class FileWriteRecoveryQueue:
                         receipt=receipt,
                     )
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 error = f"{type(exc).__name__}: {exc}"
                 self._record_failure(item, error)
                 results.append(
