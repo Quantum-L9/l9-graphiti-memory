@@ -1,3 +1,14 @@
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/ISSUE_INDEX.md
+layer: documentation
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
 # Issue Index
 
 The issue IDs below are stable pack identifiers. GitHub issue numbers are assigned only when the creation script is executed.

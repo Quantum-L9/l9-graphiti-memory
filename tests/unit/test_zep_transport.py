@@ -24,7 +24,6 @@ class FakeEpisodeApi:
 
     def delete(self, *, uuid_: str):
         self.deleted.append(uuid_)
-        return None
 
 
 class FakeGraph:

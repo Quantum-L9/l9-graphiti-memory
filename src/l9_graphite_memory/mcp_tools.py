@@ -356,7 +356,7 @@ def _consent_from_payload(
     if value is None:
         return None
     if not isinstance(value, dict):
-        raise ValueError("consent must be an object")
+        raise ValueError("consent must be an object")  # noqa: TRY004
     return ConsentGrant(
         subject_id=str(value["subject_id"]),
         namespace=namespace,

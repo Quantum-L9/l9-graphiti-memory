@@ -81,19 +81,20 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
                         lines[node.lineno - 1].strip()[:300],
                     )
                 )
-            if node.func.attr == "connect" and isinstance(node.func.value, ast.Name):
-                if (
-                    node.func.value.id == "sqlite3"
-                    and relative not in _ALLOWED_SQL_FILES
-                ):
-                    violations.append(
-                        Violation(
-                            relative,
-                            node.lineno,
-                            "direct-sqlite-connect",
-                            lines[node.lineno - 1].strip()[:300],
-                        )
+            if (
+                node.func.attr == "connect"
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "sqlite3"
+                and relative not in _ALLOWED_SQL_FILES
+            ):
+                violations.append(
+                    Violation(
+                        relative,
+                        node.lineno,
+                        "direct-sqlite-connect",
+                        lines[node.lineno - 1].strip()[:300],
                     )
+                )
     return violations
 
 

@@ -35,7 +35,7 @@ class QueryClassifier:
         (
             QueryPattern.REASONING_LINEAGE,
             re.compile(
-                r"\b(why|reasoning|lineage|trace|reconstruct|ancestor|supersed)\b", re.I
+                r"\b(why|reasoning|lineage|trace|reconstruct|ancestor|supersed)\b", re.IGNORECASE
             ),
             ("lexical-ranking", "graph-search"),
         ),
@@ -43,31 +43,31 @@ class QueryClassifier:
             QueryPattern.TEMPORAL,
             re.compile(
                 r"\b(recent|latest|before|after|since|until|when|history|last|valid)\b|\bas\s+of\b",
-                re.I,
+                re.IGNORECASE,
             ),
             ("temporal-filter", "lexical-ranking", "semantic-search"),
         ),
         (
             QueryPattern.IDENTITY,
             re.compile(
-                r"\b(identity|preference|prefer|value|goal|style|always|never)\b", re.I
+                r"\b(identity|preference|prefer|value|goal|style|always|never)\b", re.IGNORECASE
             ),
             ("lexical-ranking", "graph-search", "semantic-search"),
         ),
         (
             QueryPattern.ENTITY_LOOKUP,
-            re.compile(r"\b(who|what|where|which)\s+(is|are|was|were)\b", re.I),
+            re.compile(r"\b(who|what|where|which)\s+(is|are|was|were)\b", re.IGNORECASE),
             ("graph-search", "lexical-ranking"),
         ),
         (
             QueryPattern.FACTUAL,
-            re.compile(r"\b(fact|value|retrieve|get|show|find)\b", re.I),
+            re.compile(r"\b(fact|value|retrieve|get|show|find)\b", re.IGNORECASE),
             ("lexical-ranking", "semantic-search", "temporal-filter"),
         ),
         (
             QueryPattern.EXPLORATORY,
             re.compile(
-                r"\b(explore|overview|tell me|what do we know|context|discover)\b", re.I
+                r"\b(explore|overview|tell me|what do we know|context|discover)\b", re.IGNORECASE
             ),
             ("semantic-search", "lexical-ranking", "graph-search"),
         ),

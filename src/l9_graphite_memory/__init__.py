@@ -27,13 +27,13 @@ __version__ = PACKAGE_VERSION
 
 __all__ = [
     "MEMORY_SCHEMA_VERSION",
+    "PACKAGE_VERSION",
     "CheckpointEnvelope",
     "CheckpointIntegrity",
     "ContextRestorer",
     "FileWriteRecoveryQueue",
     "MemorySDK",
     "MemoryService",
-    "PACKAGE_VERSION",
     "RecoveryReplayReport",
     "SessionEvent",
     "SessionIngestResult",

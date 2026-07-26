@@ -173,7 +173,7 @@ def install_sighup_reload(
             )
             if on_refresh:
                 on_refresh(result)
-        except Exception:
+        except Exception:  # noqa: BLE001
             active_log.exception("secret refresh failed after SIGHUP")
 
     previous = signal.signal(signal.SIGHUP, handler)

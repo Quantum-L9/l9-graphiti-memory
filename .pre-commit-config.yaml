@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .pre-commit-config.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 # Pre-commit hooks — mechanical enforcement before commit
 # Install: pre-commit install
 # Run manually: pre-commit run --all-files

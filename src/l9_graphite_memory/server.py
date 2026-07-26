@@ -223,7 +223,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
             )
         try:
             body = await request.json()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return JSONResponse(
                 status_code=400,
                 content=server.error(None, -32700, f"invalid JSON: {exc}"),

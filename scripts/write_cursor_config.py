@@ -40,7 +40,7 @@ def write_config(
             existing = {}
     servers = existing.setdefault("mcpServers", {})
     if not isinstance(servers, dict):
-        raise ValueError("mcpServers must be a JSON object")
+        raise ValueError("mcpServers must be a JSON object")  # noqa: TRY004
     servers["l9-graphite-memory"] = server_entry()
     if not dry_run:
         target.parent.mkdir(parents=True, exist_ok=True)
