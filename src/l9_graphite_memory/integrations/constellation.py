@@ -70,7 +70,7 @@ MemoryGateIntent = Annotated[
     | PhaseLockMemoryIntent,
     Field(discriminator="operation"),
 ]
-_MEMORY_GATE_INTENT = TypeAdapter(MemoryGateIntent)
+_MEMORY_GATE_INTENT: TypeAdapter[MemoryGateIntent] = TypeAdapter(MemoryGateIntent)
 
 
 class GateMemoryBridge:

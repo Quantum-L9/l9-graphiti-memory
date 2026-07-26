@@ -1,12 +1,25 @@
 #!/usr/bin/env python3
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: scripts/create_issues.py
+#   layer: operations
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 from __future__ import annotations
 
 import argparse
 import json
+import logging
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+logger = logging.getLogger("l9.create_issues")
 
 
 def run(args: list[str], *, capture: bool = False) -> str:
@@ -22,6 +35,8 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--create-labels", action="store_true")
     args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     issues = json.loads((ROOT / "issues.json").read_text(encoding="utf-8"))
     labels = json.loads((ROOT / "labels.json").read_text(encoding="utf-8"))
@@ -47,7 +62,7 @@ def main() -> int:
                 "--force",
             ]
             if args.dry_run:
-                print("DRY-RUN:", " ".join(cmd))
+                logger.info("DRY-RUN: %s", " ".join(cmd))
             else:
                 run(cmd)
 
@@ -69,11 +84,11 @@ def main() -> int:
         for label in item["labels"]:
             cmd += ["--label", label]
         if args.dry_run:
-            print(f"DRY-RUN {issue_id}:", " ".join(cmd))
+            logger.info("DRY-RUN %s: %s", issue_id, " ".join(cmd))
             continue
         url = run(cmd, capture=True)
         created[issue_id] = url
-        print(f"{issue_id}: {url}")
+        logger.info("%s: %s", issue_id, url)
 
     if not args.dry_run:
         lines = ["# Created Issues", "", f"Repository: `{args.repo}`", ""]

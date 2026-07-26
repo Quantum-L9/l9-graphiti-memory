@@ -447,8 +447,8 @@ class SQLiteRecordStore:
                 self._insert_receipt(tx, receipt)
                 for event in status_events:
                     self._insert_status_event(tx, event)
-                for event in outbox_events:
-                    self._insert_outbox(tx, event)
+                for outbox_event in outbox_events:
+                    self._insert_outbox(tx, outbox_event)
         except sqlite3.IntegrityError as exc:
             raise StoreError(
                 f"atomic memory write violated store constraints: {exc}"
