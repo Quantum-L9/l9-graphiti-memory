@@ -48,25 +48,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.6269,
-      "p50_ms": 0.5695,
-      "p95_ms": 0.6269,
+      "max_ms": 0.6179,
+      "p50_ms": 0.5696,
+      "p95_ms": 0.6179,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.5397,
-      "p50_ms": 0.4099,
-      "p95_ms": 0.4525,
+      "max_ms": 0.6157,
+      "p50_ms": 0.4077,
+      "p95_ms": 0.5363,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.5198,
-      "p50_ms": 0.1332,
-      "p95_ms": 0.238,
+      "max_ms": 0.5048,
+      "p50_ms": 0.1324,
+      "p95_ms": 0.236,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

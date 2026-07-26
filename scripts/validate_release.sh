@@ -57,7 +57,7 @@ run preflight bash scripts/preflight.sh
 for hook in hooks/*.sh scripts/*.sh; do bash -n "$hook"; done
 printf 'All shell files parse.\n' > "$OUT/logs/shell_syntax.txt"
 
-run wheel_build python3 -m pip wheel . --no-deps --no-build-isolation --wheel-dir "$OUT/dist"
+run wheel_build python3 -m pip wheel . --no-deps --wheel-dir "$OUT/dist"
 WHEEL="$(find "$OUT/dist" -maxdepth 1 -name '*.whl' -print -quit)"
 [ -n "$WHEEL" ]
 SITE="$TMP_ROOT/wheel-site"

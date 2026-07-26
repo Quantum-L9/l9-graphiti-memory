@@ -1,9 +1,13 @@
 Processing /home/ubuntu/l9gm-phase1
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
   Preparing metadata (pyproject.toml): started
   Preparing metadata (pyproject.toml): finished with status 'done'
 Building wheels for collected packages: l9-graphite-memory
   Building wheel for l9-graphite-memory (pyproject.toml): started
   Building wheel for l9-graphite-memory (pyproject.toml): finished with status 'done'
-  Created wheel for l9-graphite-memory: filename=l9_graphite_memory-2.2.0-py3-none-any.whl size=145069 sha256=1c1a737af794562cd92bbdfa42944d37884cd2b3604d443c54bd5968cfa47313
+  Created wheel for l9-graphite-memory: filename=l9_graphite_memory-2.2.0-py3-none-any.whl size=145110 sha256=eee72e29079817e016b41ee69505af2684fa2561255796b7ab8234d016d64d46
   Stored in directory: /home/ubuntu/.cache/pip/wheels/aa/d6/1d/5cb4c6c2799657dc001560771fbc14dcb4d945d6daeefff54d
 Successfully built l9-graphite-memory
