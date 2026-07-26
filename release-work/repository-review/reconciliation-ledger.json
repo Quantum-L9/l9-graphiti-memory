@@ -1,0 +1,86 @@
+{
+  "l9_meta": {
+    "l9_schema": 1,
+    "repo": "Quantum-L9/l9-graphiti-memory",
+    "path": "release-work/repository-review/reconciliation-ledger.json",
+    "layer": "repository_review",
+    "owner": "memory-control-plane",
+    "status": "active",
+    "version": "2.2.0",
+    "pinned_sha": "16d5305c0124d85bf06b719c5bac4c516bfe9085",
+    "generated": "2026-07-26",
+    "generated_by": "Manus AI repository review"
+  },
+  "schema": "l9.repository-review.reconciliation-ledger/v1",
+  "repository": "Quantum-L9/l9-graphiti-memory",
+  "pinned_sha": "16d5305c0124d85bf06b719c5bac4c516bfe9085",
+  "release": "2.2.0",
+  "supersession_law": {
+    "record_level": "Corrections create new records plus supersession status events; prior truth is never overwritten; superseded records retain lineage (ADR-008).",
+    "decision_level": "Superseding choices create a new ADR rather than rewriting an accepted one (docs/adr/README.md); legacy surfaces retire through documented aliases and migrations (ADR-023, ADR-058)."
+  },
+  "decisions": [
+    {
+      "id": "REV-001",
+      "title": "Provider role reclassification: canonical-like transport becomes rebuildable projection",
+      "superseded_behavior": "v0.2 lineage treated the graph provider as a de facto system of record",
+      "superseding_behavior": "RecordStore is the sole canonical owner; Graphiti/Zep are deletable, rebuildable projections behind a durable outbox",
+      "authority": ["docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md", "docs/COMPATIBILITY_MATRIX.md"],
+      "evidence": ["tests/conformance/test_store_contract.py", "tests/integration/test_outbox.py", "validation/logs/pytest.txt"],
+      "classification": "intentional_architecture_change",
+      "status": "implemented_locally",
+      "residual_risk": "Live provider lifecycle proof external (RP-004, RP-005)"
+    },
+    {
+      "id": "REV-002",
+      "title": "Graphiti tool dialect supersession: add_episode/search_facts superseded by add_memory/search_memory_facts",
+      "superseded_behavior": "Legacy Graphiti MCP tool names add_episode and search_facts as the only dialect",
+      "superseding_behavior": "Transport negotiates per server, preferring add_memory and search_memory_facts while retaining legacy dialect support",
+      "authority": ["docs/COMPATIBILITY_MATRIX.md", "docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md"],
+      "evidence": ["src/l9_graphite_memory/transport.py", "validation/logs/pytest.txt"],
+      "classification": "compatible_supersession_with_alias",
+      "status": "implemented",
+      "residual_risk": "None locally; dialect behavior against heterogeneous live servers folds into RP-004"
+    },
+    {
+      "id": "REV-003",
+      "title": "Search failure semantics: empty-result masking superseded by typed per-strategy receipts",
+      "superseded_behavior": "Failed backend searches could be represented as zero results",
+      "superseding_behavior": "Typed complete/partial/failed retrieval receipts record every attempted, succeeded, and failed strategy",
+      "authority": ["docs/adr/ADR-015-failure-and-degradation-policy.md", "docs/adr/ADR-039-retrieval-planning-and-tier-fusion.md", "docs/adr/ADR-054-strategy-specific-hybrid-retrieval-receipts.md", "docs/COMPATIBILITY_MATRIX.md"],
+      "evidence": ["src/l9_graphite_memory/retrieval/planner.py", "validation/logs/pytest.txt"],
+      "classification": "intentional_correctness_break",
+      "status": "implemented",
+      "residual_risk": "Downstream callers must adopt receipt inspection; documented in MIGRATION.md"
+    },
+    {
+      "id": "REV-004",
+      "title": "Namespace authority supersession: caller-asserted namespaces superseded by server-derived claim intersection",
+      "superseded_behavior": "v0.2 accepted arbitrary remote namespaces from callers",
+      "superseding_behavior": "Requested namespaces are intersected with server-derived MemoryPrincipal claims before any read or write",
+      "authority": ["docs/adr/ADR-006-namespace-authorization.md", "docs/adr/ADR-030-rls-and-transaction-scoped-authorization.md", "docs/COMPATIBILITY_MATRIX.md"],
+      "evidence": ["src/l9_graphite_memory/authz/policy.py", "tests/unit/test_authz.py", "validation/logs/pytest.txt"],
+      "classification": "security_break_by_design",
+      "status": "implemented",
+      "residual_risk": "Remote callers require explicit claims; migration path in MIGRATION.md"
+    },
+    {
+      "id": "REV-005",
+      "title": "Deletion semantics supersession: undefined destructive deletion superseded by redacted tombstone plus verified projection erasure",
+      "superseded_behavior": "Deletion lacked a verified contract across canonical state and projections",
+      "superseding_behavior": "Immediate canonical redaction to a tombstone preserving referential integrity; deletion receipt completes only after locator-verified projection erasure (Graphiti delete_episode, Zep graph.episode.delete)",
+      "authority": ["docs/adr/ADR-024-memory-privacy-consent-and-deletion.md", "docs/adr/ADR-057-verified-deletion-and-projection-erasure.md", "docs/COMPATIBILITY_MATRIX.md"],
+      "evidence": ["tests/integration/test_privacy_deletion.py", "src/l9_graphite_memory/adapters/graphiti_projection.py", "validation/logs/pytest.txt"],
+      "classification": "contract_hardening",
+      "status": "implemented",
+      "residual_risk": "Live erasure confirmation against hosted providers folds into RP-004 and RP-005; guard state path migration retains legacy read"
+    }
+  ],
+  "closure": {
+    "harvest_ledger": "docs/harvest_coverage.yaml",
+    "decision_count": 44,
+    "validator": "tools/assurance/validate_harvest_coverage.py",
+    "law": "docs/adr/ADR-056-recursive-harvest-convergence.md",
+    "statement": "Every legacy concept from the eight harvest source packs is dispositioned as implemented, rejected_boundary, or blocked_external; the five REV decisions consolidate that ledger at review level and mirror supersession-map.md entry for entry."
+  }
+}
