@@ -5,8 +5,8 @@ path: AGENTS.md
 layer: repository
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-07-27
 /L9_META -->
 
 # AGENTS.md
@@ -27,6 +27,8 @@ No file is immune from correction. These invariants are protected:
 6. No direct store/provider write bypass.
 7. No secret persistence in generated config.
 8. No release claim without executable validation.
+9. Client instantiation flows through `client_config`; no ad hoc MCP config edits.
+10. No instantiation claim without a passing `client cursor verify` probe receipt.
 
 ## Change requirements
 

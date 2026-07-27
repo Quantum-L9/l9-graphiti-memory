@@ -6,8 +6,8 @@
 #   layer: assurance
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-07-27
 
 """Fail when committed production files contain high-confidence credential material."""
 
@@ -23,6 +23,7 @@ from pathlib import Path
 SCAN_ROOTS = (
     ".github",
     "config",
+    "docs",
     "hooks",
     "scripts",
     "skill",

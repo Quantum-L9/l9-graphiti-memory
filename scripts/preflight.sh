@@ -6,8 +6,8 @@
 #   layer: operations
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-07-27
 
 set -euo pipefail
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -48,6 +48,8 @@ finally:
  runtime.close()
 PY
 run_gate "MCP inventory" python3 -c 'from l9_graphite_memory.mcp_tools import tool_definitions; names={x["name"] for x in tool_definitions()}; assert {"memory.ingest","memory.search","memory.delete","memory.distill","memory.synthesize_procedures","write","search"} <= names'
+run_gate "cursor client dry-run" python3 -m l9_graphite_memory.cli client cursor install --dry-run --path "$TMP_ROOT/cursor/mcp.json"
+run_gate "cursor instantiation probe" python3 -m l9_graphite_memory.cli client cursor verify --timeout 60
 for hook in "$ROOT"/hooks/*.sh; do run_gate "shell syntax $(basename "$hook")" bash -n "$hook"; done
 run_gate "ADR ledger" python3 "$ROOT/tools/assurance/validate_adrs.py"
 run_gate "harvest coverage" python3 "$ROOT/tools/assurance/validate_harvest_coverage.py"

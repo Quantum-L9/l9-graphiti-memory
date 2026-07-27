@@ -20,3 +20,4 @@ RETENTION_POLICY_VERSION = "memory-retention/v2"
 PHASE_LOCK_POLICY_VERSION = "memory-phase-lock/v2"
 
 CONSTELLATION_BRIDGE_VERSION = "l9-memory-gate/v1"
+CLIENT_CONFIG_POLICY_VERSION = "client-config/v1"

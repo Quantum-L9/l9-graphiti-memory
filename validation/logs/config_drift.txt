@@ -1,1 +1,1 @@
-PASS: canonical configuration defaults have no duplicate assignments
+PASS: canonical configuration defaults have no duplicate assignments and mcp.json.example matches the canonical generator

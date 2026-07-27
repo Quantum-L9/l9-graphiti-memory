@@ -5,8 +5,8 @@ path: RUNBOOK.md
 layer: repository
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-07-27
 /L9_META -->
 
 # Runbook
@@ -111,7 +111,7 @@ export L9_MEMORY_LOCAL_PROMOTE_NAMESPACES=
 export L9_MEMORY_LOCAL_IS_ADMIN=false
 ```
 
-Use `scripts/write_cursor_config.py` or `scripts/write_claude_config.py`. They write command-only configuration and never copy credentials.
+Use `l9-memory client cursor install` for Cursor (with `inspect`, `verify`, `status`, and `uninstall` completing the lifecycle) or `scripts/write_claude_config.py` for Claude. Both write command-only configuration and never copy credentials. `scripts/write_cursor_config.py` remains as a thin compatibility wrapper over the canonical `client_config` path. Installs are atomic, preserve unrelated servers, and leave digest-bound backups; `l9-memory client cursor verify` proves the full stdio handshake, tool inventory, and `memory.health` before any live-instantiation claim. See `docs/CURSOR_INSTANTIATION.md`.
 
 ## Remote HTTP MCP
 

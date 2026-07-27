@@ -1,7 +1,7 @@
 {
   "blocked_external_checks": 5,
   "checks_failed": 0,
-  "checks_passed": 20,
+  "checks_passed": 22,
   "checks_unknown": 0,
   "generated_from": "executed files under validation/logs and explicit external blocker declarations",
   "local_deterministic_status": "PASS",

@@ -22,6 +22,11 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
+from l9_graphite_memory.client_config import (
+    ClientConfigStatus,
+    CursorClientConfigurator,
+    probe_generated_server,
+)
 from l9_graphite_memory.contracts import (
     Confidence,
     ConsentGrant,
@@ -700,6 +705,39 @@ def cmd_recovery_replay(args: argparse.Namespace) -> int:
         runtime.close()
 
 
+def cmd_client(args: argparse.Namespace) -> int:
+    if args.client_target != "cursor":
+        raise ValueError(f"unsupported client target: {args.client_target}")
+    path = Path(args.path) if args.path else None
+    configurator = CursorClientConfigurator(path, interpreter=args.interpreter)
+    action = args.cursor_action
+    if action == "inspect":
+        _print(configurator.inspect())
+        return 0
+    if action == "install":
+        receipt = configurator.install(dry_run=args.dry_run)
+        _print(receipt)
+        return 0 if receipt.status != ClientConfigStatus.BLOCKED else 1
+    if action == "uninstall":
+        restore = Path(args.restore_backup) if args.restore_backup else None
+        receipt = configurator.uninstall(
+            dry_run=args.dry_run, restore_backup=restore
+        )
+        _print(receipt)
+        return 0 if receipt.status != ClientConfigStatus.BLOCKED else 1
+    if action == "status":
+        receipt = configurator.status()
+        _print(receipt)
+        return 0 if receipt.status != ClientConfigStatus.BLOCKED else 1
+    if action == "verify":
+        probe = probe_generated_server(
+            interpreter=args.interpreter, timeout_seconds=args.timeout
+        )
+        _print(probe)
+        return 0 if probe.status == ClientConfigStatus.COMPLETE else 1
+    raise ValueError(f"unsupported cursor action: {action}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="L9 contract-governed memory")
     parser.add_argument("--config", default=None, help="Optional YAML settings file")
@@ -851,6 +889,30 @@ def build_parser() -> argparse.ArgumentParser:
     recovery_replay = sub.add_parser("recovery-replay")
     recovery_replay.add_argument("--group-id", default=None)
     recovery_replay.add_argument("--limit", type=int, default=100)
+
+    client = sub.add_parser("client")
+    client_sub = client.add_subparsers(dest="client_target", required=True)
+    cursor = client_sub.add_parser("cursor")
+    cursor_sub = cursor.add_subparsers(dest="cursor_action", required=True)
+    cursor_inspect = cursor_sub.add_parser("inspect")
+    cursor_inspect.add_argument("--path", default=None)
+    cursor_inspect.add_argument("--interpreter", default=None)
+    cursor_install = cursor_sub.add_parser("install")
+    cursor_install.add_argument("--path", default=None)
+    cursor_install.add_argument("--interpreter", default=None)
+    cursor_install.add_argument("--dry-run", action="store_true")
+    cursor_verify = cursor_sub.add_parser("verify")
+    cursor_verify.add_argument("--path", default=None)
+    cursor_verify.add_argument("--interpreter", default=None)
+    cursor_verify.add_argument("--timeout", type=float, default=30.0)
+    cursor_status = cursor_sub.add_parser("status")
+    cursor_status.add_argument("--path", default=None)
+    cursor_status.add_argument("--interpreter", default=None)
+    cursor_uninstall = cursor_sub.add_parser("uninstall")
+    cursor_uninstall.add_argument("--path", default=None)
+    cursor_uninstall.add_argument("--interpreter", default=None)
+    cursor_uninstall.add_argument("--dry-run", action="store_true")
+    cursor_uninstall.add_argument("--restore-backup", default=None)
     return parser
 
 
@@ -880,6 +942,7 @@ def main(argv: list[str] | None = None) -> int:
         "synthesize-procedures": cmd_synthesize_procedures,
         "outbox-run": cmd_outbox_run,
         "recovery-replay": cmd_recovery_replay,
+        "client": cmd_client,
     }
     try:
         return handlers[args.command](args)

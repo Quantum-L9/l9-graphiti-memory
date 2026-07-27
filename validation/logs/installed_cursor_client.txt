@@ -1,0 +1,50 @@
+{
+  "action": "install",
+  "backup_path": null,
+  "backup_sha256": null,
+  "changed": false,
+  "command_argv": [
+    "/usr/bin/python3",
+    "-m",
+    "l9_graphite_memory.server",
+    "--transport",
+    "stdio"
+  ],
+  "created_at": "2026-07-27T16:56:18.733942Z",
+  "managed_entry_present": true,
+  "path": "/tmp/tmp.6nJR3lmFP6/installed-smoke/home/.cursor/mcp.json",
+  "policy_version": "client-config/v1",
+  "post_sha256": null,
+  "pre_sha256": null,
+  "preserved_server_keys": [],
+  "reasons": [
+    "dry run: no bytes written"
+  ],
+  "receipt_id": "14a0f17f-73bd-4661-9d45-28ddb15e1eaa",
+  "status": "dry_run",
+  "warnings": []
+}
+{
+  "action": "install",
+  "backup_path": null,
+  "backup_sha256": null,
+  "changed": true,
+  "command_argv": [
+    "/usr/bin/python3",
+    "-m",
+    "l9_graphite_memory.server",
+    "--transport",
+    "stdio"
+  ],
+  "created_at": "2026-07-27T16:56:19.381960Z",
+  "managed_entry_present": true,
+  "path": "/tmp/tmp.6nJR3lmFP6/installed-smoke/home/.cursor/mcp.json",
+  "policy_version": "client-config/v1",
+  "post_sha256": "1288d39e8da63d9f9be5369bc506a2d8b5930ad41e3f110f812e86c4b5c597b9",
+  "pre_sha256": null,
+  "preserved_server_keys": [],
+  "reasons": [],
+  "receipt_id": "86074a7e-5921-4ff2-9818-cdb00cc18a5e",
+  "status": "complete",
+  "warnings": []
+}
