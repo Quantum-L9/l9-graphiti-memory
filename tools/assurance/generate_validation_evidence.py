@@ -6,8 +6,8 @@
 #   layer: assurance
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-07-27
 
 """Generate evidence-bearing validation records from executed release logs."""
 
@@ -46,8 +46,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        "118 tests pass",
-        r"118 passed",
+        "150 tests pass",
+        r"150 passed",
     ),
     CheckSpec(
         "V-002",
@@ -64,8 +64,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "docs/adr/",
         "validate_adrs.py",
         "logs/adr_validation.txt",
-        "63 ADRs complete and indexed",
-        r"PASS: 63 ADRs",
+        "64 ADRs complete and indexed",
+        r"PASS: 64 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -136,8 +136,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "production Python",
         "check_source_quality.py",
         "logs/source_quality.txt",
-        "91 production files pass",
-        r"PASS: 91 production Python files",
+        "95 production files pass",
+        r"PASS: 95 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -163,8 +163,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "repository",
         "scripts/preflight.sh",
         "logs/preflight.txt",
-        "25 preflight gates pass",
-        r"Preflight complete: 25 gates passed",
+        "27 preflight gates pass",
+        r"Preflight complete: 27 gates passed",
     ),
     CheckSpec(
         "V-015",
@@ -219,6 +219,24 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/installed_mcp.txt",
         "22 tools and required surfaces load",
         r"22 tools loaded",
+    ),
+    CheckSpec(
+        "V-021",
+        "execution",
+        "installed Cursor client lifecycle",
+        "python -m l9_graphite_memory.cli client cursor install",
+        "logs/installed_cursor_client.txt",
+        "managed entry installed under isolated HOME",
+        r'"managed_entry_present": true',
+    ),
+    CheckSpec(
+        "V-022",
+        "execution",
+        "installed Cursor instantiation probe",
+        "python -m l9_graphite_memory.cli client cursor verify",
+        "logs/installed_cursor_probe.txt",
+        "stdio handshake, tool inventory, and health prove instantiation",
+        r'"status": "complete"',
     ),
 )
 

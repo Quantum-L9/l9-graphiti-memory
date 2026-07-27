@@ -5,8 +5,8 @@ path: QUICKSTART.md
 layer: repository
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-07-27
 /L9_META -->
 
 # Quick Start
@@ -46,5 +46,16 @@ l9-memory import legacy-episodes.jsonl --group-id l9-graphiti-memory --dry-run
 ```bash
 l9-memory-server --transport stdio
 ```
+
+## Cursor instantiation
+
+```bash
+l9-memory client cursor install --dry-run
+l9-memory client cursor install
+l9-memory client cursor verify
+l9-memory client cursor status
+```
+
+`install` atomically writes the managed `l9-graphite-memory` entry into `~/.cursor/mcp.json`, preserving unrelated servers and never persisting secrets. `verify` launches the generated command and proves the full MCP handshake, tool inventory, and `memory.health`. Restart Cursor after installing, then see `docs/CURSOR_INSTANTIATION.md` for the full lifecycle and recovery.
 
 See `RUNBOOK.md` for consent-governed profile writes, deletion, provider projection, recovery, backups, and release validation.

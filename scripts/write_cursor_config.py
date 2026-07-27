@@ -6,10 +6,18 @@
 #   layer: operations
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-07-27
 
-"""Write a secret-free Cursor MCP entry for the installed memory package."""
+"""Write a secret-free Cursor MCP entry for the installed memory package.
+
+Compatibility wrapper: the canonical lifecycle lives in
+``l9_graphite_memory.client_config`` and is exposed through the CLI as
+``l9-memory client cursor install``. This wrapper preserves the historical
+``server_entry``/``write_config`` interface pinned by the regression suite
+while delegating every mutation to the atomic, evidence-bearing
+configurator so there is exactly one write path.
+"""
 
 from __future__ import annotations
 
@@ -18,34 +26,47 @@ import json
 import sys
 from pathlib import Path
 
+_SRC = Path(__file__).resolve().parent.parent / "src"
+if _SRC.is_dir() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+from l9_graphite_memory.client_config import (
+    CursorClientConfigurator,
+    managed_server_entry,
+)
+
 
 def server_entry() -> dict[str, object]:
-    return {
-        "command": sys.executable,
-        "args": ["-m", "l9_graphite_memory.server", "--transport", "stdio"],
-    }
+    return managed_server_entry().as_config()
+
+
+def _projected_config(target: Path, entry_key: str) -> dict[str, object]:
+    config: dict[str, object] = {}
+    if target.is_file():
+        try:
+            decoded = json.loads(target.read_text(encoding="utf-8"))
+            if isinstance(decoded, dict):
+                config = decoded
+        except (OSError, json.JSONDecodeError):
+            config = {}
+    servers = config.setdefault("mcpServers", {})
+    if not isinstance(servers, dict):
+        raise ValueError("mcpServers must be a JSON object")  # noqa: TRY004
+    servers[entry_key] = server_entry()
+    return config
 
 
 def write_config(
     *, dry_run: bool = False, path: Path | None = None
 ) -> dict[str, object]:
-    target = path or Path.home() / ".cursor" / "mcp.json"
-    existing: dict[str, object] = {}
-    if target.is_file():
-        try:
-            decoded = json.loads(target.read_text(encoding="utf-8"))
-            if isinstance(decoded, dict):
-                existing = decoded
-        except (OSError, json.JSONDecodeError):
-            existing = {}
-    servers = existing.setdefault("mcpServers", {})
-    if not isinstance(servers, dict):
-        raise ValueError("mcpServers must be a JSON object")  # noqa: TRY004
-    servers["l9-graphite-memory"] = server_entry()
-    if not dry_run:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf-8")
-    return {"path": str(target), "dry_run": dry_run, "config": existing}
+    configurator = CursorClientConfigurator(path)
+    receipt = configurator.install(dry_run=dry_run)
+    if receipt.status.value == "blocked":
+        raise ValueError(
+            "cursor config blocked: " + "; ".join(receipt.reasons)
+        )
+    config = _projected_config(Path(receipt.path), configurator.entry.key)
+    return {"path": receipt.path, "dry_run": dry_run, "config": config}
 
 
 def main() -> int:

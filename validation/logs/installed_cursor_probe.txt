@@ -1,0 +1,46 @@
+{
+  "command_argv": [
+    "/usr/bin/python3",
+    "-m",
+    "l9_graphite_memory.server",
+    "--transport",
+    "stdio"
+  ],
+  "created_at": "2026-07-27T16:56:20.566587Z",
+  "exit_code": 0,
+  "health_status": "complete",
+  "missing_tools": [],
+  "policy_version": "client-config/v1",
+  "protocol_version": "2024-11-05",
+  "reasons": [],
+  "receipt_id": "7117f84e-b7bb-4d1b-9aa2-6868a9baf19a",
+  "required_tools_present": true,
+  "server_name": "l9-graphite-memory",
+  "server_version": "2.2.0",
+  "status": "complete",
+  "stderr_excerpt": "",
+  "steps": [
+    {
+      "detail": "ok",
+      "method": "initialize",
+      "ok": true
+    },
+    {
+      "detail": "sent",
+      "method": "notifications/initialized",
+      "ok": true
+    },
+    {
+      "detail": "ok",
+      "method": "tools/list",
+      "ok": true
+    },
+    {
+      "detail": "ok",
+      "method": "tools/call memory.health",
+      "ok": true
+    }
+  ],
+  "timed_out": false,
+  "tool_count": 22
+}

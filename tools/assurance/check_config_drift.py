@@ -6,8 +6,8 @@
 #   layer: assurance
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-07-27
 
 """Check that namespace and security defaults remain centralized."""
 
@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import json
 import sys
 from pathlib import Path
 
@@ -33,6 +34,34 @@ _TRACKED_NAMES = {
 }
 
 
+def _example_drift(root: Path) -> list[str]:
+    """Assert config/mcp.json.example matches the canonical generator."""
+    src = root / "src"
+    if str(src) not in sys.path:
+        sys.path.insert(0, str(src))
+    from l9_graphite_memory.client_config import managed_server_entry
+
+    example_path = root / "config" / "mcp.json.example"
+    try:
+        example = json.loads(example_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"config/mcp.json.example: unreadable: {exc}"]
+    servers = example.get("mcpServers", {})
+    entry = servers.get("l9-graphite-memory") if isinstance(servers, dict) else None
+    if not isinstance(entry, dict):
+        return ["config/mcp.json.example: missing l9-graphite-memory entry"]
+    canonical = managed_server_entry().as_config()
+    canonical["command"] = "python3"
+    if entry != canonical:
+        return [
+            (
+                "config/mcp.json.example: drifted from canonical generator "
+                f"(expected {canonical!r}, found {entry!r})"
+            )
+        ]
+    return []
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -41,6 +70,7 @@ def main() -> int:
     args = parser.parse_args()
     root = args.repo_root.resolve()
     violations: list[str] = []
+    violations.extend(_example_drift(root))
     for path in sorted((root / "src" / "l9_graphite_memory").rglob("*.py")):
         relative = path.relative_to(root).as_posix()
         if relative in _ALLOWED:
@@ -63,7 +93,8 @@ def main() -> int:
         sys.stdout.write("\n".join(violations) + "\n")
         return 1
     sys.stdout.write(
-        "PASS: canonical configuration defaults have no duplicate assignments\n"
+        "PASS: canonical configuration defaults have no duplicate assignments "
+        "and mcp.json.example matches the canonical generator\n"
     )
     return 0
 

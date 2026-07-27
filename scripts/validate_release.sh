@@ -6,8 +6,8 @@
 #   layer: operations
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-07-27
 
 set -euo pipefail
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -87,6 +87,12 @@ eps={ep.name for ep in distribution('l9-graphite-memory').entry_points}
 assert {'l9-memory','l9-memory-server','l9-memory-worker'} <= eps
 sys.stdout.write(f'{len(names)} tools loaded; entrypoints, constellation bridge, and resources present\n')
 PYSMOKE
+  PYTHONPATH="$SITE" HOME="$TMP_DATA/home" L9_MEMORY_DATA_DIR="$TMP_DATA/data" L9_MEMORY_STATE_DIR="$TMP_DATA/state" \
+    python3 -m l9_graphite_memory.cli client cursor install --dry-run >"$OUT/logs/installed_cursor_client.txt"
+  PYTHONPATH="$SITE" HOME="$TMP_DATA/home" L9_MEMORY_DATA_DIR="$TMP_DATA/data" L9_MEMORY_STATE_DIR="$TMP_DATA/state" \
+    python3 -m l9_graphite_memory.cli client cursor install --path "$TMP_DATA/home/.cursor/mcp.json" >>"$OUT/logs/installed_cursor_client.txt"
+  PYTHONPATH="$SITE" HOME="$TMP_DATA/home" L9_MEMORY_DATA_DIR="$TMP_DATA/data" L9_MEMORY_STATE_DIR="$TMP_DATA/state" L9_MEMORY_PROJECTION_BACKEND=none \
+    python3 -m l9_graphite_memory.cli client cursor verify --timeout 60 >"$OUT/logs/installed_cursor_probe.txt"
 )
 (cd "$OUT/dist" && sha256sum *.whl) > "$OUT/SHA256SUMS"
 run validation_evidence python3 tools/assurance/generate_validation_evidence.py

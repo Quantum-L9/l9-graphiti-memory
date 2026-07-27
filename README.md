@@ -5,8 +5,8 @@ path: README.md
 layer: repository
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-07-27
 /L9_META -->
 
 # L9 Graphiti Memory
@@ -97,7 +97,7 @@ Legacy MCP aliases `write`, `search`, `health`, `bootstrap`, `phase_lock`, and `
 
 ## Configuration
 
-Copy `config/memory.yaml.example` and set `L9_MEMORY_CONFIG` to its path. Environment variables override YAML. Cursor and Claude config writers persist commands and non-secret settings only.
+Copy `config/memory.yaml.example` and set `L9_MEMORY_CONFIG` to its path. Environment variables override YAML. Cursor and Claude config writers persist commands and non-secret settings only. Cursor instantiation is governed by the canonical `l9-memory client cursor` lifecycle (`inspect`, `install`, `verify`, `status`, `uninstall`); see `docs/CURSOR_INSTANTIATION.md` and ADR-064.
 
 Projection choices:
 
