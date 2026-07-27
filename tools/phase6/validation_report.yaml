@@ -1,0 +1,55 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tools/phase6/validation_report.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema: l9.deploy.phase6h2-validation/v2
+status: APPROVED_WITH_FINDINGS
+exact_state: validated_tree_manifest
+validated_at: '2026-07-26'
+checks:
+  adversarial_tests:
+    status: PASS
+    discovered: 19
+    passed: 19
+    failed: 0
+    execution_model: isolated_process_per_test
+    per_test_timeout_seconds: 60
+  isolated_runner:
+    status: PASS
+    validation:
+      - Python compilation
+      - CLI discovery smoke test
+      - partial parallel execution observed without test failure
+  python_compile: PASS
+  bash_syntax: PASS
+  json_parse: PASS
+  yaml_parse: PASS
+  schema_validation: PASS
+  evidence_mutation_rejected: PASS
+  rehashed_ledger_rejected: PASS
+  wrong_key_rejected: PASS
+  cross_run_replay_rejected: PASS
+  unledgered_files_rejected: PASS
+  path_traversal_rejected: PASS
+  fake_locator_rejected: PASS
+  immediate_no_go_enforced: PASS
+  oidc_signature_verified: PASS
+  oidc_corruption_rejected: PASS
+  manual_go_rejected: PASS
+  workflow_receipt_binding: PASS
+  infisical_redaction: PASS
+  final_health_binding: PASS
+  manifest_validation: PASS
+blocked_checks:
+  - live_staging_execution
+  - live_rollback_convergence
+  - live_secret_rotation
+  - live_negative_oidc_exchange
+safe_for_live_evidence_collection: true
+safe_to_claim_phase6_go_now: false

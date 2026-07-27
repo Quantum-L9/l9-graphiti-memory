@@ -23,7 +23,7 @@ PASS: core, adapter, service, and integration dependency directions are aligned
 PASS  layer boundary alignment
 PASS: recursive L9 alignment contract satisfied across all ten passes
 PASS  recursive L9 alignment
-PASS: 321 manifested files exist with matching size and SHA-256
+PASS: 420 manifested files exist with matching size and SHA-256
 PASS  release manifest
 PASS: no canonical memory write bypasses detected
 PASS  write bypass assurance
@@ -48,25 +48,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.6179,
-      "p50_ms": 0.5696,
-      "p95_ms": 0.6179,
+      "max_ms": 0.6521,
+      "p50_ms": 0.6043,
+      "p95_ms": 0.6521,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.6157,
-      "p50_ms": 0.4077,
-      "p95_ms": 0.5363,
+      "max_ms": 0.5762,
+      "p50_ms": 0.4154,
+      "p95_ms": 0.5596,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.5048,
-      "p50_ms": 0.1324,
-      "p95_ms": 0.236,
+      "max_ms": 0.5674,
+      "p50_ms": 0.1328,
+      "p95_ms": 0.2429,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

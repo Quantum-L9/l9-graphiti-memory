@@ -27,6 +27,11 @@ from check_l9_meta import validate as validate_l9_meta
 from check_layer_boundaries import scan as scan_layer_boundaries
 
 _DEPRECATED_ENVELOPE = "Packet" + "Envelope"
+# Vendored external artifacts validated by their own contract (exact-state
+# checksum manifest plus adversarial suite, executed in CI through
+# tests/regression/test_phase6_operator.py); repository style-level alignment
+# rules are not enforced on their sources.
+VENDORED_PREFIXES = ("tools/phase6/",)
 EXCLUDED_PARTS = {
     ".git",
     ".pytest_cache",
@@ -108,6 +113,8 @@ def _text_files(root: Path) -> tuple[Path, ...]:
             part in EXCLUDED_PARTS or part.endswith(".egg-info")
             for part in relative.parts
         ):
+            continue
+        if relative.as_posix().startswith(VENDORED_PREFIXES):
             continue
         try:
             path.read_text(encoding="utf-8")
@@ -203,6 +210,8 @@ def scan(root: Path) -> tuple[Violation, ...]:
         + sorted((root / "scripts").rglob("*.py"))
     ):
         relative = path.relative_to(root).as_posix()
+        if relative.startswith(VENDORED_PREFIXES):
+            continue
         for line, call in _python_calls(path):
             if call in {"print", "eval", "exec", "compile"}:
                 violations.append(

@@ -46,8 +46,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        "115 tests pass",
-        r"115 passed",
+        "118 tests pass",
+        r"118 passed",
     ),
     CheckSpec(
         "V-002",
