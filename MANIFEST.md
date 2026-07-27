@@ -38,7 +38,7 @@ updated: 2026-07-22
 | `assurance` | 89 |
 | `ci` | 5 |
 | `configuration` | 10 |
-| `documentation` | 12 |
+| `documentation` | 17 |
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 99 |
@@ -47,7 +47,7 @@ updated: 2026-07-22
 | `tests` | 41 |
 | `validation_evidence` | 31 |
 
-- Hashed inventory files below: **439**
+- Hashed inventory files below: **444**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -125,6 +125,11 @@ updated: 2026-07-22
 | `docs/RECURSIVE_HARVEST_AUDIT.md` | `documentation` | `documentation` | 4921 | `370cb913d5117345bd2355672c86115d1d4f6b875539e3cdd0e30aa55de1b393` |
 | `docs/REMAINING_PRODUCTION_PROOF.md` | `documentation` | `documentation` | 2088 | `dafdd5c6268d2cdb89ccc183b7c127f4fa7a0d8a21cd6b1587bdd0f71406426e` |
 | `docs/REMEDIATION_AND_INTEGRATION_PLAN.md` | `documentation` | `documentation` | 6077 | `b5f0314090e0c3f19d10e5c27690eb7f1bcd9bfb27407f3e32b65833c9bb66b3` |
+| `docs/activation/ACTIVATION_REPORT.md` | `documentation` | `documentation` | 3697 | `d37073dd495a9d310783c6d77de220d794ef98914689495fd586012f0bebb0ba` |
+| `docs/activation/ACTIVATION_STATE_MACHINE.yaml` | `documentation` | `documentation` | 1158 | `2d9ce439b97a172d5f672f111ab289247ca5cc554ba9225ec930dd0e338e14fb` |
+| `docs/activation/ACTIVATION_UNKNOWNS.md` | `documentation` | `documentation` | 2492 | `d615ac41c1c2da8050058eb906ca052d49b905ec4b87130ce2cc72ce503d9823` |
+| `docs/activation/CURSOR_FULL_ACTIVATION_PLAYBOOK.md` | `documentation` | `documentation` | 10737 | `bb7ea00299502a8e2559376929262e2b91c6e24e0b26f7c6823569f4a5a8ba43` |
+| `docs/activation/EVIDENCE_CONTRACT.yaml` | `documentation` | `documentation` | 1916 | `42f73492728a2950007a793850813a4257165b381a8db1c05989f36900a02f5f` |
 | `docs/adr/ADR-001-repository-role-and-boundaries.md` | `architecture_decisions` | `architecture_decisions` | 2921 | `505219a9232c0d278f0f75af6cfa625c65443c0b3a75bae4e4191b0d3c58d33e` |
 | `docs/adr/ADR-002-canonical-memory-service.md` | `architecture_decisions` | `architecture_decisions` | 2679 | `f11c9bf1748ebfa33be92f586daec4dc02dca1f219a594fe3cd61e69d8bf94b1` |
 | `docs/adr/ADR-003-memory-contract-and-taxonomy.md` | `architecture_decisions` | `architecture_decisions` | 2609 | `8469a8f4d211052e7562ae857286e214033a0d9c9e1b5ad1e5ddb467053dabb5` |

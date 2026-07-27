@@ -1,0 +1,40 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: docs/activation/ACTIVATION_STATE_MACHINE.yaml
+#   layer: documentation
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema: l9.cursor-memory-instantiation.state-machine/v1
+states:
+  - UNINSTALLED
+  - BASELINE_VERIFIED
+  - PACKAGE_INSTALLED
+  - CONFIG_DRY_RUN_VALID
+  - CONFIGURED
+  - MCP_HANDSHAKE_VERIFIED
+  - REQUIRED_TOOLS_VERIFIED
+  - CANONICAL_HEALTH_VERIFIED
+  - CURSOR_RELOADED
+  - CURSOR_TOOLS_VISIBLE
+  - HYDRATION_VERIFIED
+  - WRITE_RECEIPT_VERIFIED
+  - GUARD_INSTALLED
+  - GUARD_SOAKING
+  - PHASE_LOCK_VERIFIED
+  - WRITE_GATES_ENABLED
+  - FULLY_INSTANTIATED
+rules:
+  - transitions_are_monotonic_except_explicit_rollback
+  - state_is_derived_from_evidence
+  - missing_or_invalid_evidence_leaves_state_at_last_proven_value
+  - write_gate_enablement_requires_explicit_operator_approval
+  - live_Cursor_states_cannot_be_satisfied_by_repository_tests
+rollback_states:
+  config_restore: PACKAGE_INSTALLED
+  package_uninstall: BASELINE_VERIFIED
+  disable_write_gates: PHASE_LOCK_VERIFIED
+  remove_guard: WRITE_RECEIPT_VERIFIED

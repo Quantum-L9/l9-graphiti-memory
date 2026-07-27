@@ -1,0 +1,53 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: docs/activation/EVIDENCE_CONTRACT.yaml
+#   layer: documentation
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema: l9.cursor-memory-instantiation.evidence-contract/v1
+binding_required:
+  - activation_run_id
+  - repository_sha
+  - package_version
+  - python_executable
+  - home_directory_digest
+  - config_path
+  - config_post_sha256
+  - generated_command_sha256
+records:
+  baseline:
+    required: [git_head, clean_status, package_version, baseline_validation]
+  install:
+    required: [scope, target_path, backup_path, pre_sha256, post_sha256, preserved_servers, permissions]
+  mcp_probe:
+    required: [initialize_response, tool_inventory, required_tools, health_response, process_exit]
+  cursor_live:
+    required: [reload_recorded, server_visible, live_health_tool_call]
+  hydration:
+    required: [namespace, task, status, record_ids_or_explicit_empty_complete_result]
+  write:
+    required: [request_digest, namespace, idempotency_key, receipt_id, record_id, status, replay_result]
+  guard_soak:
+    required: [guard_version, mode, observations, false_positive_count, unresolved_failures]
+  phase_lock:
+    required: [task_signature, lock_id, granted, verification_status, expires_at]
+  gate_enablement:
+    required: [explicit_approval_reference, prior_evidence_digest, enabled_at, rollback_command]
+  convergence:
+    required: [derived_state, evidence_manifest_sha256, unresolved_unknowns]
+redaction:
+  forbidden:
+    - bearer_tokens
+    - API_keys
+    - private_keys
+    - raw_personal_sensitive_memory
+    - private_chain_of_thought
+truth_rules:
+  - screenshots_or_transcripts_are_supporting_not_sole_authority_when_machine_receipts_exist
+  - manual_status_fields_do_not_override_derived_state
+  - failed_or_partial_status_must_be_preserved
+  - all_hashes_are_lowercase_SHA256
