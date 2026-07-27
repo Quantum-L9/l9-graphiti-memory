@@ -1,0 +1,250 @@
+{
+  "$id": "https://schemas.quantum-l9.invalid/l9/deploy/phase6-leakage-evidence/v3",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "media_type": {
+            "maxLength": 128,
+            "pattern": "^[a-z0-9.+-]+/[a-zA-Z0-9.+-]+$",
+            "type": "string"
+          },
+          "path": {
+            "maxLength": 512,
+            "pattern": "^evidence/artifacts/[a-z][a-z0-9_]+/[^.][^\\x00]*$",
+            "type": "string"
+          },
+          "role": {
+            "maxLength": 128,
+            "pattern": "^[a-z][a-z0-9_]+$",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "size_bytes": {
+            "maximum": 26214400,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "sha256",
+          "size_bytes",
+          "media_type",
+          "role"
+        ],
+        "type": "object"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "assertions": {
+      "additionalProperties": {
+        "type": [
+          "string",
+          "boolean",
+          "integer",
+          "number",
+          "null"
+        ]
+      },
+      "type": "object"
+    },
+    "attestation": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "const": "Ed25519"
+        },
+        "key_fingerprint": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "payload_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "signature": {
+          "pattern": "^[A-Za-z0-9_-]{80,100}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "algorithm",
+        "key_fingerprint",
+        "payload_sha256",
+        "signature"
+      ],
+      "type": "object"
+    },
+    "captured_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "check_id": {
+      "pattern": "^[a-z][a-z0-9_]+$",
+      "type": "string"
+    },
+    "details": {
+      "additionalProperties": false,
+      "properties": {
+        "files_scanned": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "finding_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "production_contact": {
+          "type": "boolean"
+        },
+        "unauthorized_access_count": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "finding_count",
+        "files_scanned",
+        "unauthorized_access_count"
+      ],
+      "type": "object"
+    },
+    "evidence_class": {
+      "const": "leakage"
+    },
+    "run_binding": {
+      "additionalProperties": false,
+      "properties": {
+        "config_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "control_plane_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "evidence_key_fingerprint": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "ledger_key_fingerprint": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "run_id": {
+          "pattern": "^[0-9]{8}T[0-9]{6}Z-phase6h2$",
+          "type": "string"
+        },
+        "schema": {
+          "const": "l9.deploy.phase6-run-binding/v1"
+        }
+      },
+      "required": [
+        "schema",
+        "run_id",
+        "config_sha256",
+        "ledger_key_fingerprint",
+        "evidence_key_fingerprint",
+        "control_plane_sha256"
+      ],
+      "type": "object"
+    },
+    "scenario_id": {
+      "enum": [
+        "S00",
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07"
+      ]
+    },
+    "schema": {
+      "const": "l9.deploy.phase6-evidence-record/v3"
+    },
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "canary_scanner",
+            "synthetic_test"
+          ]
+        },
+        "locator": {
+          "maxLength": 512,
+          "minLength": 1,
+          "type": "string"
+        },
+        "producer": {
+          "additionalProperties": false,
+          "properties": {
+            "executable_sha256": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "id": {
+              "pattern": "^[a-z][a-z0-9_]+$",
+              "type": "string"
+            },
+            "version": {
+              "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "version",
+            "executable_sha256"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "kind",
+        "locator",
+        "producer"
+      ],
+      "type": "object"
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED"
+      ]
+    },
+    "subject": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "run_binding",
+    "evidence_class",
+    "check_id",
+    "scenario_id",
+    "captured_at",
+    "source",
+    "status",
+    "subject",
+    "assertions",
+    "artifacts",
+    "details",
+    "attestation"
+  ],
+  "type": "object"
+}

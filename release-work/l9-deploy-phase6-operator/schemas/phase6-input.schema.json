@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.quantum-l9.invalid/l9/deploy/phase6-input/v2",
+  "$comment": "skill_schema=1; parent=l9-deploy-phase6-operator; layer=schema; role=input_contract; owner=igor_beylin; status=active; version=2.0.0; updated=2026-07-26",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "authorization",
+    "repository",
+    "environment",
+    "runner",
+    "source_release",
+    "target",
+    "infisical",
+    "oidc_negative_probe",
+    "fault_injection",
+    "evidence"
+  ],
+  "properties": {
+    "schema": {
+      "const": "l9.deploy.phase6-input/v2"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_authorized",
+        "change_ticket",
+        "operator",
+        "independent_approver",
+        "approved_at"
+      ],
+      "properties": {
+        "execution_authorized": {
+          "const": true
+        },
+        "change_ticket": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independent_approver": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approved_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "checkout_path",
+        "expected_ref",
+        "expected_commit_sha",
+        "phase5_validation_command"
+      ],
+      "properties": {
+        "name": {
+          "const": "Quantum-L9/l9-deploy"
+        },
+        "checkout_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_commit_sha": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "phase5_validation_command": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "github_environment",
+        "production_forbidden",
+        "final_terminal_state"
+      ],
+      "properties": {
+        "name": {
+          "const": "staging"
+        },
+        "github_environment": {
+          "const": "staging"
+        },
+        "production_forbidden": {
+          "const": true
+        },
+        "final_terminal_state": {
+          "enum": [
+            "final-healthy-candidate",
+            "prior-stable-release"
+          ]
+        }
+      }
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_labels"
+      ],
+      "properties": {
+        "required_labels": {
+          "type": "array",
+          "const": [
+            "self-hosted",
+            "l9-deployment",
+            "hetzner-private"
+          ]
+        }
+      }
+    },
+    "source_release": {
+      "type": "object"
+    },
+    "target": {
+      "type": "object"
+    },
+    "infisical": {
+      "type": "object"
+    },
+    "oidc_negative_probe": {
+      "type": "object"
+    },
+    "fault_injection": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_root",
+        "retention_class",
+        "redaction_required",
+        "mode"
+      ],
+      "properties": {
+        "run_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retention_class": {
+          "const": "phase6-release-readiness"
+        },
+        "redaction_required": {
+          "const": true
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "synthetic_test"
+          ]
+        }
+      }
+    }
+  }
+}

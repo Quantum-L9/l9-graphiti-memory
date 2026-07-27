@@ -1,0 +1,35 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: release-work/l9-deploy-phase6-operator/CONVERGENCE_REPORT.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+schema: l9.deploy.phase6-final-convergence/v1
+status: Converged
+change_status: Succeeded
+offline_control_plane:
+  validation_status: APPROVED_WITH_FINDINGS
+  unresolved_critical_findings: 0
+  unresolved_high_findings: 0
+passes:
+  - pass: 1
+    objective: close false-GO and evidence-authority bypasses
+    result: passed
+  - pass: 2
+    objective: bind records, artifacts, ledgers, runs, keys, and executable control plane
+    result: passed
+  - pass: 3
+    objective: harden operator documentation, exact-state validation, and bounded test execution
+    result: passed
+remaining_release_blockers: []
+remaining_unknowns:
+  - live Phase 5 state at the exact repository revision
+  - live GitHub Environment, runner, OIDC, Infisical, GHCR, SSH, Docker, and staging evidence
+  - organizational enforcement of independent key custody and public-key delivery
+live_phase6_decision: Unknown
+safe_to_claim_live_go: false
+stop_condition: further proof requires authorized live infrastructure

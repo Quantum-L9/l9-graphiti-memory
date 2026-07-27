@@ -1,5 +1,5 @@
 {
-  "file_count": 334,
+  "file_count": 420,
   "files": [
     {
       "category": "ci",
@@ -135,6 +135,38 @@
         "l9_schema": 1,
         "layer": "repository_root",
         "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/12050022265456065218",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/12050022265456065218",
+      "sha256": "4ca062adb2018d3e68a746a76ad5fe5ee449343d8d208f3d060fdd3626fcd63b",
+      "size_bytes": 1396
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/13852476627755973659",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/13852476627755973659",
+      "sha256": "54de87ba3c96ac4f622105a41fe146971c07a6bb1c379ccf25b956c5b221c07d",
+      "size_bytes": 204
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
         "path": ".ruff_cache/0.16.0/14025084748555337804",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -167,6 +199,38 @@
         "l9_schema": 1,
         "layer": "repository_root",
         "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/1525621980617752798",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/1525621980617752798",
+      "sha256": "ed41598a61e226e40fe6855d08e7d255dc50e0baecb189efc15c72ce0be88fb8",
+      "size_bytes": 204
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/15699164814488019595",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/15699164814488019595",
+      "sha256": "94103d9f0ec27b2b19ad4868a459eaf5dc8e08ff1e62c39c3e5a5661dedf3583",
+      "size_bytes": 156
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
         "path": ".ruff_cache/0.16.0/17696966171320484879",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -176,6 +240,86 @@
       "path": ".ruff_cache/0.16.0/17696966171320484879",
       "sha256": "3c17c3fa8ba58395cf3be7b30712c04889387dc2dfb59164ce6a0911118ae634",
       "size_bytes": 1044
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/18111821659532782778",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/18111821659532782778",
+      "sha256": "256fb501c36403602c10b7563f26cdf296c877401f432023cea16755b94d0ef4",
+      "size_bytes": 628
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/1996562102358598562",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/1996562102358598562",
+      "sha256": "2136385c69efecb9d65b0d1d004ebe364baeb2245f8f22112101c226a3b55f65",
+      "size_bytes": 1028
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/2644304354356076237",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/2644304354356076237",
+      "sha256": "ca60245e7e9d630e3fe616a9b16760c15512542fc01168f7191c6f9fb738c9b5",
+      "size_bytes": 1044
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/2787550857503666072",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/2787550857503666072",
+      "sha256": "9235a012fe743c794c3e149844dbe9b7ce91312a92062548d85f061f778fff34",
+      "size_bytes": 5268
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/2822461881107441797",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/2822461881107441797",
+      "sha256": "8f277589a2dd1f340eaca7f3debfbca4d03f6f01d9dfd7b3af033e94539feb44",
+      "size_bytes": 180
     },
     {
       "category": "repository_root",
@@ -215,6 +359,22 @@
         "l9_schema": 1,
         "layer": "repository_root",
         "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/4078444543139288369",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/4078444543139288369",
+      "sha256": "66ae8cef1c451b2c197a4e254bf8511e4ff8cf83774d756186639ba453382ef9",
+      "size_bytes": 276
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
         "path": ".ruff_cache/0.16.0/5675798177478345778",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -224,6 +384,22 @@
       "path": ".ruff_cache/0.16.0/5675798177478345778",
       "sha256": "5e6d6fc3e88abe7db7c59af8d8c23fca03090b25a22460f92309a16ee851c826",
       "size_bytes": 180
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/6762557473582254818",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/6762557473582254818",
+      "sha256": "ca9fa41ebf26a84b084bdfd160311c17900f6480d21ec09019d411727ecadeb4",
+      "size_bytes": 1028
     },
     {
       "category": "repository_root",
@@ -256,6 +432,22 @@
       "path": ".ruff_cache/0.16.0/8150807969885146297",
       "sha256": "09921bd605e05a200a8e052e86fc9d2a2e16ad8d67f96b015ffaf472e367600c",
       "size_bytes": 5268
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.0/9550069394721464579",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.0/9550069394721464579",
+      "sha256": "05f7bf28b339bc2bc63fb26303551f3908f6bb6aecbf4ea27388287b03fc80db",
+      "size_bytes": 340
     },
     {
       "category": "repository_root",
@@ -446,8 +638,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "45047c1565910c8ad8e501df573aecda071ec55a4d0f7dd3d711494cbf84400b",
-      "size_bytes": 55503
+      "sha256": "ae839dc2a8298453a22046fa5455b4e5d249e71ec113171be51c0d43dc509d77",
+      "size_bytes": 71484
     },
     {
       "category": "repository_root",
@@ -704,6 +896,22 @@
       "path": "docs/ISSUE_INDEX.md",
       "sha256": "3dbb53d13495932005b3a88510f00d55e30b90ca35f9547ebe67c8546e23ee4f",
       "size_bytes": 3171
+    },
+    {
+      "category": "documentation",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "documentation",
+        "owner": "memory-control-plane",
+        "path": "docs/META_SCHEMA_REFERENCE.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "docs/META_SCHEMA_REFERENCE.md",
+      "sha256": "500f1fda5b436d6589d3fed31f173220b11a5db853741ef119674d71e92d1598",
+      "size_bytes": 8453
     },
     {
       "category": "documentation",
@@ -2014,8 +2222,8 @@
         "version": "2.2.0"
       },
       "path": "release-work/handoffs/VALIDATION_RECORD.md",
-      "sha256": "8412db9ec6a1ececbdf61d70b3ae7f4f09b568e55b878ba92932ec4ab84d2a82",
-      "size_bytes": 3715
+      "sha256": "5f281657ee7346025aa92a0400fd7dec32c3fd41550c82af2d8f035ae9946915",
+      "size_bytes": 4785
     },
     {
       "category": "repository_root",
@@ -2032,6 +2240,1174 @@
       "path": "release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip",
       "sha256": "babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d",
       "size_bytes": 144850
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/AGENT_EXECUTION_PROMPT.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/AGENT_EXECUTION_PROMPT.md",
+      "sha256": "687a4791cfafa0cf6429a408d93fed43f3dd379bdb2cb0c9b31a2414e2f239c5",
+      "size_bytes": 2532
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/BUILD_REPORT.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/BUILD_REPORT.md",
+      "sha256": "56cd3deeb5191e985d34165a16df17bb9f1314d1e2b4de9eda50012017ed1ace",
+      "size_bytes": 1118
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/CHANGE_REPORT.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/CHANGE_REPORT.md",
+      "sha256": "b743f3568572894969de3d021b05e9c849723097f94ebb8516c8c726070526cc",
+      "size_bytes": 4092
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/CONVERGENCE_REPORT.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/CONVERGENCE_REPORT.yaml",
+      "sha256": "d9885a9f82680e1712aef7c98003ea8a3412a87bd46250f2869292fd642ddc7d",
+      "size_bytes": 1239
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/DELTA_REPORT.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/DELTA_REPORT.md",
+      "sha256": "4319b8852a3754562cb55493ab77570ad1ceeb6097c998cda60c50cab6c0c502",
+      "size_bytes": 1934
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/IMPROVEMENT_REPORT.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/IMPROVEMENT_REPORT.md",
+      "sha256": "918bab27961277f71d4e9a9b10806fa1ddbd12749b4b1beda55bdeac7718fca6",
+      "size_bytes": 2891
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/MANIFEST.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/MANIFEST.md",
+      "sha256": "3db044bffa0358ecd08b30c98dd579fdeb5ac4c2ff23b32729029d2fdb24a199",
+      "size_bytes": 2240
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/MANIFEST.sha256",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/MANIFEST.sha256",
+      "sha256": "6e17e25f76214f2b96684bea956f1504390f80dc7b1b5db5be36622b01ed16ef",
+      "size_bytes": 6885
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/MANIFEST.sha256.meta.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/MANIFEST.sha256.meta.md",
+      "sha256": "6ac0de1186077e2940793fb4165c6abe35552c0ecd1e812a764f51f1936c8c3f",
+      "size_bytes": 578
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/PACKAGE_TREE.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/PACKAGE_TREE.md",
+      "sha256": "22a454b675cf3047c34cc89dc178d766da1a0adfefb0a3d5adf53f13e14bd968",
+      "size_bytes": 2595
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/README.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/README.md",
+      "sha256": "ab0c495747acc8c5dd9a3bb20d673b5077da88a3f8188fa49b1348a111368b0a",
+      "size_bytes": 4279
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/RUNBOOK.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/RUNBOOK.md",
+      "sha256": "2730867d545bcfd9396bac5b5a40a412138391c98a3766d697fcbad76925e004",
+      "size_bytes": 5385
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/SKILL.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/SKILL.md",
+      "sha256": "f9f904cfb56b5a27c20a34f0f35e61c5be114bbb4b0bc146a29c821c36c68816",
+      "size_bytes": 6811
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/VALIDATION.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/VALIDATION.md",
+      "sha256": "0c0892ca5b6b8eda646e768102297d718168b77f5b035a9983bf45472d6b641c",
+      "size_bytes": 2119
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/assets/INCIDENT_RECORD.template.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/assets/INCIDENT_RECORD.template.md",
+      "sha256": "8d797ec0d6b41782c6dbff999656c823df3173cb273572ac5bb3d2a9be75e8a3",
+      "size_bytes": 873
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/assets/STAGING_INVENTORY.template.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/assets/STAGING_INVENTORY.template.json",
+      "sha256": "d6cb956cc17de712ea3ee1b457c0323c4ce9886374108cdfc5d117603256461d",
+      "size_bytes": 567
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/assets/oidc-negative-probe.yml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/assets/oidc-negative-probe.yml",
+      "sha256": "0acf95dfb492d1bc32e4737a440c685a6b2f3f1b60de9edd02947997b9b95d37",
+      "size_bytes": 1869
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/config/phase6-inputs.example.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/config/phase6-inputs.example.json",
+      "sha256": "51797398dd34153404a0e49ad4a775e9d02586d575005b521d8c2791bcc645dc",
+      "size_bytes": 2258
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/ACCESS_MATRIX.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/ACCESS_MATRIX.md",
+      "sha256": "382c0bf1224e7617197b34c5dff1b9c425da22e31ae966574f2ce227fe618838",
+      "size_bytes": 2911
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/CURRENT_STATE_AND_UNKNOWNS.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/CURRENT_STATE_AND_UNKNOWNS.md",
+      "sha256": "0186a65f4af68dc299519e1e80b0cc5bfb96fb70d70b954d331ce2cb73bfab9f",
+      "size_bytes": 1974
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/EVIDENCE_CONTRACT.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/EVIDENCE_CONTRACT.yaml",
+      "sha256": "e86fc7b4aebb308569668f3123bc7fbb217a28a1655ce98eb5bb3189f4cdcec4",
+      "size_bytes": 3272
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/EXECUTION_CONTRACT.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/EXECUTION_CONTRACT.yaml",
+      "sha256": "b6793e236521e8c6c6fec40d893c2f17bb04155d1f439f9f9cb2d601c49ff378",
+      "size_bytes": 2787
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/GO_NO_GO_POLICY.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/GO_NO_GO_POLICY.yaml",
+      "sha256": "852b9d1846e4517c3a74348adbd5957bdef2fe0ff90b89dc7376c43968fa83fe",
+      "size_bytes": 11047
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/HANDOFF_CHECKLIST.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/HANDOFF_CHECKLIST.md",
+      "sha256": "c050afb20e4cd0fc1036381fc44ec16551a5af9a3383d4eb3d0eeb316246c47f",
+      "size_bytes": 1602
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/LIVE_COMMANDS.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/LIVE_COMMANDS.md",
+      "sha256": "876cbb8cb4cd009491d100cd468aaeba0cb012f77d31a1082a3c619d7470bbb0",
+      "size_bytes": 4363
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/OIDC_PROOF.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/OIDC_PROOF.md",
+      "sha256": "17499b577b929c746b4c2c63b394a4373611b0e54714a56ddf9e37a846920380",
+      "size_bytes": 2119
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/PREFLIGHT.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/PREFLIGHT.md",
+      "sha256": "2ac758d9de3f5bd4a051e04ffe62ff6a0961aa2c86611c6a53236a9e7ae5d626",
+      "size_bytes": 2885
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/REPOSITORY_BASELINE.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/REPOSITORY_BASELINE.md",
+      "sha256": "82024b09ccc2bd0e218d90b2fdfb4337864e71d1796056965ed63af3453dabde",
+      "size_bytes": 1508
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/REPO_WIRING_DECISION.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/REPO_WIRING_DECISION.md",
+      "sha256": "b3b119b84095644bcd54716b7d9cd957e670fa6cf402d207e4905395c6116fdd",
+      "size_bytes": 1000
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/ROLLBACK_RECOVERY.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/ROLLBACK_RECOVERY.md",
+      "sha256": "abdc5de6fe95175f2b6ee11035553edea8b1bbea072272b173b65bd5f5f75b0b",
+      "size_bytes": 1276
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/SCENARIO_MATRIX.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/SCENARIO_MATRIX.md",
+      "sha256": "be50a56bc643ead694551329736afcd04a876012c4fa884159b388a7fdd93827",
+      "size_bytes": 5198
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/SECRET_SAFETY.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/SECRET_SAFETY.md",
+      "sha256": "2216ae7417d54da8f87d3906c114018431dd41b0aa42f946034ea74d263f122c",
+      "size_bytes": 1160
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/TRUST_MODEL.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/TRUST_MODEL.md",
+      "sha256": "54cb0dae1b1c481e60c85e4d578a3a8e28ed846d2b884a768d9ba84744eeaa3c",
+      "size_bytes": 3421
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/references/repository-baseline-manifest.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/references/repository-baseline-manifest.json",
+      "sha256": "d46662e4d42c6a32d4f3d6a372e8ecd31cb46b607fa781b9612218e8a1b71ace",
+      "size_bytes": 2255
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/requirements.txt",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/requirements.txt",
+      "sha256": "c05f5d5cc07fa9475e2884ae4703cfdb4d070726e3decb8076778621ed56eb20",
+      "size_bytes": 68
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/deployment-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/deployment-evidence.schema.json",
+      "sha256": "e149778aca0a62bca4bc0d149fafea45949c431fae4ce9a2b8d8c5d2dffb3e87",
+      "size_bytes": 6407
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/final-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/final-evidence.schema.json",
+      "sha256": "444514ba9613d29a46becdc7a89a5dcb044c1f63cb5a4fdd1bb3c1394d9b596c",
+      "size_bytes": 5978
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/github-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/github-evidence.schema.json",
+      "sha256": "5fd060fe7c9c13adada001d3a1d2bae83b657a74a5e66255b0b187d4b79dde32",
+      "size_bytes": 5931
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/host-health.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/host-health.schema.json",
+      "sha256": "8045be97cd088431774f5469ab18d27e36c21e2c0e96c19155b0e8b7756250ef",
+      "size_bytes": 1578
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/infisical-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/infisical-evidence.schema.json",
+      "sha256": "5736c870a0182eb8723b6b00323a2c32f3a5fbc3a4d35dc9f450f7a7823222e1",
+      "size_bytes": 6008
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/leakage-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/leakage-evidence.schema.json",
+      "sha256": "de9390c22251c64d7f6248a7500ffb4c4371946a1a3b08a25b29317672ffb063",
+      "size_bytes": 5603
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/oidc-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/oidc-evidence.schema.json",
+      "sha256": "407fb8d6e4358b713fdffeb34729046a1065768107884a4de2126f946bd0e3f6",
+      "size_bytes": 8099
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/phase6-input.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/phase6-input.schema.json",
+      "sha256": "cd9b9e1e0711deeb2d968009052fdf5f54a987d5b78c061182f0dda95e73245a",
+      "size_bytes": 3992
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/proof-envelope.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/proof-envelope.schema.json",
+      "sha256": "ad86c271a506e6483a38e0cb0c6248a4f12b1afd7b612a1d58b5bdc69751da93",
+      "size_bytes": 1888
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/receipts-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/receipts-evidence.schema.json",
+      "sha256": "7d672d14bcae88a9049d552c0b0330e51483dce8a19061fe8a707b9ccac8b117",
+      "size_bytes": 5658
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/repository-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/repository-evidence.schema.json",
+      "sha256": "ab309d86de81a2a830924935521b3549372ee1c542f24dacdbbae3b5eefa85da",
+      "size_bytes": 5777
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/schemas/rollback-evidence.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/schemas/rollback-evidence.schema.json",
+      "sha256": "c6f14e3541edc6bed64e18d047ef562c300334e54a521fd0b2ead58f20b3906b",
+      "size_bytes": 6183
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/build_dispatch_payload.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/build_dispatch_payload.py",
+      "sha256": "e73a339b1542455bba196cbc6a945714438c653dd1a4fca8b09ccb0841a10d7a",
+      "size_bytes": 3721
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/build_evidence_record.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/build_evidence_record.py",
+      "sha256": "2ff6c932131061feac3511cc141a90ecd26f551ca5e871669854b9a07e90e96a",
+      "size_bytes": 12076
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/collect_final_convergence.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/collect_final_convergence.py",
+      "sha256": "05312ce7896bda04feca4e60b82a654c6b92e35d83f0d64cff17f0fbcdd23770",
+      "size_bytes": 4752
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/collect_github_evidence.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/collect_github_evidence.py",
+      "sha256": "c21de3b8dfbbe7aff501db5d23bfed5beecaa9f9478ae2cc5977091815b4ac30",
+      "size_bytes": 5957
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/collect_host_evidence.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/collect_host_evidence.py",
+      "sha256": "cdfac253b71fdaf0c566f4edd1f2876776ac1872cae75eeb92caab642f39544c",
+      "size_bytes": 3366
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/collect_infisical_audit.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/collect_infisical_audit.py",
+      "sha256": "243d62ef71683a048cd073384de0a967bcab8880cd9aee9759c8a77b3270cfec",
+      "size_bytes": 5944
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/collect_repository_evidence.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/collect_repository_evidence.py",
+      "sha256": "c05b1b2ddbeeb20e77ce587727ff5ac163b4eaf57adc7841966f5f1999a36030",
+      "size_bytes": 4963
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/collect_run_evidence.sh",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/collect_run_evidence.sh",
+      "sha256": "7e5e32a065b0e5c6f8fef528a14f6ad03b157609bd4234ba75d7d59db2fd2311",
+      "size_bytes": 1164
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/collect_workflow_evidence.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/collect_workflow_evidence.py",
+      "sha256": "62adc592712bd095e5ce28263cc8a9720cd177539f8449324b35f7b7943ce95e",
+      "size_bytes": 8093
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/generate_signing_key.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/generate_signing_key.py",
+      "sha256": "3bc4ea09e94f90acae47c17cca52d929d2b950182070852fb3ec938e189573fd",
+      "size_bytes": 2360
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/package_evidence.sh",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/package_evidence.sh",
+      "sha256": "09f3d624618ed159009c1df988511fa1b1191a134d932102fda7ea86764a7e5e",
+      "size_bytes": 1852
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/phase6_integrity.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/phase6_integrity.py",
+      "sha256": "dc71612b63b1aba10aa8fb1de38ee942908b3752d7fd76539fc7c35949027b9d",
+      "size_bytes": 6267
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/phase6ctl.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/phase6ctl.py",
+      "sha256": "8bc6e290c4a92fd2a89e24d6e926ed091509d497713fc80f146c09bff9c3d7b0",
+      "size_bytes": 42766
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/run_adversarial_tests.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/run_adversarial_tests.py",
+      "sha256": "0563babc5c904b78ac116cb26e4c5b754f51dbbc9b86faf7eb4c52dbe1c46235",
+      "size_bytes": 4949
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/self_test.sh",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/self_test.sh",
+      "sha256": "08dee4680898cf2203b06d198ce4f50b635a782f6598ee6f1cb557835f11af01",
+      "size_bytes": 1250
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/validate_pack.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/validate_pack.py",
+      "sha256": "37fe11104718c6d84f4a10b555851e9737f42e2e8007fc8a7ff0014c57664bd2",
+      "size_bytes": 13283
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/validate_receipts.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/validate_receipts.py",
+      "sha256": "ddf10f53c1328bff0af0836181f710064258b22fad3e759d08e71b36c83f33dc",
+      "size_bytes": 3420
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/scripts/verify_oidc_claims.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/scripts/verify_oidc_claims.py",
+      "sha256": "25a62b85fff362922df0ba67aef624f9a241c19021f499a3ea02b96814b96fad",
+      "size_bytes": 10271
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/source-evidence/PHASE1_VALIDATION.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/source-evidence/PHASE1_VALIDATION.md",
+      "sha256": "120e5ef7315e261fd45d772e76cc2b486a07a97e35358719130008ef714ade74",
+      "size_bytes": 1621
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/source-evidence/PHASE2_VALIDATION.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/source-evidence/PHASE2_VALIDATION.md",
+      "sha256": "f4374a8f13d6fd9a2b7f25adc8cf4de7598716fcaf7f5b52447a4b68ac3393e0",
+      "size_bytes": 1915
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/source-evidence/PHASE3_VALIDATION.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/source-evidence/PHASE3_VALIDATION.md",
+      "sha256": "b622b4e7049ca7617acef48e8f18a2a0a32616c86f10d1189c0be1e2873493be",
+      "size_bytes": 1765
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/source-evidence/PHASE4_VALIDATION.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/source-evidence/PHASE4_VALIDATION.md",
+      "sha256": "1c8aa00c3091d3e6856c1ff012c439f9de1995475dc3e6d43d11d5164c4150fd",
+      "size_bytes": 1604
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/source-evidence/PLAN_LOCKED.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/source-evidence/PLAN_LOCKED.md",
+      "sha256": "75a56bc1df5a43c53fb8077fb69d9117ec0ef694fec3faeb1ca8efe0c36a5de2",
+      "size_bytes": 81549
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/source-evidence/README.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/source-evidence/README.md",
+      "sha256": "e80a7881f6dde1463d201ebbfad43add8c43bad923134129154e1b6bb256dafc",
+      "size_bytes": 803
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/tests/test_hardening.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/tests/test_hardening.py",
+      "sha256": "e8cae0d50784f36562649d91b8f334cf9aa501382005f51cc1c679de3442296c",
+      "size_bytes": 41063
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
+        "path": "release-work/l9-deploy-phase6-operator/validation_report.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "release-work/l9-deploy-phase6-operator/validation_report.yaml",
+      "sha256": "304bea79835843aaf5b9939119fd4150b4dd8db755833c42ad717f86c5a75edf",
+      "size_bytes": 1523
     },
     {
       "category": "repository_root",
@@ -2270,8 +3646,8 @@
         "version": "2.2.0"
       },
       "path": "ruff.toml",
-      "sha256": "7e426bd138f1d6088d5d2a5cae729ec7e5329d70f24d3fa21801baf67c7f409a",
-      "size_bytes": 341
+      "sha256": "c47370f3b31747ccfde50d3dc8b9e1c19b864733cc56fec5937323015fca3b7d",
+      "size_bytes": 493
     },
     {
       "category": "configuration",
@@ -5022,7 +6398,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "10a11fa34bc276859a7eb5beddaecaa9b505a75eb9e830cb4fb791333188b58b",
+      "sha256": "84c148c621b0dafa737caa859e0798d9ec6fd4243223c6f1336f2c9f3a117076",
       "size_bytes": 441
     },
     {
@@ -5086,7 +6462,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/l9_meta_apply.txt",
-      "sha256": "d455efc432cf1b97757890f92a4f8467b902112486c661f319211629415b3514",
+      "sha256": "cb9b24685725174c9f8a99ad71c0fb7d83dc50e6759a69da6f09d35e3022e765",
       "size_bytes": 27
     },
     {
@@ -5118,8 +6494,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "d8165e1e5c941424f70788b5e76dc35efb7fa64aaee3823354725654e7905d7e",
-      "size_bytes": 657
+      "sha256": "879f5d24e91cea9fe823a048f8c3136232fe209a9a4dd50ccb83d6f276d6d3c5",
+      "size_bytes": 658
     },
     {
       "category": "validation_evidence",
@@ -5134,7 +6510,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/manifest_validation.txt",
-      "sha256": "b52177f2d0f3fad543a6f2d43ba0487a54339933c51de106e7245445815deecd",
+      "sha256": "31721ab86601ad7a62fb901661bbbcab72e09cb0f192e1d76ac86320ccfd054f",
       "size_bytes": 64
     },
     {
@@ -5150,8 +6526,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "9e42963a255981b19e1a3eb306f0fece2301bc9259dde96abb4daef5d392bd6a",
-      "size_bytes": 2228
+      "sha256": "ec91b387183f2d7fff57c387a501e3169cffb071b2ec9b599392a0c54970d85d",
+      "size_bytes": 2229
     },
     {
       "category": "validation_evidence",
@@ -5182,7 +6558,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "5e68761241962fa8a7c7484a13f777a837f3255e7aadacd41e8367c5f2cd7e79",
+      "sha256": "848d5174ac3052598c67d0419f015f6db54582fb5492740117760d88dccfb7f8",
       "size_bytes": 180
     },
     {
@@ -5262,7 +6638,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "32c9413bfff0e8ddb1530b19c285972c7b2ff8106045bbc30219da8a5ca9337a",
+      "sha256": "a8d2447479b28dd07091a2cf28f225db52f021791794309199eb9bdf31bc13b8",
       "size_bytes": 914
     },
     {
@@ -5310,7 +6686,7 @@
         "version": "2.2.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "8a17eda9a5f36ee5e4ff5c10db911c0bae0647143619903724d10f062b30a50f",
+      "sha256": "73ce72cc0dc7f84d23d8d74836df5c2441b4caab5c50a1af226d8e736616e4e8",
       "size_bytes": 10074
     },
     {

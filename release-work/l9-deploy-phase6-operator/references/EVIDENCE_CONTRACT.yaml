@@ -1,0 +1,95 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: release-work/l9-deploy-phase6-operator/references/EVIDENCE_CONTRACT.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+# skill_schema: 1
+# parent: l9-deploy-phase6-operator
+# layer: reference
+# role: evidence_contract
+# tags: [evidence, authority, receipts, audit, phase6]
+# owner: igor_beylin
+# status: active
+# version: 3.1.0
+# updated: 2026-07-26
+evidence_bundle:
+  schema: l9.deploy.phase6-evidence/v3
+  authorities:
+    ledger:
+      algorithm: Ed25519
+      private_key_owner: staging_operator
+      purpose: sign_append_only_run_events
+    evidence_attestor:
+      algorithm: Ed25519
+      private_key_owner: independent_approver_or_protected_attestor_job
+      purpose: sign_collector_derived_evidence_records
+    invariant: ledger_and_evidence_keys_must_be_distinct
+  authoritative_state:
+    input_snapshot: input.snapshot.json
+    run_binding: integrity/run-binding.json
+    ledger_public_key: integrity/ledger-public-key.pem
+    evidence_public_key: integrity/evidence-attestor-public-key.pem
+    event_ledger: events.jsonl
+    evidence_records: evidence/records/
+    proof_artifacts: evidence/artifacts/
+    derived_decision: derived-decision.json
+    generated_report: GO_NO_GO_REPORT.md
+  run_binding:
+    - run_id
+    - config_sha256
+    - ledger_key_fingerprint
+    - evidence_key_fingerprint
+    - control_plane_sha256
+  mutation_rules:
+    - records_are_append_once
+    - duplicate_check_ids_are_rejected
+    - records_are_bound_to_one_run
+    - current_record_and_artifact_digests_must_match_signed_ledger_events
+    - unledgered_or_missing_files_are_rejected
+    - scenario_status_is_derived
+    - manual_reports_are_invalid
+  required_evidence_classes:
+    - repository
+    - github
+    - oidc
+    - infisical
+    - deployment
+    - rollback
+    - leakage
+    - receipts
+    - final
+  required_policy_checks: 18
+  external_evidence_checks: 15
+  integrity:
+    - every_record_validates_against_its_class_schema
+    - every_record_has_at_least_one_required_proof_artifact
+    - every_record_signature_matches_the_external_evidence_public_key
+    - every_event_signature_matches_the_external_ledger_public_key
+    - every_record_matches_policy_check_class_scenario_source_locator_and_producer
+    - every_record_matches_the_current_run_binding
+    - every_artifact_path_is_contained_and_every_digest_is_recomputed
+    - immediate_no_go_rules_are_executable_and_terminal
+    - report_matches_recomputed_decision_exactly
+    - live_go_requires_all_checks_and_all_scenarios_pass
+  forbidden_content:
+    - raw_oidc_token
+    - secret_value
+    - runtime_env_file
+    - private_key
+    - ghcr_token
+    - ssh_key
+
+  required_raw_source_artifacts:
+    repository: [repository_commit_output, repository_status_output, phase5_command_output_when_applicable]
+    github: [github_environment_export_or_github_runner_export]
+    oidc: [infisical_exchange_receipt, github_oidc_jwks]
+    infisical: [infisical_audit_export]
+    workflow: [deployment_or_containment_or_rollback_or_rotation_receipt, github_run_metadata]
+    leakage: [canary_findings]
+    receipts: [receipt_manifest]
+    final: [host_health_snapshot]

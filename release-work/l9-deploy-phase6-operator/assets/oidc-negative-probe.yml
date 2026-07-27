@@ -1,0 +1,55 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: release-work/l9-deploy-phase6-operator/assets/oidc-negative-probe.yml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+# skill_schema: 1
+# parent: l9-deploy-phase6-operator
+# layer: asset
+# role: external_oidc_negative_probe
+# tags: [github-actions, oidc, negative-test]
+# owner: igor_beylin
+# status: active
+# version: 1.0.0
+# updated: 2026-07-26
+# PURPOSE: install only in a designated external probe repository; never in Quantum-L9/l9-deploy.
+name: L9 Deploy OIDC Negative Probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  denied-exchange:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Infisical exchange denial
+        shell: bash
+        env:
+          EXPECTED_AUDIENCE: https://github.com/Quantum-L9
+          INFISICAL_NEGATIVE_EXCHANGE_COMMAND: ${{ vars.INFISICAL_NEGATIVE_EXCHANGE_COMMAND }}
+        run: |
+          set -euo pipefail
+          set +x
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
+          test -n "${INFISICAL_NEGATIVE_EXCHANGE_COMMAND:-}"
+          response=$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${EXPECTED_AUDIENCE}")
+          token=$(printf '%s' "$response" | jq -er '.value')
+          unset response
+          if OIDC_TOKEN="$token" bash -lc "$INFISICAL_NEGATIVE_EXCHANGE_COMMAND"; then
+            unset token
+            echo 'ERROR: unauthorized OIDC exchange succeeded' >&2
+            exit 1
+          fi
+          unset token
+          echo 'PASS: unauthorized OIDC exchange was denied'

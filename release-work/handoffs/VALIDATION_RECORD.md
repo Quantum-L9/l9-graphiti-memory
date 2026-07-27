@@ -76,3 +76,22 @@ python3 scripts/validate_pack.py .
 
 Do not extract the pack into a governed repository working tree; metadata injection will break
 its exact-state checksums. Follow `RUNBOOK.md` inside the pack for live Phase 6 execution.
+
+## In-repository derivative copy
+
+By explicit owner instruction (2026-07-27), a browsable loose-file copy of the pack is committed
+at `release-work/l9-deploy-phase6-operator/`. That copy is a **re-sealed derivative**, not the
+original validated artifact:
+
+- The repository assurance pipeline injected `L9_META` headers into 56 inline-capable pack
+  files, making the tree compliant with `check_l9_meta.py`.
+- The pack's internal `MANIFEST.sha256` was regenerated over the meta-injected files
+  (72/72 entries, same file inventory, new digests) so the pack remains internally consistent.
+- Post-reseal verification in place: `sha256sum -c MANIFEST.sha256` 72/72 OK,
+  `bash scripts/self_test.sh` PASS (19/19 adversarial tests),
+  `python3 scripts/validate_pack.py .` PASS (73 files, 0 errors).
+
+The sealed zip in this directory remains the canonical bit-for-bit original
+(SHA-256 `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d`). For live Phase 6
+execution, prefer extracting the sealed zip; the in-repo copy exists for browsing, review, and
+diffing.

@@ -38,16 +38,16 @@ updated: 2026-07-22
 | `assurance` | 16 |
 | `ci` | 5 |
 | `configuration` | 10 |
-| `documentation` | 10 |
+| `documentation` | 11 |
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 95 |
-| `repository_root` | 48 |
+| `repository_root` | 133 |
 | `skill` | 2 |
 | `tests` | 37 |
 | `validation_evidence` | 29 |
 
-- Hashed inventory files below: **333**
+- Hashed inventory files below: **419**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -64,14 +64,26 @@ updated: 2026-07-22
 | `.gitignore` | `repository_root` | `repository_root` | 859 | `5742eda9df58ea637c68e20e6fb7897c70c010795171f867acdcf01dcd80d670` |
 | `.pre-commit-config.yaml` | `repository_root` | `repository_root` | 505 | `f7d6670a379d5978d660479a51a80b86b2ad0ae1acde826f1b474d17952051a8` |
 | `.ruff_cache/.gitignore` | `repository_root` | `repository_root` | 252 | `97dcad36113408e98357a7a41cf584b43944c86194a4fcaf55ee146f2e21dd0b` |
+| `.ruff_cache/0.16.0/12050022265456065218` | `repository_root` | `repository_root` | 1396 | `4ca062adb2018d3e68a746a76ad5fe5ee449343d8d208f3d060fdd3626fcd63b` |
+| `.ruff_cache/0.16.0/13852476627755973659` | `repository_root` | `repository_root` | 204 | `54de87ba3c96ac4f622105a41fe146971c07a6bb1c379ccf25b956c5b221c07d` |
 | `.ruff_cache/0.16.0/14025084748555337804` | `repository_root` | `repository_root` | 628 | `aa37eb9bd99187cf59c7e3fbde3e3e69d13d1103b47e64dea83970caca23681d` |
 | `.ruff_cache/0.16.0/14165726651035356286` | `repository_root` | `repository_root` | 276 | `85c818eacedf0512b73595953178cd31c3b2c7848d6219ba36f10fbaeb62ff6e` |
+| `.ruff_cache/0.16.0/1525621980617752798` | `repository_root` | `repository_root` | 204 | `ed41598a61e226e40fe6855d08e7d255dc50e0baecb189efc15c72ce0be88fb8` |
+| `.ruff_cache/0.16.0/15699164814488019595` | `repository_root` | `repository_root` | 156 | `94103d9f0ec27b2b19ad4868a459eaf5dc8e08ff1e62c39c3e5a5661dedf3583` |
 | `.ruff_cache/0.16.0/17696966171320484879` | `repository_root` | `repository_root` | 1044 | `3c17c3fa8ba58395cf3be7b30712c04889387dc2dfb59164ce6a0911118ae634` |
+| `.ruff_cache/0.16.0/18111821659532782778` | `repository_root` | `repository_root` | 628 | `256fb501c36403602c10b7563f26cdf296c877401f432023cea16755b94d0ef4` |
+| `.ruff_cache/0.16.0/1996562102358598562` | `repository_root` | `repository_root` | 1028 | `2136385c69efecb9d65b0d1d004ebe364baeb2245f8f22112101c226a3b55f65` |
+| `.ruff_cache/0.16.0/2644304354356076237` | `repository_root` | `repository_root` | 1044 | `ca60245e7e9d630e3fe616a9b16760c15512542fc01168f7191c6f9fb738c9b5` |
+| `.ruff_cache/0.16.0/2787550857503666072` | `repository_root` | `repository_root` | 5268 | `9235a012fe743c794c3e149844dbe9b7ce91312a92062548d85f061f778fff34` |
+| `.ruff_cache/0.16.0/2822461881107441797` | `repository_root` | `repository_root` | 180 | `8f277589a2dd1f340eaca7f3debfbca4d03f6f01d9dfd7b3af033e94539feb44` |
 | `.ruff_cache/0.16.0/3107435210068675052` | `repository_root` | `repository_root` | 1396 | `681afa4b66039b45e48651e4d5ac2ad493e532fd7175b878075a2078da4fe42d` |
 | `.ruff_cache/0.16.0/3441728831036187109` | `repository_root` | `repository_root` | 156 | `a5ba6dfae0ad66cc6f0426a6b7605e3256d0bfcc92085c78f52934868d01506f` |
+| `.ruff_cache/0.16.0/4078444543139288369` | `repository_root` | `repository_root` | 276 | `66ae8cef1c451b2c197a4e254bf8511e4ff8cf83774d756186639ba453382ef9` |
 | `.ruff_cache/0.16.0/5675798177478345778` | `repository_root` | `repository_root` | 180 | `5e6d6fc3e88abe7db7c59af8d8c23fca03090b25a22460f92309a16ee851c826` |
+| `.ruff_cache/0.16.0/6762557473582254818` | `repository_root` | `repository_root` | 1028 | `ca9fa41ebf26a84b084bdfd160311c17900f6480d21ec09019d411727ecadeb4` |
 | `.ruff_cache/0.16.0/8120862736630344031` | `repository_root` | `repository_root` | 340 | `c07ceedc37c6775a8eb045d0bfe37d13134ce09a59ee403f3c5376cbeb3d71ba` |
 | `.ruff_cache/0.16.0/8150807969885146297` | `repository_root` | `repository_root` | 5268 | `09921bd605e05a200a8e052e86fc9d2a2e16ad8d67f96b015ffaf472e367600c` |
+| `.ruff_cache/0.16.0/9550069394721464579` | `repository_root` | `repository_root` | 340 | `05f7bf28b339bc2bc63fb26303551f3908f6bb6aecbf4ea27388287b03fc80db` |
 | `.ruff_cache/CACHEDIR.TAG` | `repository_root` | `repository_root` | 43 | `5953156d7e0c564a427251316eaf26f8870e6483ae2197f916b630e4f93e31ae` |
 | `AGENTS.md` | `repository_root` | `repository_root` | 1100 | `e5eddd9d67c1514b9794c64b14df4e9638ed379d0028d08f73d77f08fd7c465b` |
 | `ALIGNMENT.md` | `repository_root` | `repository_root` | 1675 | `5ce57067860473dbc010cc8ab7ab5ea65d5ff66d9cc02f567745c1eb350cf255` |
@@ -99,6 +111,7 @@ updated: 2026-07-22
 | `docs/CONSOLIDATED_REMAINING_PROOF.md` | `documentation` | `documentation` | 2093 | `cbe9f35b804ff8969d790f5d6b4a990e40cd661bda4ff6e8ae18434b6342eeca` |
 | `docs/HARVEST_MAP.md` | `documentation` | `documentation` | 2774 | `4904b15f0558b79cfd8f113a505d0d7a2f0ac50b9df46ea14859a2f9a525c205` |
 | `docs/ISSUE_INDEX.md` | `documentation` | `documentation` | 3171 | `3dbb53d13495932005b3a88510f00d55e30b90ca35f9547ebe67c8546e23ee4f` |
+| `docs/META_SCHEMA_REFERENCE.md` | `documentation` | `documentation` | 8453 | `500f1fda5b436d6589d3fed31f173220b11a5db853741ef119674d71e92d1598` |
 | `docs/RECURSIVE_ALIGNMENT_UPDATE.md` | `documentation` | `documentation` | 10670 | `692b41643f4f81d6c70606bf9b5decb1f5f03173035ca881683991c0b4104703` |
 | `docs/RECURSIVE_HARVEST_AUDIT.md` | `documentation` | `documentation` | 4921 | `370cb913d5117345bd2355672c86115d1d4f6b875539e3cdd0e30aa55de1b393` |
 | `docs/REMAINING_PRODUCTION_PROOF.md` | `documentation` | `documentation` | 2088 | `dafdd5c6268d2cdb89ccc183b7c127f4fa7a0d8a21cd6b1587bdd0f71406426e` |
@@ -180,8 +193,81 @@ updated: 2026-07-22
 | `hooks/graphiti_gate_runner.sh` | `hooks` | `hooks` | 880 | `58203955f07dd049ed12c117f13405c7b651aa4f8d8df099a2e698d8a4e7174a` |
 | `improvement_log.jsonl` | `repository_root` | `repository_root` | 2364 | `7a1b20557352284372622d9b11bc363a92b04286d61fecc2c4b2105f0280cab4` |
 | `pyproject.toml` | `repository_root` | `repository_root` | 3131 | `ee98fc1c2af43153cc026117348e8d081b29f086471cd2dfbdbd4c842ee18bcc` |
-| `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository_root` | 3715 | `8412db9ec6a1ececbdf61d70b3ae7f4f09b568e55b878ba92932ec4ab84d2a82` |
+| `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository_root` | 4785 | `5f281657ee7346025aa92a0400fd7dec32c3fd41550c82af2d8f035ae9946915` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository_root` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
+| `release-work/l9-deploy-phase6-operator/AGENT_EXECUTION_PROMPT.md` | `repository_root` | `repository_root` | 2532 | `687a4791cfafa0cf6429a408d93fed43f3dd379bdb2cb0c9b31a2414e2f239c5` |
+| `release-work/l9-deploy-phase6-operator/BUILD_REPORT.md` | `repository_root` | `repository_root` | 1118 | `56cd3deeb5191e985d34165a16df17bb9f1314d1e2b4de9eda50012017ed1ace` |
+| `release-work/l9-deploy-phase6-operator/CHANGE_REPORT.md` | `repository_root` | `repository_root` | 4092 | `b743f3568572894969de3d021b05e9c849723097f94ebb8516c8c726070526cc` |
+| `release-work/l9-deploy-phase6-operator/CONVERGENCE_REPORT.yaml` | `repository_root` | `repository_root` | 1239 | `d9885a9f82680e1712aef7c98003ea8a3412a87bd46250f2869292fd642ddc7d` |
+| `release-work/l9-deploy-phase6-operator/DELTA_REPORT.md` | `repository_root` | `repository_root` | 1934 | `4319b8852a3754562cb55493ab77570ad1ceeb6097c998cda60c50cab6c0c502` |
+| `release-work/l9-deploy-phase6-operator/IMPROVEMENT_REPORT.md` | `repository_root` | `repository_root` | 2891 | `918bab27961277f71d4e9a9b10806fa1ddbd12749b4b1beda55bdeac7718fca6` |
+| `release-work/l9-deploy-phase6-operator/MANIFEST.md` | `repository_root` | `repository_root` | 2240 | `3db044bffa0358ecd08b30c98dd579fdeb5ac4c2ff23b32729029d2fdb24a199` |
+| `release-work/l9-deploy-phase6-operator/MANIFEST.sha256` | `repository_root` | `repository_root` | 6885 | `6e17e25f76214f2b96684bea956f1504390f80dc7b1b5db5be36622b01ed16ef` |
+| `release-work/l9-deploy-phase6-operator/MANIFEST.sha256.meta.md` | `repository_root` | `repository_root` | 578 | `6ac0de1186077e2940793fb4165c6abe35552c0ecd1e812a764f51f1936c8c3f` |
+| `release-work/l9-deploy-phase6-operator/PACKAGE_TREE.md` | `repository_root` | `repository_root` | 2595 | `22a454b675cf3047c34cc89dc178d766da1a0adfefb0a3d5adf53f13e14bd968` |
+| `release-work/l9-deploy-phase6-operator/README.md` | `repository_root` | `repository_root` | 4279 | `ab0c495747acc8c5dd9a3bb20d673b5077da88a3f8188fa49b1348a111368b0a` |
+| `release-work/l9-deploy-phase6-operator/RUNBOOK.md` | `repository_root` | `repository_root` | 5385 | `2730867d545bcfd9396bac5b5a40a412138391c98a3766d697fcbad76925e004` |
+| `release-work/l9-deploy-phase6-operator/SKILL.md` | `repository_root` | `repository_root` | 6811 | `f9f904cfb56b5a27c20a34f0f35e61c5be114bbb4b0bc146a29c821c36c68816` |
+| `release-work/l9-deploy-phase6-operator/VALIDATION.md` | `repository_root` | `repository_root` | 2119 | `0c0892ca5b6b8eda646e768102297d718168b77f5b035a9983bf45472d6b641c` |
+| `release-work/l9-deploy-phase6-operator/assets/INCIDENT_RECORD.template.md` | `repository_root` | `repository_root` | 873 | `8d797ec0d6b41782c6dbff999656c823df3173cb273572ac5bb3d2a9be75e8a3` |
+| `release-work/l9-deploy-phase6-operator/assets/STAGING_INVENTORY.template.json` | `repository_root` | `repository_root` | 567 | `d6cb956cc17de712ea3ee1b457c0323c4ce9886374108cdfc5d117603256461d` |
+| `release-work/l9-deploy-phase6-operator/assets/oidc-negative-probe.yml` | `repository_root` | `repository_root` | 1869 | `0acf95dfb492d1bc32e4737a440c685a6b2f3f1b60de9edd02947997b9b95d37` |
+| `release-work/l9-deploy-phase6-operator/config/phase6-inputs.example.json` | `repository_root` | `repository_root` | 2258 | `51797398dd34153404a0e49ad4a775e9d02586d575005b521d8c2791bcc645dc` |
+| `release-work/l9-deploy-phase6-operator/references/ACCESS_MATRIX.md` | `repository_root` | `repository_root` | 2911 | `382c0bf1224e7617197b34c5dff1b9c425da22e31ae966574f2ce227fe618838` |
+| `release-work/l9-deploy-phase6-operator/references/CURRENT_STATE_AND_UNKNOWNS.md` | `repository_root` | `repository_root` | 1974 | `0186a65f4af68dc299519e1e80b0cc5bfb96fb70d70b954d331ce2cb73bfab9f` |
+| `release-work/l9-deploy-phase6-operator/references/EVIDENCE_CONTRACT.yaml` | `repository_root` | `repository_root` | 3272 | `e86fc7b4aebb308569668f3123bc7fbb217a28a1655ce98eb5bb3189f4cdcec4` |
+| `release-work/l9-deploy-phase6-operator/references/EXECUTION_CONTRACT.yaml` | `repository_root` | `repository_root` | 2787 | `b6793e236521e8c6c6fec40d893c2f17bb04155d1f439f9f9cb2d601c49ff378` |
+| `release-work/l9-deploy-phase6-operator/references/GO_NO_GO_POLICY.yaml` | `repository_root` | `repository_root` | 11047 | `852b9d1846e4517c3a74348adbd5957bdef2fe0ff90b89dc7376c43968fa83fe` |
+| `release-work/l9-deploy-phase6-operator/references/HANDOFF_CHECKLIST.md` | `repository_root` | `repository_root` | 1602 | `c050afb20e4cd0fc1036381fc44ec16551a5af9a3383d4eb3d0eeb316246c47f` |
+| `release-work/l9-deploy-phase6-operator/references/LIVE_COMMANDS.md` | `repository_root` | `repository_root` | 4363 | `876cbb8cb4cd009491d100cd468aaeba0cb012f77d31a1082a3c619d7470bbb0` |
+| `release-work/l9-deploy-phase6-operator/references/OIDC_PROOF.md` | `repository_root` | `repository_root` | 2119 | `17499b577b929c746b4c2c63b394a4373611b0e54714a56ddf9e37a846920380` |
+| `release-work/l9-deploy-phase6-operator/references/PREFLIGHT.md` | `repository_root` | `repository_root` | 2885 | `2ac758d9de3f5bd4a051e04ffe62ff6a0961aa2c86611c6a53236a9e7ae5d626` |
+| `release-work/l9-deploy-phase6-operator/references/REPOSITORY_BASELINE.md` | `repository_root` | `repository_root` | 1508 | `82024b09ccc2bd0e218d90b2fdfb4337864e71d1796056965ed63af3453dabde` |
+| `release-work/l9-deploy-phase6-operator/references/REPO_WIRING_DECISION.md` | `repository_root` | `repository_root` | 1000 | `b3b119b84095644bcd54716b7d9cd957e670fa6cf402d207e4905395c6116fdd` |
+| `release-work/l9-deploy-phase6-operator/references/ROLLBACK_RECOVERY.md` | `repository_root` | `repository_root` | 1276 | `abdc5de6fe95175f2b6ee11035553edea8b1bbea072272b173b65bd5f5f75b0b` |
+| `release-work/l9-deploy-phase6-operator/references/SCENARIO_MATRIX.md` | `repository_root` | `repository_root` | 5198 | `be50a56bc643ead694551329736afcd04a876012c4fa884159b388a7fdd93827` |
+| `release-work/l9-deploy-phase6-operator/references/SECRET_SAFETY.md` | `repository_root` | `repository_root` | 1160 | `2216ae7417d54da8f87d3906c114018431dd41b0aa42f946034ea74d263f122c` |
+| `release-work/l9-deploy-phase6-operator/references/TRUST_MODEL.md` | `repository_root` | `repository_root` | 3421 | `54cb0dae1b1c481e60c85e4d578a3a8e28ed846d2b884a768d9ba84744eeaa3c` |
+| `release-work/l9-deploy-phase6-operator/references/repository-baseline-manifest.json` | `repository_root` | `repository_root` | 2255 | `d46662e4d42c6a32d4f3d6a372e8ecd31cb46b607fa781b9612218e8a1b71ace` |
+| `release-work/l9-deploy-phase6-operator/requirements.txt` | `repository_root` | `repository_root` | 68 | `c05f5d5cc07fa9475e2884ae4703cfdb4d070726e3decb8076778621ed56eb20` |
+| `release-work/l9-deploy-phase6-operator/schemas/deployment-evidence.schema.json` | `repository_root` | `repository_root` | 6407 | `e149778aca0a62bca4bc0d149fafea45949c431fae4ce9a2b8d8c5d2dffb3e87` |
+| `release-work/l9-deploy-phase6-operator/schemas/final-evidence.schema.json` | `repository_root` | `repository_root` | 5978 | `444514ba9613d29a46becdc7a89a5dcb044c1f63cb5a4fdd1bb3c1394d9b596c` |
+| `release-work/l9-deploy-phase6-operator/schemas/github-evidence.schema.json` | `repository_root` | `repository_root` | 5931 | `5fd060fe7c9c13adada001d3a1d2bae83b657a74a5e66255b0b187d4b79dde32` |
+| `release-work/l9-deploy-phase6-operator/schemas/host-health.schema.json` | `repository_root` | `repository_root` | 1578 | `8045be97cd088431774f5469ab18d27e36c21e2c0e96c19155b0e8b7756250ef` |
+| `release-work/l9-deploy-phase6-operator/schemas/infisical-evidence.schema.json` | `repository_root` | `repository_root` | 6008 | `5736c870a0182eb8723b6b00323a2c32f3a5fbc3a4d35dc9f450f7a7823222e1` |
+| `release-work/l9-deploy-phase6-operator/schemas/leakage-evidence.schema.json` | `repository_root` | `repository_root` | 5603 | `de9390c22251c64d7f6248a7500ffb4c4371946a1a3b08a25b29317672ffb063` |
+| `release-work/l9-deploy-phase6-operator/schemas/oidc-evidence.schema.json` | `repository_root` | `repository_root` | 8099 | `407fb8d6e4358b713fdffeb34729046a1065768107884a4de2126f946bd0e3f6` |
+| `release-work/l9-deploy-phase6-operator/schemas/phase6-input.schema.json` | `repository_root` | `repository_root` | 3992 | `cd9b9e1e0711deeb2d968009052fdf5f54a987d5b78c061182f0dda95e73245a` |
+| `release-work/l9-deploy-phase6-operator/schemas/proof-envelope.schema.json` | `repository_root` | `repository_root` | 1888 | `ad86c271a506e6483a38e0cb0c6248a4f12b1afd7b612a1d58b5bdc69751da93` |
+| `release-work/l9-deploy-phase6-operator/schemas/receipts-evidence.schema.json` | `repository_root` | `repository_root` | 5658 | `7d672d14bcae88a9049d552c0b0330e51483dce8a19061fe8a707b9ccac8b117` |
+| `release-work/l9-deploy-phase6-operator/schemas/repository-evidence.schema.json` | `repository_root` | `repository_root` | 5777 | `ab309d86de81a2a830924935521b3549372ee1c542f24dacdbbae3b5eefa85da` |
+| `release-work/l9-deploy-phase6-operator/schemas/rollback-evidence.schema.json` | `repository_root` | `repository_root` | 6183 | `c6f14e3541edc6bed64e18d047ef562c300334e54a521fd0b2ead58f20b3906b` |
+| `release-work/l9-deploy-phase6-operator/scripts/build_dispatch_payload.py` | `repository_root` | `repository_root` | 3721 | `e73a339b1542455bba196cbc6a945714438c653dd1a4fca8b09ccb0841a10d7a` |
+| `release-work/l9-deploy-phase6-operator/scripts/build_evidence_record.py` | `repository_root` | `repository_root` | 12076 | `2ff6c932131061feac3511cc141a90ecd26f551ca5e871669854b9a07e90e96a` |
+| `release-work/l9-deploy-phase6-operator/scripts/collect_final_convergence.py` | `repository_root` | `repository_root` | 4752 | `05312ce7896bda04feca4e60b82a654c6b92e35d83f0d64cff17f0fbcdd23770` |
+| `release-work/l9-deploy-phase6-operator/scripts/collect_github_evidence.py` | `repository_root` | `repository_root` | 5957 | `c21de3b8dfbbe7aff501db5d23bfed5beecaa9f9478ae2cc5977091815b4ac30` |
+| `release-work/l9-deploy-phase6-operator/scripts/collect_host_evidence.py` | `repository_root` | `repository_root` | 3366 | `cdfac253b71fdaf0c566f4edd1f2876776ac1872cae75eeb92caab642f39544c` |
+| `release-work/l9-deploy-phase6-operator/scripts/collect_infisical_audit.py` | `repository_root` | `repository_root` | 5944 | `243d62ef71683a048cd073384de0a967bcab8880cd9aee9759c8a77b3270cfec` |
+| `release-work/l9-deploy-phase6-operator/scripts/collect_repository_evidence.py` | `repository_root` | `repository_root` | 4963 | `c05b1b2ddbeeb20e77ce587727ff5ac163b4eaf57adc7841966f5f1999a36030` |
+| `release-work/l9-deploy-phase6-operator/scripts/collect_run_evidence.sh` | `repository_root` | `repository_root` | 1164 | `7e5e32a065b0e5c6f8fef528a14f6ad03b157609bd4234ba75d7d59db2fd2311` |
+| `release-work/l9-deploy-phase6-operator/scripts/collect_workflow_evidence.py` | `repository_root` | `repository_root` | 8093 | `62adc592712bd095e5ce28263cc8a9720cd177539f8449324b35f7b7943ce95e` |
+| `release-work/l9-deploy-phase6-operator/scripts/generate_signing_key.py` | `repository_root` | `repository_root` | 2360 | `3bc4ea09e94f90acae47c17cca52d929d2b950182070852fb3ec938e189573fd` |
+| `release-work/l9-deploy-phase6-operator/scripts/package_evidence.sh` | `repository_root` | `repository_root` | 1852 | `09f3d624618ed159009c1df988511fa1b1191a134d932102fda7ea86764a7e5e` |
+| `release-work/l9-deploy-phase6-operator/scripts/phase6_integrity.py` | `repository_root` | `repository_root` | 6267 | `dc71612b63b1aba10aa8fb1de38ee942908b3752d7fd76539fc7c35949027b9d` |
+| `release-work/l9-deploy-phase6-operator/scripts/phase6ctl.py` | `repository_root` | `repository_root` | 42766 | `8bc6e290c4a92fd2a89e24d6e926ed091509d497713fc80f146c09bff9c3d7b0` |
+| `release-work/l9-deploy-phase6-operator/scripts/run_adversarial_tests.py` | `repository_root` | `repository_root` | 4949 | `0563babc5c904b78ac116cb26e4c5b754f51dbbc9b86faf7eb4c52dbe1c46235` |
+| `release-work/l9-deploy-phase6-operator/scripts/self_test.sh` | `repository_root` | `repository_root` | 1250 | `08dee4680898cf2203b06d198ce4f50b635a782f6598ee6f1cb557835f11af01` |
+| `release-work/l9-deploy-phase6-operator/scripts/validate_pack.py` | `repository_root` | `repository_root` | 13283 | `37fe11104718c6d84f4a10b555851e9737f42e2e8007fc8a7ff0014c57664bd2` |
+| `release-work/l9-deploy-phase6-operator/scripts/validate_receipts.py` | `repository_root` | `repository_root` | 3420 | `ddf10f53c1328bff0af0836181f710064258b22fad3e759d08e71b36c83f33dc` |
+| `release-work/l9-deploy-phase6-operator/scripts/verify_oidc_claims.py` | `repository_root` | `repository_root` | 10271 | `25a62b85fff362922df0ba67aef624f9a241c19021f499a3ea02b96814b96fad` |
+| `release-work/l9-deploy-phase6-operator/source-evidence/PHASE1_VALIDATION.md` | `repository_root` | `repository_root` | 1621 | `120e5ef7315e261fd45d772e76cc2b486a07a97e35358719130008ef714ade74` |
+| `release-work/l9-deploy-phase6-operator/source-evidence/PHASE2_VALIDATION.md` | `repository_root` | `repository_root` | 1915 | `f4374a8f13d6fd9a2b7f25adc8cf4de7598716fcaf7f5b52447a4b68ac3393e0` |
+| `release-work/l9-deploy-phase6-operator/source-evidence/PHASE3_VALIDATION.md` | `repository_root` | `repository_root` | 1765 | `b622b4e7049ca7617acef48e8f18a2a0a32616c86f10d1189c0be1e2873493be` |
+| `release-work/l9-deploy-phase6-operator/source-evidence/PHASE4_VALIDATION.md` | `repository_root` | `repository_root` | 1604 | `1c8aa00c3091d3e6856c1ff012c439f9de1995475dc3e6d43d11d5164c4150fd` |
+| `release-work/l9-deploy-phase6-operator/source-evidence/PLAN_LOCKED.md` | `repository_root` | `repository_root` | 81549 | `75a56bc1df5a43c53fb8077fb69d9117ec0ef694fec3faeb1ca8efe0c36a5de2` |
+| `release-work/l9-deploy-phase6-operator/source-evidence/README.md` | `repository_root` | `repository_root` | 803 | `e80a7881f6dde1463d201ebbfad43add8c43bad923134129154e1b6bb256dafc` |
+| `release-work/l9-deploy-phase6-operator/tests/test_hardening.py` | `repository_root` | `repository_root` | 41063 | `e8cae0d50784f36562649d91b8f334cf9aa501382005f51cc1c679de3442296c` |
+| `release-work/l9-deploy-phase6-operator/validation_report.yaml` | `repository_root` | `repository_root` | 1523 | `304bea79835843aaf5b9939119fd4150b4dd8db755833c42ad717f86c5a75edf` |
 | `release-work/repository-review/INDEX.md` | `repository_root` | `repository_root` | 2795 | `860cdfa56635dcb9d659c6f6191831f19b18adfd09d49068249636e4eb3ee903` |
 | `release-work/repository-review/architecture-summary.md` | `repository_root` | `repository_root` | 7805 | `2e3e394ee3b5ce496ae45416b769603ed329f7671c259fa0924a05032f480bdf` |
 | `release-work/repository-review/authority-map.md` | `repository_root` | `repository_root` | 6055 | `a861a54da602b1b042de2cb63df95f5129a140d39eca54920196a6fde84d54db` |
@@ -196,7 +282,7 @@ updated: 2026-07-22
 | `release-work/repository-review/source-citations.json` | `repository_root` | `repository_root` | 11593 | `063b6e1a19f4d5ad38af515438b86efb04f657943e4b43117c6093381f8da414` |
 | `release-work/repository-review/supersession-map.md` | `repository_root` | `repository_root` | 6234 | `dfbbff339dec837a4a2f4d70e1721b26963d3c1c86c131325c8ecfaa00c2abee` |
 | `release-work/repository-review/validation-map.md` | `repository_root` | `repository_root` | 5817 | `1ac32caa1b8e54a248e2f087380ae60da993cb178ec5205ce6ef2ed8254a4ff9` |
-| `ruff.toml` | `repository_root` | `repository_root` | 341 | `7e426bd138f1d6088d5d2a5cae729ec7e5329d70f24d3fa21801baf67c7f409a` |
+| `ruff.toml` | `repository_root` | `repository_root` | 493 | `c47370f3b31747ccfde50d3dc8b9e1c19b864733cc56fec5937323015fca3b7d` |
 | `rules/03-graphiti-memory.mdc` | `configuration` | `configuration` | 603 | `20e03434589675053d739e5fa182eb650aaf821acf0cf757a913e60df7c879a6` |
 | `rules/97-graph-engine-architecture.mdc` | `configuration` | `configuration` | 508 | `54defdb3c1813f10a6d102a94cf13b2979059db3ddfcc33d717bfc512ba72be8` |
 | `rules/97-graph-layer-boundary.mdc` | `configuration` | `configuration` | 517 | `4ed80a718c926d7a87dad490e339c845a2efc2fa66af2ecdad7cf0c9dd5ffd24` |
@@ -368,24 +454,24 @@ updated: 2026-07-22
 | `validation/logs/compileall.txt` | `validation_evidence` | `validation_evidence` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 | `validation/logs/config_drift.txt` | `validation_evidence` | `validation_evidence` | 69 | `f95f19d2a5faa72ea6018d37ed97baee659c49adce45016d7d56ae7f5fe57b2a` |
 | `validation/logs/harvest_coverage.txt` | `validation_evidence` | `validation_evidence` | 101 | `a77c2c5914680700e64b06e52391499d845f15b5cd94bb5959a5f91d9a6ba336` |
-| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 441 | `10a11fa34bc276859a7eb5beddaecaa9b505a75eb9e830cb4fb791333188b58b` |
+| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 441 | `84c148c621b0dafa737caa859e0798d9ec6fd4243223c6f1336f2c9f3a117076` |
 | `validation/logs/installed_mcp.txt` | `validation_evidence` | `validation_evidence` | 74 | `ebf9b42a68c28f17711c394515c4e08e0cda8dfa1148d6f5d03ee03537c0593b` |
 | `validation/logs/installed_resolve.txt` | `validation_evidence` | `validation_evidence` | 137 | `eae6487763b5416bca0bd4e711b38b74b9231186d8682cf75cea4615fc74efd2` |
 | `validation/logs/l9_meta.txt` | `validation_evidence` | `validation_evidence` | 83 | `e305e6a7e79c48e68745c71dc7b65912068010b67a512ae8498745be7137adf0` |
-| `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `d455efc432cf1b97757890f92a4f8467b902112486c661f319211629415b3514` |
+| `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `cb9b24685725174c9f8a99ad71c0fb7d83dc50e6759a69da6f09d35e3022e765` |
 | `validation/logs/layer_boundaries.txt` | `validation_evidence` | `validation_evidence` | 80 | `3a9e49589664f3aa63e6e470f64d79e8db7957485afb4027533c1c654e07005b` |
-| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 657 | `d8165e1e5c941424f70788b5e76dc35efb7fa64aaee3823354725654e7905d7e` |
-| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `b52177f2d0f3fad543a6f2d43ba0487a54339933c51de106e7245445815deecd` |
-| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 2228 | `9e42963a255981b19e1a3eb306f0fece2301bc9259dde96abb4daef5d392bd6a` |
+| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 658 | `879f5d24e91cea9fe823a048f8c3136232fe209a9a4dd50ccb83d6f276d6d3c5` |
+| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `31721ab86601ad7a62fb901661bbbcab72e09cb0f192e1d76ac86320ccfd054f` |
+| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 2229 | `ec91b387183f2d7fff57c387a501e3169cffb071b2ec9b599392a0c54970d85d` |
 | `validation/logs/projection_manifests.txt` | `validation_evidence` | `validation_evidence` | 511 | `69fa3ce535fa3fc7d9a6e71446b6b4209dc4f1e8c728d0e7a22096933703a6ab` |
-| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 180 | `5e68761241962fa8a7c7484a13f777a837f3255e7aadacd41e8367c5f2cd7e79` |
+| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 180 | `848d5174ac3052598c67d0419f015f6db54582fb5492740117760d88dccfb7f8` |
 | `validation/logs/recursive_alignment.txt` | `validation_evidence` | `validation_evidence` | 70 | `e5e2d7db7b0c91990f7fdf089e78d343fd212368e0ad3f99c300b5fdd530f993` |
 | `validation/logs/shell_syntax.txt` | `validation_evidence` | `validation_evidence` | 23 | `a0c54f351e5a214abe7090433031f08eb3a95539d861058de5c2d7da6309d2d8` |
 | `validation/logs/source_quality.txt` | `validation_evidence` | `validation_evidence` | 66 | `03c3a01b1784e4f0533a95c297f690bd1cec3c4b2fcd1efaa86071140de8ac34` |
 | `validation/logs/validation_evidence.txt` | `validation_evidence` | `validation_evidence` | 62 | `954e4120f0c8aaddebf08bc2b161caeb965bf1546c8c6979930a9e7c1b112c95` |
-| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 914 | `32c9413bfff0e8ddb1530b19c285972c7b2ff8106045bbc30219da8a5ca9337a` |
+| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 914 | `a8d2447479b28dd07091a2cf28f225db52f021791794309199eb9bdf31bc13b8` |
 | `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 169 | `e7c770a6553f6bda8d0985bf4d9785c89e69630d1a4d8670a7e1030ea1389441` |
 | `validation/logs/wiring_audit.txt` | `validation_evidence` | `validation_evidence` | 33 | `668bcca746b179065a9a180b000db04bee513432976676cff0d3c246f44effa0` |
-| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 10074 | `8a17eda9a5f36ee5e4ff5c10db911c0bae0647143619903724d10f062b30a50f` |
+| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 10074 | `73ce72cc0dc7f84d23d8d74836df5c2441b4caab5c50a1af226d8e736616e4e8` |
 | `validation/validation_findings.jsonl` | `validation_evidence` | `validation_evidence` | 2717 | `5f2afa8ba52b03d2451510acc296faaddfc3046e5f787c5d769cc560e7edb700` |
 | `validation/validation_report.yaml` | `validation_evidence` | `validation_evidence` | 474 | `2edc819b251c24525bf4ba06510ce1c7ddf1932adb7db52cf4dbbbad51dd39f0` |

@@ -13,3 +13,5 @@ ignore = ["S603", "S607", "S608", "S310", "E402"]
 
 [lint.per-file-ignores]
 "src/l9_graphite_memory/schema/__init__.py" = ["F401"]
+# Vendored l9-deploy Phase 6 handoff pack: external validated artifact; style rules not enforced.
+"release-work/l9-deploy-phase6-operator/**" = ["ALL"]

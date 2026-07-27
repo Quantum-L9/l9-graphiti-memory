@@ -1,0 +1,39 @@
+{
+  "$comment": "skill_schema=1; parent=l9-deploy-phase6-operator; layer=schema; role=authoritative_host_health_contract; owner=igor_beylin; status=active; version=1.0.0; updated=2026-07-26",
+  "$id": "https://schemas.quantum-l9.invalid/l9/deploy/phase6-host-health/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "l9.deploy.phase6-host-health/v1"},
+    "repository": {"const": "Quantum-L9/l9-deploy"},
+    "commit_sha": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "environment": {"const": "staging"},
+    "workflow_run_id": {"type": "integer", "minimum": 1},
+    "artifact_id": {"type": "integer", "minimum": 1},
+    "health": {"enum": ["GREEN", "RED"]},
+    "active_image_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "active_config_identity": {"type": "string", "minLength": 1, "maxLength": 256},
+    "base_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+    "health_path": {"type": "string", "pattern": "^/", "maxLength": 512},
+    "http_status": {"type": "integer", "minimum": 100, "maximum": 599},
+    "checked_at": {"type": "string", "format": "date-time"},
+    "production_contact": {"const": false}
+  },
+  "required": [
+    "schema",
+    "repository",
+    "commit_sha",
+    "environment",
+    "workflow_run_id",
+    "artifact_id",
+    "health",
+    "active_image_digest",
+    "active_config_identity",
+    "base_url",
+    "health_path",
+    "http_status",
+    "checked_at",
+    "production_contact"
+  ],
+  "type": "object"
+}

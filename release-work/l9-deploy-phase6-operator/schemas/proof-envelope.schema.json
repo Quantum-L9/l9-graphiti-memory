@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.quantum-l9.invalid/l9/deploy/phase6-proof/v1",
+  "$comment": "skill_schema=1; parent=l9-deploy-phase6-operator; layer=schema; role=collector_proof_contract; owner=igor_beylin; status=active; version=1.0.0; updated=2026-07-26",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "producer_id",
+    "producer_version",
+    "producer_executable_sha256",
+    "captured_at",
+    "subject",
+    "source_kind",
+    "source_locator",
+    "artifact_role",
+    "media_type",
+    "details",
+    "related_artifacts"
+  ],
+  "properties": {
+    "schema": {"const": "l9.deploy.phase6-proof/v1"},
+    "producer_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]+$"},
+    "producer_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "producer_executable_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "subject": {"type": "string", "minLength": 1, "maxLength": 512},
+    "source_kind": {"type": "string", "minLength": 1},
+    "source_locator": {"type": "string", "minLength": 1, "maxLength": 512},
+    "artifact_role": {"type": "string", "pattern": "^[a-z][a-z0-9_]+$"},
+    "media_type": {"type": "string", "pattern": "^[a-z0-9.+-]+/[a-zA-Z0-9.+-]+$"},
+    "details": {"type": "object"},
+    "related_artifacts": {
+      "type": "array",
+      "maxItems": 15,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "role", "media_type"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1, "maxLength": 512},
+          "role": {"type": "string", "pattern": "^[a-z][a-z0-9_]+$"},
+          "media_type": {"type": "string", "pattern": "^[a-z0-9.+-]+/[a-zA-Z0-9.+-]+$"}
+        }
+      }
+    }
+  }
+}

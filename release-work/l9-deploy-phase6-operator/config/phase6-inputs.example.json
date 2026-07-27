@@ -1,0 +1,81 @@
+{
+  "$comment": "Template only. Copy outside the skill directory. Null external values are mandatory Unknowns and block execution until resolved. Never store secret values.",
+  "schema": "l9.deploy.phase6-input/v2",
+  "authorization": {
+    "execution_authorized": false,
+    "change_ticket": null,
+    "operator": null,
+    "independent_approver": null,
+    "approved_at": null
+  },
+  "repository": {
+    "name": "Quantum-L9/l9-deploy",
+    "checkout_path": null,
+    "expected_ref": null,
+    "expected_commit_sha": null,
+    "phase5_validation_command": "uv run python scripts/validate-release-pack.py"
+  },
+  "environment": {
+    "name": "staging",
+    "github_environment": "staging",
+    "production_forbidden": true,
+    "final_terminal_state": "final-healthy-candidate"
+  },
+  "runner": {
+    "required_labels": [
+      "self-hosted",
+      "l9-deployment",
+      "hetzner-private"
+    ]
+  },
+  "source_release": {
+    "repository": null,
+    "commit_sha": null,
+    "ref": null,
+    "workflow_run_id": null,
+    "artifact_name": null,
+    "image_ref": null,
+    "image_digest": null,
+    "profile_path": null,
+    "profile_digest": null,
+    "evidence": null
+  },
+  "target": {
+    "project_id": null,
+    "host": null,
+    "ssh_user": null,
+    "ssh_port": 22,
+    "known_host_fingerprint": null,
+    "base_url": null,
+    "health_path": null,
+    "known_hosts_file": null
+  },
+  "infisical": {
+    "identity_id": null,
+    "project_slug": null,
+    "environment": "staging",
+    "expected_issuer": "https://token.actions.githubusercontent.com",
+    "expected_audience": "https://github.com/Quantum-L9",
+    "redacted_policy_export_path": null,
+    "audit_export_command": null,
+    "canary_secret_key_name": null
+  },
+  "oidc_negative_probe": {
+    "repository": null,
+    "workflow_file": "oidc-negative-probe.yml",
+    "expected_result": "DENIED"
+  },
+  "fault_injection": {
+    "invalid_secret_adapter_command": null,
+    "restore_secret_adapter_command": null,
+    "health_failure_enable_command": null,
+    "health_failure_disable_command": null,
+    "secret_rotation_adapter_command": null
+  },
+  "evidence": {
+    "run_root": null,
+    "retention_class": "phase6-release-readiness",
+    "redaction_required": true,
+    "mode": "live"
+  }
+}

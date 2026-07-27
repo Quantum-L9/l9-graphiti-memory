@@ -1,0 +1,17 @@
+{
+  "$comment": "skill_schema=1; parent=l9-deploy-phase6-operator; layer=asset; role=staging_inventory_template; owner=igor_beylin; status=active; version=1.0.0; updated=2026-07-26. No secret values.",
+  "schema": "l9.deploy.phase6-staging-inventory/v1",
+  "host": null,
+  "host_fingerprint": null,
+  "private_network": null,
+  "ssh_user": null,
+  "runner_name": null,
+  "runner_labels": [],
+  "docker_version": null,
+  "compose_version": null,
+  "project_id": null,
+  "active_release": null,
+  "rollback_release": null,
+  "health_url": null,
+  "captured_at": null
+}

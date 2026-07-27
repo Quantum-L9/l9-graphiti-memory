@@ -1,0 +1,62 @@
+{
+  "$comment": "skill_schema=1; parent=l9-deploy-phase6-operator; layer=reference; role=repository_baseline_manifest; owner=igor_beylin; status=active; version=1.0.0; updated=2026-07-26",
+  "schema": "l9.deploy.phase6-repository-baseline/v1",
+  "source": "reconstructed audited baseline plus Phase 1-4 patches",
+  "files": [
+    {
+      "path": ".github/workflows/deploy-dispatch.yml",
+      "sha256": "551549fd551f2c28bf5300448d0385b238670988174e277050188d0d32fdc438",
+      "size_bytes": 6691
+    },
+    {
+      "path": ".github/workflows/rollback.yml",
+      "sha256": "5a215beb1f480e1845422a5b096f2a9bc9bc6489da4ac789226ac4a057781ca8",
+      "size_bytes": 2958
+    },
+    {
+      "path": "scripts/infisical-oidc-env.sh",
+      "sha256": "94995f5d3b467fa39b8e2a6c670b55b39465ede154df5999fe4f1a9dcf5f7c6d",
+      "size_bytes": 4019
+    },
+    {
+      "path": "scripts/verify-attestation.sh",
+      "sha256": "3efe7fadf713378ae6febfa375804c866d7ef91baa6d7c8f192527ccce5cfb63",
+      "size_bytes": 642
+    },
+    {
+      "path": "scripts/validate-release-pack.py",
+      "sha256": "7e26c9e993fafe329ef61266d23306c13071e66bad83a1f2bac38c8fd4aaa9b0",
+      "size_bytes": 12178
+    },
+    {
+      "path": "scripts/generate-release-artifacts.py",
+      "sha256": "9192635ff37c69355a9f44c0f7b1bfa88c4f9ad953f1a3a04b6613728810fc47",
+      "size_bytes": 7924
+    },
+    {
+      "path": "docs/agents/deployment-agent.md",
+      "sha256": "4e1c3146f0fde3c8d2dda111495f41a45fce623171fc149b6679f7e7cf578f8e",
+      "size_bytes": 5095
+    },
+    {
+      "path": "schemas/v1/deployment-request.schema.json",
+      "sha256": "31c52e4f9a226a722d263a7754999100902e86f4d6568cd90b7712e3aa1cd502",
+      "size_bytes": 3186
+    },
+    {
+      "path": "schemas/v1/deployment-plan.schema.json",
+      "sha256": "88a3e2b887c96824b6b95e36b01c23ce9a7badeea7f59ef7fa750180a0c3d08f",
+      "size_bytes": 2785
+    },
+    {
+      "path": "schemas/v1/deployment-receipt.schema.json",
+      "sha256": "cd1ef7235f846359c1b8d3baf17915780dd1093e2e84d87bfe002011985bede6",
+      "size_bytes": 3444
+    },
+    {
+      "path": "schemas/v1/rollback-receipt.schema.json",
+      "sha256": "cf947515927fa650a00ac71fdf3440d6bbc7111d91b3ccd1b4ac10b9e7c1b321",
+      "size_bytes": 2193
+    }
+  ]
+}
