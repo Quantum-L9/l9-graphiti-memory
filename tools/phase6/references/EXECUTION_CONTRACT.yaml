@@ -1,0 +1,77 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tools/phase6/references/EXECUTION_CONTRACT.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+# skill_schema: 1
+# parent: l9-deploy-phase6-operator
+# layer: reference
+# role: execution_contract
+# tags: [phase6, contract, staging, release]
+# owner: igor_beylin
+# status: active
+# version: 3.1.0
+# updated: 2026-07-26
+contract:
+  id: l9-deploy-phase6-protected-staging
+  version: 3.1.0
+  plan_item: P6-01
+  repository: Quantum-L9/l9-deploy
+  environment: staging
+  production_forbidden: true
+  target_repository_source_file_changes: 0
+objective: >-
+  Prove OIDC restriction, healthy deployment, release-owned configuration promotion,
+  invalid-secret containment, health-failure rollback convergence, secret-only rotation,
+  receipt integrity, auditability, and zero secret leakage.
+entry_gates:
+  - exact_live_revision_recorded
+  - clean_target_worktree
+  - phase5_release_pack_validation_passed
+  - protected_staging_environment_verified
+  - required_runner_online_with_exact_labels
+  - immutable_digest_pinned_image_available
+  - positive_and_negative_oidc_test_paths_available
+  - infisical_staging_identity_and_audit_access_available
+  - ssh_and_docker_host_ready
+  - prior_healthy_release_recoverable
+  - reversible_non_customer_test_secrets_available
+  - explicit_phase6_execution_authorization_recorded
+  - clean_pack_checksum_and_manifest_verified
+  - distinct_ledger_and_evidence_authority_keys_established
+  - independent_public_key_delivery_available
+invariants:
+  - never_target_production
+  - never_write_secret_values_to_evidence
+  - never_mutate_target_repository_source
+  - execute_fault_scenarios_sequentially
+  - preserve_prior_stable_release_until_final_acceptance
+  - database_recovery_is_separate_from_container_rollback
+  - evidence_records_are_collector_derived_and_independently_signed
+  - every_record_is_bound_to_one_run_and_control_plane
+  - synthetic_evidence_cannot_authorize_live_go
+stop_conditions:
+  - production_target_detected
+  - source_worktree_changed
+  - phase5_gate_failed
+  - unauthorized_oidc_exchange_succeeded
+  - invalid_secret_mutated_active_state
+  - rollback_failed_to_converge
+  - canary_secret_detected_in_evidence
+  - required_evidence_missing
+  - evidence_or_ledger_signature_invalid
+  - run_binding_or_control_plane_digest_mismatch
+  - authority_key_roles_collapsed
+  - replayed_or_unledgered_evidence_detected
+terminal_states:
+  GO:
+    meaning: all gates and scenarios passed with complete evidence
+  NO_GO:
+    meaning: any gate failed or evidence is incomplete
+  BLOCKED:
+    meaning: required external authority or capability is unavailable before mutation

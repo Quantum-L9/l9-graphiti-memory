@@ -35,19 +35,19 @@ updated: 2026-07-22
 | Category | Files |
 |---|---:|
 | `architecture_decisions` | 64 |
-| `assurance` | 16 |
+| `assurance` | 89 |
 | `ci` | 5 |
 | `configuration` | 10 |
 | `documentation` | 11 |
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 95 |
-| `repository_root` | 133 |
+| `repository_root` | 73 |
 | `skill` | 2 |
-| `tests` | 37 |
+| `tests` | 38 |
 | `validation_evidence` | 29 |
 
-- Hashed inventory files below: **419**
+- Hashed inventory files below: **433**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -62,27 +62,40 @@ updated: 2026-07-22
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1131 | `fc0c1d03146e25d7ddf704c8d7b434a6ff1491d06ed7862c8ff591238f8638ff` |
 | `.gitignore` | `repository_root` | `repository_root` | 859 | `5742eda9df58ea637c68e20e6fb7897c70c010795171f867acdcf01dcd80d670` |
+| `.mypy_cache/.gitignore` | `repository_root` | `repository_root` | 251 | `05d5de6cfad8105c667dc81c54a3ea5f231af609db1eac5d6febdd593677b6b8` |
+| `.mypy_cache/3.10/cache.db` | `repository_root` | `repository_root` | 9768960 | `094164216081ba9ff81f255353de7a97d716d14cb02b211bf4d1ffe72da3e78e` |
+| `.mypy_cache/CACHEDIR.TAG` | `repository_root` | `repository_root` | 190 | `f1c13afc555358c9033b0f1f30aaa177fe88bda40f4b8a24598400d547876adc` |
 | `.pre-commit-config.yaml` | `repository_root` | `repository_root` | 505 | `f7d6670a379d5978d660479a51a80b86b2ad0ae1acde826f1b474d17952051a8` |
 | `.ruff_cache/.gitignore` | `repository_root` | `repository_root` | 252 | `97dcad36113408e98357a7a41cf584b43944c86194a4fcaf55ee146f2e21dd0b` |
 | `.ruff_cache/0.16.0/12050022265456065218` | `repository_root` | `repository_root` | 1396 | `4ca062adb2018d3e68a746a76ad5fe5ee449343d8d208f3d060fdd3626fcd63b` |
+| `.ruff_cache/0.16.0/1317111965066763122` | `repository_root` | `repository_root` | 628 | `d7c322a4b09e951aeddd37bcbd4e54d0b3d4274718c5d65a5453d149f33cbe36` |
 | `.ruff_cache/0.16.0/13852476627755973659` | `repository_root` | `repository_root` | 204 | `54de87ba3c96ac4f622105a41fe146971c07a6bb1c379ccf25b956c5b221c07d` |
 | `.ruff_cache/0.16.0/14025084748555337804` | `repository_root` | `repository_root` | 628 | `aa37eb9bd99187cf59c7e3fbde3e3e69d13d1103b47e64dea83970caca23681d` |
 | `.ruff_cache/0.16.0/14165726651035356286` | `repository_root` | `repository_root` | 276 | `85c818eacedf0512b73595953178cd31c3b2c7848d6219ba36f10fbaeb62ff6e` |
+| `.ruff_cache/0.16.0/14306283306277624026` | `repository_root` | `repository_root` | 156 | `87627c818fc5d278cde2db83c75ef39a53a6e2e1d3868f28d43a308a23691171` |
 | `.ruff_cache/0.16.0/1525621980617752798` | `repository_root` | `repository_root` | 204 | `ed41598a61e226e40fe6855d08e7d255dc50e0baecb189efc15c72ce0be88fb8` |
 | `.ruff_cache/0.16.0/15699164814488019595` | `repository_root` | `repository_root` | 156 | `94103d9f0ec27b2b19ad4868a459eaf5dc8e08ff1e62c39c3e5a5661dedf3583` |
+| `.ruff_cache/0.16.0/1659324069331705142` | `repository_root` | `repository_root` | 1044 | `d921182b92ef2cfc356480362f7578f39f47691969a53e95e7b803cee2d25584` |
+| `.ruff_cache/0.16.0/17184303631031442190` | `repository_root` | `repository_root` | 180 | `6ddeb1d0ecb6362d2e3768a4a9155b9876e601e3419f7f25fa7f692d5ad6aa81` |
 | `.ruff_cache/0.16.0/17696966171320484879` | `repository_root` | `repository_root` | 1044 | `3c17c3fa8ba58395cf3be7b30712c04889387dc2dfb59164ce6a0911118ae634` |
 | `.ruff_cache/0.16.0/18111821659532782778` | `repository_root` | `repository_root` | 628 | `256fb501c36403602c10b7563f26cdf296c877401f432023cea16755b94d0ef4` |
+| `.ruff_cache/0.16.0/18252043928333505116` | `repository_root` | `repository_root` | 396 | `3ed2bff6465d500bbd39b4b001b11a1af2c03cc0fd4c7a78f67f2790493cb1fb` |
 | `.ruff_cache/0.16.0/1996562102358598562` | `repository_root` | `repository_root` | 1028 | `2136385c69efecb9d65b0d1d004ebe364baeb2245f8f22112101c226a3b55f65` |
 | `.ruff_cache/0.16.0/2644304354356076237` | `repository_root` | `repository_root` | 1044 | `ca60245e7e9d630e3fe616a9b16760c15512542fc01168f7191c6f9fb738c9b5` |
 | `.ruff_cache/0.16.0/2787550857503666072` | `repository_root` | `repository_root` | 5268 | `9235a012fe743c794c3e149844dbe9b7ce91312a92062548d85f061f778fff34` |
 | `.ruff_cache/0.16.0/2822461881107441797` | `repository_root` | `repository_root` | 180 | `8f277589a2dd1f340eaca7f3debfbca4d03f6f01d9dfd7b3af033e94539feb44` |
 | `.ruff_cache/0.16.0/3107435210068675052` | `repository_root` | `repository_root` | 1396 | `681afa4b66039b45e48651e4d5ac2ad493e532fd7175b878075a2078da4fe42d` |
+| `.ruff_cache/0.16.0/3424302424272241372` | `repository_root` | `repository_root` | 1396 | `473c03eb9471d030502262b9e50bd0b30a512f9c36faa079e706af5693f1285d` |
 | `.ruff_cache/0.16.0/3441728831036187109` | `repository_root` | `repository_root` | 156 | `a5ba6dfae0ad66cc6f0426a6b7605e3256d0bfcc92085c78f52934868d01506f` |
 | `.ruff_cache/0.16.0/4078444543139288369` | `repository_root` | `repository_root` | 276 | `66ae8cef1c451b2c197a4e254bf8511e4ff8cf83774d756186639ba453382ef9` |
 | `.ruff_cache/0.16.0/5675798177478345778` | `repository_root` | `repository_root` | 180 | `5e6d6fc3e88abe7db7c59af8d8c23fca03090b25a22460f92309a16ee851c826` |
+| `.ruff_cache/0.16.0/6480912637942845595` | `repository_root` | `repository_root` | 5268 | `bbf1cf38742dddf248a909311d5a38afce51d8df7ca82bffa70558ddb92f9618` |
 | `.ruff_cache/0.16.0/6762557473582254818` | `repository_root` | `repository_root` | 1028 | `ca9fa41ebf26a84b084bdfd160311c17900f6480d21ec09019d411727ecadeb4` |
+| `.ruff_cache/0.16.0/7070597503039100776` | `repository_root` | `repository_root` | 276 | `4122db67d7a33383d9c250b32f77b9c5551dbf25722a903848321bbc093ec7ca` |
+| `.ruff_cache/0.16.0/7997685701794169377` | `repository_root` | `repository_root` | 180 | `5c81ef205ef382aa581842ce9927ca1e535dee8f731aaf96b7ca1bb3f004191c` |
 | `.ruff_cache/0.16.0/8120862736630344031` | `repository_root` | `repository_root` | 340 | `c07ceedc37c6775a8eb045d0bfe37d13134ce09a59ee403f3c5376cbeb3d71ba` |
 | `.ruff_cache/0.16.0/8150807969885146297` | `repository_root` | `repository_root` | 5268 | `09921bd605e05a200a8e052e86fc9d2a2e16ad8d67f96b015ffaf472e367600c` |
+| `.ruff_cache/0.16.0/82703852891121553` | `repository_root` | `repository_root` | 1004 | `9ae2a2e03dc89892e838be02ad8b693e1d9a5840b2c3842561252dea841be3b0` |
 | `.ruff_cache/0.16.0/9550069394721464579` | `repository_root` | `repository_root` | 340 | `05f7bf28b339bc2bc63fb26303551f3908f6bb6aecbf4ea27388287b03fc80db` |
 | `.ruff_cache/CACHEDIR.TAG` | `repository_root` | `repository_root` | 43 | `5953156d7e0c564a427251316eaf26f8870e6483ae2197f916b630e4f93e31ae` |
 | `AGENTS.md` | `repository_root` | `repository_root` | 1100 | `e5eddd9d67c1514b9794c64b14df4e9638ed379d0028d08f73d77f08fd7c465b` |
@@ -192,82 +205,9 @@ updated: 2026-07-22
 | `hooks/graphiti_common.sh` | `hooks` | `hooks` | 1345 | `76ee5c40245b76f699fc5d6ec767a570da4b376ce9d61b59f5fa8e1ad7b3c71d` |
 | `hooks/graphiti_gate_runner.sh` | `hooks` | `hooks` | 880 | `58203955f07dd049ed12c117f13405c7b651aa4f8d8df099a2e698d8a4e7174a` |
 | `improvement_log.jsonl` | `repository_root` | `repository_root` | 2364 | `7a1b20557352284372622d9b11bc363a92b04286d61fecc2c4b2105f0280cab4` |
-| `pyproject.toml` | `repository_root` | `repository_root` | 3131 | `ee98fc1c2af43153cc026117348e8d081b29f086471cd2dfbdbd4c842ee18bcc` |
-| `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository_root` | 4785 | `5f281657ee7346025aa92a0400fd7dec32c3fd41550c82af2d8f035ae9946915` |
+| `pyproject.toml` | `repository_root` | `repository_root` | 3290 | `dbf6c8ed105e03d3b180875798d7dc2f21ea0f43804fde1b28adb59f4f3a8c49` |
+| `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository_root` | 5739 | `ce072ae10b4c8722da70ab49ef4be3af00eb6b093a70922caa654a9d67c48357` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository_root` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
-| `release-work/l9-deploy-phase6-operator/AGENT_EXECUTION_PROMPT.md` | `repository_root` | `repository_root` | 2532 | `687a4791cfafa0cf6429a408d93fed43f3dd379bdb2cb0c9b31a2414e2f239c5` |
-| `release-work/l9-deploy-phase6-operator/BUILD_REPORT.md` | `repository_root` | `repository_root` | 1118 | `56cd3deeb5191e985d34165a16df17bb9f1314d1e2b4de9eda50012017ed1ace` |
-| `release-work/l9-deploy-phase6-operator/CHANGE_REPORT.md` | `repository_root` | `repository_root` | 4092 | `b743f3568572894969de3d021b05e9c849723097f94ebb8516c8c726070526cc` |
-| `release-work/l9-deploy-phase6-operator/CONVERGENCE_REPORT.yaml` | `repository_root` | `repository_root` | 1239 | `d9885a9f82680e1712aef7c98003ea8a3412a87bd46250f2869292fd642ddc7d` |
-| `release-work/l9-deploy-phase6-operator/DELTA_REPORT.md` | `repository_root` | `repository_root` | 1934 | `4319b8852a3754562cb55493ab77570ad1ceeb6097c998cda60c50cab6c0c502` |
-| `release-work/l9-deploy-phase6-operator/IMPROVEMENT_REPORT.md` | `repository_root` | `repository_root` | 2891 | `918bab27961277f71d4e9a9b10806fa1ddbd12749b4b1beda55bdeac7718fca6` |
-| `release-work/l9-deploy-phase6-operator/MANIFEST.md` | `repository_root` | `repository_root` | 2240 | `3db044bffa0358ecd08b30c98dd579fdeb5ac4c2ff23b32729029d2fdb24a199` |
-| `release-work/l9-deploy-phase6-operator/MANIFEST.sha256` | `repository_root` | `repository_root` | 6885 | `6e17e25f76214f2b96684bea956f1504390f80dc7b1b5db5be36622b01ed16ef` |
-| `release-work/l9-deploy-phase6-operator/MANIFEST.sha256.meta.md` | `repository_root` | `repository_root` | 578 | `6ac0de1186077e2940793fb4165c6abe35552c0ecd1e812a764f51f1936c8c3f` |
-| `release-work/l9-deploy-phase6-operator/PACKAGE_TREE.md` | `repository_root` | `repository_root` | 2595 | `22a454b675cf3047c34cc89dc178d766da1a0adfefb0a3d5adf53f13e14bd968` |
-| `release-work/l9-deploy-phase6-operator/README.md` | `repository_root` | `repository_root` | 4279 | `ab0c495747acc8c5dd9a3bb20d673b5077da88a3f8188fa49b1348a111368b0a` |
-| `release-work/l9-deploy-phase6-operator/RUNBOOK.md` | `repository_root` | `repository_root` | 5385 | `2730867d545bcfd9396bac5b5a40a412138391c98a3766d697fcbad76925e004` |
-| `release-work/l9-deploy-phase6-operator/SKILL.md` | `repository_root` | `repository_root` | 6811 | `f9f904cfb56b5a27c20a34f0f35e61c5be114bbb4b0bc146a29c821c36c68816` |
-| `release-work/l9-deploy-phase6-operator/VALIDATION.md` | `repository_root` | `repository_root` | 2119 | `0c0892ca5b6b8eda646e768102297d718168b77f5b035a9983bf45472d6b641c` |
-| `release-work/l9-deploy-phase6-operator/assets/INCIDENT_RECORD.template.md` | `repository_root` | `repository_root` | 873 | `8d797ec0d6b41782c6dbff999656c823df3173cb273572ac5bb3d2a9be75e8a3` |
-| `release-work/l9-deploy-phase6-operator/assets/STAGING_INVENTORY.template.json` | `repository_root` | `repository_root` | 567 | `d6cb956cc17de712ea3ee1b457c0323c4ce9886374108cdfc5d117603256461d` |
-| `release-work/l9-deploy-phase6-operator/assets/oidc-negative-probe.yml` | `repository_root` | `repository_root` | 1869 | `0acf95dfb492d1bc32e4737a440c685a6b2f3f1b60de9edd02947997b9b95d37` |
-| `release-work/l9-deploy-phase6-operator/config/phase6-inputs.example.json` | `repository_root` | `repository_root` | 2258 | `51797398dd34153404a0e49ad4a775e9d02586d575005b521d8c2791bcc645dc` |
-| `release-work/l9-deploy-phase6-operator/references/ACCESS_MATRIX.md` | `repository_root` | `repository_root` | 2911 | `382c0bf1224e7617197b34c5dff1b9c425da22e31ae966574f2ce227fe618838` |
-| `release-work/l9-deploy-phase6-operator/references/CURRENT_STATE_AND_UNKNOWNS.md` | `repository_root` | `repository_root` | 1974 | `0186a65f4af68dc299519e1e80b0cc5bfb96fb70d70b954d331ce2cb73bfab9f` |
-| `release-work/l9-deploy-phase6-operator/references/EVIDENCE_CONTRACT.yaml` | `repository_root` | `repository_root` | 3272 | `e86fc7b4aebb308569668f3123bc7fbb217a28a1655ce98eb5bb3189f4cdcec4` |
-| `release-work/l9-deploy-phase6-operator/references/EXECUTION_CONTRACT.yaml` | `repository_root` | `repository_root` | 2787 | `b6793e236521e8c6c6fec40d893c2f17bb04155d1f439f9f9cb2d601c49ff378` |
-| `release-work/l9-deploy-phase6-operator/references/GO_NO_GO_POLICY.yaml` | `repository_root` | `repository_root` | 11047 | `852b9d1846e4517c3a74348adbd5957bdef2fe0ff90b89dc7376c43968fa83fe` |
-| `release-work/l9-deploy-phase6-operator/references/HANDOFF_CHECKLIST.md` | `repository_root` | `repository_root` | 1602 | `c050afb20e4cd0fc1036381fc44ec16551a5af9a3383d4eb3d0eeb316246c47f` |
-| `release-work/l9-deploy-phase6-operator/references/LIVE_COMMANDS.md` | `repository_root` | `repository_root` | 4363 | `876cbb8cb4cd009491d100cd468aaeba0cb012f77d31a1082a3c619d7470bbb0` |
-| `release-work/l9-deploy-phase6-operator/references/OIDC_PROOF.md` | `repository_root` | `repository_root` | 2119 | `17499b577b929c746b4c2c63b394a4373611b0e54714a56ddf9e37a846920380` |
-| `release-work/l9-deploy-phase6-operator/references/PREFLIGHT.md` | `repository_root` | `repository_root` | 2885 | `2ac758d9de3f5bd4a051e04ffe62ff6a0961aa2c86611c6a53236a9e7ae5d626` |
-| `release-work/l9-deploy-phase6-operator/references/REPOSITORY_BASELINE.md` | `repository_root` | `repository_root` | 1508 | `82024b09ccc2bd0e218d90b2fdfb4337864e71d1796056965ed63af3453dabde` |
-| `release-work/l9-deploy-phase6-operator/references/REPO_WIRING_DECISION.md` | `repository_root` | `repository_root` | 1000 | `b3b119b84095644bcd54716b7d9cd957e670fa6cf402d207e4905395c6116fdd` |
-| `release-work/l9-deploy-phase6-operator/references/ROLLBACK_RECOVERY.md` | `repository_root` | `repository_root` | 1276 | `abdc5de6fe95175f2b6ee11035553edea8b1bbea072272b173b65bd5f5f75b0b` |
-| `release-work/l9-deploy-phase6-operator/references/SCENARIO_MATRIX.md` | `repository_root` | `repository_root` | 5198 | `be50a56bc643ead694551329736afcd04a876012c4fa884159b388a7fdd93827` |
-| `release-work/l9-deploy-phase6-operator/references/SECRET_SAFETY.md` | `repository_root` | `repository_root` | 1160 | `2216ae7417d54da8f87d3906c114018431dd41b0aa42f946034ea74d263f122c` |
-| `release-work/l9-deploy-phase6-operator/references/TRUST_MODEL.md` | `repository_root` | `repository_root` | 3421 | `54cb0dae1b1c481e60c85e4d578a3a8e28ed846d2b884a768d9ba84744eeaa3c` |
-| `release-work/l9-deploy-phase6-operator/references/repository-baseline-manifest.json` | `repository_root` | `repository_root` | 2255 | `d46662e4d42c6a32d4f3d6a372e8ecd31cb46b607fa781b9612218e8a1b71ace` |
-| `release-work/l9-deploy-phase6-operator/requirements.txt` | `repository_root` | `repository_root` | 68 | `c05f5d5cc07fa9475e2884ae4703cfdb4d070726e3decb8076778621ed56eb20` |
-| `release-work/l9-deploy-phase6-operator/schemas/deployment-evidence.schema.json` | `repository_root` | `repository_root` | 6407 | `e149778aca0a62bca4bc0d149fafea45949c431fae4ce9a2b8d8c5d2dffb3e87` |
-| `release-work/l9-deploy-phase6-operator/schemas/final-evidence.schema.json` | `repository_root` | `repository_root` | 5978 | `444514ba9613d29a46becdc7a89a5dcb044c1f63cb5a4fdd1bb3c1394d9b596c` |
-| `release-work/l9-deploy-phase6-operator/schemas/github-evidence.schema.json` | `repository_root` | `repository_root` | 5931 | `5fd060fe7c9c13adada001d3a1d2bae83b657a74a5e66255b0b187d4b79dde32` |
-| `release-work/l9-deploy-phase6-operator/schemas/host-health.schema.json` | `repository_root` | `repository_root` | 1578 | `8045be97cd088431774f5469ab18d27e36c21e2c0e96c19155b0e8b7756250ef` |
-| `release-work/l9-deploy-phase6-operator/schemas/infisical-evidence.schema.json` | `repository_root` | `repository_root` | 6008 | `5736c870a0182eb8723b6b00323a2c32f3a5fbc3a4d35dc9f450f7a7823222e1` |
-| `release-work/l9-deploy-phase6-operator/schemas/leakage-evidence.schema.json` | `repository_root` | `repository_root` | 5603 | `de9390c22251c64d7f6248a7500ffb4c4371946a1a3b08a25b29317672ffb063` |
-| `release-work/l9-deploy-phase6-operator/schemas/oidc-evidence.schema.json` | `repository_root` | `repository_root` | 8099 | `407fb8d6e4358b713fdffeb34729046a1065768107884a4de2126f946bd0e3f6` |
-| `release-work/l9-deploy-phase6-operator/schemas/phase6-input.schema.json` | `repository_root` | `repository_root` | 3992 | `cd9b9e1e0711deeb2d968009052fdf5f54a987d5b78c061182f0dda95e73245a` |
-| `release-work/l9-deploy-phase6-operator/schemas/proof-envelope.schema.json` | `repository_root` | `repository_root` | 1888 | `ad86c271a506e6483a38e0cb0c6248a4f12b1afd7b612a1d58b5bdc69751da93` |
-| `release-work/l9-deploy-phase6-operator/schemas/receipts-evidence.schema.json` | `repository_root` | `repository_root` | 5658 | `7d672d14bcae88a9049d552c0b0330e51483dce8a19061fe8a707b9ccac8b117` |
-| `release-work/l9-deploy-phase6-operator/schemas/repository-evidence.schema.json` | `repository_root` | `repository_root` | 5777 | `ab309d86de81a2a830924935521b3549372ee1c542f24dacdbbae3b5eefa85da` |
-| `release-work/l9-deploy-phase6-operator/schemas/rollback-evidence.schema.json` | `repository_root` | `repository_root` | 6183 | `c6f14e3541edc6bed64e18d047ef562c300334e54a521fd0b2ead58f20b3906b` |
-| `release-work/l9-deploy-phase6-operator/scripts/build_dispatch_payload.py` | `repository_root` | `repository_root` | 3721 | `e73a339b1542455bba196cbc6a945714438c653dd1a4fca8b09ccb0841a10d7a` |
-| `release-work/l9-deploy-phase6-operator/scripts/build_evidence_record.py` | `repository_root` | `repository_root` | 12076 | `2ff6c932131061feac3511cc141a90ecd26f551ca5e871669854b9a07e90e96a` |
-| `release-work/l9-deploy-phase6-operator/scripts/collect_final_convergence.py` | `repository_root` | `repository_root` | 4752 | `05312ce7896bda04feca4e60b82a654c6b92e35d83f0d64cff17f0fbcdd23770` |
-| `release-work/l9-deploy-phase6-operator/scripts/collect_github_evidence.py` | `repository_root` | `repository_root` | 5957 | `c21de3b8dfbbe7aff501db5d23bfed5beecaa9f9478ae2cc5977091815b4ac30` |
-| `release-work/l9-deploy-phase6-operator/scripts/collect_host_evidence.py` | `repository_root` | `repository_root` | 3366 | `cdfac253b71fdaf0c566f4edd1f2876776ac1872cae75eeb92caab642f39544c` |
-| `release-work/l9-deploy-phase6-operator/scripts/collect_infisical_audit.py` | `repository_root` | `repository_root` | 5944 | `243d62ef71683a048cd073384de0a967bcab8880cd9aee9759c8a77b3270cfec` |
-| `release-work/l9-deploy-phase6-operator/scripts/collect_repository_evidence.py` | `repository_root` | `repository_root` | 4963 | `c05b1b2ddbeeb20e77ce587727ff5ac163b4eaf57adc7841966f5f1999a36030` |
-| `release-work/l9-deploy-phase6-operator/scripts/collect_run_evidence.sh` | `repository_root` | `repository_root` | 1164 | `7e5e32a065b0e5c6f8fef528a14f6ad03b157609bd4234ba75d7d59db2fd2311` |
-| `release-work/l9-deploy-phase6-operator/scripts/collect_workflow_evidence.py` | `repository_root` | `repository_root` | 8093 | `62adc592712bd095e5ce28263cc8a9720cd177539f8449324b35f7b7943ce95e` |
-| `release-work/l9-deploy-phase6-operator/scripts/generate_signing_key.py` | `repository_root` | `repository_root` | 2360 | `3bc4ea09e94f90acae47c17cca52d929d2b950182070852fb3ec938e189573fd` |
-| `release-work/l9-deploy-phase6-operator/scripts/package_evidence.sh` | `repository_root` | `repository_root` | 1852 | `09f3d624618ed159009c1df988511fa1b1191a134d932102fda7ea86764a7e5e` |
-| `release-work/l9-deploy-phase6-operator/scripts/phase6_integrity.py` | `repository_root` | `repository_root` | 6267 | `dc71612b63b1aba10aa8fb1de38ee942908b3752d7fd76539fc7c35949027b9d` |
-| `release-work/l9-deploy-phase6-operator/scripts/phase6ctl.py` | `repository_root` | `repository_root` | 42766 | `8bc6e290c4a92fd2a89e24d6e926ed091509d497713fc80f146c09bff9c3d7b0` |
-| `release-work/l9-deploy-phase6-operator/scripts/run_adversarial_tests.py` | `repository_root` | `repository_root` | 4949 | `0563babc5c904b78ac116cb26e4c5b754f51dbbc9b86faf7eb4c52dbe1c46235` |
-| `release-work/l9-deploy-phase6-operator/scripts/self_test.sh` | `repository_root` | `repository_root` | 1250 | `08dee4680898cf2203b06d198ce4f50b635a782f6598ee6f1cb557835f11af01` |
-| `release-work/l9-deploy-phase6-operator/scripts/validate_pack.py` | `repository_root` | `repository_root` | 13283 | `37fe11104718c6d84f4a10b555851e9737f42e2e8007fc8a7ff0014c57664bd2` |
-| `release-work/l9-deploy-phase6-operator/scripts/validate_receipts.py` | `repository_root` | `repository_root` | 3420 | `ddf10f53c1328bff0af0836181f710064258b22fad3e759d08e71b36c83f33dc` |
-| `release-work/l9-deploy-phase6-operator/scripts/verify_oidc_claims.py` | `repository_root` | `repository_root` | 10271 | `25a62b85fff362922df0ba67aef624f9a241c19021f499a3ea02b96814b96fad` |
-| `release-work/l9-deploy-phase6-operator/source-evidence/PHASE1_VALIDATION.md` | `repository_root` | `repository_root` | 1621 | `120e5ef7315e261fd45d772e76cc2b486a07a97e35358719130008ef714ade74` |
-| `release-work/l9-deploy-phase6-operator/source-evidence/PHASE2_VALIDATION.md` | `repository_root` | `repository_root` | 1915 | `f4374a8f13d6fd9a2b7f25adc8cf4de7598716fcaf7f5b52447a4b68ac3393e0` |
-| `release-work/l9-deploy-phase6-operator/source-evidence/PHASE3_VALIDATION.md` | `repository_root` | `repository_root` | 1765 | `b622b4e7049ca7617acef48e8f18a2a0a32616c86f10d1189c0be1e2873493be` |
-| `release-work/l9-deploy-phase6-operator/source-evidence/PHASE4_VALIDATION.md` | `repository_root` | `repository_root` | 1604 | `1c8aa00c3091d3e6856c1ff012c439f9de1995475dc3e6d43d11d5164c4150fd` |
-| `release-work/l9-deploy-phase6-operator/source-evidence/PLAN_LOCKED.md` | `repository_root` | `repository_root` | 81549 | `75a56bc1df5a43c53fb8077fb69d9117ec0ef694fec3faeb1ca8efe0c36a5de2` |
-| `release-work/l9-deploy-phase6-operator/source-evidence/README.md` | `repository_root` | `repository_root` | 803 | `e80a7881f6dde1463d201ebbfad43add8c43bad923134129154e1b6bb256dafc` |
-| `release-work/l9-deploy-phase6-operator/tests/test_hardening.py` | `repository_root` | `repository_root` | 41063 | `e8cae0d50784f36562649d91b8f334cf9aa501382005f51cc1c679de3442296c` |
-| `release-work/l9-deploy-phase6-operator/validation_report.yaml` | `repository_root` | `repository_root` | 1523 | `304bea79835843aaf5b9939119fd4150b4dd8db755833c42ad717f86c5a75edf` |
 | `release-work/repository-review/INDEX.md` | `repository_root` | `repository_root` | 2795 | `860cdfa56635dcb9d659c6f6191831f19b18adfd09d49068249636e4eb3ee903` |
 | `release-work/repository-review/architecture-summary.md` | `repository_root` | `repository_root` | 7805 | `2e3e394ee3b5ce496ae45416b769603ed329f7671c259fa0924a05032f480bdf` |
 | `release-work/repository-review/authority-map.md` | `repository_root` | `repository_root` | 6055 | `a861a54da602b1b042de2cb63df95f5129a140d39eca54920196a6fde84d54db` |
@@ -282,7 +222,7 @@ updated: 2026-07-22
 | `release-work/repository-review/source-citations.json` | `repository_root` | `repository_root` | 11593 | `063b6e1a19f4d5ad38af515438b86efb04f657943e4b43117c6093381f8da414` |
 | `release-work/repository-review/supersession-map.md` | `repository_root` | `repository_root` | 6234 | `dfbbff339dec837a4a2f4d70e1721b26963d3c1c86c131325c8ecfaa00c2abee` |
 | `release-work/repository-review/validation-map.md` | `repository_root` | `repository_root` | 5817 | `1ac32caa1b8e54a248e2f087380ae60da993cb178ec5205ce6ef2ed8254a4ff9` |
-| `ruff.toml` | `repository_root` | `repository_root` | 493 | `c47370f3b31747ccfde50d3dc8b9e1c19b864733cc56fec5937323015fca3b7d` |
+| `ruff.toml` | `repository_root` | `repository_root` | 468 | `265cd87053da2b0dc63b07d558fed50d03b39b8ea60540000cf8807985c68e3d` |
 | `rules/03-graphiti-memory.mdc` | `configuration` | `configuration` | 603 | `20e03434589675053d739e5fa182eb650aaf821acf0cf757a913e60df7c879a6` |
 | `rules/97-graph-engine-architecture.mdc` | `configuration` | `configuration` | 508 | `54defdb3c1813f10a6d102a94cf13b2979059db3ddfcc33d717bfc512ba72be8` |
 | `rules/97-graph-layer-boundary.mdc` | `configuration` | `configuration` | 517 | `4ed80a718c926d7a87dad490e339c845a2efc2fa66af2ecdad7cf0c9dd5ffd24` |
@@ -405,6 +345,7 @@ updated: 2026-07-22
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `tests` | 2824 | `8c7c49b8e02491ec2c62dd2207db9f1436e01fed100148d1fc8178f3be2279bb` |
 | `tests/integration/test_write_recovery.py` | `tests` | `tests` | 1491 | `5cdc6ebbd63ccf915fafbeb8b52157f9e42603747b951b00b72a3dda20d29695` |
 | `tests/regression/test_assurance_tools.py` | `tests` | `tests` | 1982 | `79f0cb7dae4814c1a6ed73858b9ab47d05518c0dcb6d975d998902e62f6908ef` |
+| `tests/regression/test_phase6_operator.py` | `tests` | `tests` | 2566 | `e5c119b9c78df5bf1133dae3c681dba0e36268c606f7e44288ba1dd1b73a90f4` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `tests` | 1725 | `d111bf628b3e97200b941a596fe9aaf62e728fd33a44974bb956d2842f7893f3` |
 | `tests/regression/test_release_shell.py` | `tests` | `tests` | 3274 | `ad6b14c1ae2a8dc7374d4e44175f45a9d8b243d153235026582d03dc10b00888` |
 | `tests/regression/test_skill_pack.py` | `tests` | `tests` | 1031 | `9c4348e93021b99d60e6b74e0a115dce2ccf52e2ad25eb3c11891b3ab4d9c61b` |
@@ -437,41 +378,114 @@ updated: 2026-07-22
 | `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 3655 | `29b93ec38c9a77ba05e891b39d700f4b15c51565a9145066376e9fbca7879903` |
 | `tools/assurance/check_layer_boundaries.py` | `assurance` | `assurance` | 3341 | `c504e3864969a96f7474641d31dc9d8e25008c871a940ca157c27f5b43e27f92` |
 | `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 3987 | `54e61339090f56420312a9d6edf63f011e1edb2ad4db4dbb0cc4eed7b24cedbd` |
-| `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12074 | `90b6f4243fad944323bf11746d6db164c44cdda54670882fed1acf33cff28eca` |
+| `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12531 | `5bf17e3315a90ea451b5aab8ea7c532f305880621f9dc6ab352de82198932bff` |
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4482 | `53a76213ff055197716ac304cd8b6dc36152e68070f65dc38fff0975abb332da` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 6055 | `1c7f93a3324c77d46e778f2ea776c05ea96cc612efdeb7835f9bdb67f0482266` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 7324 | `4fdf809c64dd89bc0a1d299438bd8982dcd87734e26bf10eb3386c8ff7b613ef` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 11649 | `565a4408b116097531ba7b598c9642843671cf69df518dd0b6c43d222eb01f68` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 11649 | `6668c7478df290d370704bb99725daaf5626b67de2a17bd2697931b2717c044f` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2624 | `f1d462e4812c810439e5cd599d594c89ed044b3553e011795dbefe7a3b59777f` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4282 | `dfb473fea080bb880ff9de2f5e9101bc616d2a4a8ed4a1f17be927d7aae75100` |
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2418 | `b7a0e2d83cf5a9b4c09d2f83662a719c4c0dd4f91082fc743561f9f191943d56` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2490 | `70679727acfc136b4463e406b9d32ca094e5e2d50a3c151ecdad5fd9819d0a21` |
-| `validation/SHA256SUMS` | `validation_evidence` | `validation_evidence` | 108 | `5686ac8730e1bbd463ae57f5511a38dac0b7cb457775852cb79b66f7070ffe8f` |
-| `validation/dist/l9_graphite_memory-2.2.0-py3-none-any.whl` | `validation_evidence` | `validation_evidence` | 145110 | `eee72e29079817e016b41ee69505af2684fa2561255796b7ab8234d016d64d46` |
+| `tools/phase6/AGENT_EXECUTION_PROMPT.md` | `assurance` | `assurance` | 2506 | `05e1399a3e37cb652198efb42b259c69db003cfaf7917114d0756118e3909009` |
+| `tools/phase6/BUILD_REPORT.md` | `assurance` | `assurance` | 1092 | `092960451042850b00f0fefd41a0edc7dc857146316846685681d7974972eb76` |
+| `tools/phase6/CHANGE_REPORT.md` | `assurance` | `assurance` | 4066 | `71fa93b0f25a5904234b2ebaf2eeae194897ca5d158590b8e3fb2e5e68c2a6e3` |
+| `tools/phase6/CONVERGENCE_REPORT.yaml` | `assurance` | `assurance` | 1213 | `dcdce806f50e7c3280c4fe1063447eec3015ea006156f47ecdc4ac8b4c606ce0` |
+| `tools/phase6/DELTA_REPORT.md` | `assurance` | `assurance` | 1908 | `d22d154a18505cc15de30ea7fc83df439ed3791282001e2ef8599d7669725548` |
+| `tools/phase6/IMPROVEMENT_REPORT.md` | `assurance` | `assurance` | 2865 | `63875aca2c1fd4f8438826c0e879943ec43282be9a1c48b054c99d1f291dfee6` |
+| `tools/phase6/MANIFEST.md` | `assurance` | `assurance` | 2214 | `f2611b38d6a0bda0bce0e1caa12d05acd780b784c7be0070a1258c198e654381` |
+| `tools/phase6/MANIFEST.sha256` | `assurance` | `assurance` | 6885 | `abab4d6a13400c892fec153fbec1040978db248e11e5bd404991428de253685f` |
+| `tools/phase6/MANIFEST.sha256.meta.md` | `assurance` | `assurance` | 552 | `bf1f57d1a5ae6158e3bf8b4ef82a766e093fc23650fe2b96a6abe927abea5197` |
+| `tools/phase6/PACKAGE_TREE.md` | `assurance` | `assurance` | 2569 | `53c0a8ed86c264e6b6d27938cf35f6ef9bb9c600e20405a6219d99c09cf30897` |
+| `tools/phase6/README.md` | `assurance` | `assurance` | 4253 | `427b8808c8f79ac736f882f67d3bb01d6dfe642657a5c594896b55be7eb1c328` |
+| `tools/phase6/RUNBOOK.md` | `assurance` | `assurance` | 5359 | `4f90ccb83672dd9f9b5b391738a32bea568443885f21dc0da04ece46d78fa205` |
+| `tools/phase6/SKILL.md` | `assurance` | `assurance` | 6785 | `9ca0c9a4607800e7c34a6df7417e2d203174d2ab26f80ef443b8625f702a925a` |
+| `tools/phase6/VALIDATION.md` | `assurance` | `assurance` | 2093 | `eeea92e29673dd2d82afa4c23b639d15ef5894e0c24fc8f9206d8c5505418892` |
+| `tools/phase6/assets/INCIDENT_RECORD.template.md` | `assurance` | `assurance` | 847 | `2b273317bc66cb683f51bfa07288d7b46d00f7192967b69123918bf3f8a9bdfe` |
+| `tools/phase6/assets/STAGING_INVENTORY.template.json` | `assurance` | `assurance` | 567 | `d6cb956cc17de712ea3ee1b457c0323c4ce9886374108cdfc5d117603256461d` |
+| `tools/phase6/assets/oidc-negative-probe.yml` | `assurance` | `assurance` | 1843 | `ff911f92837b1c08757961f9aa639107bedeca5111967a42b731f51145394616` |
+| `tools/phase6/config/phase6-inputs.example.json` | `assurance` | `assurance` | 2258 | `51797398dd34153404a0e49ad4a775e9d02586d575005b521d8c2791bcc645dc` |
+| `tools/phase6/references/ACCESS_MATRIX.md` | `assurance` | `assurance` | 2885 | `97c805b7bc9b145bea218f2066745a4e829640fa0f3b7c1b9fecbcb788da2849` |
+| `tools/phase6/references/CURRENT_STATE_AND_UNKNOWNS.md` | `assurance` | `assurance` | 1948 | `b3176bdba0006fb52b9b8f1c6c022742c9a7a76874c773bd6a30b4b8d5872f48` |
+| `tools/phase6/references/EVIDENCE_CONTRACT.yaml` | `assurance` | `assurance` | 3246 | `4dbb28ecd5abd46a2a524a967e23f4c891c1553198b3baefedc0fee464cf678d` |
+| `tools/phase6/references/EXECUTION_CONTRACT.yaml` | `assurance` | `assurance` | 2761 | `042778577f56e636c344fdc046c194fa50af20dc8a6a9a2741e9c9afd5144401` |
+| `tools/phase6/references/GO_NO_GO_POLICY.yaml` | `assurance` | `assurance` | 11021 | `7eb5e67663f351b20f549d5b31cdef286b329f137da4040f4125148000e77806` |
+| `tools/phase6/references/HANDOFF_CHECKLIST.md` | `assurance` | `assurance` | 1576 | `e22dc97984828e88264bc10230b17625a41e8c0bf91ff915df78c3234a9806d3` |
+| `tools/phase6/references/LIVE_COMMANDS.md` | `assurance` | `assurance` | 4337 | `61519ea9d336763e4c15fca05d1ace597ef3867921d81968c3b53dde0ac63d61` |
+| `tools/phase6/references/OIDC_PROOF.md` | `assurance` | `assurance` | 2093 | `e07cc5063f3427257ca92fccfc7bab6a58dbd1e12f5c66f9ec98fee6f32d163c` |
+| `tools/phase6/references/PREFLIGHT.md` | `assurance` | `assurance` | 2859 | `fc0577836b516505600626d29ab9eb27b4a54c562ab6e947c5883efc05e68b18` |
+| `tools/phase6/references/REPOSITORY_BASELINE.md` | `assurance` | `assurance` | 1482 | `dbb2c3ea0e62f9e9262e4411b4a9d5a9ba8d7c7039ba713a239f0916796fb3d3` |
+| `tools/phase6/references/REPO_WIRING_DECISION.md` | `assurance` | `assurance` | 974 | `68b6b0fd361cb382311b159b485a9898ab42f7c04d22c4213dfddf65706f5de6` |
+| `tools/phase6/references/ROLLBACK_RECOVERY.md` | `assurance` | `assurance` | 1250 | `1fba80aad7064840d8b7ac07c4eb35667aa7fece9a5ecb3c6b66ef1085b43d13` |
+| `tools/phase6/references/SCENARIO_MATRIX.md` | `assurance` | `assurance` | 5172 | `9f9a516a134e72dd1be074dd8b9e9810f3df3d38e6749257aa09696164e15c1f` |
+| `tools/phase6/references/SECRET_SAFETY.md` | `assurance` | `assurance` | 1134 | `7556828bfad0ce184d7c766aea96dabda6fb9e796c58f7d957f78f7f5cee4df6` |
+| `tools/phase6/references/TRUST_MODEL.md` | `assurance` | `assurance` | 3395 | `d8540f5c14652a22584a0e8073afe7e9ed5bc99ed0d8376960c321f6389e0312` |
+| `tools/phase6/references/repository-baseline-manifest.json` | `assurance` | `assurance` | 2255 | `d46662e4d42c6a32d4f3d6a372e8ecd31cb46b607fa781b9612218e8a1b71ace` |
+| `tools/phase6/requirements.txt` | `assurance` | `assurance` | 68 | `c05f5d5cc07fa9475e2884ae4703cfdb4d070726e3decb8076778621ed56eb20` |
+| `tools/phase6/schemas/deployment-evidence.schema.json` | `assurance` | `assurance` | 6407 | `e149778aca0a62bca4bc0d149fafea45949c431fae4ce9a2b8d8c5d2dffb3e87` |
+| `tools/phase6/schemas/final-evidence.schema.json` | `assurance` | `assurance` | 5978 | `444514ba9613d29a46becdc7a89a5dcb044c1f63cb5a4fdd1bb3c1394d9b596c` |
+| `tools/phase6/schemas/github-evidence.schema.json` | `assurance` | `assurance` | 5931 | `5fd060fe7c9c13adada001d3a1d2bae83b657a74a5e66255b0b187d4b79dde32` |
+| `tools/phase6/schemas/host-health.schema.json` | `assurance` | `assurance` | 1578 | `8045be97cd088431774f5469ab18d27e36c21e2c0e96c19155b0e8b7756250ef` |
+| `tools/phase6/schemas/infisical-evidence.schema.json` | `assurance` | `assurance` | 6008 | `5736c870a0182eb8723b6b00323a2c32f3a5fbc3a4d35dc9f450f7a7823222e1` |
+| `tools/phase6/schemas/leakage-evidence.schema.json` | `assurance` | `assurance` | 5603 | `de9390c22251c64d7f6248a7500ffb4c4371946a1a3b08a25b29317672ffb063` |
+| `tools/phase6/schemas/oidc-evidence.schema.json` | `assurance` | `assurance` | 8099 | `407fb8d6e4358b713fdffeb34729046a1065768107884a4de2126f946bd0e3f6` |
+| `tools/phase6/schemas/phase6-input.schema.json` | `assurance` | `assurance` | 3992 | `cd9b9e1e0711deeb2d968009052fdf5f54a987d5b78c061182f0dda95e73245a` |
+| `tools/phase6/schemas/proof-envelope.schema.json` | `assurance` | `assurance` | 1888 | `ad86c271a506e6483a38e0cb0c6248a4f12b1afd7b612a1d58b5bdc69751da93` |
+| `tools/phase6/schemas/receipts-evidence.schema.json` | `assurance` | `assurance` | 5658 | `7d672d14bcae88a9049d552c0b0330e51483dce8a19061fe8a707b9ccac8b117` |
+| `tools/phase6/schemas/repository-evidence.schema.json` | `assurance` | `assurance` | 5777 | `ab309d86de81a2a830924935521b3549372ee1c542f24dacdbbae3b5eefa85da` |
+| `tools/phase6/schemas/rollback-evidence.schema.json` | `assurance` | `assurance` | 6183 | `c6f14e3541edc6bed64e18d047ef562c300334e54a521fd0b2ead58f20b3906b` |
+| `tools/phase6/scripts/build_dispatch_payload.py` | `assurance` | `assurance` | 3695 | `86f25cfd218eced874c44597dd53afd3339d73d1b256cb282f8443b900f800cd` |
+| `tools/phase6/scripts/build_evidence_record.py` | `assurance` | `assurance` | 12050 | `c1e98c91ca24680e4622aaf37edd883f32d017b968cc58a5af52323ac113c4a6` |
+| `tools/phase6/scripts/collect_final_convergence.py` | `assurance` | `assurance` | 4726 | `13d127e99c85d06fd9bf73dc0eef0f09cf695126f89aa83131eb9579d9b71fd8` |
+| `tools/phase6/scripts/collect_github_evidence.py` | `assurance` | `assurance` | 5931 | `e21874ed919b1b92843851069bc54e23b94c4959682fc04dc3543f95b7fa564b` |
+| `tools/phase6/scripts/collect_host_evidence.py` | `assurance` | `assurance` | 3340 | `5a11f1ed4a068b107484367fd1bd287614eae98db2b6de4c024e8a713c1e1368` |
+| `tools/phase6/scripts/collect_infisical_audit.py` | `assurance` | `assurance` | 5918 | `9520f3e733bdfc2a7a3fe9130bfd786950bd512ac1261043c8ebb2d44dd6ccf1` |
+| `tools/phase6/scripts/collect_repository_evidence.py` | `assurance` | `assurance` | 4937 | `e4beb87bd3d241b5b83f7596640c0a883c18950e7300a94afca325c563bf83ce` |
+| `tools/phase6/scripts/collect_run_evidence.sh` | `assurance` | `assurance` | 1138 | `c9b3f573e2c7b8f71d5877ca5cdff20c3765f908459bb32ac65afec5e6060403` |
+| `tools/phase6/scripts/collect_workflow_evidence.py` | `assurance` | `assurance` | 8067 | `1cd0c73fdb68a38da8595ef982618c71b5f08dce96170b9a7bbfb8b5ae2cb01b` |
+| `tools/phase6/scripts/generate_signing_key.py` | `assurance` | `assurance` | 2334 | `6d2759ecfa35bc05db460fddaf5bbcb6061b221233f8d0d27bc24f76bde29221` |
+| `tools/phase6/scripts/package_evidence.sh` | `assurance` | `assurance` | 1826 | `76918db59f52d2ba39402e6ae247b077a9e3b863e7b9e421dd4e1e54205ea291` |
+| `tools/phase6/scripts/phase6_integrity.py` | `assurance` | `assurance` | 6241 | `5378c2551323ffd9b827f0263ac68471d9a3a3409453ebed3d19b90999340569` |
+| `tools/phase6/scripts/phase6ctl.py` | `assurance` | `assurance` | 42740 | `5d60fa4f18ed7f79a042c8acd0f0907a9dfda7fb54895e01efc99ede3e641d7d` |
+| `tools/phase6/scripts/run_adversarial_tests.py` | `assurance` | `assurance` | 4923 | `ded8c913378aad6f047247c9700f416ca35077c8b1def236ba5763510bdfe4a2` |
+| `tools/phase6/scripts/self_test.sh` | `assurance` | `assurance` | 1224 | `5a3c2fc3e7544f5c6297565fcd3c4da5722fff5d56821e2bad96301d612a22c9` |
+| `tools/phase6/scripts/validate_pack.py` | `assurance` | `assurance` | 13257 | `bc8fb76c40d7a32509d0f3413c21449ef67534240a7810f0781c357127432587` |
+| `tools/phase6/scripts/validate_receipts.py` | `assurance` | `assurance` | 3394 | `53a933bfb7e78f8238f32ea232cdb6539ccaab3000fba980fe6f9accee045a44` |
+| `tools/phase6/scripts/verify_oidc_claims.py` | `assurance` | `assurance` | 10245 | `9a6494f977e7b9016edd0eb26ba2e61b3ed8673bf7dfa0d1bc4a50edab452c63` |
+| `tools/phase6/source-evidence/PHASE1_VALIDATION.md` | `assurance` | `assurance` | 1595 | `5d142557a621800814e4925db3d5d0372f955399342de774c140a8ffac8c0569` |
+| `tools/phase6/source-evidence/PHASE2_VALIDATION.md` | `assurance` | `assurance` | 1889 | `557ca2a214d2f7c1a253012fd0882424de5fd3735f676eff39d3ba5270513cf0` |
+| `tools/phase6/source-evidence/PHASE3_VALIDATION.md` | `assurance` | `assurance` | 1739 | `ee5fee9c16f089e68071034477041da84ba2300521cf3f73251f8b50460ae828` |
+| `tools/phase6/source-evidence/PHASE4_VALIDATION.md` | `assurance` | `assurance` | 1578 | `eb8392e7388c11cc9b4fe40cbfd5effbd34e051fcb992e5e2433a56167e1bf4a` |
+| `tools/phase6/source-evidence/PLAN_LOCKED.md` | `assurance` | `assurance` | 81523 | `48a37ae8a0eb4538d61d405913f0b37907a4bcb7cb392e25ed2deecc6384014c` |
+| `tools/phase6/source-evidence/README.md` | `assurance` | `assurance` | 777 | `4b6ccb3d6245fdadc3db98496ce8d6a947081b00a628861e3f4f7cd00c269cf7` |
+| `tools/phase6/tests/test_hardening.py` | `assurance` | `assurance` | 41037 | `19507aa553e0fa6da00a7ea5b96e449537be2daa48cf927d4d105810fb92c115` |
+| `tools/phase6/validation_report.yaml` | `assurance` | `assurance` | 1497 | `93351fb155a5b74c4fb46fe38c276d6a88912583ef5678261fc13af221026f36` |
+| `validation/SHA256SUMS` | `validation_evidence` | `validation_evidence` | 108 | `4d4525ed9fabfd87a6fa69aa87b4983ed142d9661f5ed826d677cf9369fd5372` |
+| `validation/dist/l9_graphite_memory-2.2.0-py3-none-any.whl` | `validation_evidence` | `validation_evidence` | 145185 | `8bb89c1717283d1f4a05994cd7b3c17d3e679e16420c51fb45d2950e09226d14` |
 | `validation/logs/adr_validation.txt` | `validation_evidence` | `validation_evidence` | 35 | `fd97b964d1e774c0207f8518832b2f6260b8005c655c30ae713b90e0b28bf0c5` |
 | `validation/logs/bypass_check.txt` | `validation_evidence` | `validation_evidence` | 50 | `7138de56268f741122706f70a72e61409f2729eabf9284d570d69643834ef520` |
 | `validation/logs/committed_secrets.txt` | `validation_evidence` | `validation_evidence` | 188 | `55308238e08d6c7ebafa91909a4938c40cecb03da4e468d8b4b8d99410a1211a` |
 | `validation/logs/compileall.txt` | `validation_evidence` | `validation_evidence` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 | `validation/logs/config_drift.txt` | `validation_evidence` | `validation_evidence` | 69 | `f95f19d2a5faa72ea6018d37ed97baee659c49adce45016d7d56ae7f5fe57b2a` |
 | `validation/logs/harvest_coverage.txt` | `validation_evidence` | `validation_evidence` | 101 | `a77c2c5914680700e64b06e52391499d845f15b5cd94bb5959a5f91d9a6ba336` |
-| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 441 | `84c148c621b0dafa737caa859e0798d9ec6fd4243223c6f1336f2c9f3a117076` |
+| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 441 | `1b52d683afd1dfebb7c5be1389f910f3a89e3e9bc159bee0be932cb9b0c72189` |
 | `validation/logs/installed_mcp.txt` | `validation_evidence` | `validation_evidence` | 74 | `ebf9b42a68c28f17711c394515c4e08e0cda8dfa1148d6f5d03ee03537c0593b` |
 | `validation/logs/installed_resolve.txt` | `validation_evidence` | `validation_evidence` | 137 | `eae6487763b5416bca0bd4e711b38b74b9231186d8682cf75cea4615fc74efd2` |
 | `validation/logs/l9_meta.txt` | `validation_evidence` | `validation_evidence` | 83 | `e305e6a7e79c48e68745c71dc7b65912068010b67a512ae8498745be7137adf0` |
 | `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `cb9b24685725174c9f8a99ad71c0fb7d83dc50e6759a69da6f09d35e3022e765` |
 | `validation/logs/layer_boundaries.txt` | `validation_evidence` | `validation_evidence` | 80 | `3a9e49589664f3aa63e6e470f64d79e8db7957485afb4027533c1c654e07005b` |
-| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 658 | `879f5d24e91cea9fe823a048f8c3136232fe209a9a4dd50ccb83d6f276d6d3c5` |
-| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `31721ab86601ad7a62fb901661bbbcab72e09cb0f192e1d76ac86320ccfd054f` |
-| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 2229 | `ec91b387183f2d7fff57c387a501e3169cffb071b2ec9b599392a0c54970d85d` |
+| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 658 | `4f40889a893ca23d631f599910c756132bd50be83f29502145e54d63dbdfa0bb` |
+| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `7fef078113a3213340f2f05e07c6eba8c858da2769f77af170e302e4bde88fb8` |
+| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 2230 | `8ec8b5e040fd6ac770acec064b590563422223ec02a0f08a14884f49293278d9` |
 | `validation/logs/projection_manifests.txt` | `validation_evidence` | `validation_evidence` | 511 | `69fa3ce535fa3fc7d9a6e71446b6b4209dc4f1e8c728d0e7a22096933703a6ab` |
-| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 180 | `848d5174ac3052598c67d0419f015f6db54582fb5492740117760d88dccfb7f8` |
+| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 181 | `b3b868d775adf736b833f0ded3026f4980b72b896bc37fff2c13c56871604490` |
 | `validation/logs/recursive_alignment.txt` | `validation_evidence` | `validation_evidence` | 70 | `e5e2d7db7b0c91990f7fdf089e78d343fd212368e0ad3f99c300b5fdd530f993` |
 | `validation/logs/shell_syntax.txt` | `validation_evidence` | `validation_evidence` | 23 | `a0c54f351e5a214abe7090433031f08eb3a95539d861058de5c2d7da6309d2d8` |
 | `validation/logs/source_quality.txt` | `validation_evidence` | `validation_evidence` | 66 | `03c3a01b1784e4f0533a95c297f690bd1cec3c4b2fcd1efaa86071140de8ac34` |
 | `validation/logs/validation_evidence.txt` | `validation_evidence` | `validation_evidence` | 62 | `954e4120f0c8aaddebf08bc2b161caeb965bf1546c8c6979930a9e7c1b112c95` |
-| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 914 | `a8d2447479b28dd07091a2cf28f225db52f021791794309199eb9bdf31bc13b8` |
+| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 914 | `c50767689c3c0fbfded0a58b076014702dd6540d2655153c928f3a497ec18cb4` |
 | `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 169 | `e7c770a6553f6bda8d0985bf4d9785c89e69630d1a4d8670a7e1030ea1389441` |
 | `validation/logs/wiring_audit.txt` | `validation_evidence` | `validation_evidence` | 33 | `668bcca746b179065a9a180b000db04bee513432976676cff0d3c246f44effa0` |
-| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 10074 | `73ce72cc0dc7f84d23d8d74836df5c2441b4caab5c50a1af226d8e736616e4e8` |
+| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 10074 | `76a71e711dc5f6932cf8aae58f7eae75ff95058e9523b3532fc324dacb206749` |
 | `validation/validation_findings.jsonl` | `validation_evidence` | `validation_evidence` | 2717 | `5f2afa8ba52b03d2451510acc296faaddfc3046e5f787c5d769cc560e7edb700` |
 | `validation/validation_report.yaml` | `validation_evidence` | `validation_evidence` | 474 | `2edc819b251c24525bf4ba06510ce1c7ddf1932adb7db52cf4dbbbad51dd39f0` |

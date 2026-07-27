@@ -1,0 +1,356 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tools/phase6/references/GO_NO_GO_POLICY.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+# skill_schema: 1
+# parent: l9-deploy-phase6-operator
+# layer: reference
+# role: executable_decision_policy
+# tags: [go-no-go, release, phase6, executable, provenance]
+# owner: igor_beylin
+# status: active
+# version: 3.1.0
+# updated: 2026-07-26
+schema: l9.deploy.phase6-policy/v3
+default_decision: NO_GO
+checks:
+  target_is_staging:
+    scenario: S00
+    source: config
+  production_forbidden:
+    scenario: S00
+    source: config
+  phase5_validation_passed:
+    scenario: S00
+    evidence_class: repository
+    assertions:
+      phase5_validation_passed: true
+    allowed_sources:
+    - repository_validator
+    producer_id: collect_repository_evidence
+    producer_script: scripts/collect_repository_evidence.py
+    locator_pattern: ^repository://Quantum-L9/l9-deploy/[a-f0-9]{40}/phase5$
+    artifact_requirements:
+      min_items: 4
+      required_roles:
+      - repository_proof
+      - repository_commit_output
+      - repository_status_output
+      - phase5_command_output
+      max_size_bytes: 10485760
+  protected_environment_enforced:
+    scenario: S00
+    evidence_class: github
+    assertions:
+      protected: true
+    allowed_sources:
+    - github_api_collector
+    producer_id: collect_github_evidence
+    producer_script: scripts/collect_github_evidence.py
+    locator_pattern: ^github-api://repos/Quantum-L9/l9-deploy/environments/staging$
+    artifact_requirements:
+      min_items: 2
+      required_roles:
+      - github_api_proof
+      - github_environment_export
+      max_size_bytes: 10485760
+  exact_runner_labels_verified:
+    scenario: S00
+    evidence_class: github
+    assertions:
+      exact_runner_labels: true
+    allowed_sources:
+    - github_api_collector
+    producer_id: collect_github_evidence
+    producer_script: scripts/collect_github_evidence.py
+    locator_pattern: ^github-api://repos/Quantum-L9/l9-deploy/actions/runners$
+    artifact_requirements:
+      min_items: 2
+      required_roles:
+      - github_api_proof
+      - github_runner_export
+      max_size_bytes: 10485760
+  oidc_positive_exchange_passed:
+    scenario: S01
+    evidence_class: oidc
+    assertions:
+      exchange_allowed: true
+      authorized_claim: true
+      token_signature_verified: true
+    allowed_sources:
+    - oidc_verifier
+    producer_id: verify_oidc_claims
+    producer_script: scripts/verify_oidc_claims.py
+    locator_pattern: ^github-oidc://Quantum-L9/l9-deploy/runs/[0-9]+/positive$
+    artifact_requirements:
+      min_items: 3
+      required_roles:
+      - oidc_verification
+      - infisical_exchange_receipt
+      - github_oidc_jwks
+      max_size_bytes: 10485760
+  oidc_negative_exchange_denied:
+    scenario: S01
+    evidence_class: oidc
+    assertions:
+      exchange_denied: true
+      unauthorized_claim: true
+      token_signature_verified: true
+      unauthorized_exchange_allowed: false
+    allowed_sources:
+    - oidc_verifier
+    producer_id: verify_oidc_claims
+    producer_script: scripts/verify_oidc_claims.py
+    locator_pattern: ^github-oidc://[^/]+/[^/]+/runs/[0-9]+/negative$
+    artifact_requirements:
+      min_items: 3
+      required_roles:
+      - oidc_verification
+      - infisical_exchange_receipt
+      - github_oidc_jwks
+      max_size_bytes: 10485760
+  infisical_audit_review_passed:
+    scenario: S01
+    evidence_class: infisical
+    assertions:
+      audit_review_clean: true
+    allowed_sources:
+    - infisical_audit_collector
+    producer_id: collect_infisical_audit
+    producer_script: scripts/collect_infisical_audit.py
+    locator_pattern: ^infisical-audit://[^/]+/staging/[A-Za-z0-9._:-]+$
+    artifact_requirements:
+      min_items: 2
+      required_roles:
+      - infisical_audit_proof
+      - infisical_audit_export
+      max_size_bytes: 10485760
+  immutable_image_and_attestation_verified:
+    scenario: S02
+    evidence_class: deployment
+    assertions:
+      attestation_verified: true
+    allowed_sources:
+    - workflow_artifact_collector
+    producer_id: collect_workflow_evidence
+    producer_script: scripts/collect_workflow_evidence.py
+    locator_pattern: ^github-artifact://Quantum-L9/l9-deploy/runs/[0-9]+/artifacts/[0-9]+$
+    artifact_requirements:
+      min_items: 3
+      required_roles:
+      - workflow_artifact_proof
+      - deployment_receipt
+      - github_run_metadata
+      max_size_bytes: 26214400
+  healthy_candidate_deploy_passed:
+    scenario: S02
+    evidence_class: deployment
+    assertions:
+      health_green: true
+      candidate_active: true
+    allowed_sources:
+    - workflow_artifact_collector
+    producer_id: collect_workflow_evidence
+    producer_script: scripts/collect_workflow_evidence.py
+    locator_pattern: ^github-artifact://Quantum-L9/l9-deploy/runs/[0-9]+/artifacts/[0-9]+$
+    artifact_requirements:
+      min_items: 3
+      required_roles:
+      - workflow_artifact_proof
+      - deployment_receipt
+      - github_run_metadata
+      max_size_bytes: 26214400
+  invalid_secret_containment_passed:
+    scenario: S03
+    evidence_class: deployment
+    assertions:
+      active_state_unchanged: true
+      candidate_rejected: true
+      production_contact: false
+    allowed_sources:
+    - workflow_artifact_collector
+    producer_id: collect_workflow_evidence
+    producer_script: scripts/collect_workflow_evidence.py
+    locator_pattern: ^github-artifact://Quantum-L9/l9-deploy/runs/[0-9]+/artifacts/[0-9]+$
+    artifact_requirements:
+      min_items: 3
+      required_roles:
+      - workflow_artifact_proof
+      - containment_receipt
+      - github_run_metadata
+      max_size_bytes: 26214400
+  health_failure_rollback_converged:
+    scenario: S04
+    evidence_class: rollback
+    assertions:
+      image_restored: true
+      config_restored: true
+      state_restored: true
+      health_green: true
+      rollback_converged: true
+      production_contact: false
+    allowed_sources:
+    - workflow_artifact_collector
+    producer_id: collect_workflow_evidence
+    producer_script: scripts/collect_workflow_evidence.py
+    locator_pattern: ^github-artifact://Quantum-L9/l9-deploy/runs/[0-9]+/artifacts/[0-9]+$
+    artifact_requirements:
+      min_items: 3
+      required_roles:
+      - workflow_artifact_proof
+      - rollback_receipt
+      - github_run_metadata
+      max_size_bytes: 26214400
+  secret_only_rotation_preserved_image_digest:
+    scenario: S05
+    evidence_class: deployment
+    assertions:
+      image_digest_unchanged: true
+      config_identity_changed: true
+      health_green: true
+      production_contact: false
+    allowed_sources:
+    - workflow_artifact_collector
+    producer_id: collect_workflow_evidence
+    producer_script: scripts/collect_workflow_evidence.py
+    locator_pattern: ^github-artifact://Quantum-L9/l9-deploy/runs/[0-9]+/artifacts/[0-9]+$
+    artifact_requirements:
+      min_items: 3
+      required_roles:
+      - workflow_artifact_proof
+      - rotation_receipt
+      - github_run_metadata
+      max_size_bytes: 26214400
+  canary_scan_zero_matches:
+    scenario: S06
+    evidence_class: leakage
+    assertions:
+      zero_matches: true
+      production_contact: false
+    allowed_sources:
+    - canary_scanner
+    producer_id: phase6_canary_scanner
+    producer_script: scripts/phase6ctl.py
+    locator_pattern: ^phase6-canary://[A-Za-z0-9._:-]+$
+    artifact_requirements:
+      min_items: 2
+      required_roles:
+      - canary_scan_proof
+      - canary_findings
+      max_size_bytes: 10485760
+  receipts_and_ledgers_valid:
+    scenario: S07
+    evidence_class: receipts
+    assertions:
+      ledger_chain_valid: true
+      receipt_digests_valid: true
+    allowed_sources:
+    - receipt_validator
+    producer_id: validate_receipts
+    producer_script: scripts/validate_receipts.py
+    locator_pattern: ^phase6-receipts://sha256:[a-f0-9]{64}$
+    artifact_requirements:
+      min_items: 2
+      required_roles:
+      - receipt_validation_report
+      - receipt_manifest
+      max_size_bytes: 10485760
+  target_repository_source_diff_is_empty:
+    scenario: S07
+    evidence_class: repository
+    assertions:
+      worktree_clean: true
+      production_contact: false
+    allowed_sources:
+    - repository_validator
+    producer_id: collect_repository_evidence
+    producer_script: scripts/collect_repository_evidence.py
+    locator_pattern: ^repository://Quantum-L9/l9-deploy/[a-f0-9]{40}/final$
+    artifact_requirements:
+      min_items: 3
+      required_roles:
+      - repository_proof
+      - repository_commit_output
+      - repository_status_output
+      max_size_bytes: 10485760
+  final_staging_health_green:
+    scenario: S07
+    evidence_class: final
+    assertions:
+      health_green: true
+      staging_only: true
+      production_contact: false
+    allowed_sources:
+    - final_convergence_collector
+    producer_id: collect_final_convergence
+    producer_script: scripts/collect_final_convergence.py
+    locator_pattern: ^phase6-final://[A-Za-z0-9._:-]+$
+    artifact_requirements:
+      min_items: 2
+      required_roles:
+      - final_convergence_proof
+      - host_health_snapshot
+      max_size_bytes: 10485760
+  evidence_bundle_complete_and_checksum_valid:
+    scenario: S07
+    source: derived
+immediate_no_go:
+  any_production_contact:
+    reason: any production contact violates the staging-only authorization boundary
+    conditions:
+    - source: record
+      check_ids:
+      - '*'
+      path: assertions.production_contact
+      equals: true
+  source_repository_mutation:
+    reason: the target source tree changed during the zero-source-change phase
+    conditions:
+    - source: record
+      check_ids:
+      - target_repository_source_diff_is_empty
+      path: assertions.worktree_clean
+      equals: false
+  unauthorized_oidc_success:
+    reason: an unauthorized GitHub OIDC identity obtained the protected exchange
+    conditions:
+    - source: record
+      check_ids:
+      - oidc_negative_exchange_denied
+      path: assertions.unauthorized_exchange_allowed
+      equals: true
+    - source: record
+      check_ids:
+      - oidc_negative_exchange_denied
+      path: details.exchange_result
+      equals: ALLOWED
+  secret_leakage:
+    reason: secret canary material was found in evidence or logs
+    conditions:
+    - source: record
+      check_ids:
+      - canary_scan_zero_matches
+      path: assertions.zero_matches
+      equals: false
+  rollback_non_convergence:
+    reason: rollback failed to restore image, configuration, state, and health
+    conditions:
+    - source: record
+      check_ids:
+      - health_failure_rollback_converged
+      path: assertions.rollback_converged
+      equals: false
+  active_state_mutation_on_invalid_secret:
+    reason: invalid candidate configuration changed active staging state
+    conditions:
+    - source: record
+      check_ids:
+      - invalid_secret_containment_passed
+      path: assertions.active_state_unchanged
+      equals: false

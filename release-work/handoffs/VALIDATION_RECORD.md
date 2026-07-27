@@ -80,7 +80,7 @@ its exact-state checksums. Follow `RUNBOOK.md` inside the pack for live Phase 6 
 ## In-repository derivative copy
 
 By explicit owner instruction (2026-07-27), a browsable loose-file copy of the pack is committed
-at `release-work/l9-deploy-phase6-operator/`. That copy is a **re-sealed derivative**, not the
+at `tools/phase6/`. That copy is a **re-sealed derivative**, not the
 original validated artifact:
 
 - The repository assurance pipeline injected `L9_META` headers into 56 inline-capable pack
@@ -93,5 +93,19 @@ original validated artifact:
 
 The sealed zip in this directory remains the canonical bit-for-bit original
 (SHA-256 `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d`). For live Phase 6
-execution, prefer extracting the sealed zip; the in-repo copy exists for browsing, review, and
-diffing.
+execution, prefer extracting the sealed zip; the in-repo copy is the CI-integrated working copy.
+
+## CI integration (feat/phase6-operator-integration)
+
+The in-repo copy lives at `tools/phase6/` following the `tools/assurance/` idiom for
+operational tooling, with its internal sibling structure (`scripts/`, `schemas/`,
+`references/`, `config/`, `assets/`, `tests/`, `source-evidence/`) preserved so all
+`ROOT`-relative resolution and self-validation work unchanged. Wiring:
+
+- `tests/regression/test_phase6_operator.py` executes the pack's checksum manifest,
+  exact-state validator, and the full 19-test adversarial hardening suite in every CI run.
+- `pyproject.toml` gains a `phase6` optional extra (`cryptography`, `jsonschema`, `PyJWT`),
+  also included in `dev` so `pip install -e .[dev,server]` in CI provides the dependencies.
+- `ruff.toml` scopes the vendored-artifact lint exemption to `tools/phase6/**`.
+- Pack L9_META `path:` fields and the internal `MANIFEST.sha256` were re-sealed for the
+  new location; `sha256sum -c` verifies 72/72 and `self_test.sh` passes in place.
