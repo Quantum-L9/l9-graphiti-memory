@@ -6,14 +6,16 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.2.0
-#   updated: 2026-07-22
+#   updated: 2026-07-28
 
 """Explicit Graphiti MCP transport used only as an optional projection adapter."""
 
 from __future__ import annotations
 
+import email.message
 import json
 import ssl
+import threading
 import urllib.error
 import urllib.request
 from typing import Any, Protocol
@@ -63,12 +65,123 @@ class HttpMcpTransport:
         self.timeout_seconds = timeout_seconds
         self.circuit = circuit_breaker or CircuitBreaker()
         self.rate = rate_limiter or RateLimiter()
+        self._session_id: str | None = None
+        self._session_lock = threading.Lock()
 
     def _headers(self) -> dict[str, str]:
-        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+        # The MCP Streamable-HTTP transport requires the client to accept
+        # both response encodings the server may choose between; sending
+        # "application/json" alone causes the server to reject the request
+        # with 406 Not Acceptable.
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
+        if self._session_id:
+            headers["Mcp-Session-Id"] = self._session_id
         return headers
+
+    @staticmethod
+    def _parse_body(content_type: str, raw: bytes) -> dict[str, Any]:
+        text = raw.decode("utf-8")
+        media_type = content_type.split(";", 1)[0].strip().lower()
+        if media_type == "text/event-stream":
+            # SSE framing: one or more "event: ...\ndata: {...}\n\n" blocks.
+            # The JSON-RPC response is the data payload of the last event.
+            events = [block for block in text.split("\n\n") if block.strip()]
+            if not events:
+                raise json.JSONDecodeError("empty SSE stream", text, 0)
+            data_lines = [
+                line[len("data:") :].strip()
+                for line in events[-1].splitlines()
+                if line.startswith("data:")
+            ]
+            if not data_lines:
+                raise json.JSONDecodeError("no data field in SSE event", text, 0)
+            parsed = json.loads("".join(data_lines))
+        elif media_type == "application/json":
+            parsed = json.loads(text)
+        else:
+            raise ProjectionError(
+                f"Graphiti MCP returned unsupported Content-Type: {content_type!r}"
+            )
+        if not isinstance(parsed, dict):
+            raise ProjectionError(
+                f"Graphiti MCP returned a non-object JSON-RPC response: {parsed!r}"
+            )
+        return parsed
+
+    def _post(
+        self, payload: dict[str, Any], *, timeout: int | None = None
+    ) -> tuple[email.message.Message, bytes]:
+        request = urllib.request.Request(
+            self.url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=self._headers(),
+            method="POST",
+        )
+        with urllib.request.urlopen(
+            request,
+            timeout=timeout or self.timeout_seconds,
+            context=ssl.create_default_context(),
+        ) as response:
+            # response.headers (http.client.HTTPMessage) does case-insensitive
+            # lookups; a plain dict would not, and this server sends lowercase
+            # header names ("content-type", "mcp-session-id").
+            return response.headers, response.read()
+
+    def _ensure_session(self, *, timeout: int | None = None) -> None:
+        """Establish an MCP session if one is not already active.
+
+        The Streamable-HTTP transport is stateful: every RPC after the first
+        must carry the `Mcp-Session-Id` the server issued during
+        `initialize`. Calling any other method beforehand fails with
+        `400 Bad Request: Missing session ID`.
+        """
+        with self._session_lock:
+            if self._session_id:
+                return
+            init_payload = {
+                "jsonrpc": "2.0",
+                "id": "l9-memory-init",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "l9-graphite-memory", "version": "2.2.0"},
+                },
+            }
+            try:
+                headers, _ = self._post(init_payload, timeout=timeout)
+            except urllib.error.HTTPError as exc:
+                detail = exc.read().decode("utf-8", errors="replace")[:1_000]
+                raise ProjectionError(
+                    f"Graphiti MCP session initialize failed HTTP {exc.code}: {detail}"
+                ) from exc
+            except urllib.error.URLError as exc:
+                raise ProjectionError(
+                    f"Graphiti MCP unreachable during initialize: {exc.reason}"
+                ) from exc
+            session_id = headers.get("Mcp-Session-Id")
+            if not session_id:
+                raise ProjectionError(
+                    "Graphiti MCP initialize response carried no Mcp-Session-Id header"
+                )
+            self._session_id = session_id
+            # Complete the handshake; the server expects this notification
+            # before treating the session as fully initialized.
+            try:
+                self._post(
+                    {"jsonrpc": "2.0", "method": "notifications/initialized"},
+                    timeout=timeout,
+                )
+            except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+                self._session_id = None
+                raise ProjectionError(
+                    f"Graphiti MCP notifications/initialized failed: {exc}"
+                ) from exc
 
     def _rpc(
         self,
@@ -79,35 +192,15 @@ class HttpMcpTransport:
     ) -> dict[str, Any]:
         if not self.circuit.can_execute():
             raise ProjectionError("Graphiti MCP circuit is open")
+        if method != "initialize":
+            self._ensure_session(timeout=timeout)
         payload = {
             "jsonrpc": "2.0",
             "id": "l9-memory",
             "method": method,
             "params": params or {},
         }
-        request = urllib.request.Request(
-            self.url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=self._headers(),
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(
-                request,
-                timeout=timeout or self.timeout_seconds,
-                context=ssl.create_default_context(),
-            ) as response:
-                decoded = json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            self.circuit.record_failure()
-            detail = exc.read().decode("utf-8", errors="replace")[:1_000]
-            raise ProjectionError(f"Graphiti MCP HTTP {exc.code}: {detail}") from exc
-        except urllib.error.URLError as exc:
-            self.circuit.record_failure()
-            raise ProjectionError(f"Graphiti MCP unreachable: {exc.reason}") from exc
-        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-            self.circuit.record_failure()
-            raise ProjectionError(f"Graphiti MCP returned invalid JSON: {exc}") from exc
+        decoded = self._rpc_once(payload, timeout=timeout, retry_on_session_error=True)
         if "error" in decoded:
             self.circuit.record_failure()
             raise ProjectionError(json.dumps(decoded["error"], sort_keys=True))
@@ -116,6 +209,39 @@ class HttpMcpTransport:
         if not isinstance(result, dict):
             return {"value": result}
         return result
+
+    def _rpc_once(
+        self,
+        payload: dict[str, Any],
+        *,
+        timeout: int | None,
+        retry_on_session_error: bool,
+    ) -> dict[str, Any]:
+        try:
+            headers, raw = self._post(payload, timeout=timeout)
+            return self._parse_body(headers.get("Content-Type", ""), raw)
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")[:1_000]
+            if (
+                retry_on_session_error
+                and exc.code in (400, 404)
+                and "session" in detail.lower()
+            ):
+                # The server-side session expired or the process restarted;
+                # re-handshake once and retry this exact call.
+                self._session_id = None
+                self._ensure_session(timeout=timeout)
+                return self._rpc_once(
+                    payload, timeout=timeout, retry_on_session_error=False
+                )
+            self.circuit.record_failure()
+            raise ProjectionError(f"Graphiti MCP HTTP {exc.code}: {detail}") from exc
+        except urllib.error.URLError as exc:
+            self.circuit.record_failure()
+            raise ProjectionError(f"Graphiti MCP unreachable: {exc.reason}") from exc
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            self.circuit.record_failure()
+            raise ProjectionError(f"Graphiti MCP returned invalid JSON: {exc}") from exc
 
     def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
         result = self._rpc("tools/call", {"name": name, "arguments": arguments or {}})
