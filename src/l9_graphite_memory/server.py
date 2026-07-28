@@ -17,6 +17,20 @@ import json
 import sys
 from typing import Any
 
+# Import the HTTP request/response types at module scope so that, under
+# `from __future__ import annotations`, FastAPI can resolve the postponed
+# string annotations (`request: Request`, `-> JSONResponse`) on the route
+# handlers. When these types are imported only inside create_http_app(), they
+# are absent from this module's globals and FastAPI misreads `request` as a
+# required query parameter, making every POST /mcp return 422. Starlette is a
+# hard dependency of FastAPI, so it is present whenever the [server] extra is.
+try:
+    from starlette.requests import Request
+    from starlette.responses import JSONResponse
+except ModuleNotFoundError:  # [server] extra not installed; create_http_app() will error
+    Request = None  # type: ignore[assignment,misc]
+    JSONResponse = None  # type: ignore[assignment,misc]
+
 from l9_graphite_memory.authz import TokenAuthenticator, build_local_principal
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
@@ -193,8 +207,7 @@ def run_stdio(runtime: MemoryRuntime) -> int:
 
 def create_http_app(runtime: MemoryRuntime) -> Any:
     try:
-        from fastapi import FastAPI, Request
-        from fastapi.responses import JSONResponse
+        from fastapi import FastAPI
     except ImportError as exc:
         raise RuntimeError(
             "HTTP server dependencies missing; install l9-graphite-memory[server]"
