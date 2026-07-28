@@ -33,6 +33,15 @@ run() {
 
 # Metadata and manifest are generated before tests so recursive regression tests
 # inspect the exact source tree under validation.
+#
+# manifest.json / MANIFEST.md are rewritten IN PLACE by this script (here, and
+# again near the end of the run) whenever the tracked source tree changed since
+# they were last generated. That rewrite is the expected, correct output of a
+# release/push flow, not incidental noise: if you changed a tracked file, let
+# the regenerated manifest stand and commit it alongside that change. Reverting
+# it (e.g. `git checkout -- manifest.json MANIFEST.md`) leaves the manifest
+# recording a stale hash for whatever you changed, which validate_manifest.py
+# will then correctly flag as a digest/size mismatch on the next run.
 python3 tools/assurance/apply_l9_meta.py >"$OUT/logs/l9_meta_apply.txt"
 python3 tools/assurance/generate_manifest.py >/dev/null
 
