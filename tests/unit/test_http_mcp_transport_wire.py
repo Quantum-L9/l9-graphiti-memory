@@ -22,8 +22,8 @@ from __future__ import annotations
 
 import io
 import json
+import sys
 from email.message import Message
-from typing import Self
 from unittest.mock import patch
 from urllib.error import HTTPError
 
@@ -31,6 +31,11 @@ import pytest
 
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.transport import HttpMcpTransport
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:  # Python 3.10 has no typing.Self; use the backport.
+    from typing_extensions import Self
 
 
 class _FakeResponse:
