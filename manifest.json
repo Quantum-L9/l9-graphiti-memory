@@ -142,7 +142,7 @@
         "version": "2.2.0"
       },
       "path": ".mypy_cache/3.10/cache.db",
-      "sha256": "50107acce610f1bc07660003a1e5fcf472e5f6b841432d77dc1d44a9c86d9f79",
+      "sha256": "df17f40a9cff745041588f1ee569ef18735b9db87aa8a69328664bc0f58eaf42",
       "size_bytes": 10170368
     },
     {
@@ -222,7 +222,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.0/10793196384400411026",
-      "sha256": "da3b4e920f9e53ceb0d3e594901a6a1b4db52d05d77d2d236095869968b03e13",
+      "sha256": "b7926c0394993b4d705eb039cee7746bc707578a4ca0eae563f67127497ebae0",
       "size_bytes": 6148
     },
     {
@@ -478,7 +478,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.0/4985940003548864331",
-      "sha256": "c7b26e38b39086a42f77cfdd1336b997110434363c74d59621fc2ade5e484275",
+      "sha256": "5a7830e5114ada3d20e688eddec07c29354ed6495682cfa21e34bafef3f29f09",
       "size_bytes": 1188
     },
     {
@@ -830,7 +830,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "2ab96068d54acccb509ffa62dcbdee0a48bea00278d60310980b0731c4975c87",
+      "sha256": "f363198f66078f0ab486393f37639d74a0653781407ab2a93e97f15f848d4134",
       "size_bytes": 80339
     },
     {
@@ -3246,8 +3246,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/active/client.py",
-      "sha256": "0fb84df84fceb79a1f89ab2f578056f58e49bc88bddb75f3832fc2c98df4ec9e",
-      "size_bytes": 16503
+      "sha256": "a2fd4863cfa27c379f25c2f75505ce516de44e72fb513ae6e6b03f60a5af916e",
+      "size_bytes": 16504
     },
     {
       "category": "production_source",
@@ -6174,8 +6174,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/render_active_memory_redis_acl.py",
-      "sha256": "b94c56d6312a0e4dd694d14459db8cb24ca0a136319fbc823d03c68697a780fa",
-      "size_bytes": 4134
+      "sha256": "a323c31e2f8305dfeb30a8489c45e853e4171e645ca183df48966b196682efcd",
+      "size_bytes": 4595
     },
     {
       "category": "assurance",
@@ -7422,7 +7422,7 @@
         "version": "2.2.0"
       },
       "path": "validation/SHA256SUMS",
-      "sha256": "ee41ae45f95ab085bebadbf30a6aa9168bb59d0b2db30012dc2fa796f9cd33aa",
+      "sha256": "56df4bc24a8972551b9435b4d1de17449f52c5a462da3960e2d425d4a9b1eccf",
       "size_bytes": 108
     },
     {
@@ -7438,8 +7438,8 @@
         "version": "2.2.0"
       },
       "path": "validation/dist/l9_graphite_memory-2.2.0-py3-none-any.whl",
-      "sha256": "b80d7675a924904840d4fa444c7fc04a550c3027c7f2b08061001e5d6d739bad",
-      "size_bytes": 188289
+      "sha256": "45a6bc56329f8eb7ee9577c89d332eec6b38e521b5ae2e5ccb946e5233448181",
+      "size_bytes": 188288
     },
     {
       "category": "validation_evidence",
@@ -7550,7 +7550,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "03d172ed450fe052c9a27a94f7115328888e51e0ceaff3342a147d113867a2ad",
+      "sha256": "9d5398c09df9b2153986821c684496232a51eaa181e6777729f9286aa8622f2f",
       "size_bytes": 1449
     },
     {
@@ -7566,7 +7566,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "c5ba872f2f2669904fef85f892d6b61f63382f032bf1711b692fba686fd340cc",
+      "sha256": "740b82da60219b3f173321f11637b498616c35ed3f2f2680413e2b5388fbe4cb",
       "size_bytes": 996
     },
     {
@@ -7582,7 +7582,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "01e164e585389d2b66d69d90b3cfb733f63e02852dc0838b918e364313002992",
+      "sha256": "3848f76c9351a7d618d00a5e9f98981b2e7fb4238c5c7afacae179e4798fb401",
       "size_bytes": 485
     },
     {
@@ -7678,7 +7678,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "4b0ddf32c3656b221e8beb31ef869ce6d0755a591a4e604e66057e783b5e6129",
+      "sha256": "5bf7f5888878e18df3e2499a9657b654a6fe223471da6226f44d54f577fa15fe",
       "size_bytes": 659
     },
     {
@@ -7710,8 +7710,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "e797f20cb896649f21a31323941b539c1a356922b05cd0572bce2eca6340d764",
-      "size_bytes": 4041
+      "sha256": "5de8ba706fcfe01de2872b43dab43d602afb7ffc12a58285e32968195402f64f",
+      "size_bytes": 4040
     },
     {
       "category": "validation_evidence",
@@ -7742,7 +7742,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "23fe282026170647693fad29d4fcc976a52fa4f7c5ef35a3b87674e1c39f0c9f",
+      "sha256": "e8f2750f283d578d8844fb149ceb24fc4914855b9aa4936898caf1a9ec30e063",
       "size_bytes": 873
     },
     {
@@ -7822,7 +7822,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "0914d947b4f81053abdb520e85cb77b9483c6a717f062ec17859c43556393de8",
+      "sha256": "a386dfdd5c3d48ebbf55b8f709a195e2ec3921b37eb3092da93cea4a2230caf5",
       "size_bytes": 892
     },
     {
@@ -7870,7 +7870,7 @@
         "version": "2.2.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "3824ace4e234b0adbbc2e9d4f02a40ec741328108b538da79f293bba708bf9ba",
+      "sha256": "c3905bd17619cdc289da326327141d7a8e497345e3bf584e9fe1d3f54a89e988",
       "size_bytes": 11317
     },
     {

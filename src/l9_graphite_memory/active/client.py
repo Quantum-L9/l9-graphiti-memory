@@ -402,10 +402,10 @@ class ActiveAgentSession:
         self._heartbeat_task.cancel()
         try:
             await self._heartbeat_task
-        except asyncio.CancelledError:
+        except asyncio.CancelledError:  # NOSONAR(S7497)
             # Expected: we just cancelled this task ourselves above, and this
             # `close()` coroutine is not itself being cancelled, so the
-            # cancellation does not need to propagate further. # NOSONAR(S7497)
+            # cancellation does not need to propagate further.
             pass
 
     async def _unregister_lease(self) -> None:

@@ -27,7 +27,13 @@ def load(path):
         raise ValueError(f"manifest path must not be a symlink: {manifest_path}")
     if not manifest_path.is_file():
         raise ValueError(f"manifest path must be a regular file: {manifest_path}")
-    data = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+    # NOSONAR(S8707): --manifest is an operator-supplied CLI argument for this
+    # standalone ops tool (not an LLM/agent-constructed path); an arbitrary
+    # filesystem location is the intended, documented usage (analogous to
+    # `kubectl apply -f` or `docker build -f`), so there is no legitimate
+    # "allowed base directory" to contain it to. The symlink/regular-file
+    # checks above are the applicable hardening for this context.
+    data = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))  # NOSONAR(S8707)
     for key in (
         "commands",
         "key_patterns",

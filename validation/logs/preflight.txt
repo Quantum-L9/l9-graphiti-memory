@@ -16,9 +16,9 @@ PASS  MCP inventory
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-07-29T19:43:57.165639Z",
+  "created_at": "2026-07-29T19:59:14.618986Z",
   "managed_entry_present": true,
-  "path": "/var/folders/3m/0j6pb5k50k79kt8zpbwryf3c0000gn/T/tmp.1OQrPyZz2V/cursor/mcp.json",
+  "path": "/var/folders/3m/0j6pb5k50k79kt8zpbwryf3c0000gn/T/tmp.bhXpF8vEdw/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,7 +26,7 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "d47b6230-1af1-4782-b937-c8df7850ca67",
+  "receipt_id": "5ea6de44-54b0-4379-b2fe-15283831dece",
   "status": "dry_run",
   "warnings": []
 }
@@ -39,14 +39,14 @@ PASS  cursor client dry-run
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-07-29T19:43:57.798289Z",
+  "created_at": "2026-07-29T19:59:15.262753Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "4dbd9d11-0a36-4891-8878-4b6b212e2ece",
+  "receipt_id": "39a5f431-2569-45a9-a195-d1309ea4f85d",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
@@ -123,25 +123,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.7224,
-      "p50_ms": 0.2543,
-      "p95_ms": 0.7224,
+      "max_ms": 0.5894,
+      "p50_ms": 0.2818,
+      "p95_ms": 0.5894,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.3109,
-      "p50_ms": 0.1856,
-      "p95_ms": 0.2221,
+      "max_ms": 0.3533,
+      "p50_ms": 0.1757,
+      "p95_ms": 0.203,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.4363,
-      "p50_ms": 0.0546,
-      "p95_ms": 0.1186,
+      "max_ms": 0.4128,
+      "p50_ms": 0.0502,
+      "p95_ms": 0.1105,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

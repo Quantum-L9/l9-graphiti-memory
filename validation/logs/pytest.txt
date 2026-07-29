@@ -8,4 +8,4 @@ tests/unit/test_http_mcp_request_injection.py::test_http_mcp_initialize_uses_req
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-228 passed, 1 warning in 10.93s
+228 passed, 1 warning in 10.64s

@@ -8,6 +8,6 @@ Processing ./.
 Building wheels for collected packages: l9-graphite-memory
   Building wheel for l9-graphite-memory (pyproject.toml): started
   Building wheel for l9-graphite-memory (pyproject.toml): finished with status 'done'
-  Created wheel for l9-graphite-memory: filename=l9_graphite_memory-2.2.0-py3-none-any.whl size=188289 sha256=b80d7675a924904840d4fa444c7fc04a550c3027c7f2b08061001e5d6d739bad
+  Created wheel for l9-graphite-memory: filename=l9_graphite_memory-2.2.0-py3-none-any.whl size=188288 sha256=45a6bc56329f8eb7ee9577c89d332eec6b38e521b5ae2e5ccb946e5233448181
   Stored in directory: /Users/ib-mac/Library/Caches/pip/wheels/e5/da/d8/5688d3ea821c7d7fa4707327672e21e75e016cae359ef550ad
 Successfully built l9-graphite-memory
