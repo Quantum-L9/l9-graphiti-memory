@@ -1,3 +1,14 @@
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/ACTIVE_MEMORY_DEPLOYMENT_CONTRACT.md
+layer: documentation
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
 # Active Memory Deployment Contract
 
 This document defines what any consumer application must satisfy to
@@ -10,7 +21,7 @@ application, hosting provider, or orchestration tool.
 A compliant deployment MUST:
 
 1. Define a unique `deployment_id` and `trust_domain`
-   (see ADR-069) that are not recognized placeholder values when
+   (see ADR-065) that are not recognized placeholder values when
    `environment = production`.
 2. Not expose the Redis backend on any publicly routable network
    interface. The backend should be reachable only from the processes
@@ -19,7 +30,7 @@ A compliant deployment MUST:
    anonymous default-user access) in `staging` and `production`
    environments.
 4. Supply Redis credentials via one of the supported credential
-   sources in `RedisCredentialSettings` (see ADR-070), documented in
+   sources in `RedisCredentialSettings` (see ADR-066), documented in
    the consumer's own deployment configuration.
 5. Set a bounded `maxmemory` and an eviction policy appropriate for
    ephemeral, TTL-bearing keys (e.g. `volatile-lru` or

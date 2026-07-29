@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tests/conformance/active/test_store_contract.py
+#   layer: test
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Adapter-conformance tests for the ActiveStore port.
 
 Every ActiveStore implementation MUST pass these tests unmodified.

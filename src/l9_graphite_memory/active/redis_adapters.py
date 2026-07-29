@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/redis_adapters.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Redis 7.2+ adapters for active-memory ports.
 
 The optional `redis` dependency is imported lazily, keeping the base
@@ -7,10 +17,11 @@ package importable without Redis support installed.
 from __future__ import annotations
 
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any
 
 from l9_graphite_memory.active.deployment import (
     ActiveDeployment,
@@ -24,17 +35,21 @@ from l9_graphite_memory.active.errors import (
 from l9_graphite_memory.active.models import (
     ActiveContext,
     ActiveContextDraft,
+    ActiveObservation,
     AgentEvent,
     AgentEventType,
     AgentIdentity,
+    AgentLease,
     AgentPresence,
     AgentScope,
     AgentStatus,
     AgentSubscription,
 )
 
+Clock = Callable[[], datetime]
 
-def _redis_modules():
+
+def _redis_modules() -> tuple[Any, type[Exception], type[Exception]]:
     try:
         import redis.asyncio as redis
         from redis.exceptions import NoScriptError, RedisError
@@ -46,7 +61,7 @@ def _redis_modules():
         ) from exc
 
 
-def _default(value):
+def _default(value: Any) -> Any:
     if isinstance(value, datetime):
         return value.isoformat()
     if isinstance(value, Enum):
@@ -56,17 +71,17 @@ def _default(value):
     raise TypeError(type(value).__name__)
 
 
-def _dump(value):
+def _dump(value: Any) -> str:
     return json.dumps(
         asdict(value), default=_default, separators=(",", ":"), sort_keys=True
     )
 
 
-def _dt(value):
+def _dt(value: str) -> datetime:
     return datetime.fromisoformat(value)
 
 
-def _identity(data):
+def _identity(data: Mapping[str, Any]) -> AgentIdentity:
     return AgentIdentity(
         agent_id=data["agent_id"],
         instance_id=data["instance_id"],
@@ -79,7 +94,7 @@ def _identity(data):
     )
 
 
-def _presence(data):
+def _presence(data: Mapping[str, Any]) -> AgentPresence:
     return AgentPresence(
         identity=_identity(data["identity"]),
         status=AgentStatus(data["status"]),
@@ -91,24 +106,41 @@ def _presence(data):
     )
 
 
-def _draft(data):
+def _observation(data: Mapping[str, Any]) -> ActiveObservation:
+    return ActiveObservation(
+        observation_id=data["observation_id"],
+        kind=data["kind"],
+        summary=data["summary"],
+        created_at=_dt(data["created_at"]),
+        confidence=data.get("confidence"),
+        relevance=data.get("relevance"),
+        source_reference=data.get("source_reference"),
+        promotable=data.get("promotable", False),
+    )
+
+
+def _draft(data: Mapping[str, Any]) -> ActiveContextDraft:
     return ActiveContextDraft(
         objective=data.get("objective"),
         status=AgentStatus(data["status"]),
         working_on=tuple(data.get("working_on", [])),
         blockers=tuple(data.get("blockers", [])),
-        observations=(),
-        metadata=data.get("metadata", {}),
+        observations=tuple(
+            _observation(o) for o in data.get("observations", [])
+        ),
+        graph_references=tuple(data.get("graph_references", [])),
     )
 
 
-def _context(data):
+def _context(data: Mapping[str, Any]) -> ActiveContext:
     return ActiveContext(
         agent_id=data["agent_id"],
         instance_id=data["instance_id"],
+        role=data["role"],
         deployment_id=data["deployment_id"],
-        version=data["version"],
+        group_id=data["group_id"],
         draft=_draft(data["draft"]),
+        version=data["version"],
         updated_at=_dt(data["updated_at"]),
         expires_at=_dt(data["expires_at"]),
         schema_version=data.get("schema_version", 1),
@@ -135,43 +167,47 @@ class RedisActiveStore:
 
     def __init__(
         self,
-        url,
+        url: str,
         deployment: ActiveDeployment,
         *,
-        key_prefix="l9gm:active",
-        context_ttl_seconds=60,
-        presence_ttl_seconds=30,
-        client=None,
-        clock=None,
-    ):
+        key_prefix: str = "l9gm:active",
+        context_ttl_seconds: int = 60,
+        presence_ttl_seconds: int = 30,
+        client: Any | None = None,
+        clock: Clock | None = None,
+    ) -> None:
         redis, _, _ = _redis_modules()
         self._r = client or redis.from_url(url, decode_responses=True)
         self._d = deployment
         self._prefix = f"{key_prefix}:v1:{derive_deployment_hash(deployment)}"
         self._ct = context_ttl_seconds
         self._pt = presence_ttl_seconds
-        self._sha = None
-        self._clock = clock or (lambda: datetime.now(timezone.utc))
+        self._sha: str | None = None
+        self._clock: Clock = clock or (lambda: datetime.now(timezone.utc))
 
-    def _presence_key(self, a, i):
+    def _presence_key(self, a: str, i: str) -> str:
         return f"{self._prefix}:agent:{a}:{i}:presence"
 
-    def _context_key(self, a, i):
+    def _context_key(self, a: str, i: str) -> str:
         return f"{self._prefix}:agent:{a}:{i}:context"
 
-    def _index_key(self):
+    def _index_key(self) -> str:
         return f"{self._prefix}:agent:index"
 
-    async def _call(self, method, *args, **kwargs):
+    async def _call(self, method: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         try:
             return await method(*args, **kwargs)
         except Exception as exc:
-            _, _, RedisError = _redis_modules()
-            if isinstance(exc, RedisError):
+            _, _, redis_error_cls = _redis_modules()
+            if isinstance(exc, redis_error_cls):
                 raise ActiveMemoryUnavailableError(str(exc)) from exc
             raise
 
-    async def register(self, identity, lease):
+    async def register(
+        self, identity: AgentIdentity, _lease: AgentLease
+    ) -> AgentPresence:
+        # Redis has no separate lease record: the presence key's own TTL
+        # (`ex=self._pt`) is the sole source of lease-expiry truth here.
         now = self._clock()
         presence = AgentPresence(
             identity=identity,
@@ -197,12 +233,12 @@ class RedisActiveStore:
         )
         return presence
 
-    async def renew(self, lease):
+    async def renew(self, lease: AgentLease) -> AgentPresence:
         raw = await self._call(
             self._r.get, self._presence_key(lease.agent_id, lease.instance_id)
         )
         if not raw:
-            raise LeaseExpiredError("lease expired")
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
         old = _presence(json.loads(raw))
         now = self._clock()
         presence = AgentPresence(
@@ -227,7 +263,7 @@ class RedisActiveStore:
         )
         return presence
 
-    async def unregister(self, lease):
+    async def unregister(self, lease: AgentLease) -> None:
         await self._call(
             self._r.unlink,
             self._presence_key(lease.agent_id, lease.instance_id),
@@ -237,12 +273,27 @@ class RedisActiveStore:
             self._r.zrem, self._index_key(), f"{lease.agent_id}|{lease.instance_id}"
         )
 
-    async def put_context(self, lease, expected_version, draft):
+    async def put_context(
+        self,
+        lease: AgentLease,
+        expected_version: int | None,
+        draft: ActiveContextDraft,
+    ) -> ActiveContext:
+        presence = await self.get_presence(lease.agent_id, lease.instance_id)
+        if presence is None:
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
         now = self._clock()
+        group_id = (
+            presence.identity.memory_group_ids[0]
+            if presence.identity.memory_group_ids
+            else "default"
+        )
         data = {
             "agent_id": lease.agent_id,
             "instance_id": lease.instance_id,
+            "role": presence.identity.role,
             "deployment_id": self._d.deployment_id,
+            "group_id": group_id,
             "version": 0,
             "draft": json.loads(_dump(draft)),
             "updated_at": now.isoformat(),
@@ -263,35 +314,41 @@ class RedisActiveStore:
         try:
             result = await self._r.evalsha(self._sha, len(keys), *keys, *args)
         except Exception as exc:
-            _, NoScriptError, RedisError = _redis_modules()
-            if isinstance(exc, NoScriptError):
+            _, no_script_error_cls, redis_error_cls = _redis_modules()
+            if isinstance(exc, no_script_error_cls):
                 self._sha = await self._call(self._r.script_load, self._CAS)
                 result = await self._call(
                     self._r.evalsha, self._sha, len(keys), *keys, *args
                 )
-            elif isinstance(exc, RedisError):
+            elif isinstance(exc, redis_error_cls):
                 raise ActiveMemoryUnavailableError(str(exc)) from exc
             else:
                 raise
         if int(result[0]) == -2:
-            raise LeaseExpiredError("lease expired")
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
         if int(result[0]) == -1:
-            raise ContextVersionConflictError("context version conflict")
+            raise ContextVersionConflictError(expected_version, int(result[1]))
         return _context(json.loads(result[1]))
 
-    async def get_context(self, agent_id, instance_id=None):
+    async def get_context(
+        self, agent_id: str, instance_id: str | None = None
+    ) -> ActiveContext | None:
         if instance_id is None:
             return None
         raw = await self._call(self._r.get, self._context_key(agent_id, instance_id))
         return _context(json.loads(raw)) if raw else None
 
-    async def get_presence(self, agent_id, instance_id=None):
+    async def get_presence(
+        self, agent_id: str, instance_id: str | None = None
+    ) -> AgentPresence | None:
         if instance_id is None:
             return None
         raw = await self._call(self._r.get, self._presence_key(agent_id, instance_id))
         return _presence(json.loads(raw)) if raw else None
 
-    async def list_active(self, scope: AgentScope, cursor, limit):
+    async def list_active(
+        self, scope: AgentScope, cursor: str | None, limit: int
+    ) -> RedisPage:
         start = int(cursor or 0)
         members = await self._call(
             self._r.zrange, self._index_key(), start, start + limit - 1
@@ -313,11 +370,11 @@ class RedisActiveStore:
             tuple(items), str(start + limit) if len(members) == limit else None
         )
 
-    async def health(self):
+    async def health(self) -> RedisHealth:
         await self._call(self._r.ping)
         return RedisHealth()
 
-    async def close(self):
+    async def close(self) -> None:
         await self._r.aclose()
 
 
@@ -326,20 +383,20 @@ class RedisAwarenessBus:
 
     def __init__(
         self,
-        url,
+        url: str,
         deployment: ActiveDeployment,
         *,
-        channel_prefix="l9gm:active",
-        client=None,
-    ):
+        channel_prefix: str = "l9gm:active",
+        client: Any | None = None,
+    ) -> None:
         redis, _, _ = _redis_modules()
         self._r = client or redis.from_url(url, decode_responses=True)
         self._base = f"{channel_prefix}.v1.{derive_deployment_hash(deployment)}"
 
-    def _channel(self, group_id):
+    def _channel(self, group_id: str | None) -> str:
         return f"{self._base}.group.{group_id}" if group_id else f"{self._base}.global"
 
-    async def publish(self, event):
+    async def publish(self, event: AgentEvent) -> None:
         try:
             await self._r.publish(self._channel(event.group_id), _dump(event))
         except Exception as exc:
@@ -373,9 +430,9 @@ class RedisAwarenessBus:
             await pubsub.unsubscribe(channel)
             await pubsub.aclose()
 
-    async def health(self):
+    async def health(self) -> RedisHealth:
         await self._r.ping()
         return RedisHealth()
 
-    async def close(self):
+    async def close(self) -> None:
         await self._r.aclose()

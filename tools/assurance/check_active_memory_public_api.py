@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tools/assurance/check_active_memory_public_api.py
+#   layer: assurance
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Guard the active-memory subsystem's public API surface.
 
 Fails (exit 1) if:
@@ -7,7 +17,7 @@ Fails (exit 1) if:
   - any symbol in `_FORBIDDEN_PUBLIC_SYMBOLS` (Redis-internal adapter
     classes) is exported from `l9_graphite_memory.active.__all__`
 
-This is the CI gate referenced by ADR-071 and the build-plan Phase 6
+This is the CI gate referenced by ADR-067 and the build-plan Phase 6
 exit criteria: "external process can use active memory without
 importing Redis internals."
 """
@@ -49,8 +59,8 @@ def main() -> int:
     try:
         import l9_graphite_memory.active as active_pkg
     except ImportError as exc:
-        print(
-            f"ERROR: failed to import l9_graphite_memory.active: {exc}", file=sys.stderr
+        sys.stderr.write(
+            f"ERROR: failed to import l9_graphite_memory.active: {exc}\n"
         )
         return 1
 
@@ -61,22 +71,22 @@ def main() -> int:
 
     ok = True
     if missing:
-        print(
-            f"ERROR: missing required public symbols: {sorted(missing)}",
-            file=sys.stderr,
+        sys.stderr.write(
+            f"ERROR: missing required public symbols: {sorted(missing)}\n"
         )
         ok = False
     if leaked:
-        print(
-            f"ERROR: forbidden internal symbols are publicly exported: {sorted(leaked)}",
-            file=sys.stderr,
+        sys.stderr.write(
+            f"ERROR: forbidden internal symbols are publicly exported: {sorted(leaked)}\n"
         )
         ok = False
 
     if not ok:
         return 1
 
-    print(f"OK: public API surface check passed ({len(exported)} exported symbols)")
+    sys.stdout.write(
+        f"OK: public API surface check passed ({len(exported)} exported symbols)\n"
+    )
     return 0
 
 

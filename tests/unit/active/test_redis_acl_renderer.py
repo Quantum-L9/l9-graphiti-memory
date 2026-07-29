@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tests/unit/active/test_redis_acl_renderer.py
+#   layer: test
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 import importlib.util
 from pathlib import Path
 
@@ -44,8 +54,10 @@ def test_secure_acl_is_reset_first_and_restricted():
 
 
 def test_nopass_rejected_without_explicit_dev_flag():
+    args = arguments(password_hash=None)
+    acl_manifest = manifest()
     with pytest.raises(ValueError):
-        mod.render(arguments(password_hash=None), manifest())
+        mod.render(args, acl_manifest)
 
 
 def test_explicit_development_nopass():

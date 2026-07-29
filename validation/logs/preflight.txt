@@ -10,15 +10,15 @@ PASS  MCP inventory
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/usr/bin/python3",
+    "/Users/ib-mac/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-07-27T16:56:07.381475Z",
+  "created_at": "2026-07-29T19:43:57.165639Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.gkcZ0MbLgW/cursor/mcp.json",
+  "path": "/var/folders/3m/0j6pb5k50k79kt8zpbwryf3c0000gn/T/tmp.1OQrPyZz2V/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,27 +26,27 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "faeea2b9-5e2e-4b4a-8fe1-7038d05ca81c",
+  "receipt_id": "d47b6230-1af1-4782-b937-c8df7850ca67",
   "status": "dry_run",
   "warnings": []
 }
 PASS  cursor client dry-run
 {
   "command_argv": [
-    "/usr/bin/python3",
+    "/Users/ib-mac/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-07-27T16:56:08.760969Z",
+  "created_at": "2026-07-29T19:43:57.798289Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "ef5e58b4-ab3c-4093-96af-1f9f5925fdae",
+  "receipt_id": "4dbd9d11-0a36-4891-8878-4b6b212e2ece",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
@@ -87,7 +87,7 @@ PASS  shell syntax graphiti-reset-generation.sh
 PASS  shell syntax graphiti-session-end.sh
 PASS  shell syntax graphiti_common.sh
 PASS  shell syntax graphiti_gate_runner.sh
-PASS: 64 ADRs complete and indexed
+PASS: 68 ADRs complete and indexed
 PASS  ADR ledger
 PASS: 44 harvest decisions closed {'blocked_external': 4, 'implemented': 35, 'rejected_boundary': 5}
 PASS  harvest coverage
@@ -97,7 +97,7 @@ PASS: core, adapter, service, and integration dependency directions are aligned
 PASS  layer boundary alignment
 PASS: recursive L9 alignment contract satisfied across all ten passes
 PASS  recursive L9 alignment
-PASS: 424 manifested files exist with matching size and SHA-256
+PASS: 478 manifested files exist with matching size and SHA-256
 PASS  release manifest
 PASS: no canonical memory write bypasses detected
 PASS  write bypass assurance
@@ -123,25 +123,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.8075,
-      "p50_ms": 0.6346,
-      "p95_ms": 0.8075,
+      "max_ms": 0.7224,
+      "p50_ms": 0.2543,
+      "p95_ms": 0.7224,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.5752,
-      "p50_ms": 0.4371,
-      "p95_ms": 0.488,
+      "max_ms": 0.3109,
+      "p50_ms": 0.1856,
+      "p95_ms": 0.2221,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.5635,
-      "p50_ms": 0.1384,
-      "p95_ms": 0.2415,
+      "max_ms": 0.4363,
+      "p50_ms": 0.0546,
+      "p95_ms": 0.1186,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

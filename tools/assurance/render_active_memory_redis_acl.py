@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tools/assurance/render_active_memory_redis_acl.py
+#   layer: assurance
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Render a reset-first least-privilege Redis 7.2+ ACL."""
 
 from __future__ import annotations
@@ -12,7 +22,12 @@ import yaml
 
 
 def load(path):
-    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    manifest_path = Path(path)
+    if manifest_path.is_symlink():
+        raise ValueError(f"manifest path must not be a symlink: {manifest_path}")
+    if not manifest_path.is_file():
+        raise ValueError(f"manifest path must be a regular file: {manifest_path}")
+    data = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     for key in (
         "commands",
         "key_patterns",
@@ -97,10 +112,10 @@ def main(argv=None):
             else line + "\n"
         )
     except (OSError, ValueError, yaml.YAMLError) as e:
-        print("ERROR: " + str(e), file=sys.stderr)
+        sys.stderr.write("ERROR: " + str(e) + "\n")
         return 1
     if a.check or not a.output:
-        print(text, end="")
+        sys.stdout.write(text)
         return 0
     a.output.parent.mkdir(parents=True, exist_ok=True)
     a.output.write_text(text, encoding="utf-8")

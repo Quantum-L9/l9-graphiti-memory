@@ -1,6 +1,16 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/credentials.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Secret-file and structured credential resolution for Redis backends.
 
-Implements ADR-070. Supports, in strict precedence order:
+Implements ADR-066. Supports, in strict precedence order:
 
   1. `url_file`             — a mounted secret file containing a full
                                Redis connection URL.
@@ -124,6 +134,75 @@ def _read_secret_file(path: Path, *, field_name: str) -> str:
     return text
 
 
+def _resolve_url_file(settings: RedisCredentialSettings) -> ResolvedRedisCredential:
+    assert settings.url_file is not None
+    url = _read_secret_file(settings.url_file, field_name="url_file")
+    _validate_redis_url(url)
+    return ResolvedRedisCredential(redis_url=url, credential_source="url_file")
+
+
+def _resolve_password_file(settings: RedisCredentialSettings) -> ResolvedRedisCredential:
+    assert settings.password_file is not None
+    if not settings.host:
+        raise CredentialResolutionError(
+            "host is required when password_file is configured"
+        )
+    password = _read_secret_file(settings.password_file, field_name="password_file")
+    scheme = "rediss" if settings.tls else "redis"
+    userinfo = (
+        f"{settings.username}:{password}" if settings.username else f":{password}"
+    )
+    netloc = f"{userinfo}@{settings.host}:{settings.port}"
+    url = urlunsplit((scheme, netloc, f"/{settings.database}", "", ""))
+    return ResolvedRedisCredential(redis_url=url, credential_source="password_file")
+
+
+def _resolve_secret_provider_reference(
+    settings: RedisCredentialSettings, secret_provider: Callable[[str], str] | None
+) -> ResolvedRedisCredential:
+    assert settings.secret_provider_reference is not None
+    if secret_provider is None:
+        raise CredentialResolutionError(
+            "secret_provider_reference is configured but no "
+            "secret_provider callback was supplied"
+        )
+    url = secret_provider(settings.secret_provider_reference)
+    if not url:
+        raise CredentialResolutionError(
+            "secret_provider callback returned an empty value"
+        )
+    _validate_redis_url(url)
+    return ResolvedRedisCredential(
+        redis_url=url, credential_source="secret_provider_reference"
+    )
+
+
+def _resolve_url_env(
+    settings: RedisCredentialSettings, environ: dict[str, str]
+) -> ResolvedRedisCredential:
+    assert settings.url_env is not None
+    env_url = environ.get(settings.url_env)
+    if not env_url:
+        raise CredentialResolutionError(
+            f"environment variable {settings.url_env!r} is not set or empty"
+        )
+    _validate_redis_url(env_url)
+    return ResolvedRedisCredential(redis_url=env_url, credential_source="url_env")
+
+
+def _configured_sources(settings: RedisCredentialSettings) -> list[str]:
+    return [
+        name
+        for name, value in (
+            ("url_file", settings.url_file),
+            ("password_file", settings.password_file),
+            ("secret_provider_reference", settings.secret_provider_reference),
+            ("url_env", settings.url_env),
+        )
+        if value
+    ]
+
+
 def resolve_redis_credential(
     settings: RedisCredentialSettings,
     *,
@@ -151,18 +230,8 @@ def resolve_redis_credential(
         CredentialResolutionError: if the configured source is missing,
             unreadable, malformed, or if no source is configured.
     """
-    environ = environ if environ is not None else dict(os.environ)
-
-    configured_sources = [
-        name
-        for name, value in (
-            ("url_file", settings.url_file),
-            ("password_file", settings.password_file),
-            ("secret_provider_reference", settings.secret_provider_reference),
-            ("url_env", settings.url_env),
-        )
-        if value
-    ]
+    resolved_environ = environ if environ is not None else dict(os.environ)
+    configured_sources = _configured_sources(settings)
 
     if len(configured_sources) == 0:
         raise CredentialResolutionError(
@@ -177,54 +246,14 @@ def resolve_redis_credential(
         )
 
     source = configured_sources[0]
-
     if source == "url_file":
-        assert settings.url_file is not None
-        url = _read_secret_file(settings.url_file, field_name="url_file")
-        _validate_redis_url(url)
-        return ResolvedRedisCredential(redis_url=url, credential_source="url_file")
-
+        return _resolve_url_file(settings)
     if source == "password_file":
-        assert settings.password_file is not None
-        if not settings.host:
-            raise CredentialResolutionError(
-                "host is required when password_file is configured"
-            )
-        password = _read_secret_file(settings.password_file, field_name="password_file")
-        scheme = "rediss" if settings.tls else "redis"
-        userinfo = (
-            f"{settings.username}:{password}" if settings.username else f":{password}"
-        )
-        netloc = f"{userinfo}@{settings.host}:{settings.port}"
-        url = urlunsplit((scheme, netloc, f"/{settings.database}", "", ""))
-        return ResolvedRedisCredential(redis_url=url, credential_source="password_file")
-
+        return _resolve_password_file(settings)
     if source == "secret_provider_reference":
-        assert settings.secret_provider_reference is not None
-        if secret_provider is None:
-            raise CredentialResolutionError(
-                "secret_provider_reference is configured but no "
-                "secret_provider callback was supplied"
-            )
-        url = secret_provider(settings.secret_provider_reference)
-        if not url:
-            raise CredentialResolutionError(
-                "secret_provider callback returned an empty value"
-            )
-        _validate_redis_url(url)
-        return ResolvedRedisCredential(
-            redis_url=url, credential_source="secret_provider_reference"
-        )
-
+        return _resolve_secret_provider_reference(settings, secret_provider)
     assert source == "url_env"
-    assert settings.url_env is not None
-    url = environ.get(settings.url_env)
-    if not url:
-        raise CredentialResolutionError(
-            f"environment variable {settings.url_env!r} is not set or empty"
-        )
-    _validate_redis_url(url)
-    return ResolvedRedisCredential(redis_url=url, credential_source="url_env")
+    return _resolve_url_env(settings, resolved_environ)
 
 
 def _validate_redis_url(url: str) -> None:

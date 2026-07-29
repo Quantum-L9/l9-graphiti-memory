@@ -1,6 +1,16 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/lifecycle.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """External-runtime session lifecycle state machine.
 
-Implements the state machine specified in ADR-071. This module is pure
+Implements the state machine specified in ADR-067. This module is pure
 domain logic (no I/O, no Redis dependency) so it can be unit tested
 deterministically and reused identically by the Redis-backed adapter
 and by the in-memory reference adapter.
@@ -8,14 +18,14 @@ and by the in-memory reference adapter.
 
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum
 
 
 class LifecycleTransitionError(ValueError):
     """Raised when an illegal state transition is attempted."""
 
 
-class ActiveAgentSessionState(StrEnum):
+class ActiveAgentSessionState(str, Enum):
     """States in the external-runtime session lifecycle."""
 
     NEW = "new"

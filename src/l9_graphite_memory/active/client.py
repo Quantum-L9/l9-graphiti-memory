@@ -1,7 +1,17 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/client.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Stable external SDK surface for the active-memory subsystem.
 
 `ActiveAgentClient` and `ActiveAgentSession` are the ONLY supported
-integration points for external consumer applications (per ADR-071).
+integration points for external consumer applications (per ADR-067).
 Consumers MUST NOT import `l9_graphite_memory.active.inmemory` or any
 future Redis adapter module directly; those are internal implementation
 details subject to change without a major version bump.
@@ -146,7 +156,7 @@ class ActiveAgentSession:
 
     Manages: registration, heartbeat renewal, context writes, peer
     discovery, event subscription, degradation detection, reconnect and
-    resynchronization, and graceful shutdown. See ADR-071 for the full
+    resynchronization, and graceful shutdown. See ADR-067 for the full
     state machine and background-task supervision requirements.
     """
 
@@ -259,7 +269,7 @@ class ActiveAgentSession:
                 await self._heartbeat_once()
         except asyncio.CancelledError:
             raise
-        except BaseException as exc:  # noqa: BLE001 - must observe all failures
+        except BaseException as exc:  # noqa: BLE001 must observe all failures # NOSONAR(S5754)
             self._background_exception = exc
             logger.warning(
                 "active-memory heartbeat loop failed for agent_id=%s instance_id=%s: %s",
@@ -378,7 +388,7 @@ class ActiveAgentSession:
         async for event in self._bus.subscribe(subscription):
             yield event
 
-    async def drain(self) -> None:
+    async def drain(self) -> None:  # NOSONAR(S7503) - kept async for SDK-wide calling consistency
         """Begin graceful shutdown: stop writes, keep lease until close()."""
         if self._lifecycle.state in (
             ActiveAgentSessionState.ACTIVE,
@@ -386,43 +396,57 @@ class ActiveAgentSession:
         ):
             self._lifecycle.transition_to(ActiveAgentSessionState.DRAINING)
 
+    async def _cancel_heartbeat_task(self) -> None:
+        if self._heartbeat_task is None:
+            return
+        self._heartbeat_task.cancel()
+        try:
+            await self._heartbeat_task
+        except asyncio.CancelledError:
+            # Expected: we just cancelled this task ourselves above, and this
+            # `close()` coroutine is not itself being cancelled, so the
+            # cancellation does not need to propagate further. # NOSONAR(S7497)
+            pass
+
+    async def _unregister_lease(self) -> None:
+        if self._lifecycle.state != ActiveAgentSessionState.DRAINING:
+            try:
+                self._lifecycle.transition_to(ActiveAgentSessionState.DRAINING)
+            except LifecycleTransitionError:
+                pass
+        if self._lease is None:
+            return
+        try:
+            await self._store.unregister(self._lease)
+        except ActiveMemoryUnavailableError:
+            logger.warning(
+                "failed to unregister lease during close for "
+                "agent_id=%s instance_id=%s; lease will expire naturally",
+                self._agent_id,
+                self._instance_id,
+            )
+
+    def _finalize_closed_state(self) -> None:
+        if self._lifecycle.state == ActiveAgentSessionState.CLOSED:
+            return
+        try:
+            self._lifecycle.transition_to(ActiveAgentSessionState.CLOSED)
+        except LifecycleTransitionError:
+            if self._lifecycle.state == ActiveAgentSessionState.NEW:
+                self._lifecycle._state = ActiveAgentSessionState.CLOSED
+
     async def close(self) -> None:
         """Idempotently stop background tasks and unregister the lease."""
         if self._closed.is_set():
             return
         self._closed.set()
 
-        if self._heartbeat_task is not None:
-            self._heartbeat_task.cancel()
-            try:
-                await self._heartbeat_task
-            except asyncio.CancelledError:
-                pass
-
+        await self._cancel_heartbeat_task()
         try:
             if self._lifecycle.state not in (
                 ActiveAgentSessionState.CLOSED,
                 ActiveAgentSessionState.NEW,
             ):
-                if self._lifecycle.state != ActiveAgentSessionState.DRAINING:
-                    try:
-                        self._lifecycle.transition_to(ActiveAgentSessionState.DRAINING)
-                    except LifecycleTransitionError:
-                        pass
-                if self._lease is not None:
-                    try:
-                        await self._store.unregister(self._lease)
-                    except ActiveMemoryUnavailableError:
-                        logger.warning(
-                            "failed to unregister lease during close for "
-                            "agent_id=%s instance_id=%s; lease will expire naturally",
-                            self._agent_id,
-                            self._instance_id,
-                        )
+                await self._unregister_lease()
         finally:
-            if self._lifecycle.state != ActiveAgentSessionState.CLOSED:
-                try:
-                    self._lifecycle.transition_to(ActiveAgentSessionState.CLOSED)
-                except LifecycleTransitionError:
-                    if self._lifecycle.state == ActiveAgentSessionState.NEW:
-                        self._lifecycle._state = ActiveAgentSessionState.CLOSED
+            self._finalize_closed_state()

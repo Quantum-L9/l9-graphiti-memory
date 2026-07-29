@@ -1,6 +1,16 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/deployment.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Deployment identity contracts for the active-memory subsystem.
 
-Implements ADR-069. A deployment identity binds one configured
+Implements ADR-065. A deployment identity binds one configured
 active-memory runtime (one backend, one set of Redis credentials) to a
 stable logical identifier and authorization/provenance boundary
 (`trust_domain`). Deployment identity is immutable for the lifetime of a
@@ -13,7 +23,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 
 _IDENTIFIER_PATTERN = re.compile(r"^[a-z0-9._:-]{1,128}$")
 _HASH_ALGORITHM_VERSION = "v1"
@@ -23,7 +33,7 @@ class DeploymentIdentityError(ValueError):
     """Raised when a deployment identifier or environment is invalid."""
 
 
-class DeploymentEnvironment(StrEnum):
+class DeploymentEnvironment(str, Enum):
     """Deployment stage used for isolation, diagnostics, and policy.
 
     This enumeration is domain-agnostic. Consumer applications map their
@@ -41,7 +51,7 @@ class DeploymentEnvironment(StrEnum):
 def validate_identifier(value: str, *, field_name: str) -> str:
     """Validate a deployment_id, trust_domain, or similar identifier.
 
-    Rules (per ADR-069):
+    Rules (per ADR-065):
       - length 1-128 characters
       - lowercase ascii letters, digits, '.', '_', '-', ':' only
       - no whitespace, wildcards, path separators, or control characters
@@ -148,7 +158,7 @@ def derive_deployment_hash(deployment: ActiveDeployment) -> str:
     This function is deterministic and MUST remain stable for a given
     deployment identity within algorithm version "v1". Changing the
     algorithm requires bumping `_HASH_ALGORITHM_VERSION` and treating it
-    as a breaking key-space migration (see ADR-069, ADR-072).
+    as a breaking key-space migration (see ADR-065, ADR-068).
     """
     digest = hashlib.sha256(deployment.canonical_string().encode("utf-8")).hexdigest()
     return digest[:16]

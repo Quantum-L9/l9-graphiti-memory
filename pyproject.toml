@@ -45,6 +45,7 @@ dependencies = [
 
 [project.optional-dependencies]
 server = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1"]
+active = ["redis>=5,<7"]
 zep = ["zep-cloud>=3.0,<4"]
 phase6 = [
   "cryptography>=46.0,<47",
@@ -55,6 +56,7 @@ infisical = ["infisical-python>=2.0,<3"]
 all = [
   "fastapi>=0.115,<1",
   "uvicorn>=0.30,<1",
+  "redis>=5,<7",
   "zep-cloud>=3.0,<4",
   "infisical-python>=2.0,<3",
 ]
@@ -131,5 +133,5 @@ exclude = ["validation", "dist", "tests"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["yaml", "infisical_client.*", "zep_cloud.*", "fastapi.*", "uvicorn.*"]
+module = ["yaml", "infisical_client.*", "zep_cloud.*", "fastapi.*", "uvicorn.*", "redis.*"]
 ignore_missing_imports = true

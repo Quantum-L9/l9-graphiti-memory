@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/null_adapters.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Null-object adapters used when active memory is disabled.
 
 When `active_memory.enabled = false`, the runtime factory MUST wire
@@ -40,61 +50,71 @@ class _NullPage:
 
 
 class NullActiveStore:
-    """No-op `ActiveStore` used when active memory is disabled."""
+    """No-op `ActiveStore` used when active memory is disabled.
+
+    Every method below intentionally ignores its arguments and (for the
+    read/lifecycle methods) contains no `await`: this class exists purely
+    to satisfy the `ActiveStore` port's async call signature while active
+    memory is disabled, so parameter names and `async` are load-bearing
+    for Liskov compatibility, not incidental.
+    """
 
     async def register(
-        self, identity: AgentIdentity, lease: AgentLease
+        self, _identity: AgentIdentity, _lease: AgentLease
     ) -> AgentPresence:
         raise ActiveMemoryUnavailableError(_DISABLED_MESSAGE)
 
-    async def renew(self, lease: AgentLease) -> AgentPresence:
+    async def renew(self, _lease: AgentLease) -> AgentPresence:
         raise ActiveMemoryUnavailableError(_DISABLED_MESSAGE)
 
-    async def unregister(self, lease: AgentLease) -> None:
+    async def unregister(self, _lease: AgentLease) -> None:  # NOSONAR(S7503)
         return None
 
     async def put_context(
         self,
-        lease: AgentLease,
-        expected_version: int | None,
-        draft: ActiveContextDraft,
+        _lease: AgentLease,
+        _expected_version: int | None,
+        _draft: ActiveContextDraft,
     ) -> ActiveContext:
         raise ActiveMemoryUnavailableError(_DISABLED_MESSAGE)
 
     async def get_context(
-        self, agent_id: str, instance_id: str | None = None
-    ) -> ActiveContext | None:
+        self, _agent_id: str, _instance_id: str | None = None
+    ) -> ActiveContext | None:  # NOSONAR(S7503)
         return None
 
     async def get_presence(
-        self, agent_id: str, instance_id: str | None = None
-    ) -> AgentPresence | None:
+        self, _agent_id: str, _instance_id: str | None = None
+    ) -> AgentPresence | None:  # NOSONAR(S7503)
         return None
 
     async def list_active(
-        self, scope: AgentScope, cursor: str | None, limit: int
-    ) -> _NullPage:
+        self, _scope: AgentScope, _cursor: str | None, _limit: int
+    ) -> _NullPage:  # NOSONAR(S7503)
         return _NullPage()
 
-    async def health(self) -> _NullHealth:
+    async def health(self) -> _NullHealth:  # NOSONAR(S7503)
         return _NullHealth()
 
-    async def close(self) -> None:
+    async def close(self) -> None:  # NOSONAR(S7503)
         return None
 
 
 class NullAwarenessBus:
-    """No-op `AwarenessBus` used when active memory is disabled."""
+    """No-op `AwarenessBus` used when active memory is disabled.
 
-    async def publish(self, event: AgentEvent) -> None:
+    See `NullActiveStore` for why unused parameters and `async` are kept.
+    """
+
+    async def publish(self, _event: AgentEvent) -> None:
         raise ActiveMemoryUnavailableError(_DISABLED_MESSAGE)
 
-    async def subscribe(self, subscription: object) -> AsyncIterator[AgentEvent]:
+    async def subscribe(self, _subscription: object) -> AsyncIterator[AgentEvent]:
         raise ActiveMemoryUnavailableError(_DISABLED_MESSAGE)
-        yield  # pragma: no cover - unreachable, satisfies async generator typing
+        yield  # NOSONAR(S1763) - unreachable; makes this an async generator to match AwarenessBus.subscribe
 
-    async def health(self) -> _NullHealth:
+    async def health(self) -> _NullHealth:  # NOSONAR(S7503)
         return _NullHealth()
 
-    async def close(self) -> None:
+    async def close(self) -> None:  # NOSONAR(S7503)
         return None

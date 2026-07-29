@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/inmemory.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """In-memory reference adapters for `ActiveStore` and `AwarenessBus`.
 
 These adapters are the deterministic reference implementation used by
@@ -102,6 +112,29 @@ class InMemoryActiveStore:
                 f"in-memory active store for deployment "
                 f"{self._deployment.deployment_id!r} is simulated unavailable"
             )
+
+    @staticmethod
+    def _matches_scope(presence: AgentPresence, scope: AgentScope) -> bool:
+        if presence.deployment_id != scope.deployment_id:
+            return False
+        if scope.role is not None and presence.identity.role != scope.role:
+            return False
+        return (
+            scope.group_id is None
+            or scope.group_id in presence.identity.memory_group_ids
+        )
+
+    @staticmethod
+    def _cursor_start_index(
+        matches: list[AgentPresence], cursor: str | None
+    ) -> int:
+        if cursor is None:
+            return 0
+        for idx, presence in enumerate(matches):
+            token = f"{presence.identity.agent_id}:{presence.identity.instance_id}"
+            if token == cursor:
+                return idx + 1
+        return 0
 
     async def register(
         self, identity: AgentIdentity, lease: AgentLease
@@ -243,32 +276,14 @@ class InMemoryActiveStore:
         self._check_available()
         async with self._lock:
             now = self._clock()
-            matches = []
-            for presence in self._presences.values():
-                if presence.is_expired(now):
-                    continue
-                if presence.deployment_id != scope.deployment_id:
-                    continue
-                if scope.role is not None and presence.identity.role != scope.role:
-                    continue
-                if (
-                    scope.group_id is not None
-                    and scope.group_id not in presence.identity.memory_group_ids
-                ):
-                    continue
-                matches.append(presence)
+            matches = [
+                presence
+                for presence in self._presences.values()
+                if not presence.is_expired(now) and self._matches_scope(presence, scope)
+            ]
             matches.sort(key=lambda p: (p.identity.agent_id, p.identity.instance_id))
 
-            start_index = 0
-            if cursor is not None:
-                for idx, presence in enumerate(matches):
-                    token = (
-                        f"{presence.identity.agent_id}:{presence.identity.instance_id}"
-                    )
-                    if token == cursor:
-                        start_index = idx + 1
-                        break
-
+            start_index = self._cursor_start_index(matches, cursor)
             page_items = tuple(matches[start_index : start_index + limit])
             next_cursor = None
             if start_index + limit < len(matches):
@@ -276,12 +291,12 @@ class InMemoryActiveStore:
                 next_cursor = f"{last.identity.agent_id}:{last.identity.instance_id}"
             return _InMemoryAgentPage(items=page_items, next_cursor=next_cursor)
 
-    async def health(self) -> _InMemoryStoreHealth:
+    async def health(self) -> _InMemoryStoreHealth:  # NOSONAR(S7503) - ActiveStore port requires async
         if self._simulate_unavailable:
             return _InMemoryStoreHealth(connectivity="unavailable")
         return _InMemoryStoreHealth()
 
-    async def close(self) -> None:
+    async def close(self) -> None:  # NOSONAR(S7503) - ActiveStore port requires async
         return None
 
 
@@ -356,7 +371,7 @@ class InMemoryAwarenessBus:
                 if entry in self._subscribers:
                     self._subscribers.remove(entry)
 
-    async def health(self) -> _InMemoryAwarenessHealth:
+    async def health(self) -> _InMemoryAwarenessHealth:  # NOSONAR(S7503) - AwarenessBus port requires async
         if self._simulate_unavailable:
             return _InMemoryAwarenessHealth(connectivity="unavailable")
         return _InMemoryAwarenessHealth()

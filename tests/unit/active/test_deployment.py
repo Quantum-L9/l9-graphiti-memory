@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tests/unit/active/test_deployment.py
+#   layer: test
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Unit tests for l9_graphite_memory.active.deployment."""
 
 from __future__ import annotations

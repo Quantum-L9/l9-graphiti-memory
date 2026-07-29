@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tests/conformance/active/test_awareness_bus_contract.py
+#   layer: test
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Adapter-conformance tests for the AwarenessBus port.
 
 Every AwarenessBus implementation MUST pass these tests unmodified.
@@ -111,8 +121,9 @@ async def test_deployment_isolation_is_enforced(bus) -> None:
 @pytest.mark.asyncio
 async def test_simulated_unavailability_raises_typed_error(bus) -> None:
     bus.set_unavailable(True)
+    event = _make_event()
     with pytest.raises(ActiveMemoryUnavailableError):
-        await bus.publish(_make_event())
+        await bus.publish(event)
     bus.set_unavailable(False)
 
 

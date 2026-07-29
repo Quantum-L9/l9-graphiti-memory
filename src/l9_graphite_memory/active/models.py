@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/models.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Core domain contracts for the active-memory subsystem.
 
 These are the deployment-neutral, Redis-independent entities described
@@ -12,7 +22,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 
 from l9_graphite_memory.active.deployment import (
     DeploymentIdentityError,
@@ -30,7 +40,7 @@ MAX_METADATA_KEYS = 32
 MAX_METADATA_BYTES = 4096
 
 
-class AgentStatus(StrEnum):
+class AgentStatus(str, Enum):
     """Lifecycle/operating status of one agent instance."""
 
     STARTING = "starting"
@@ -43,7 +53,7 @@ class AgentStatus(StrEnum):
     STOPPED = "stopped"
 
 
-class AgentEventType(StrEnum):
+class AgentEventType(str, Enum):
     """Awareness event types published to the awareness bus."""
 
     AGENT_REGISTERED = "agent.registered"

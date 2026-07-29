@@ -1,3 +1,14 @@
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/ACTIVE_MEMORY_SDK.md
+layer: documentation
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
 # Active Memory SDK Guide
 
 This guide documents the only supported integration surface for the

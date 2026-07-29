@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tests/conformance/active/conftest.py
+#   layer: test
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Shared fixtures for the active-memory adapter conformance suite.
 
 Any adapter implementing `ActiveStore`/`AwarenessBus` (in-memory,

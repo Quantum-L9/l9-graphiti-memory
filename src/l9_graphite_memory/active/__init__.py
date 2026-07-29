@@ -1,8 +1,18 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/active/__init__.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 """Active multi-agent memory subsystem (deployment-neutral).
 
 This package provides the deployment-identity, secret-file credential
 resolution, and stable external SDK contracts for the Redis-backed
-active-memory layer described in ADR-069 through ADR-072.
+active-memory layer described in ADR-065 through ADR-068.
 
 This package intentionally contains no consumer-specific (e.g. Igorbot,
 OpenClaw, Hetzner) identifiers, configuration, or deployment logic. All
