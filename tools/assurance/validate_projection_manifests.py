@@ -32,9 +32,7 @@ def validate_path(path: Path) -> dict[str, object]:
     first_json = compiled_projection_json(first)
     second_json = compiled_projection_json(second)
     if first_json != second_json:
-        raise ConfigurationError(
-            f"projection compilation is not deterministic: {path}"
-        )
+        raise ConfigurationError(f"projection compilation is not deterministic: {path}")
     return {
         "path": str(path),
         "name": first.name,

@@ -1,0 +1,24 @@
+schema_version: 1
+adapter_contract_version: 1
+minimum_redis_version: "7.2"
+description: Exact least-privilege Redis active-memory ACL contract.
+key_patterns:
+  - "{key_prefix}:v1:{deployment_hash}:agent:*"
+  - "{key_prefix}:v1:{deployment_hash}:group:*"
+  - "{key_prefix}:v1:{deployment_hash}:role:*"
+channel_patterns:
+  - "{channel_prefix}.v1.{deployment_hash}.global"
+  - "{channel_prefix}.v1.{deployment_hash}.group.*"
+  - "{channel_prefix}.v1.{deployment_hash}.role.*"
+  - "{channel_prefix}.v1.{deployment_hash}.agent.*"
+commands:
+  connection: [PING, SELECT]
+  scalar_state: [GET, MGET, SET, DEL, UNLINK, EXISTS, EXPIRE, PEXPIRE, TTL, PTTL, INCR]
+  indexes: [ZADD, ZREM, ZSCORE, ZCARD, ZRANGE, ZRANGEBYSCORE, ZREMRANGEBYSCORE]
+  scripts: [EVALSHA, "SCRIPT|LOAD", "SCRIPT|EXISTS"]
+  awareness: [PUBLISH, SUBSCRIBE, UNSUBSCRIBE]
+prohibited_commands: [FLUSHALL, FLUSHDB, CONFIG, SHUTDOWN, DEBUG, MODULE, MIGRATE, REPLICAOF, SLAVEOF, KEYS, SAVE, BGSAVE, BGREWRITEAOF, CLUSTER, ACL]
+notes:
+  - No command categories are granted.
+  - PSUBSCRIBE is excluded because Redis ACL pattern subscriptions require literal pattern equality.
+  - Lua adapters must recover once from NOSCRIPT using SCRIPT LOAD.
