@@ -76,6 +76,9 @@ def test_mark_ok_requires_current_fresh_hydration(tmp_path: Path) -> None:
     }
     state_path.write_text(json.dumps(state), encoding="utf-8")
     env = os.environ.copy()
+    # graphiti_common prefers CURSOR_CONVERSATION_ID over L9_SESSION_ID; clear it
+    # so this regression stays hermetic when run under a Cursor agent.
+    env.pop("CURSOR_CONVERSATION_ID", None)
     env.update({"L9_MEMORY_STATE_DIR": str(state_dir), "L9_SESSION_ID": "hook-test"})
 
     subprocess.run(
