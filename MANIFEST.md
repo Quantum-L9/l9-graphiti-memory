@@ -45,9 +45,9 @@ updated: 2026-07-22
 | `repository_root` | 55 |
 | `skill` | 2 |
 | `tests` | 62 |
-| `validation_evidence` | 31 |
+| `validation_evidence` | 30 |
 
-- Hashed inventory files below: **474**
+- Hashed inventory files below: **473**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -500,33 +500,32 @@ updated: 2026-07-22
 | `tools/phase6/tests/test_hardening.py` | `assurance` | `assurance` | 41037 | `19507aa553e0fa6da00a7ea5b96e449537be2daa48cf927d4d105810fb92c115` |
 | `tools/phase6/validation_report.yaml` | `assurance` | `assurance` | 1497 | `93351fb155a5b74c4fb46fe38c276d6a88912583ef5678261fc13af221026f36` |
 | `validation/SHA256SUMS` | `validation_evidence` | `validation_evidence` | 108 | `56df4bc24a8972551b9435b4d1de17449f52c5a462da3960e2d425d4a9b1eccf` |
-| `validation/dist/l9_graphite_memory-2.2.0-py3-none-any.whl` | `validation_evidence` | `validation_evidence` | 188288 | `45a6bc56329f8eb7ee9577c89d332eec6b38e521b5ae2e5ccb946e5233448181` |
 | `validation/logs/adr_validation.txt` | `validation_evidence` | `validation_evidence` | 35 | `fc98d60ebbfffe2601f5bfde9ca434b200fce0c05c8e57e0d6094d14257c32ff` |
 | `validation/logs/bypass_check.txt` | `validation_evidence` | `validation_evidence` | 50 | `7138de56268f741122706f70a72e61409f2729eabf9284d570d69643834ef520` |
 | `validation/logs/committed_secrets.txt` | `validation_evidence` | `validation_evidence` | 200 | `80e92f5557ab8a050e1aa12d5dd276dbdf727b4f6523246bba108bb41a883bfe` |
 | `validation/logs/compileall.txt` | `validation_evidence` | `validation_evidence` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 | `validation/logs/config_drift.txt` | `validation_evidence` | `validation_evidence` | 122 | `dc0c81f558b8a41eff16a5ad07b4c65615b10c11c149202d1db27ea0d6a5c3e0` |
 | `validation/logs/harvest_coverage.txt` | `validation_evidence` | `validation_evidence` | 101 | `a77c2c5914680700e64b06e52391499d845f15b5cd94bb5959a5f91d9a6ba336` |
-| `validation/logs/installed_cursor_client.txt` | `validation_evidence` | `validation_evidence` | 1449 | `00b445cf103061ed6a13b1778075a067669d5d60816e84955db64f41a045f442` |
-| `validation/logs/installed_cursor_probe.txt` | `validation_evidence` | `validation_evidence` | 996 | `8a6b534bc0c1e9adbebf3ec44cf8d2c04463cf7417552d7d878a42bbaf6b1431` |
-| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 485 | `7677f8af1f44f4b0188db5e77ea2e741164e4db794887df1cfd87e04e82e6cb1` |
+| `validation/logs/installed_cursor_client.txt` | `validation_evidence` | `validation_evidence` | 1449 | `9d5398c09df9b2153986821c684496232a51eaa181e6777729f9286aa8622f2f` |
+| `validation/logs/installed_cursor_probe.txt` | `validation_evidence` | `validation_evidence` | 996 | `740b82da60219b3f173321f11637b498616c35ed3f2f2680413e2b5388fbe4cb` |
+| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 485 | `3848f76c9351a7d618d00a5e9f98981b2e7fb4238c5c7afacae179e4798fb401` |
 | `validation/logs/installed_mcp.txt` | `validation_evidence` | `validation_evidence` | 74 | `ebf9b42a68c28f17711c394515c4e08e0cda8dfa1148d6f5d03ee03537c0593b` |
 | `validation/logs/installed_resolve.txt` | `validation_evidence` | `validation_evidence` | 137 | `eae6487763b5416bca0bd4e711b38b74b9231186d8682cf75cea4615fc74efd2` |
 | `validation/logs/l9_meta.txt` | `validation_evidence` | `validation_evidence` | 83 | `e305e6a7e79c48e68745c71dc7b65912068010b67a512ae8498745be7137adf0` |
-| `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `d455efc432cf1b97757890f92a4f8467b902112486c661f319211629415b3514` |
+| `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `cb9b24685725174c9f8a99ad71c0fb7d83dc50e6759a69da6f09d35e3022e765` |
 | `validation/logs/layer_boundaries.txt` | `validation_evidence` | `validation_evidence` | 80 | `3a9e49589664f3aa63e6e470f64d79e8db7957485afb4027533c1c654e07005b` |
-| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 660 | `7ea548e37b5bcb43302dd063ce495ea4aa1dc80dba4cb56cffb72f21841f69da` |
-| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `c6114e2fda195b31943829d71230fcf06c4d5b5a8128cf9eda4a2446ac02a14b` |
-| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 4040 | `7046eef0be7c30d75b7790a9aa70456e313500dc3e0d9eff6083e249d3441f35` |
+| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 659 | `5bf7f5888878e18df3e2499a9657b654a6fe223471da6226f44d54f577fa15fe` |
+| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `ec4a06a6973d4e8c1c9ad587a351632b4f1affdfe6a5b3f42adc024cf41c0539` |
+| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 4040 | `5de8ba706fcfe01de2872b43dab43d602afb7ffc12a58285e32968195402f64f` |
 | `validation/logs/projection_manifests.txt` | `validation_evidence` | `validation_evidence` | 511 | `69fa3ce535fa3fc7d9a6e71446b6b4209dc4f1e8c728d0e7a22096933703a6ab` |
-| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 873 | `98c07cf2f30347d2d32d0751460a5c3ca8c0eba416e29a11f51c711cb0964a07` |
+| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 873 | `e8f2750f283d578d8844fb149ceb24fc4914855b9aa4936898caf1a9ec30e063` |
 | `validation/logs/recursive_alignment.txt` | `validation_evidence` | `validation_evidence` | 70 | `e5e2d7db7b0c91990f7fdf089e78d343fd212368e0ad3f99c300b5fdd530f993` |
 | `validation/logs/shell_syntax.txt` | `validation_evidence` | `validation_evidence` | 23 | `a0c54f351e5a214abe7090433031f08eb3a95539d861058de5c2d7da6309d2d8` |
 | `validation/logs/source_quality.txt` | `validation_evidence` | `validation_evidence` | 67 | `ef7d5def1ed0ca45adb26163fb4ad8c9ba8b01003dfba8731f3dcece6819af08` |
 | `validation/logs/validation_evidence.txt` | `validation_evidence` | `validation_evidence` | 62 | `b458ca9ab0f3bfc62b1e19838579c88c4f824bb502249e68fa3bc48b61d61b2e` |
-| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 892 | `a1a82675c4e379152e3f628ee95de6322eca85a0a4739be10c592be4b839d589` |
-| `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 213 | `7190fb6cc672d00e80e06d37fb729be5d43dba1039c2bf98a5136c2f6f676c66` |
+| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 892 | `a386dfdd5c3d48ebbf55b8f709a195e2ec3921b37eb3092da93cea4a2230caf5` |
+| `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 169 | `e7c770a6553f6bda8d0985bf4d9785c89e69630d1a4d8670a7e1030ea1389441` |
 | `validation/logs/wiring_audit.txt` | `validation_evidence` | `validation_evidence` | 34 | `793c15ba055bb491d4c8acc1131db60e9dbf9f4d2bbc0368ca4eed69e3c787bf` |
-| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 11317 | `e25d0239ae0638f5b5ff09fcadf49ba0d974af15c3389019444dff344fa1212f` |
+| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 11317 | `c3905bd17619cdc289da326327141d7a8e497345e3bf584e9fe1d3f54a89e988` |
 | `validation/validation_findings.jsonl` | `validation_evidence` | `validation_evidence` | 2717 | `5f2afa8ba52b03d2451510acc296faaddfc3046e5f787c5d769cc560e7edb700` |
 | `validation/validation_report.yaml` | `validation_evidence` | `validation_evidence` | 474 | `edfe4c42452a880dba112f7c178e22c27e5172bd3f2777eefb063b8ea80cdc96` |
