@@ -38,16 +38,16 @@ updated: 2026-07-22
 | `assurance` | 91 |
 | `ci` | 7 |
 | `configuration` | 10 |
-| `documentation` | 19 |
+| `documentation` | 121 |
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 111 |
-| `repository_root` | 55 |
+| `repository_root` | 59 |
 | `skill` | 2 |
 | `tests` | 62 |
-| `validation_evidence` | 30 |
+| `validation_evidence` | 31 |
 
-- Hashed inventory files below: **473**
+- Hashed inventory files below: **580**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -61,19 +61,23 @@ updated: 2026-07-22
 | `.github/workflows/ci.yml` | `ci` | `ci` | 1240 | `80652cffc4ea9770bb43ed85e1eafe795087b7618a280a5a05c86317bdbf2412` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1131 | `fc0c1d03146e25d7ddf704c8d7b434a6ff1491d06ed7862c8ff591238f8638ff` |
-| `.github/workflows/typescript-client-publish.yml` | `ci` | `ci` | 1532 | `9055823ca5c5a3fe48b654766639926188ae826b10092dfae3d8c24d1ccca29c` |
-| `.github/workflows/typescript-client.yml` | `ci` | `ci` | 1130 | `dbbf5ebffe4ff839cdb5b1204954971abf51548076edeba3d20b14fa0c7467f6` |
+| `.github/workflows/typescript-client-publish.yml` | `ci` | `ci` | 1549 | `6e9febe7a4d4c57a954dcb2065d11c200ed6b0419e92f3e69a5f3bf771cd9319` |
+| `.github/workflows/typescript-client.yml` | `ci` | `ci` | 1147 | `c89466f9930d3d4628bc2d8ed3df9c0248a7d2e692fd2a34b4f288fa1b26cc5e` |
 | `.gitignore` | `repository_root` | `repository_root` | 859 | `5742eda9df58ea637c68e20e6fb7897c70c010795171f867acdcf01dcd80d670` |
 | `.pre-commit-config.yaml` | `repository_root` | `repository_root` | 505 | `f7d6670a379d5978d660479a51a80b86b2ad0ae1acde826f1b474d17952051a8` |
 | `.ruff_cache/.gitignore` | `repository_root` | `repository_root` | 252 | `97dcad36113408e98357a7a41cf584b43944c86194a4fcaf55ee146f2e21dd0b` |
-| `.ruff_cache/0.16.0/10740905395168245060` | `repository_root` | `repository_root` | 1036 | `525987d50f76d3653c22ab11df23dd866736d178859818555cd762bc972603cc` |
-| `.ruff_cache/0.16.0/1306253599190123470` | `repository_root` | `repository_root` | 212 | `4c1251f7b73c5e3f9ef1cacf7548f618d5de06ae7eb088d220272e9fc5a5ba6d` |
-| `.ruff_cache/0.16.0/1389661404745731786` | `repository_root` | `repository_root` | 724 | `36dbb84bb50b7154152b7cdf29c6f5b94a7bc752189684a67e17ef5507215357` |
-| `.ruff_cache/0.16.0/13898122673152873449` | `repository_root` | `repository_root` | 6164 | `c1e284505b5fd857d2dd2e813d67f487ada57d217e1ff6fcfda12e2cc9d23b31` |
-| `.ruff_cache/0.16.0/14332766081603738310` | `repository_root` | `repository_root` | 500 | `9553074f79d95d73678aac8399dc5fc79487b28832d0e299f2b47a3110b4ef86` |
-| `.ruff_cache/0.16.0/15294461502390840738` | `repository_root` | `repository_root` | 308 | `d579eb54cdc3f3549b083ef4fa0688c65d257a83a82f4d5f67908b1f148b90f5` |
-| `.ruff_cache/0.16.0/2133839725938318472` | `repository_root` | `repository_root` | 1204 | `79cd0f4616ac95e871b6a71b47ae9ae0f7468b41d090d4f3c0a3deea227c46e8` |
-| `.ruff_cache/0.16.0/3927664254220258417` | `repository_root` | `repository_root` | 3180 | `cca288d11b0d3dcc92459427506b6b4ba1662c25ec7e15039dc7219692df1d98` |
+| `.ruff_cache/0.16.1/10074992478097810397` | `repository_root` | `repository_root` | 3156 | `e0aa2f58991f511df2dbc1d2a4d1c30e2a18816fc0d1d954c499a193ae660bea` |
+| `.ruff_cache/0.16.1/10953375893848893094` | `repository_root` | `repository_root` | 220 | `7e0ea302af8f8972eb1f2595c834f9aa2e5ee00d7396f9c3335df22ef622dacc` |
+| `.ruff_cache/0.16.1/1119762449111862912` | `repository_root` | `repository_root` | 220 | `7ee3f2eb39c31be3ebfd8f36c0948313f9fdc390ebf4bde30b8c02f4f1aac6df` |
+| `.ruff_cache/0.16.1/11383326039859696432` | `repository_root` | `repository_root` | 6140 | `1b4dedc5f4bfeda80867610547e8fff882e256bace392eedee04745b1a48a006` |
+| `.ruff_cache/0.16.1/13739089606675564216` | `repository_root` | `repository_root` | 476 | `e3ec56ce919554c95e32ecc50e7ceb22561ac7060e58ddd8445c94ae5d95549d` |
+| `.ruff_cache/0.16.1/18026308352313292522` | `repository_root` | `repository_root` | 700 | `b2f0c26c99a4a8e338345f91fc7c2f2f9b163464fbaa5c323a240e36c803fade` |
+| `.ruff_cache/0.16.1/1870080823556716037` | `repository_root` | `repository_root` | 268 | `972bae6be4bcdf3ef32453b922b74283c95d3aaa861129670ce9b5d5f7ef87e6` |
+| `.ruff_cache/0.16.1/2213124179809707191` | `repository_root` | `repository_root` | 188 | `ee051883cf3fddb4385914e8acfa73ccec5c22dcc6229d07a1da95e22785603c` |
+| `.ruff_cache/0.16.1/3874239431790173111` | `repository_root` | `repository_root` | 220 | `4819437b7076ca651833575788b208ba8c75c5e1d7d2155a47337f5efa4879e0` |
+| `.ruff_cache/0.16.1/5712574136507922683` | `repository_root` | `repository_root` | 1012 | `9707d465022bf43075a41fdb1bead6b6d5375763b11865887ea2ff0931d4afe5` |
+| `.ruff_cache/0.16.1/7956196642146865210` | `repository_root` | `repository_root` | 1180 | `67d4924a91a6a979a9c8ffa18c70b30d5b52e78013ef64534078ddaf8a9b5b27` |
+| `.ruff_cache/0.16.1/8911727319293123185` | `repository_root` | `repository_root` | 284 | `b10c215091e83f6ba58b8ba869efd04cde30a38fb352dadec734876f5e3b96da` |
 | `.ruff_cache/CACHEDIR.TAG` | `repository_root` | `repository_root` | 43 | `5953156d7e0c564a427251316eaf26f8870e6483ae2197f916b630e4f93e31ae` |
 | `AGENTS.md` | `repository_root` | `repository_root` | 1266 | `c346c82e66ad3854449c7d00eac3992c5b9de1c4395fffab0a10c9f609301b71` |
 | `ALIGNMENT.md` | `repository_root` | `repository_root` | 1675 | `5ce57067860473dbc010cc8ab7ab5ea65d5ff66d9cc02f567745c1eb350cf255` |
@@ -116,6 +120,108 @@ updated: 2026-07-22
 | `docs/RECURSIVE_HARVEST_AUDIT.md` | `documentation` | `documentation` | 4921 | `370cb913d5117345bd2355672c86115d1d4f6b875539e3cdd0e30aa55de1b393` |
 | `docs/REMAINING_PRODUCTION_PROOF.md` | `documentation` | `documentation` | 2088 | `dafdd5c6268d2cdb89ccc183b7c127f4fa7a0d8a21cd6b1587bdd0f71406426e` |
 | `docs/REMEDIATION_AND_INTEGRATION_PLAN.md` | `documentation` | `documentation` | 6077 | `b5f0314090e0c3f19d10e5c27690eb7f1bcd9bfb27407f3e32b65833c9bb66b3` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/.npmrc.example` | `documentation` | `documentation` | 100 | `df60d9366deaba0c0b5c5574b6312f2cfb31cce6db343137e6fb50fde90cded5` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/AUTHORITY.md` | `documentation` | `documentation` | 4735 | `c1e82c3877941f535d05cc68c91bf57c9036a52c1405da1195ae5f8f15f3f8f1` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/CONVERGENCE_REPORT.yaml` | `documentation` | `documentation` | 1010 | `6ef062de69547ff679ecab9cc94c8b3a6e264f36028784c17fe7ca31f8aa371a` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/DELTA_REPORT.md` | `documentation` | `documentation` | 1304 | `4ad22d5361d2546949409e57eb48cb62650e2aa1ba439043e02f5e442d6de570` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/MANIFEST.md` | `documentation` | `documentation` | 12624 | `53311a532e4132c55f2af2e5e0194aa651f82f879f40564ce28b7b9914a61ce8` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/MANIFEST.sha256` | `documentation` | `documentation` | 10614 | `b1f572dfdc4cc40744f1f9cff2c4b2f9d37e9323e3779038bf2e452b4ae56ac7` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/ORG_PR_TEMPLATE.md` | `documentation` | `documentation` | 1446 | `69e1d6a4640b84005a66a91f5149769580a2c0834b1ceb9524249165a5b660fb` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/PACK_CONTRACT.yaml` | `documentation` | `documentation` | 2038 | `9e969dfb4f13cd2db4997098d5d2550cc66c523bd25c2f0972639eb37faf71ae` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/PR_STACK.yaml` | `documentation` | `documentation` | 2356 | `f97df398b70cd59e79457345be76f720b5bf38a29fb319e82dac66b2ee653d46` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/README.md` | `documentation` | `documentation` | 1446 | `ac2181a12e79e3b5262654fe56af26f293172a0691dcaf61a42914231c31e8ba` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/RECURSIVE_AUDIT_REPORT.md` | `documentation` | `documentation` | 6364 | `f95691432e8fd0593ac32ee47addf6a977a3abf421b06ec071c9f58ef93633e1` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/RUNBOOK.md` | `documentation` | `documentation` | 5611 | `262ebfa21512920ae164be7e9388a15038473999d10a85af412d05f44d7431c9` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/VALIDATION.md` | `documentation` | `documentation` | 3896 | `a7d3c10d5e331c1be0f98176560e1a0f0b6541456625c0a46e146d7e714db840` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/improvement_log.jsonl` | `documentation` | `documentation` | 3742 | `2f8a1770e3b51524fcc7e3efd41f0b15936d5e6717b1b834ce88311c9a14142f` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/manifest.json` | `documentation` | `documentation` | 17497 | `dd66970882adce35f7b8c92e1df8718f6ea1c27646da4133fed1389649609b5e` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/PR_METADATA.json` | `documentation` | `documentation` | 559 | `ff8e6bea02b79c0a549b4b290944a041205b423aeb1922afdd9b919d12d37e19` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/REVIEW.diff` | `documentation` | `documentation` | 22982 | `01ef6e1a426485b366316f6fdc51cbe439ca11ad2b911a84b8adb7b87ac5d6e1` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/apply.sh` | `documentation` | `documentation` | 2009 | `c23debf01327788b343c512acdf4c964285fb04e54bf92caabbf5fba5118b559` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/base-branch.txt` | `documentation` | `documentation` | 5 | `6403203dd5a0867eb14d104ee8a73730bd72dd9ad92e78d996a6dba0a5dcfc01` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/base-sha.txt` | `documentation` | `documentation` | 41 | `2049fc5a258a95bf3e92cd4568549b922f39656a119d7409a479dc29e931c374` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/branch.txt` | `documentation` | `documentation` | 34 | `e3747f325b9f768dc54a19f864d2a6568117ebfbbdfd093b2ff3e0a43f668425` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/commit-message.txt` | `documentation` | `documentation` | 48 | `defd921f4d4a30919c40c296bc18d2dbd527d1e6f68e0a41a53c0e82a88f923a` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/depends-on.txt` | `documentation` | `documentation` | 14 | `c1f671d24c8a0531c9b018e3f548e0b4e7db08727701fb310f004567bce305c3` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/files/.github/workflows/memory-stack-dependency-gate.yml` | `documentation` | `documentation` | 1370 | `6a81b602794a8949c53dcd54d693080d4d2e5c0db0e28d0c2b44f9a47a6be4b0` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/files/package.json` | `documentation` | `documentation` | 2251 | `a6a7318f3148eebee466871a648fa649f4324b97e81d2c1dcd05360e70b90da4` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/files/src/budget/index.ts` | `documentation` | `documentation` | 13888 | `faf6693732405a0a56a5466b751993b45033a7c2a29f01dd7a60fab2bc554aaf` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/files/src/index.ts` | `documentation` | `documentation` | 12775 | `3351eba48a4c857c6cfe9c7417212184d9f886e0146ba12a1739648e2f383b74` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/files/src/memory.ts` | `documentation` | `documentation` | 817 | `17ddb0844c8f9a7e830b7d21c7fcfa6e8ed602dcc5b2ee2b79fc96113d39b414` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/files/tests/external-budget-store.test.ts` | `documentation` | `documentation` | 5296 | `2f6fa569754e1aa5748437b50e87f7106a0c4b323d6895bc398fea161fa44a35` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/pr-body.md` | `documentation` | `documentation` | 4193 | `87cd1746ecb442161a431b437117d96e7aaea655bbee5a883086aa5fe72297ce` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/pr-title.txt` | `documentation` | `documentation` | 48 | `defd921f4d4a30919c40c296bc18d2dbd527d1e6f68e0a41a53c0e82a88f923a` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/PR_METADATA.json` | `documentation` | `documentation` | 645 | `9474f9880065d29de3e81a34422ae97cf7058b19f4dac8e0b445b60824ab2f5b` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/apply.sh` | `documentation` | `documentation` | 2077 | `15f7c0226fb3219c54c2f8a6b5c00126955d09ce1253efe912ada072f30a916b` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/base-branch.txt` | `documentation` | `documentation` | 5 | `6403203dd5a0867eb14d104ee8a73730bd72dd9ad92e78d996a6dba0a5dcfc01` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/base-sha.txt` | `documentation` | `documentation` | 41 | `a862ab38598ebd2c7f805eb04beebd0c97afbc7abc2297da4ea4eb8b85556b41` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/branch.txt` | `documentation` | `documentation` | 44 | `01c6b5884ec5cf2d0e32513430f89fe64917d560f323e3d2fc87371d2ce172a6` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/commit-message.txt` | `documentation` | `documentation` | 66 | `37d0af3a4dbf4ebb33931dff792b486062a20b56a4093f315efd2eaa64d18b8c` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/depends-on.txt` | `documentation` | `documentation` | 56 | `7853315034e7ffc0e057afc43cafdebed6a8cb0936230467bdea86a0d5716c9e` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/.github/workflows/memory-stack-dependency-gate.yml` | `documentation` | `documentation` | 1516 | `e73fa2765f3ae9d10440c0f149a42d6a286fb797ad76b5ec933b590228e89693` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/package.json` | `documentation` | `documentation` | 2544 | `88c6f707f49aab557d4180d64c13d09796faeb4e3544558c9831437312d68bd1` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/src/api/clients/register.ts` | `documentation` | `documentation` | 6739 | `b188b94c5b3306ae251bd89e56bce10eabaff5b7f9ec1e81d293e8cdff1fc234` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/src/index.ts` | `documentation` | `documentation` | 2566 | `9bbb1080ef30086f40949035886071a5b4e14cb6df171e34b6549f4eb16b6074` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/src/services/llm.ts` | `documentation` | `documentation` | 11801 | `25d09b4464a58f0f3ed39d6399d1d3fd24da8a872aa5b4ec1b820363ac8fcea0` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/src/services/maintenance-readiness.ts` | `documentation` | `documentation` | 5829 | `1d7efec2d5690dd4fa180b4f4618a2cd3698fc875d827cf83850817814e10037` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/src/services/memory.ts` | `documentation` | `documentation` | 8256 | `d4fc1f55733f9630358370e2c7a39ef191b04cdd0712e4795169a9667e0f9dd8` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/tests/api/register-enriched.e2e.test.ts` | `documentation` | `documentation` | 5993 | `2f60996bcec68e7a6cfcd3b9fc7c6b0635ed49557e0572640cdf0eee586d69ec` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/pr-body.md` | `documentation` | `documentation` | 3529 | `acb228435ffa76ea50dda1c5dddadf647865a644970afb55cdada8a673c02a3f` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/pr-title.txt` | `documentation` | `documentation` | 66 | `37d0af3a4dbf4ebb33931dff792b486062a20b56a4093f315efd2eaa64d18b8c` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/transform.py` | `documentation` | `documentation` | 2847 | `ac4f4366b3c95d0e718e56aac1d55e220852ad5eb17e5c66e8467a71447d925a` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/PR_METADATA.json` | `documentation` | `documentation` | 608 | `1dc3f24c5a677a4dfbc9717ad51798fe8209ff1587216a8496135f4915468c76` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/apply.sh` | `documentation` | `documentation` | 2221 | `1e05fe7fa5d75b754bbeabc6d600599bdb1dd828299379ab3702b54668acf73b` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/base-branch.txt` | `documentation` | `documentation` | 5 | `6403203dd5a0867eb14d104ee8a73730bd72dd9ad92e78d996a6dba0a5dcfc01` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/base-sha.txt` | `documentation` | `documentation` | 41 | `ea112727a87183b16de564012e65feda80fdf88f5786370f76d66e356f4b7dbd` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/branch.txt` | `documentation` | `documentation` | 43 | `1dcd806a42cb71f4d61157ea658f7bcfe3c5889866940ffdf06610ccbbbcf99b` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/commit-message.txt` | `documentation` | `documentation` | 80 | `dcb31374240eb26d26905d494d724e0693826e087b0a61eb648c3703fc04c1f9` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/depends-on.txt` | `documentation` | `documentation` | 33 | `d6b504f66ca1ca5b4b291b3037154fe3fef1b8f131ba71dce0be0ffe66abdf02` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/.github/workflows/bot-interop-publish.yml` | `documentation` | `documentation` | 1350 | `c03701dc7a7f9c40b09374565ed60b3aa75741ef70f5e89e07424a335c9576ed` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/.github/workflows/bot-interop.yml` | `documentation` | `documentation` | 1125 | `c2073390a7944803ac0535d86b31aa26096ce07d6203cfe696c7f177389a6cc8` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/.github/workflows/memory-stack-dependency-gate.yml` | `documentation` | `documentation` | 1432 | `ea73566f611a5e5e78ad2857642d50e4356305732df15d178dc0aa23dab5c816` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/package.json` | `documentation` | `documentation` | 4857 | `91063bdda86653715451dfc8cde59dccf0ab7efb6c27591cea7edbd22b9b0ce7` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/packages/bot-interop/README.md` | `documentation` | `documentation` | 560 | `2191a73f06617b1d994ee771e7dc2e58c6ce5b5146cc03068284c9d941435171` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/packages/bot-interop/package.json` | `documentation` | `documentation` | 838 | `ec3d57955be74911628821b452c91620f77b6b244c03b636464744f2b2804c15` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/packages/bot-interop/src/ack.ts` | `documentation` | `documentation` | 2726 | `0ce9f8280dab546a78226e322990f9c8f83908b3f9bba92fed6ddfaa01a0b68c` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/packages/bot-interop/src/handoff.ts` | `documentation` | `documentation` | 7136 | `a22f41d1cd4b25d344706e1b225c1958fc48eca2a1320821dd50a5edd29cd56c` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/packages/bot-interop/src/index.ts` | `documentation` | `documentation` | 56 | `62e62255a06aea20e7255c787c10125b8624d4459e472f490807a559a64dc409` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/packages/bot-interop/tests/contracts.test.ts` | `documentation` | `documentation` | 3104 | `7193ef17c9e97b14d3fcc9addcc4cace5af4e26e74ee7179b3ee5ea7940010d9` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/packages/bot-interop/tsconfig.json` | `documentation` | `documentation` | 314 | `058209d5729d72a881aa3838fa47c1d197385f6e8aea6a9222b8c5cdd95c95a1` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/src/contracts/SeoBotRegistrationAck.ts` | `documentation` | `documentation` | 156 | `1fe68910b50b4b0ef4f50aca37d78d57719db230ee48d294ae44410dbac41343` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/src/contracts/WebsiteFactoryHandoffV3.ts` | `documentation` | `documentation` | 7076 | `8fcaf6cf7480340ffdc53abbdb96adc32ad57921108431330f1eb692de2e82a5` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/src/services/llm.ts` | `documentation` | `documentation` | 4720 | `36fb292285fc4b3c689ce6067998c47b96622f6dcc53da87417f2b79dc3234d8` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/src/services/memory.ts` | `documentation` | `documentation` | 3372 | `d856eafe95a895ccef04bff296e2f5ee183a3e292ba68a685b3011ac94980728` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/src/stages/HandoffEmitterStage.ts` | `documentation` | `documentation` | 7437 | `91c46306b27c1b7d621af7b400e2eb0357424cb5ee47db501515008de08a4b58` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/pr-body.md` | `documentation` | `documentation` | 3215 | `0128f562f082b3504f0cfd98efb16d686732017dc1c8fe1504c06d85f0c30320` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/pr-title.txt` | `documentation` | `documentation` | 80 | `dcb31374240eb26d26905d494d724e0693826e087b0a61eb648c3703fc04c1f9` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/transform.py` | `documentation` | `documentation` | 653 | `87086c5b7bee85580a8a966a1c4514ca8ab04e2f7dc6dc9c7a888cd618aaa1be` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/PR_METADATA.json` | `documentation` | `documentation` | 543 | `eaba58d85f9cd82f384f1d2a60887bcff8c6cb869e977dfcfce965d801b1619d` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/apply.sh` | `documentation` | `documentation` | 2532 | `f1bc22358485145c324e54314b190d03e5e79b8c72420f315e633015e8a11e11` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/base-branch.txt` | `documentation` | `documentation` | 5 | `6403203dd5a0867eb14d104ee8a73730bd72dd9ad92e78d996a6dba0a5dcfc01` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/base-sha.txt` | `documentation` | `documentation` | 41 | `bad5ff27592aaec1f06822f0bd2275c783a65438354f5bda7606f4cfb5b7d5ea` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/branch.txt` | `documentation` | `documentation` | 30 | `27be357801135bb903b27cc512a22d31ca8a0ac2899103016f6b7e492b58e734` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/commit-message.txt` | `documentation` | `documentation` | 61 | `123479961d468096e55d25facc3c57cb270373a009d96002938483ba24f95536` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/depends-on.txt` | `documentation` | `documentation` | 5 | `fcf33dfbe13c2354bf0e1b063f9fb422747a46cee00b7420bceff2b81457b345` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/.github/workflows/typescript-client-publish.yml` | `documentation` | `documentation` | 1549 | `6e9febe7a4d4c57a954dcb2065d11c200ed6b0419e92f3e69a5f3bf771cd9319` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/.github/workflows/typescript-client.yml` | `documentation` | `documentation` | 1147 | `c89466f9930d3d4628bc2d8ed3df9c0248a7d2e692fd2a34b4f288fa1b26cc5e` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/.gitignore` | `documentation` | `documentation` | 241 | `1d5b064bd1c842c4de03f06db85b14a3592e57fe45030462e6341e69b621f432` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/README.md` | `documentation` | `documentation` | 741 | `c636e0e4d17694f217dade705c2bb35af22b313132136dc7f403c4c18f2df822` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/package.json` | `documentation` | `documentation` | 856 | `d9a99d734beb2052bba4da9334ebd47932195367a31250b2035e2a5a2416ae60` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/src/index.ts` | `documentation` | `documentation` | 13953 | `0c1292ead967df7bfd9783358f108ec313988b9b5bebe5d12bf4d4f2088ffcee` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/tests/client.test.ts` | `documentation` | `documentation` | 4021 | `18db7b02461f9c4d3850734545331952e562bc22ef81d7d41b2b6268ca037d06` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/tsconfig.json` | `documentation` | `documentation` | 344 | `a5823ee2983312fb94e7148e3d01aa2d9dafb19d3a49f018f7b4621b7d9a1910` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/tools/assurance/check_recursive_alignment.py` | `documentation` | `documentation` | 12546 | `8841e220172ae81a632ec901ee875741b4879bea418ce88fdb62b3dce3fe178e` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/pr-body.md` | `documentation` | `documentation` | 2965 | `39cfc3cae73cb59157035f0b69820f283db6cbd089d5c8f2afc824e4bb130756` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/pr-title.txt` | `documentation` | `documentation` | 61 | `123479961d468096e55d25facc3c57cb270373a009d96002938483ba24f95536` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/apply-all-source-only.sh` | `documentation` | `documentation` | 876 | `7a22503b494984893f06cd6ef930904f671e46f8b50d8741c4a7ce8fb1177352` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/preflight-stack.sh` | `documentation` | `documentation` | 1742 | `11975b9daa7604d89e6fb57c8a515f12c97de39a7d27ccfd1d9dc52bb52f09a8` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/prepare-stack.sh` | `documentation` | `documentation` | 1447 | `0e387f3bf6d22db47e7683b574d3aefbc1ad67202c9898227fb6b747bf90b280` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/provision-bot-principals.sh` | `documentation` | `documentation` | 3331 | `e4113a4993dcc9d4a53f967697e6d2eacf9152b18bbac695da7d7f3a81c09f00` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/push-stack.sh` | `documentation` | `documentation` | 2150 | `60c731c398c55b3f09182248071737e886a2853f3021602a03789511111e1058` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/regenerate-manifest.py` | `documentation` | `documentation` | 2766 | `f73e0d267edbdf346fd5b178cc16ba818be7aa27d89ede77cdd1a176d81437ea` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/test-apply-safety.sh` | `documentation` | `documentation` | 3274 | `755994ed18ea2ef250c37c8497e893b59d64581e69939c85e939d141b1628ff5` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/test-isolated-contracts.sh` | `documentation` | `documentation` | 1695 | `ca2d2e4f0aa530b4e0090125d184e5f0d13bdd171f9eedbe7fe61efd05c0f812` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/validate-pack.sh` | `documentation` | `documentation` | 7386 | `841ff1dbebbc16db5ce2ce3d30544490b01552b6c9dc847079735c2f295db5cc` |
 | `docs/activation/ACTIVATION_REPORT.md` | `documentation` | `documentation` | 3697 | `d37073dd495a9d310783c6d77de220d794ef98914689495fd586012f0bebb0ba` |
 | `docs/activation/ACTIVATION_STATE_MACHINE.yaml` | `documentation` | `documentation` | 1158 | `2d9ce439b97a172d5f672f111ab289247ca5cc554ba9225ec930dd0e338e14fb` |
 | `docs/activation/ACTIVATION_UNKNOWNS.md` | `documentation` | `documentation` | 2492 | `d615ac41c1c2da8050058eb906ca052d49b905ec4b87130ce2cc72ce503d9823` |
@@ -408,12 +514,12 @@ updated: 2026-07-22
 | `tests/unit/test_schema_registry.py` | `tests` | `tests` | 964 | `008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee` |
 | `tests/unit/test_server_principal.py` | `tests` | `tests` | 870 | `ee90435a75d372007b48334e9cbe8b16e05af6a370e4c43af04d34cd9262c982` |
 | `tests/unit/test_zep_transport.py` | `tests` | `tests` | 2594 | `130bd0c3c2dd41d9abdb37c1b4e87a4a81d7e0e00c42de25af52ab76915d6dda` |
-| `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 5563 | `023c4b21dab4df78ce9835378f4e625d45073ead12477c420a11cf00a1a880bd` |
+| `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 6080 | `4203d69a18a55142151c77b3498bd6ce11182e9c1d9dda968c374a6f655800c8` |
 | `tools/assurance/audit_package_wiring.py` | `assurance` | `assurance` | 4500 | `3d68cc6de8e1d329fb6e0dd78cca2f23c5405b9db8c156c782ae8e7bd9d86018` |
 | `tools/assurance/benchmark_local.py` | `assurance` | `assurance` | 4785 | `b42d3c76d88af1a6337869c8bb988bcd36bfa202b026a66aa139db894ce223e1` |
 | `tools/assurance/check_active_memory_public_api.py` | `assurance` | `assurance` | 2365 | `5af8fd2e02d6d7b6b71df7152060fec43db66552da9e1448a177e8f6f694d811` |
 | `tools/assurance/check_config_drift.py` | `assurance` | `assurance` | 3316 | `08cddccd1462182cbbd007782b297cebb2b2e10331be33c71badf0fc6acdce73` |
-| `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 3655 | `29b93ec38c9a77ba05e891b39d700f4b15c51565a9145066376e9fbca7879903` |
+| `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 4257 | `1c8b8ebb0ca50057e8c595e05e33311091df7fcbf0d33eb7863760df88ff8fd4` |
 | `tools/assurance/check_layer_boundaries.py` | `assurance` | `assurance` | 3341 | `c504e3864969a96f7474641d31dc9d8e25008c871a940ca157c27f5b43e27f92` |
 | `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 3987 | `54e61339090f56420312a9d6edf63f011e1edb2ad4db4dbb0cc4eed7b24cedbd` |
 | `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12546 | `8841e220172ae81a632ec901ee875741b4879bea418ce88fdb62b3dce3fe178e` |
@@ -500,32 +606,33 @@ updated: 2026-07-22
 | `tools/phase6/tests/test_hardening.py` | `assurance` | `assurance` | 41037 | `19507aa553e0fa6da00a7ea5b96e449537be2daa48cf927d4d105810fb92c115` |
 | `tools/phase6/validation_report.yaml` | `assurance` | `assurance` | 1497 | `93351fb155a5b74c4fb46fe38c276d6a88912583ef5678261fc13af221026f36` |
 | `validation/SHA256SUMS` | `validation_evidence` | `validation_evidence` | 108 | `56df4bc24a8972551b9435b4d1de17449f52c5a462da3960e2d425d4a9b1eccf` |
+| `validation/dist/l9_graphite_memory-2.2.0-py3-none-any.whl` | `validation_evidence` | `validation_evidence` | 188288 | `45a6bc56329f8eb7ee9577c89d332eec6b38e521b5ae2e5ccb946e5233448181` |
 | `validation/logs/adr_validation.txt` | `validation_evidence` | `validation_evidence` | 35 | `fc98d60ebbfffe2601f5bfde9ca434b200fce0c05c8e57e0d6094d14257c32ff` |
 | `validation/logs/bypass_check.txt` | `validation_evidence` | `validation_evidence` | 50 | `7138de56268f741122706f70a72e61409f2729eabf9284d570d69643834ef520` |
 | `validation/logs/committed_secrets.txt` | `validation_evidence` | `validation_evidence` | 200 | `80e92f5557ab8a050e1aa12d5dd276dbdf727b4f6523246bba108bb41a883bfe` |
 | `validation/logs/compileall.txt` | `validation_evidence` | `validation_evidence` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 | `validation/logs/config_drift.txt` | `validation_evidence` | `validation_evidence` | 122 | `dc0c81f558b8a41eff16a5ad07b4c65615b10c11c149202d1db27ea0d6a5c3e0` |
 | `validation/logs/harvest_coverage.txt` | `validation_evidence` | `validation_evidence` | 101 | `a77c2c5914680700e64b06e52391499d845f15b5cd94bb5959a5f91d9a6ba336` |
-| `validation/logs/installed_cursor_client.txt` | `validation_evidence` | `validation_evidence` | 1449 | `9d5398c09df9b2153986821c684496232a51eaa181e6777729f9286aa8622f2f` |
-| `validation/logs/installed_cursor_probe.txt` | `validation_evidence` | `validation_evidence` | 996 | `740b82da60219b3f173321f11637b498616c35ed3f2f2680413e2b5388fbe4cb` |
-| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 485 | `3848f76c9351a7d618d00a5e9f98981b2e7fb4238c5c7afacae179e4798fb401` |
+| `validation/logs/installed_cursor_client.txt` | `validation_evidence` | `validation_evidence` | 1449 | `d757d7a2650675998fd5d23b610d1535c16849872f733c2e2f8388d7212b1aea` |
+| `validation/logs/installed_cursor_probe.txt` | `validation_evidence` | `validation_evidence` | 996 | `f7901e24b088186dbcd7334757f7efcb8beff6642ad478ede454f9434321c76c` |
+| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 485 | `ada89cb4e41438ca8f8f759872602c38d416b3ed5f3a686549b90512c3d20614` |
 | `validation/logs/installed_mcp.txt` | `validation_evidence` | `validation_evidence` | 74 | `ebf9b42a68c28f17711c394515c4e08e0cda8dfa1148d6f5d03ee03537c0593b` |
 | `validation/logs/installed_resolve.txt` | `validation_evidence` | `validation_evidence` | 137 | `eae6487763b5416bca0bd4e711b38b74b9231186d8682cf75cea4615fc74efd2` |
 | `validation/logs/l9_meta.txt` | `validation_evidence` | `validation_evidence` | 83 | `e305e6a7e79c48e68745c71dc7b65912068010b67a512ae8498745be7137adf0` |
-| `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `cb9b24685725174c9f8a99ad71c0fb7d83dc50e6759a69da6f09d35e3022e765` |
+| `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `d455efc432cf1b97757890f92a4f8467b902112486c661f319211629415b3514` |
 | `validation/logs/layer_boundaries.txt` | `validation_evidence` | `validation_evidence` | 80 | `3a9e49589664f3aa63e6e470f64d79e8db7957485afb4027533c1c654e07005b` |
-| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 659 | `5bf7f5888878e18df3e2499a9657b654a6fe223471da6226f44d54f577fa15fe` |
-| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `ec4a06a6973d4e8c1c9ad587a351632b4f1affdfe6a5b3f42adc024cf41c0539` |
-| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 4040 | `5de8ba706fcfe01de2872b43dab43d602afb7ffc12a58285e32968195402f64f` |
+| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 659 | `68170e46807bc6b7d52b2da327ce1e41a969037e2765309c8e4d39462201e6f3` |
+| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `cd811ebb4db996e5c498363548e6dfcf4c8d35d5a3c0d3bc7cf707588fc77cd6` |
+| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 4041 | `abcfd33a6485139e9118b44016790e58d331cb5a8dc680b8edea966bad590b1a` |
 | `validation/logs/projection_manifests.txt` | `validation_evidence` | `validation_evidence` | 511 | `69fa3ce535fa3fc7d9a6e71446b6b4209dc4f1e8c728d0e7a22096933703a6ab` |
-| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 873 | `e8f2750f283d578d8844fb149ceb24fc4914855b9aa4936898caf1a9ec30e063` |
+| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 872 | `fec8a100798eefa8e3959279f43bacd10420988d63bc19f8d123bbf80bc6f7db` |
 | `validation/logs/recursive_alignment.txt` | `validation_evidence` | `validation_evidence` | 70 | `e5e2d7db7b0c91990f7fdf089e78d343fd212368e0ad3f99c300b5fdd530f993` |
 | `validation/logs/shell_syntax.txt` | `validation_evidence` | `validation_evidence` | 23 | `a0c54f351e5a214abe7090433031f08eb3a95539d861058de5c2d7da6309d2d8` |
 | `validation/logs/source_quality.txt` | `validation_evidence` | `validation_evidence` | 67 | `ef7d5def1ed0ca45adb26163fb4ad8c9ba8b01003dfba8731f3dcece6819af08` |
 | `validation/logs/validation_evidence.txt` | `validation_evidence` | `validation_evidence` | 62 | `b458ca9ab0f3bfc62b1e19838579c88c4f824bb502249e68fa3bc48b61d61b2e` |
-| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 892 | `a386dfdd5c3d48ebbf55b8f709a195e2ec3921b37eb3092da93cea4a2230caf5` |
-| `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 169 | `e7c770a6553f6bda8d0985bf4d9785c89e69630d1a4d8670a7e1030ea1389441` |
+| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 892 | `62ba5c1a2292efac85820c18901c759ee99bb0c9a5e166bea7c5fd079921b7ce` |
+| `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 189 | `69246de6bff743cf9d68735afc899d0c00d71baa36a0df489768ef0d5d882845` |
 | `validation/logs/wiring_audit.txt` | `validation_evidence` | `validation_evidence` | 34 | `793c15ba055bb491d4c8acc1131db60e9dbf9f4d2bbc0368ca4eed69e3c787bf` |
-| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 11317 | `c3905bd17619cdc289da326327141d7a8e497345e3bf584e9fe1d3f54a89e988` |
+| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 11317 | `23ad30e2a5cc32d1b350177b7aa6df6e0b79d2d30632114fbd45fdbc235bd8f6` |
 | `validation/validation_findings.jsonl` | `validation_evidence` | `validation_evidence` | 2717 | `5f2afa8ba52b03d2451510acc296faaddfc3046e5f787c5d769cc560e7edb700` |
 | `validation/validation_report.yaml` | `validation_evidence` | `validation_evidence` | 474 | `edfe4c42452a880dba112f7c178e22c27e5172bd3f2777eefb063b8ea80cdc96` |
