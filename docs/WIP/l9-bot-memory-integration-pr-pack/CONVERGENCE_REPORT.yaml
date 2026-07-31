@@ -1,0 +1,32 @@
+{
+  "schema": "l9.convergence/v3",
+  "status": "push_ready_as_draft_stack_with_external_merge_gates",
+  "pack_id": "l9-bot-memory-integration-graphiti-canonical",
+  "passes": 6,
+  "canonical_authority": {
+    "repository": "Quantum-L9/l9-graphiti-memory",
+    "service": "MemoryService",
+    "pinned_sha": "18d857688c43b0e3d4d7b2d1dc4ce0eea0d866c1"
+  },
+  "normative_artifacts": [
+    "AUTHORITY.md",
+    "PACK_CONTRACT.yaml"
+  ],
+  "pack_local": {
+    "confirmed_findings_repaired": 13,
+    "release_blockers_remaining": 0,
+    "redundant_top_level_reports_removed": 6,
+    "hard_gates_passed": true,
+    "undeclared_validation_dependencies": 0,
+    "pr_stack_contract": true,
+    "publication_default_deny": true
+  },
+  "external_gates": [
+    "native_repository_ci",
+    "live_mcp_authorization",
+    "package_publication_and_install",
+    "legacy_memory_reconciliation",
+    "production_concurrency_and_outage_proof"
+  ],
+  "stop_condition": "scoped_pr_stack_metadata_and_publication_controls_converged"
+}

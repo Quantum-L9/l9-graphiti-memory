@@ -1,0 +1,42 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/.github/workflows/typescript-client.yml
+#   layer: documentation
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-31
+
+name: TypeScript memory client
+
+on:
+  pull_request:
+    paths:
+      - 'clients/typescript/**'
+      - '.github/workflows/typescript-client.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'clients/typescript/**'
+      - '.github/workflows/typescript-client.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/typescript
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          cache: npm
+          cache-dependency-path: clients/typescript/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run verify:all

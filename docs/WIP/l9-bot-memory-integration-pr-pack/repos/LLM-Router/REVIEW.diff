@@ -1,0 +1,427 @@
+diff --git a/src/index.ts b/src/index.ts
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -1,5 +1,12 @@
+ import { randomUUID } from 'node:crypto';
+-import { BudgetReservationError, BudgetTracker } from './budget/index.js';
++import type { RouterMemoryConfig } from './memory.js';
++import { hydrateRouterPrompt } from './memory.js';
++import {
++  BudgetReservationError,
++  BudgetTracker,
++  InMemoryBudgetStore,
++  type BudgetStore,
++} from './budget/index.js';
+ import { CircuitBreaker, CircuitOpenError, type CircuitPermit } from './circuit-breaker.js';
+ import { resolveGeneralConfig, getFallbackChain } from './matrices/general-matrix.js';
+ import { isSearchTask, resolvePerplexityConfig } from './matrices/perplexity-matrix.js';
+@@ -28,6 +35,8 @@
+   idFactory?: () => string;
+   openrouterClient?: OpenRouterClientLike;
+   perplexityClient?: PerplexityClientLike;
++  budgetStore?: BudgetStore;
++  memory?: RouterMemoryConfig;
+ }
+ 
+ export function resolveRoute(task: TaskDescriptor): RoutingResolution {
+@@ -55,21 +64,29 @@
+ }
+ 
+ export class L9LLMRouter {
+-  private readonly budget: BudgetTracker;
++  private readonly budgetStore: BudgetStore;
++  private readonly localBudgetTracker?: BudgetTracker;
+   private readonly circuitBreaker: CircuitBreaker;
+   private readonly perplexity: PerplexityClientLike;
+   private readonly openrouter: OpenRouterClientLike;
+   private readonly clock: () => Date;
+   private readonly idFactory: () => string;
+   private readonly callLog: RoutingDecision[] = [];
++  private readonly memory?: RouterMemoryConfig;
+ 
+   constructor(config: RouterConfig, dependencies: RouterDependencies = {}) {
+     const validated = parseRouterConfig(config);
+-    this.budget = new BudgetTracker(validated.budget);
++    if (dependencies.budgetStore) {
++      this.budgetStore = dependencies.budgetStore;
++    } else {
++      this.localBudgetTracker = new BudgetTracker(validated.budget);
++      this.budgetStore = new InMemoryBudgetStore(this.localBudgetTracker);
++    }
+     this.circuitBreaker = new CircuitBreaker(validated.circuitBreaker);
+     this.clock = dependencies.clock ?? (() => new Date());
+     this.idFactory = dependencies.idFactory ?? randomUUID;
+     this.perplexity = dependencies.perplexityClient ?? new PerplexityClient(validated.perplexityApiKey, validated.providerTimeoutMs);
++    this.memory = dependencies.memory;
+     this.openrouter = dependencies.openrouterClient ?? new OpenRouterClient(validated.openrouterApiKey, validated.appName, validated.providerTimeoutMs);
+   }
+ 
+@@ -86,17 +103,18 @@
+     options?: { images?: string[]; assistantContext?: string; consensus?: boolean; signal?: AbortSignal },
+   ): Promise<LLMResponse> {
+     const parsedTask = parseExecutableTaskDescriptor(input);
+-    const task = options?.images === undefined
+-      ? parsedTask
+-      : parseExecutableTaskDescriptor({ ...parsedTask, images: options.images });
++    const task = options?.images === undefined ? parsedTask : parseExecutableTaskDescriptor({ ...parsedTask, images: options.images });
+     const images = task.images;
+     if (images) for (const image of images) validateImageUrl(image);
+     const decision = this.route(task);
++    const governedMemory = await hydrateRouterPrompt(this.memory, decision.clientId, task.type, userPrompt);
++    const effectiveSystemPrompt = governedMemory ? `${systemPrompt}${governedMemory}` : systemPrompt;
+ 
+     let reservationId: string | undefined;
+     let permit: CircuitPermit | undefined;
++    let providerCompleted = false;
+     try {
+-      const { decision: throttle, reservation } = this.budget.reserveTask(task.clientId, task, decision.estimatedCost, this.clock(), this.idFactory);
++      const { decision: throttle, reservation } = await this.budgetStore.reserveTask(task.clientId, task, decision.estimatedCost, this.clock(), this.idFactory);
+       reservationId = reservation.id;
+       if (throttle.forceDowngrade) {
+         decision.downgraded = true;
+@@ -111,7 +129,7 @@
+         if (!Object.values(SonarModel).includes(decision.model as SonarModel)) throw new Error('Perplexity route resolved a non-Sonar model');
+         config.model = decision.model as SonarModel;
+         if (options?.consensus && config.variations > 1) {
+-          const consensus = await this.perplexity.completeWithConsensus(config, systemPrompt, userPrompt, options.assistantContext, options.signal);
++          const consensus = await this.perplexity.completeWithConsensus(config, effectiveSystemPrompt, userPrompt, options.assistantContext, options.signal);
+           response = {
+             ...consensus.best,
+             inputTokens: consensus.aggregate.inputTokens,
+@@ -122,31 +140,36 @@
+             citations: consensus.aggregate.citations,
+           };
+         } else {
+-          response = await this.perplexity.complete(config, systemPrompt, userPrompt, options?.assistantContext, options?.signal);
++          response = await this.perplexity.complete(config, effectiveSystemPrompt, userPrompt, options?.assistantContext, options?.signal);
+         }
+       } else if (VISION_TASKS.has(task.type) && images?.length) {
+         const config = resolveVisionConfig(task.type as TaskType.VISUAL_QA | TaskType.SCREENSHOT_ANALYSIS | TaskType.LAYOUT_VALIDATION, task.complexity, images.length);
+         config.model = decision.model as GeneralModel;
+-        response = await this.openrouter.completeWithVision(config, systemPrompt, userPrompt, images, options?.signal);
++        response = await this.openrouter.completeWithVision(config, effectiveSystemPrompt, userPrompt, images, options?.signal);
+       } else {
+         const config = resolveGeneralConfig(task);
+         config.model = decision.model as GeneralModel;
+-        response = await this.openrouter.completeWithFallback(config, getFallbackChain(config.model), systemPrompt, userPrompt, options?.signal);
++        response = await this.openrouter.completeWithFallback(config, getFallbackChain(config.model), effectiveSystemPrompt, userPrompt, options?.signal);
+       }
+ 
++      providerCompleted = true;
+       this.circuitBreaker.recordSuccess(permit);
+-      this.budget.reconcile(reservationId, response.cost);
++      await this.budgetStore.reconcile(reservationId, response.cost);
+       reservationId = undefined;
+       decision.actualCost = response.cost;
+       decision.latencyMs = response.latencyMs;
+       this.callLog.push(decision);
+       return response;
+     } catch (error) {
+-      if (reservationId) this.budget.release(reservationId);
++      // Before provider completion, release an unbilled reservation. After a
++      // provider response, retain it if reconciliation fails so durable budget
++      // state remains fail-closed and can be repaired instead of forgetting cost.
++      if (reservationId && !providerCompleted) await this.budgetStore.release(reservationId);
+       if (permit) {
+         if (isCircuitFailure(error, decision.provider)) this.circuitBreaker.recordFailure(permit, this.clock());
+         else this.circuitBreaker.release(permit, this.clock());
+       }
++      if (providerCompleted) throw error;
+       if (error instanceof BudgetReservationError) throw new BudgetExhaustedError(error.message, task, decision, error);
+       if (error instanceof CircuitOpenError) throw error;
+       if (error instanceof Error && ['TaskValidationError', 'UnsafeImageUrlError'].includes(error.name)) throw error;
+@@ -154,15 +177,28 @@
+     }
+   }
+ 
+-  initClient(clientId: string, overrides?: Partial<BudgetConfig>): void { this.budget.initClient(clientId, overrides); }
+-  resetDaily(clientId: string): void { this.budget.resetDaily(clientId); }
+-  resetWeekly(clientId: string): void { this.budget.resetWeekly(clientId); }
+-  resetMonthly(clientId: string): void { this.budget.resetMonthly(clientId); }
+-  resetGlobalMonthly(): void { this.budget.resetGlobalMonthly(); }
+-  checkSurge(clientId: string, dayOfWeek: number = this.clock().getDay()): boolean { return this.budget.checkSurgeAllowance(clientId, dayOfWeek); }
+-  getClientBudgetReport(clientId: string) { return this.budget.getClientBudgetReport(clientId); }
+-  getAllBudgetReports() { return this.budget.getAllBudgetReports(); }
+-  getGlobalSpend() { return this.budget.getGlobalSpend(); }
++  initClient(clientId: string, overrides?: Partial<BudgetConfig>): Promise<void> { return this.budgetStore.initClient(clientId, overrides); }
++  resetDaily(clientId: string): Promise<void> { return this.budgetStore.resetDaily(clientId); }
++  resetWeekly(clientId: string): Promise<void> { return this.budgetStore.resetWeekly(clientId); }
++  resetMonthly(clientId: string): Promise<void> { return this.budgetStore.resetMonthly(clientId); }
++  resetGlobalMonthly(): Promise<void> { return this.budgetStore.resetGlobalMonthly(); }
++  checkSurge(clientId: string, dayOfWeek: number = this.clock().getDay()): Promise<boolean> { return this.budgetStore.checkSurgeAllowance(clientId, dayOfWeek); }
++
++  getClientBudgetReport(clientId: string) {
++    if (!this.localBudgetTracker) throw new Error('Synchronous budget reports are unavailable with an external BudgetStore; use getClientBudgetReportAsync()');
++    return this.localBudgetTracker.getClientBudgetReport(clientId);
++  }
++  getAllBudgetReports() {
++    if (!this.localBudgetTracker) throw new Error('Synchronous budget reports are unavailable with an external BudgetStore; use getAllBudgetReportsAsync()');
++    return this.localBudgetTracker.getAllBudgetReports();
++  }
++  getGlobalSpend() {
++    if (!this.localBudgetTracker) throw new Error('Synchronous budget reports are unavailable with an external BudgetStore; use getGlobalSpendAsync()');
++    return this.localBudgetTracker.getGlobalSpend();
++  }
++  getClientBudgetReportAsync(clientId: string) { return this.budgetStore.getClientBudgetReport(clientId); }
++  getAllBudgetReportsAsync() { return this.budgetStore.getAllBudgetReports(); }
++  getGlobalSpendAsync() { return this.budgetStore.getGlobalSpend(); }
+   getCircuitState(provider: Provider) { return this.circuitBreaker.getState(provider); }
+   getCallLog(limit = 100): RoutingDecision[] { return this.callLog.slice(-limit).map(entry => ({ ...entry })); }
+   getCallLogByClient(clientId: string, limit = 50): RoutingDecision[] { return this.callLog.filter(entry => entry.clientId === clientId).slice(-limit).map(entry => ({ ...entry })); }
+@@ -180,9 +216,21 @@
+ }
+ 
+ export * from './types.js';
+-export { BudgetTracker, BudgetReservationError, ThrottleLevel } from './budget/index.js';
++export {
++  DEFAULT_BUDGET_CONFIG,
++  BudgetTracker,
++  BudgetReservationError,
++  InMemoryBudgetStore,
++  ThrottleLevel,
++  evaluateBudgetAdmission,
++  validateBudgetConfig,
++} from './budget/index.js';
++export type { BudgetStore, GlobalBudgetState, ThrottleDecision, BudgetAdmissionInput } from './budget/index.js';
+ export { CircuitBreaker, CircuitOpenError } from './circuit-breaker.js';
+ export { ProviderRequestError } from './provider-errors.js';
+ export { TaskValidationError, RouterConfigValidationError } from './schemas.js';
+ export { UnsafeImageUrlError } from './providers/openrouter.js';
+ export { VIEWPORTS } from './vision/index.js';
++
++export { hydrateRouterPrompt } from './memory.js';
++export type { RouterMemoryConfig } from './memory.js';
+diff --git a/src/budget/index.ts b/src/budget/index.ts
+--- a/src/budget/index.ts
++++ b/src/budget/index.ts
+@@ -25,11 +25,98 @@
+   maxModelTier: 'fast' | 'strategic' | 'critical';
+ }
+ 
++export interface GlobalBudgetState {
++  monthSpend: number;
++  reservedSpend: number;
++  ceiling: number;
++  utilization: number;
++}
++
++export interface BudgetAdmissionInput {
++  state: BudgetState;
++  config: BudgetConfig;
++  task: TaskDescriptor;
++  estimatedCost: number;
++  globalMonthSpend: number;
++  globalReservedSpend: number;
++  globalMonthlyHardCeiling: number;
++}
++
++export interface BudgetStore {
++  initClient(clientId: string, overrides?: Partial<BudgetConfig>): Promise<void>;
++  reserveTask(
++    clientId: string,
++    task: TaskDescriptor,
++    estimatedCost: number,
++    now?: Date,
++    idFactory?: () => string,
++  ): Promise<{ decision: ThrottleDecision; reservation: BudgetReservation }>;
++  reconcile(reservationId: string, actualCost: number): Promise<void>;
++  release(reservationId: string): Promise<void>;
++  recordSpend(clientId: string, amount: number): Promise<void>;
++  resetDaily(clientId: string): Promise<void>;
++  resetWeekly(clientId: string): Promise<void>;
++  resetMonthly(clientId: string): Promise<void>;
++  resetGlobalMonthly(): Promise<void>;
++  checkSurgeAllowance(clientId: string, dayOfWeek: number): Promise<boolean>;
++  getClientBudgetReport(clientId: string): Promise<BudgetState>;
++  getAllBudgetReports(): Promise<BudgetState[]>;
++  getGlobalSpend(): Promise<GlobalBudgetState>;
++}
++
+ interface ClientRecord {
+   state: BudgetState;
+   config: BudgetConfig;
+ }
+ 
++export function validateBudgetConfig(config: BudgetConfig): void {
++  const positiveFields: Array<keyof Omit<BudgetConfig, 'surgeThreshold'>> = [
++    'monthlyBudgetPerClient',
++    'weeklyTarget',
++    'weeklyHardCeiling',
++    'globalMonthlyHardCeiling',
++  ];
++  for (const field of positiveFields) {
++    if (!Number.isFinite(config[field]) || config[field] <= 0) throw new RangeError(`${field} must be a finite positive number`);
++  }
++  if (!Number.isFinite(config.surgeThreshold) || config.surgeThreshold < 0 || config.surgeThreshold > 1) {
++    throw new RangeError('surgeThreshold must be between 0 and 1');
++  }
++  if (config.weeklyTarget > config.weeklyHardCeiling) {
++    throw new RangeError('weeklyTarget must not exceed weeklyHardCeiling');
++  }
++}
++
++export function evaluateBudgetAdmission(input: BudgetAdmissionInput): ThrottleDecision {
++  const { state, config, task, estimatedCost, globalMonthSpend, globalReservedSpend, globalMonthlyHardCeiling } = input;
++  const projectedMonth = state.monthSpend + state.reservedSpend + estimatedCost;
++  const projectedWeek = state.weekSpend + state.reservedSpend + estimatedCost;
++  const projectedGlobal = globalMonthSpend + globalReservedSpend + estimatedCost;
++  let level = ThrottleLevel.NONE;
++  if (projectedMonth > state.monthlyBudget
++      || projectedGlobal > globalMonthlyHardCeiling
++      || (projectedWeek > state.weeklyHardCeiling && !state.surgeAllowance)) {
++    level = ThrottleLevel.HARD;
++  } else if (projectedWeek > state.weekTarget || projectedMonth > state.monthlyBudget * 0.8) {
++    level = ThrottleLevel.SOFT;
++  }
++
++  // Hard ceilings are invariant. Model downgrade cannot make an already-priced
++  // reservation safe because the reservation amount was calculated before this
++  // decision. Reject and let the caller retry with a newly priced task.
++  if (level === ThrottleLevel.HARD) {
++    return { level, reason: 'Hard budget ceiling reached; task deferred', allowTask: false, forceDowngrade: false, maxModelTier: 'fast' };
++  }
++  // Critical tasks may bypass soft throttling, but never a hard ceiling.
++  if (task.complexity === TaskComplexity.CRITICAL) {
++    return { level: ThrottleLevel.NONE, reason: 'Critical task admitted within hard ceilings', allowTask: true, forceDowngrade: false, maxModelTier: 'critical' };
++  }
++  if (level === ThrottleLevel.SOFT) {
++    return { level, reason: 'Soft throttle; cheaper tier required', allowTask: true, forceDowngrade: true, maxModelTier: task.complexity === TaskComplexity.HIGH ? 'strategic' : 'fast' };
++  }
++  return { level, reason: 'Within budget', allowTask: true, forceDowngrade: false, maxModelTier: 'critical' };
++}
++
+ export class BudgetTracker {
+   private readonly config: BudgetConfig;
+   private readonly clients = new Map<string, ClientRecord>();
+@@ -46,9 +133,10 @@
+     if (clientId.trim().length === 0) throw new RangeError('clientId must not be empty');
+     const clientConfig = { ...this.config, ...overrides };
+     validateBudgetConfig(clientConfig);
++    const existing = this.clients.get(clientId);
+     this.clients.set(clientId, {
+       config: clientConfig,
+-      state: {
++      state: existing?.state ?? {
+         clientId,
+         monthlyBudget: clientConfig.monthlyBudgetPerClient,
+         monthSpend: 0,
+@@ -64,23 +152,24 @@
+         activeReservations: 0,
+       },
+     });
++    const record = this.getRecord(clientId);
++    record.state.monthlyBudget = clientConfig.monthlyBudgetPerClient;
++    record.state.weekTarget = clientConfig.weeklyTarget;
++    record.state.weeklyHardCeiling = clientConfig.weeklyHardCeiling;
++    this.refreshDerived(record);
+   }
+ 
+   evaluateTask(clientId: string, task: TaskDescriptor, estimatedCost: number): ThrottleDecision {
+     const record = this.getRecord(clientId);
+-    const level = this.computeThrottleLevel(record, estimatedCost);
+-    if (task.complexity === TaskComplexity.CRITICAL) {
+-      return { level: ThrottleLevel.NONE, reason: 'Critical task; budget override engaged', allowTask: true, forceDowngrade: false, maxModelTier: 'critical' };
+-    }
+-    if (level === ThrottleLevel.HARD) {
+-      if (task.complexity === TaskComplexity.HIGH) return { level, reason: 'Hard throttle; high task downgraded', allowTask: true, forceDowngrade: true, maxModelTier: 'strategic' };
+-      if (task.complexity === TaskComplexity.MEDIUM || estimatedCost < 0.005) return { level, reason: 'Hard throttle; task forced to fast tier', allowTask: true, forceDowngrade: true, maxModelTier: 'fast' };
+-      return { level, reason: 'Hard throttle; low-value task deferred', allowTask: false, forceDowngrade: false, maxModelTier: 'fast' };
+-    }
+-    if (level === ThrottleLevel.SOFT) {
+-      return { level, reason: 'Soft throttle; cheaper tier required', allowTask: true, forceDowngrade: true, maxModelTier: task.complexity === TaskComplexity.HIGH ? 'strategic' : 'fast' };
+-    }
+-    return { level, reason: 'Within budget', allowTask: true, forceDowngrade: false, maxModelTier: 'critical' };
++    return evaluateBudgetAdmission({
++      state: record.state,
++      config: record.config,
++      task,
++      estimatedCost,
++      globalMonthSpend: this.globalMonthSpend,
++      globalReservedSpend: this.globalReservedSpend,
++      globalMonthlyHardCeiling: this.config.globalMonthlyHardCeiling,
++    });
+   }
+ 
+   reserveTask(
+@@ -150,7 +239,7 @@
+ 
+   getClientBudgetReport(clientId: string): BudgetState { return { ...this.getRecord(clientId).state }; }
+   getAllBudgetReports(): BudgetState[] { return Array.from(this.clients.values(), entry => ({ ...entry.state })); }
+-  getGlobalSpend(): { monthSpend: number; reservedSpend: number; ceiling: number; utilization: number } {
++  getGlobalSpend(): GlobalBudgetState {
+     return {
+       monthSpend: this.globalMonthSpend,
+       reservedSpend: this.globalReservedSpend,
+@@ -159,16 +248,6 @@
+     };
+   }
+ 
+-  private computeThrottleLevel(record: ClientRecord, pendingCost: number): ThrottleLevel {
+-    const state = record.state;
+-    const projectedMonth = state.monthSpend + state.reservedSpend + pendingCost;
+-    const projectedWeek = state.weekSpend + state.reservedSpend + pendingCost;
+-    const projectedGlobal = this.globalMonthSpend + this.globalReservedSpend + pendingCost;
+-    if (projectedMonth > state.monthlyBudget || projectedGlobal > this.config.globalMonthlyHardCeiling || (projectedWeek > state.weeklyHardCeiling && !state.surgeAllowance)) return ThrottleLevel.HARD;
+-    if (projectedWeek > state.weekTarget || projectedMonth > state.monthlyBudget * 0.8) return ThrottleLevel.SOFT;
+-    return ThrottleLevel.NONE;
+-  }
+-
+   private getRecord(clientId: string): ClientRecord {
+     const record = this.clients.get(clientId);
+     if (!record) throw new Error(`Client ${clientId} not initialized. Call initClient() first.`);
+@@ -200,28 +279,36 @@
+     const state = record.state;
+     state.remainingMonthly = state.monthlyBudget - state.monthSpend - state.reservedSpend;
+     state.remainingWeekly = state.weeklyHardCeiling - state.weekSpend - state.reservedSpend;
+-    state.throttleLevel = this.computeThrottleLevel(record, 0);
++    const decision = evaluateBudgetAdmission({
++      state,
++      config: record.config,
++      task: { type: 'classification' as TaskDescriptor['type'], complexity: TaskComplexity.LOW },
++      estimatedCost: 0,
++      globalMonthSpend: this.globalMonthSpend,
++      globalReservedSpend: this.globalReservedSpend,
++      globalMonthlyHardCeiling: this.config.globalMonthlyHardCeiling,
++    });
++    state.throttleLevel = decision.level;
+   }
+ }
+ 
++export class InMemoryBudgetStore implements BudgetStore {
++  constructor(readonly tracker: BudgetTracker) {}
++  async initClient(clientId: string, overrides?: Partial<BudgetConfig>): Promise<void> { this.tracker.initClient(clientId, overrides); }
++  async reserveTask(clientId: string, task: TaskDescriptor, estimatedCost: number, now?: Date, idFactory?: () => string) { return this.tracker.reserveTask(clientId, task, estimatedCost, now, idFactory); }
++  async reconcile(reservationId: string, actualCost: number): Promise<void> { this.tracker.reconcile(reservationId, actualCost); }
++  async release(reservationId: string): Promise<void> { this.tracker.release(reservationId); }
++  async recordSpend(clientId: string, amount: number): Promise<void> { this.tracker.recordSpend(clientId, amount); }
++  async resetDaily(clientId: string): Promise<void> { this.tracker.resetDaily(clientId); }
++  async resetWeekly(clientId: string): Promise<void> { this.tracker.resetWeekly(clientId); }
++  async resetMonthly(clientId: string): Promise<void> { this.tracker.resetMonthly(clientId); }
++  async resetGlobalMonthly(): Promise<void> { this.tracker.resetGlobalMonthly(); }
++  async checkSurgeAllowance(clientId: string, dayOfWeek: number): Promise<boolean> { return this.tracker.checkSurgeAllowance(clientId, dayOfWeek); }
++  async getClientBudgetReport(clientId: string): Promise<BudgetState> { return this.tracker.getClientBudgetReport(clientId); }
++  async getAllBudgetReports(): Promise<BudgetState[]> { return this.tracker.getAllBudgetReports(); }
++  async getGlobalSpend(): Promise<GlobalBudgetState> { return this.tracker.getGlobalSpend(); }
++}
++
+ export class BudgetReservationError extends Error {
+   constructor(message: string) { super(message); this.name = 'BudgetReservationError'; }
+ }
+-
+-function validateBudgetConfig(config: BudgetConfig): void {
+-  const positiveFields: Array<keyof Omit<BudgetConfig, 'surgeThreshold'>> = [
+-    'monthlyBudgetPerClient',
+-    'weeklyTarget',
+-    'weeklyHardCeiling',
+-    'globalMonthlyHardCeiling',
+-  ];
+-  for (const field of positiveFields) {
+-    if (!Number.isFinite(config[field]) || config[field] <= 0) throw new RangeError(`${field} must be a finite positive number`);
+-  }
+-  if (!Number.isFinite(config.surgeThreshold) || config.surgeThreshold < 0 || config.surgeThreshold > 1) {
+-    throw new RangeError('surgeThreshold must be between 0 and 1');
+-  }
+-  if (config.weeklyTarget > config.weeklyHardCeiling) {
+-    throw new RangeError('weeklyTarget must not exceed weeklyHardCeiling');
+-  }
+-}

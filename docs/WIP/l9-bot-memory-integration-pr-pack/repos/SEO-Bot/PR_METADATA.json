@@ -1,0 +1,20 @@
+{
+  "order": 4,
+  "id": "seo-governed-memory",
+  "repo": "Quantum-L9/SEO-Bot",
+  "base_sha": "0a660de9ac042af3b315fdfeb94d4b8847f42a6e",
+  "branch": "feat/persistent-budgets-and-governed-memory",
+  "title": "feat(runtime): persist budgets and promote measured SEO learnings",
+  "depends_on": [
+    "memory-client",
+    "router-budget-port",
+    "website-memory-handoff"
+  ],
+  "release_gate": "deploy only after all exact package versions are registry-resolvable",
+  "base_branch": "main",
+  "draft": true,
+  "scope_root": "repos/SEO-Bot",
+  "apply_script": "apply.sh",
+  "pr_body": "pr-body.md",
+  "commit_message_file": "commit-message.txt"
+}

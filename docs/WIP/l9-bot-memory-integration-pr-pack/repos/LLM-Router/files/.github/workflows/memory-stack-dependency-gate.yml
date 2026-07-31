@@ -1,0 +1,40 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: docs/WIP/l9-bot-memory-integration-pr-pack/repos/LLM-Router/files/.github/workflows/memory-stack-dependency-gate.yml
+#   layer: documentation
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-31
+
+# RUNBOOK.md's release-gate sequencing ("prove registry installation, merge
+# Router, publish...") was previously prose only. This turns it into a
+# required, executable check: the job fails closed until the exact upstream
+# package version this layer depends on actually resolves on the registry,
+# so a downstream PR cannot go green before its dependency is truly
+# published. Add this job to branch protection's required status checks.
+name: Memory stack dependency gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  dependency-resolvable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+      - name: Require @quantum-l9/graphiti-memory-client@2.0.0 on the registry
+        run: npm view @quantum-l9/graphiti-memory-client@2.0.0 version
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

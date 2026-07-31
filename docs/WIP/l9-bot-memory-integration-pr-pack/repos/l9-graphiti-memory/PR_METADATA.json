@@ -1,0 +1,16 @@
+{
+  "order": 1,
+  "id": "memory-client",
+  "repo": "Quantum-L9/l9-graphiti-memory",
+  "base_sha": "18d857688c43b0e3d4d7b2d1dc4ce0eea0d866c1",
+  "branch": "feat/typescript-memory-client",
+  "title": "feat(client): add governed TypeScript HTTP MCP memory client",
+  "depends_on": [],
+  "release_gate": "publish @quantum-l9/graphiti-memory-client@2.0.0",
+  "base_branch": "main",
+  "draft": true,
+  "scope_root": "repos/l9-graphiti-memory",
+  "apply_script": "apply.sh",
+  "pr_body": "pr-body.md",
+  "commit_message_file": "commit-message.txt"
+}

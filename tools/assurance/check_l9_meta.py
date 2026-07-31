@@ -22,6 +22,15 @@ from pathlib import Path
 
 INLINE_EXTENSIONS = {".py", ".sh", ".md", ".mdc", ".yaml", ".yml", ".toml", ".in"}
 INLINE_NAMES = {".gitignore"}
+# Strict-JSON documents that use a .yaml extension for readability but are
+# parsed with json.loads (which rejects comments) by the PR pack's own
+# validate-pack.sh. Same rationale as the .github/governance/ carve-out
+# below: metadata travels through the manifest only, never an inline header.
+_STRICT_JSON_YAML_PATHS = {
+    "docs/WIP/l9-bot-memory-integration-pr-pack/PACK_CONTRACT.yaml",
+    "docs/WIP/l9-bot-memory-integration-pr-pack/CONVERGENCE_REPORT.yaml",
+    "docs/WIP/l9-bot-memory-integration-pr-pack/PR_STACK.yaml",
+}
 EXCLUDED_PARTS = {
     ".git",
     ".pytest_cache",
@@ -86,8 +95,10 @@ def validate(root: Path) -> tuple[str, ...]:
         # json.loads, which rejects comments). They carry metadata through the
         # manifest only, never an inline header.
         inline_capable = (
-            path.suffix in INLINE_EXTENSIONS or path.name in INLINE_NAMES
-        ) and not relative.startswith(".github/governance/")
+            (path.suffix in INLINE_EXTENSIONS or path.name in INLINE_NAMES)
+            and not relative.startswith(".github/governance/")
+            and relative not in _STRICT_JSON_YAML_PATHS
+        )
         if inline_capable:
             head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:50])
             if "L9_META" not in head:

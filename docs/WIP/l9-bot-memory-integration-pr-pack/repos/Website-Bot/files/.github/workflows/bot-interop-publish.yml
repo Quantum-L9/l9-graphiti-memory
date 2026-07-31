@@ -1,0 +1,45 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/.github/workflows/bot-interop-publish.yml
+#   layer: documentation
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-31
+
+# Same pattern as l9-graphiti-memory's typescript-client-publish.yml: a
+# pushed tag is the explicit action, the `release` GitHub Environment
+# supplies the human approval gate, and there is no boolean dispatch input
+# to forget to set.
+name: Publish bot interop package
+
+on:
+  push:
+    tags: ['bot-interop-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    defaults:
+      run:
+        working-directory: packages/bot-interop
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          cache: npm
+          cache-dependency-path: packages/bot-interop/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run verify:all
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,45 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/.github/workflows/memory-stack-dependency-gate.yml
+#   layer: documentation
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-31
+
+# See LLM-Router/files/.github/workflows/memory-stack-dependency-gate.yml
+# for the rationale. SEO-Bot is the last layer in the stack and depends on
+# all three published packages by exact version.
+name: Memory stack dependency gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  dependency-resolvable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+      - name: Require @quantum-l9/graphiti-memory-client@2.0.0 on the registry
+        run: npm view @quantum-l9/graphiti-memory-client@2.0.0 version
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Require @quantum-l9/llm-router@1.1.0 on the registry
+        run: npm view @quantum-l9/llm-router@1.1.0 version
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Require @quantum-l9/bot-interop@1.0.0 on the registry
+        run: npm view @quantum-l9/bot-interop@1.0.0 version
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
