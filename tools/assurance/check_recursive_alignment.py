@@ -51,6 +51,7 @@ ALLOWED_TOP_LEVEL = {
     "ALIGNMENT.md",
     "ARCHITECTURE.md",
     "CHANGE_SUMMARY.md",
+    "clients",
     "CONTRIBUTING.md",
     "CONVERGENCE_REPORT.yaml",
     "DELTA_REPORT.md",
