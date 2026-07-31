@@ -9,6 +9,7 @@
 #   updated: 2026-07-22
 
 from pathlib import Path
+
 p = Path('.env.example')
 if p.exists():
     text = p.read_text()

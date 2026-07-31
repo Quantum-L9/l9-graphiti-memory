@@ -52,8 +52,10 @@ def main() -> int:
         "",
         "# Manifest",
         "",
-        "Generated file inventory. Each of `MANIFEST.md`, `MANIFEST.sha256`, and "
-        "`manifest.json` excludes only its own entry and lists the other two.",
+        (
+            "Generated file inventory. Each of `MANIFEST.md`, `MANIFEST.sha256`, "
+            "and `manifest.json` excludes only its own entry and lists the other two."
+        ),
         "",
         f"File count: **{len(md_rows)}**",
         "",
