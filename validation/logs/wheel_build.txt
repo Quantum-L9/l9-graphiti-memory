@@ -1,4 +1,4 @@
-Processing /home/ubuntu/work/pr-build
+Processing ./.
   Installing build dependencies: started
   Installing build dependencies: finished with status 'done'
   Getting requirements to build wheel: started
@@ -8,6 +8,6 @@ Processing /home/ubuntu/work/pr-build
 Building wheels for collected packages: l9-graphite-memory
   Building wheel for l9-graphite-memory (pyproject.toml): started
   Building wheel for l9-graphite-memory (pyproject.toml): finished with status 'done'
-  Created wheel for l9-graphite-memory: filename=l9_graphite_memory-2.2.0-py3-none-any.whl size=155938 sha256=70410bbf61670d9501146682a03986f93ab0afdaa1029b3df880a29339c8ab24
-  Stored in directory: /home/ubuntu/.cache/pip/wheels/2b/ee/ea/d06dc8b35809d09279be9c0d5da99590017afccd8d36e46cfc
+  Created wheel for l9-graphite-memory: filename=l9_graphite_memory-2.2.0-py3-none-any.whl size=188288 sha256=45a6bc56329f8eb7ee9577c89d332eec6b38e521b5ae2e5ccb946e5233448181
+  Stored in directory: /Users/ib-mac/Library/Caches/pip/wheels/e5/da/d8/5688d3ea821c7d7fa4707327672e21e75e016cae359ef550ad
 Successfully built l9-graphite-memory

@@ -89,6 +89,10 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-062 | [L9 Metadata and File Provenance](ADR-062-l9-meta-and-file-provenance.md) | Accepted |
 | ADR-063 | [Projection Manifest, Compiler, and Control-Plane Boundaries](ADR-063-projection-manifest-compiler-and-control-plane-boundaries.md) | Accepted |
 | ADR-064 | [Cursor Client Instantiation and Proof Boundary](ADR-064-cursor-client-instantiation-and-proof-boundary.md) | Accepted |
+| ADR-065 | [Active-Memory Deployment Identity](ADR-065-active-memory-deployment-identity.md) | Accepted |
+| ADR-066 | [Secret-File Credential Resolution for Active-Memory Redis](ADR-066-secret-file-credential-resolution.md) | Accepted |
+| ADR-067 | [Active-Memory Public SDK and External-Runtime Lifecycle](ADR-067-active-memory-public-sdk-and-lifecycle.md) | Accepted |
+| ADR-068 | [Redis ACL Capability Contract for Active Memory](ADR-068-redis-acl-capability-contract.md) | Accepted |
 
 ## Validation
 
@@ -98,4 +102,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-064 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-068 ledger and all mandatory sections.

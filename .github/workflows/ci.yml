@@ -31,6 +31,10 @@ jobs:
       - run: python -m pip install -e '.[dev,server]'
       - run: ruff check .
       - run: mypy src/l9_graphite_memory
+      - name: Test active-memory subsystem
+        run: PYTHONPATH=src pytest tests/unit/active tests/conformance/active tests/external_runtime -v
+      - name: Gate active-memory public API
+        run: PYTHONPATH=src python tools/assurance/check_active_memory_public_api.py
       - run: bash scripts/validate_release.sh
       - uses: actions/upload-artifact@v4
         if: always()

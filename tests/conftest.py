@@ -6,7 +6,7 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.2.0
-#   updated: 2026-07-22
+#   updated: 2026-07-27
 
 from __future__ import annotations
 
@@ -21,6 +21,14 @@ from l9_graphite_memory.adapters import (
 )
 from l9_graphite_memory.contracts import MemoryPrincipal
 from l9_graphite_memory.services import MemoryService
+
+pytest_plugins: list[str] = []
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line(
+        "markers", "asyncio: mark test as asyncio-based (provided by pytest-asyncio)"
+    )
 
 
 @pytest.fixture

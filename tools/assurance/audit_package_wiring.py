@@ -82,6 +82,22 @@ def main() -> int:
         "l9_graphite_memory.episode_contract": "v0.2 import compatibility",
         "l9_graphite_memory.prune": "v0.2 programmatic prune compatibility",
         "l9_graphite_memory.projections": "ADR-063 projection control-plane surface",
+        "l9_graphite_memory.active": (
+            "ADR-067 public SDK surface for external runtimes; not consumed"
+            " by this repository's own entrypoints"
+        ),
+        "l9_graphite_memory.active.inmemory": (
+            "ADR-067 default ActiveStore/AwarenessBus adapter; selected by"
+            " external consumers, not imported internally"
+        ),
+        "l9_graphite_memory.active.null_adapters": (
+            "ADR-067 no-op ActiveStore/AwarenessBus adapter; selected by"
+            " external consumers, not imported internally"
+        ),
+        "l9_graphite_memory.active.redis_adapters": (
+            "ADR-065/ADR-068 Redis-backed ActiveStore/AwarenessBus adapter;"
+            " selected by external consumers, not imported internally"
+        ),
     }
     foundational = {
         "l9_graphite_memory",
