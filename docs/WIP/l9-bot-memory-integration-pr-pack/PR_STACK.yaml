@@ -1,0 +1,68 @@
+{
+  "schema": "l9.pr-stack/v1",
+  "stack_id": "graphiti-canonical-bot-trio",
+  "status": "push_ready_subject_to_native_ci",
+  "base_branch": "main",
+  "prs": [
+    {
+      "order": 1,
+      "id": "memory-client",
+      "repo": "Quantum-L9/l9-graphiti-memory",
+      "directory": "l9-graphiti-memory",
+      "base_sha": "18d857688c43b0e3d4d7b2d1dc4ce0eea0d866c1",
+      "branch": "feat/typescript-memory-client",
+      "title": "feat(client): add governed TypeScript HTTP MCP memory client",
+      "depends_on": [],
+      "release_gate": "publish @quantum-l9/graphiti-memory-client@2.0.0"
+    },
+    {
+      "order": 2,
+      "id": "router-budget-port",
+      "repo": "Quantum-L9/LLM-Router",
+      "directory": "LLM-Router",
+      "base_sha": "d83299bc6e81efae1eb6e6c3032cbb3e0cb77184",
+      "branch": "feat/persistent-budget-store-port",
+      "title": "feat(budget): add async atomic persistence port",
+      "depends_on": [
+        "memory-client"
+      ],
+      "release_gate": "publish @quantum-l9/llm-router@1.1.0 with graphiti client 2.x"
+    },
+    {
+      "order": 3,
+      "id": "website-memory-handoff",
+      "repo": "Quantum-L9/Website-Bot",
+      "directory": "Website-Bot",
+      "base_sha": "db5f485b1929f6d6635e7511493098ac229004b6",
+      "branch": "feat/graphiti-memory-and-canonical-handoff",
+      "title": "feat(integration): activate router, memory hydration, and canonical bot handoff",
+      "depends_on": [
+        "memory-client",
+        "router-budget-port"
+      ],
+      "release_gate": "publish @quantum-l9/bot-interop@1.0.0"
+    },
+    {
+      "order": 4,
+      "id": "seo-governed-memory",
+      "repo": "Quantum-L9/SEO-Bot",
+      "directory": "SEO-Bot",
+      "base_sha": "0a660de9ac042af3b315fdfeb94d4b8847f42a6e",
+      "branch": "feat/persistent-budgets-and-governed-memory",
+      "title": "feat(runtime): persist budgets and promote measured SEO learnings",
+      "depends_on": [
+        "memory-client",
+        "router-budget-port",
+        "website-memory-handoff"
+      ],
+      "release_gate": "deploy only after all exact package versions are registry-resolvable"
+    }
+  ],
+  "publication_policy": {
+    "push_disabled_by_default": true,
+    "required_env": "PUSH_STACK=1",
+    "force_push_forbidden": true,
+    "draft_prs": true,
+    "cross_repo_stack": "dependency-ordered, not shared Git ancestry"
+  }
+}

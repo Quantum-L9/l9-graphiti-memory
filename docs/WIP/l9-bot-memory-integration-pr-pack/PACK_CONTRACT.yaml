@@ -1,0 +1,65 @@
+{
+  "schema": "l9.integration-pack-contract/v1",
+  "status": "normative",
+  "pack_id": "l9-bot-memory-integration-graphiti-canonical",
+  "scope": {
+    "repositories": [
+      "Quantum-L9/l9-graphiti-memory",
+      "Quantum-L9/LLM-Router",
+      "Quantum-L9/Website-Bot",
+      "Quantum-L9/SEO-Bot"
+    ]
+  },
+  "authority": {
+    "order": [
+      "verified_target_repository_law",
+      "AUTHORITY.md",
+      "PACK_CONTRACT.yaml",
+      "repository_payloads",
+      "RUNBOOK.md",
+      "evidence_records"
+    ],
+    "canonical_memory_repository": "Quantum-L9/l9-graphiti-memory",
+    "pinned_memory_base_sha": "18d857688c43b0e3d4d7b2d1dc4ce0eea0d866c1",
+    "canonical_service": "MemoryService",
+    "canonical_store": "RecordStore",
+    "client_package": "@quantum-l9/graphiti-memory-client",
+    "client_version": "2.0.0"
+  },
+  "invariants": {
+    "one_cognitive_memory_authority": true,
+    "direct_projection_writes_forbidden": true,
+    "postgres_memory_mirror_forbidden": true,
+    "pgvector_memory_mirror_forbidden": true,
+    "dual_write_fallback_forbidden": true,
+    "projection_is_rebuildable": true,
+    "hydration_is_untrusted_evidence": true,
+    "promotion_is_default_deny": true,
+    "fabricated_corroboration_forbidden": true,
+    "financial_state_is_not_memory": true,
+    "repository_identity_check_required": true,
+    "transactional_apply_required": true,
+    "silent_scope_widening_forbidden": true
+  },
+  "transport": {
+    "protocol": "mcp_streamable_http_compatible",
+    "endpoint": "/mcp",
+    "stateless_server_supported": true,
+    "optional_session_id_supported": true,
+    "initialized_once_per_client": true,
+    "session_recovery_retry_limit": 1
+  },
+  "merge_order": [
+    "Quantum-L9/l9-graphiti-memory",
+    "Quantum-L9/LLM-Router",
+    "Quantum-L9/Website-Bot",
+    "Quantum-L9/SEO-Bot"
+  ],
+  "external_gates": [
+    "native_repository_ci",
+    "live_mcp_authorization",
+    "package_publication_and_install",
+    "legacy_memory_reconciliation",
+    "production_concurrency_and_outage_proof"
+  ]
+}

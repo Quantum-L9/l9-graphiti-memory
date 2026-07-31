@@ -1,0 +1,19 @@
+{
+  "order": 3,
+  "id": "website-memory-handoff",
+  "repo": "Quantum-L9/Website-Bot",
+  "base_sha": "db5f485b1929f6d6635e7511493098ac229004b6",
+  "branch": "feat/graphiti-memory-and-canonical-handoff",
+  "title": "feat(integration): activate router, memory hydration, and canonical bot handoff",
+  "depends_on": [
+    "memory-client",
+    "router-budget-port"
+  ],
+  "release_gate": "publish @quantum-l9/bot-interop@1.0.0",
+  "base_branch": "main",
+  "draft": true,
+  "scope_root": "repos/Website-Bot",
+  "apply_script": "apply.sh",
+  "pr_body": "pr-body.md",
+  "commit_message_file": "commit-message.txt"
+}

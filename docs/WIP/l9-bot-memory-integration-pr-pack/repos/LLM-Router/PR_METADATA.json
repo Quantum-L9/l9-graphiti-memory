@@ -1,0 +1,18 @@
+{
+  "order": 2,
+  "id": "router-budget-port",
+  "repo": "Quantum-L9/LLM-Router",
+  "base_sha": "d83299bc6e81efae1eb6e6c3032cbb3e0cb77184",
+  "branch": "feat/persistent-budget-store-port",
+  "title": "feat(budget): add async atomic persistence port",
+  "depends_on": [
+    "memory-client"
+  ],
+  "release_gate": "publish @quantum-l9/llm-router@1.1.0 with graphiti client 2.x",
+  "base_branch": "main",
+  "draft": true,
+  "scope_root": "repos/LLM-Router",
+  "apply_script": "apply.sh",
+  "pr_body": "pr-body.md",
+  "commit_message_file": "commit-message.txt"
+}

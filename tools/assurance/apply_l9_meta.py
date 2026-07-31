@@ -40,6 +40,14 @@ EXCLUDED_PARTS = {
     ".venv",
 }
 EXCLUDED_FILES = {"manifest.json"}
+# Strict-JSON documents that use a .yaml extension for readability but are
+# parsed with json.loads (which rejects comments) by the PR pack's own
+# validate-pack.sh. Kept in sync with tools/assurance/check_l9_meta.py.
+EXCLUDED_RELATIVE_PATHS = {
+    "docs/WIP/l9-bot-memory-integration-pr-pack/PACK_CONTRACT.yaml",
+    "docs/WIP/l9-bot-memory-integration-pr-pack/CONVERGENCE_REPORT.yaml",
+    "docs/WIP/l9-bot-memory-integration-pr-pack/PR_STACK.yaml",
+}
 
 
 def _layer(path: Path) -> str:
@@ -153,6 +161,7 @@ def tracked_comment_safe_files(root: Path) -> tuple[Path, ...]:
         if (
             any(part in EXCLUDED_PARTS for part in relative.parts)
             or relative.as_posix() in EXCLUDED_FILES
+            or relative.as_posix() in EXCLUDED_RELATIVE_PATHS
         ):
             continue
         if (
