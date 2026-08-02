@@ -57,3 +57,16 @@ config/auth_tokens.json
 *.swp
 *.swo
 .DS_Store
+
+# L9 governance workspace activation artifacts (machine-local; never commit)
+# setup_workspace_symlinks.sh wires this consumer workspace to the
+# ~/.cursor-governance SSOT: .cursor-commands/.cursor point at the clone and
+# .claude/{skills,rules} are generated managed mirrors (see
+# .claude/skills/.l9-managed-skills.json). All are machine-specific symlinks/
+# copies that resolve nowhere else, plus per-workspace runtime state.
+/.cursor-commands
+/.cursor/
+.claude/skills/
+.claude/rules/
+.l9/
+memory-bank/
