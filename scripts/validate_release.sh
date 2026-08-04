@@ -71,13 +71,22 @@ run preflight bash scripts/preflight.sh
 for hook in hooks/*.sh scripts/*.sh; do bash -n "$hook"; done
 printf 'All shell files parse.\n' > "$OUT/logs/shell_syntax.txt"
 
-run wheel_build python3 -m pip wheel . --no-deps --wheel-dir "$OUT/dist"
+# Build the wheel with the locked `build` package (dev extra). uv-managed
+# environments do not ship pip by default (ADR-069).
+run wheel_build python3 -m build --wheel --outdir "$OUT/dist"
 WHEEL="$(find "$OUT/dist" -maxdepth 1 -name '*.whl' -print -quit)"
 [ -n "$WHEEL" ]
 SITE="$TMP_ROOT/wheel-site"
 RUN_DIR="$TMP_ROOT/installed-run"
 mkdir -p "$SITE" "$RUN_DIR"
-python3 -m pip install --target "$SITE" --force-reinstall --no-deps "$WHEEL" >"$OUT/logs/wheel_install.txt" 2>&1
+install_wheel() {
+  if command -v uv >/dev/null 2>&1; then
+    uv pip install --python python3 --target "$SITE" --reinstall --no-deps "$WHEEL"
+  else
+    python3 -m pip install --target "$SITE" --force-reinstall --no-deps "$WHEEL"
+  fi
+}
+install_wheel >"$OUT/logs/wheel_install.txt" 2>&1
 TMP_DATA="$TMP_ROOT/installed-smoke"
 (
   cd "$RUN_DIR"
