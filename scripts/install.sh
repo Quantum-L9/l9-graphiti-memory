@@ -21,20 +21,24 @@ TEXT
   exit 1
 fi
 
-# Locked developer environment: runtime + CI extras.
-uv sync --frozen --no-build --extra dev --extra server
+# Locked deps only: refuse third-party sdists (--no-build) and skip installing
+# this workspace package so sync never executes foreign setup scripts.
+uv sync --frozen --no-install-project --no-build --extra dev --extra server
 export PATH="$ROOT/.venv/bin:$PATH"
+export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 PYTHON_BIN="${PYTHON_BIN:-$ROOT/.venv/bin/python}"
 
 "$PYTHON_BIN" -m l9_graphite_memory.cli client cursor install --dry-run >/dev/null
 "$PYTHON_BIN" scripts/write_claude_config.py --dry-run >/dev/null
 bash scripts/preflight.sh
 cat <<'TEXT'
-Installation verified (uv sync --frozen).
+Installation verified (uv sync --frozen --no-install-project --no-build).
 
 Optional next steps:
-  source .venv/bin/activate   # or: uv run …
-  l9-memory client cursor install
+  source .venv/bin/activate
+  export PYTHONPATH="$PWD/src${PYTHONPATH:+:$PYTHONPATH}"
+  # or: uv run --with-editable . …
+  l9-memory client cursor install   # after: uv pip install -e .
   l9-memory client cursor verify
   python scripts/write_claude_config.py
   l9-memory-server --transport stdio

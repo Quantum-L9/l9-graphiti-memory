@@ -58,9 +58,9 @@ updated: 2026-07-22
 |---|---|---|---:|---|
 | `.github/issues.json` | `ci` | `ci` | 5755 | `23cbdff3ae0c9491c419771321766af4f510cd954dc671404994e7c7e3771d28` |
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
-| `.github/workflows/ci.yml` | `ci` | `ci` | 1383 | `dc7a3501cf9ac785587e4aab149c353fa139382371b3220b950b46386dafddf6` |
+| `.github/workflows/ci.yml` | `ci` | `ci` | 1527 | `30dae8c405ae21fef044d4f3428b20c0e95e608f5ca6fdda0009dce0e5ea4028` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
-| `.github/workflows/publish.yml` | `ci` | `ci` | 1295 | `bb9e585eb3ac2c1c892db686fc13d48a653e9e3084f74d2208bd6db94de59efd` |
+| `.github/workflows/publish.yml` | `ci` | `ci` | 1439 | `a0020911d065fb943ffd8c2eda19f2fb21060ea782ffdf1830fbb9d5dffbc72b` |
 | `.github/workflows/typescript-client-publish.yml` | `ci` | `ci` | 1549 | `6e9febe7a4d4c57a954dcb2065d11c200ed6b0419e92f3e69a5f3bf771cd9319` |
 | `.github/workflows/typescript-client.yml` | `ci` | `ci` | 1147 | `c89466f9930d3d4628bc2d8ed3df9c0248a7d2e692fd2a34b4f288fa1b26cc5e` |
 | `.gitignore` | `repository_root` | `repository_root` | 859 | `5742eda9df58ea637c68e20e6fb7897c70c010795171f867acdcf01dcd80d670` |
@@ -77,10 +77,10 @@ updated: 2026-07-22
 | `LICENSE` | `repository_root` | `repository_root` | 4658 | `40480115927c1985499925b32072e1bcb4f48e86432af9bffbf9d2a718e28a2d` |
 | `MANIFEST.in` | `repository_root` | `repository_root` | 624 | `0b09fe70fcf48900117c6dfd3a56a4037d93e3b1c50f2dad9cfa1e5286b54986` |
 | `MIGRATION.md` | `repository_root` | `repository_root` | 3306 | `07f086cc8f907cc98ac550198bfd65f25038e566abc77f755b7d0ea36688fc49` |
-| `QUICKSTART.md` | `repository_root` | `repository_root` | 1886 | `1cff1aa42fab434b1c19e60ff90b26f32f7e64e5397499bc2c5bb027c2019afd` |
-| `README.md` | `repository_root` | `repository_root` | 6200 | `8245c1d07a2784dd7db5fa1c033ec83d4f1566a02b99c8fe46b2812a6663edb2` |
+| `QUICKSTART.md` | `repository_root` | `repository_root` | 1907 | `a406510d18ce914d4fa9f848cc6735370245782b889f66ef12fb91f72b03de0c` |
+| `README.md` | `repository_root` | `repository_root` | 6221 | `9dd0765c25f6d9740be6ad3950191b47890043883567f773d097b195ea703c62` |
 | `ROADMAP.md` | `repository_root` | `repository_root` | 2054 | `f6a75e296999b40744e0a16e5456700a318f5d40aab7d647dd1222d17e7c2ad3` |
-| `RUNBOOK.md` | `repository_root` | `repository_root` | 7444 | `c198f287365a94deb0b5904879d95a6348b856a0c0b89f9c84045005e29332df` |
+| `RUNBOOK.md` | `repository_root` | `repository_root` | 7465 | `6c9c6e36533b127bcb4d04f8df7bd3aa95081d3e39c857e8cc6bbb898f854ffe` |
 | `SECURITY.md` | `repository_root` | `repository_root` | 1718 | `8eb44c129daf83b389343dcf462662b6c6282a63cac6048cf084e10d2b964980` |
 | `VALIDATION.md` | `repository_root` | `repository_root` | 5960 | `7aec6fa09a4f0ce29a5451fef82b9501067fa37be717f555600868fcf55a97d8` |
 | `clients/typescript/.gitignore` | `repository_root` | `repository_root` | 241 | `1d5b064bd1c842c4de03f06db85b14a3592e57fe45030462e6341e69b621f432` |
@@ -282,7 +282,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-066-secret-file-credential-resolution.md` | `architecture_decisions` | `architecture_decisions` | 6139 | `d5d1f27eb4d116aabea2c07cded959fd90852cc58dac08b2448286a96c1fcc03` |
 | `docs/adr/ADR-067-active-memory-public-sdk-and-lifecycle.md` | `architecture_decisions` | `architecture_decisions` | 6846 | `24ae2c7d7f9be66ce1cd3f0a84d6f829c8256442e8392312a94f6f980a863120` |
 | `docs/adr/ADR-068-redis-acl-capability-contract.md` | `architecture_decisions` | `architecture_decisions` | 6375 | `eb65e658cec9cd36f12dcf280052a364dac7b27636ecec88f4c52b89e0e271c5` |
-| `docs/adr/ADR-069-uv-package-manager.md` | `architecture_decisions` | `architecture_decisions` | 3818 | `0f57c6c160a153610fe30ae3881503ffd5e2f87e69c6ffb96c56d74eaae254e5` |
+| `docs/adr/ADR-069-uv-package-manager.md` | `architecture_decisions` | `architecture_decisions` | 3860 | `70f1dad97f5f390d01cc7c0330de4ba789a00f3788fc1fbcd6f6fc5540466818` |
 | `docs/adr/README.md` | `architecture_decisions` | `architecture_decisions` | 8811 | `f4aaae3cb3897e2dc5701e2a4bb3a4459cc8582c3b58142fa00bd558a2f0030b` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/harvest_coverage.yaml` | `documentation` | `documentation` | 20643 | `bb46aa4a43e3230c74e9ab7e282a6381d3fabdfc59bb3cb3fe7adeb4b1dc2060` |
@@ -326,7 +326,7 @@ updated: 2026-07-22
 | `scripts/activate_gate.sh` | `operations` | `operations` | 461 | `3300ee59d612adaf379d07bc8b508bc2b8decb66bb680bc3ac5152e98a9d0340` |
 | `scripts/activate_guard.sh` | `operations` | `operations` | 838 | `43c1cf62e97af8543a357547ac4bd87aacc6b62693d537596bad02b13a690491` |
 | `scripts/create_issues.py` | `operations` | `operations` | 3038 | `472a78e1f7aa4c65722f60581112959a3524349eaeff2cf2b80b62fa5255c0c1` |
-| `scripts/install.sh` | `operations` | `operations` | 1234 | `f1b2a875cd654d9cbfac77d7423f89a8c3c5c9d3d02eeca0c7f121fa62f36f57` |
+| `scripts/install.sh` | `operations` | `operations` | 1548 | `f431e36727d0d2818a00dbce4bbdbf60956a76a01101be72031d95c3e4b755f1` |
 | `scripts/preflight.sh` | `operations` | `operations` | 3675 | `43b4a8da81dc93f5a4b50edd36e1c9d9d25ea8a505966d098f6dad04e0598bbb` |
 | `scripts/validate_release.sh` | `operations` | `operations` | 6935 | `90ec72e94b6c831ae6dc339fee6908758581053127373a0fcde960b5fecdd76c` |
 | `scripts/write_claude_config.py` | `operations` | `operations` | 2447 | `bbdd9d4ece937b24c8c1b15d0d2dce1a1139802c100ad68fc1e8bf5e47f2bb20` |

@@ -27,9 +27,11 @@ jobs:
           enable-cache: true
           python-version: '3.13'
       - name: Sync locked environment
-        run: uv sync --frozen --no-build --extra dev --extra server
+        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server
       - name: Put uv venv on PATH
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+      - name: Expose src on PYTHONPATH
+        run: echo "PYTHONPATH=$PWD/src${PYTHONPATH:+:$PYTHONPATH}" >> "$GITHUB_ENV"
       - run: ruff check .
       - run: mypy src/l9_graphite_memory
       - run: bash scripts/validate_release.sh

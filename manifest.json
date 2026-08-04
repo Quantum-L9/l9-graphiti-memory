@@ -46,8 +46,8 @@
         "version": "2.2.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "dc7a3501cf9ac785587e4aab149c353fa139382371b3220b950b46386dafddf6",
-      "size_bytes": 1383
+      "sha256": "30dae8c405ae21fef044d4f3428b20c0e95e608f5ca6fdda0009dce0e5ea4028",
+      "size_bytes": 1527
     },
     {
       "category": "ci",
@@ -78,8 +78,8 @@
         "version": "2.2.0"
       },
       "path": ".github/workflows/publish.yml",
-      "sha256": "bb9e585eb3ac2c1c892db686fc13d48a653e9e3084f74d2208bd6db94de59efd",
-      "size_bytes": 1295
+      "sha256": "a0020911d065fb943ffd8c2eda19f2fb21060ea782ffdf1830fbb9d5dffbc72b",
+      "size_bytes": 1439
     },
     {
       "category": "ci",
@@ -366,8 +366,8 @@
         "version": "2.2.0"
       },
       "path": "QUICKSTART.md",
-      "sha256": "1cff1aa42fab434b1c19e60ff90b26f32f7e64e5397499bc2c5bb027c2019afd",
-      "size_bytes": 1886
+      "sha256": "a406510d18ce914d4fa9f848cc6735370245782b889f66ef12fb91f72b03de0c",
+      "size_bytes": 1907
     },
     {
       "category": "repository_root",
@@ -382,8 +382,8 @@
         "version": "2.2.0"
       },
       "path": "README.md",
-      "sha256": "8245c1d07a2784dd7db5fa1c033ec83d4f1566a02b99c8fe46b2812a6663edb2",
-      "size_bytes": 6200
+      "sha256": "9dd0765c25f6d9740be6ad3950191b47890043883567f773d097b195ea703c62",
+      "size_bytes": 6221
     },
     {
       "category": "repository_root",
@@ -414,8 +414,8 @@
         "version": "2.2.0"
       },
       "path": "RUNBOOK.md",
-      "sha256": "c198f287365a94deb0b5904879d95a6348b856a0c0b89f9c84045005e29332df",
-      "size_bytes": 7444
+      "sha256": "6c9c6e36533b127bcb4d04f8df7bd3aa95081d3e39c857e8cc6bbb898f854ffe",
+      "size_bytes": 7465
     },
     {
       "category": "repository_root",
@@ -3646,8 +3646,8 @@
         "version": "2.2.0"
       },
       "path": "docs/adr/ADR-069-uv-package-manager.md",
-      "sha256": "0f57c6c160a153610fe30ae3881503ffd5e2f87e69c6ffb96c56d74eaae254e5",
-      "size_bytes": 3818
+      "sha256": "70f1dad97f5f390d01cc7c0330de4ba789a00f3788fc1fbcd6f6fc5540466818",
+      "size_bytes": 3860
     },
     {
       "category": "architecture_decisions",
@@ -4350,8 +4350,8 @@
         "version": "2.2.0"
       },
       "path": "scripts/install.sh",
-      "sha256": "f1b2a875cd654d9cbfac77d7423f89a8c3c5c9d3d02eeca0c7f121fa62f36f57",
-      "size_bytes": 1234
+      "sha256": "f431e36727d0d2818a00dbce4bbdbf60956a76a01101be72031d95c3e4b755f1",
+      "size_bytes": 1548
     },
     {
       "category": "operations",
