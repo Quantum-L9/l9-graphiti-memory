@@ -7518,8 +7518,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "f013a12cf726d72240ccf93ee2f022d1c67e942a78f04a05fad70bf51625b10e",
-      "size_bytes": 12287
+      "sha256": "4eb5f0dd3ebbcd87fc60b07830dc43eaea6b140dd660e1df8b598ae8b2edbaac",
+      "size_bytes": 12328
     },
     {
       "category": "assurance",
