@@ -5,8 +5,8 @@
 #   layer: ci
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-08-04
 
 name: CI
 on:
@@ -23,12 +23,14 @@ jobs:
         python-version: ['3.10', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
-          cache: pip
-      - run: python -m pip install --upgrade pip
-      - run: python -m pip install -e '.[dev,server]'
+      - name: Sync locked environment
+        run: uv sync --frozen --extra dev --extra server
+      - name: Put uv venv on PATH
+        run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - run: ruff check .
       - run: mypy src/l9_graphite_memory
       - name: Test active-memory subsystem

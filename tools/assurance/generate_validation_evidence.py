@@ -64,8 +64,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "docs/adr/",
         "validate_adrs.py",
         "logs/adr_validation.txt",
-        "68 ADRs complete and indexed",
-        r"PASS: 68 ADRs",
+        "69 ADRs complete and indexed",
+        r"PASS: 69 ADRs",
     ),
     CheckSpec(
         "V-004",

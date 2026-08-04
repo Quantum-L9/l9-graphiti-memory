@@ -6,23 +6,38 @@
 #   layer: operations
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.3.0
-#   updated: 2026-07-27
+#   version: 2.4.0
+#   updated: 2026-08-04
 
 set -euo pipefail
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-PYTHON_BIN="${PYTHON_BIN:-python3}"
 cd "$ROOT"
-"$PYTHON_BIN" -m pip install "$ROOT"
+
+if ! command -v uv >/dev/null 2>&1; then
+  cat >&2 <<'TEXT'
+uv is required for checkout-based installs (ADR-069).
+Install: https://docs.astral.sh/uv/getting-started/installation/
+TEXT
+  exit 1
+fi
+
+# Locked developer environment: runtime + CI extras.
+uv sync --frozen --extra dev --extra server
+export PATH="$ROOT/.venv/bin:$PATH"
+PYTHON_BIN="${PYTHON_BIN:-$ROOT/.venv/bin/python}"
+
 "$PYTHON_BIN" -m l9_graphite_memory.cli client cursor install --dry-run >/dev/null
 "$PYTHON_BIN" scripts/write_claude_config.py --dry-run >/dev/null
 bash scripts/preflight.sh
 cat <<'TEXT'
-Installation verified.
+Installation verified (uv sync --frozen).
 
 Optional next steps:
+  source .venv/bin/activate   # or: uv run …
   l9-memory client cursor install
   l9-memory client cursor verify
   python scripts/write_claude_config.py
   l9-memory-server --transport stdio
+
+Published package consumers may still use: pip install l9-graphite-memory
 TEXT

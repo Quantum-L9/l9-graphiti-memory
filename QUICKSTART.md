@@ -14,7 +14,8 @@ updated: 2026-07-27
 ## Standalone canonical memory
 
 ```bash
-python -m pip install .
+uv sync --frozen --extra dev --extra server
+source .venv/bin/activate
 export L9_MEMORY_PROJECTION_BACKEND=none
 l9-memory resolve
 l9-memory health
@@ -25,6 +26,8 @@ l9-memory write 'Test memory' \
 l9-memory search 'Test' --group-id l9-graphiti-memory
 l9-memory hydrate 'What should I remember?' --group-id l9-graphiti-memory
 ```
+
+Published package (no checkout): `pip install l9-graphite-memory`.
 
 ## Governed workflow
 
