@@ -47,6 +47,7 @@ ALLOWED_TOP_LEVEL = {
     ".github",
     ".gitignore",
     ".pre-commit-config.yaml",
+    ".python-version",
     "AGENTS.md",
     "ALIGNMENT.md",
     "ARCHITECTURE.md",
@@ -81,6 +82,7 @@ ALLOWED_TOP_LEVEL = {
     "src",
     "tests",
     "tools",
+    "uv.lock",
     "validation",
 }
 SNAKE_NAME = re.compile(r"^[a-z_][a-z0-9_]*$")
