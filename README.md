@@ -66,7 +66,7 @@ Checkout-based development uses **uv** with the committed lockfile (ADR-069):
 
 ```bash
 # https://docs.astral.sh/uv/getting-started/installation/
-uv sync --frozen --extra dev --extra server
+uv sync --frozen --no-build --extra dev --extra server
 source .venv/bin/activate   # or prefix commands with: uv run
 ```
 

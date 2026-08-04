@@ -14,7 +14,7 @@ updated: 2026-07-27
 ## Standalone canonical memory
 
 ```bash
-uv sync --frozen --extra dev --extra server
+uv sync --frozen --no-build --extra dev --extra server
 source .venv/bin/activate
 export L9_MEMORY_PROJECTION_BACKEND=none
 l9-memory resolve
