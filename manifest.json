@@ -4382,8 +4382,8 @@
         "version": "2.2.0"
       },
       "path": "scripts/validate_release.sh",
-      "sha256": "1cc4dae2cde90026ea11a333fc8000423b24111febeab784136128f140408363",
-      "size_bytes": 6642
+      "sha256": "ef89d8f7522b3499782a9340cc14c777f1367d885f85e4274c095d53fa8f89b6",
+      "size_bytes": 6933
     },
     {
       "category": "operations",

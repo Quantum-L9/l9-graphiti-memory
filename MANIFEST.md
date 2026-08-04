@@ -328,7 +328,7 @@ updated: 2026-07-22
 | `scripts/create_issues.py` | `operations` | `operations` | 3038 | `472a78e1f7aa4c65722f60581112959a3524349eaeff2cf2b80b62fa5255c0c1` |
 | `scripts/install.sh` | `operations` | `operations` | 1223 | `d754ad6cd70c491283bb93f3f6951ae7d592dfa81d94857e06d4b01cfd053c1c` |
 | `scripts/preflight.sh` | `operations` | `operations` | 3675 | `43b4a8da81dc93f5a4b50edd36e1c9d9d25ea8a505966d098f6dad04e0598bbb` |
-| `scripts/validate_release.sh` | `operations` | `operations` | 6642 | `1cc4dae2cde90026ea11a333fc8000423b24111febeab784136128f140408363` |
+| `scripts/validate_release.sh` | `operations` | `operations` | 6933 | `ef89d8f7522b3499782a9340cc14c777f1367d885f85e4274c095d53fa8f89b6` |
 | `scripts/write_claude_config.py` | `operations` | `operations` | 2447 | `bbdd9d4ece937b24c8c1b15d0d2dce1a1139802c100ad68fc1e8bf5e47f2bb20` |
 | `scripts/write_cursor_config.py` | `operations` | `operations` | 2645 | `f061d3c6b75e3311897e1ea61d32af78a81a232adf8471d12e7789d92ade0989` |
 | `skill/SKILL.md` | `skill` | `skill` | 4860 | `9e9af67d407d1448176abf32b476f88d586f7b13d1618fd8f56ced15a2ee3d01` |
