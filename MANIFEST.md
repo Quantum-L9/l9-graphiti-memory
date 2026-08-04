@@ -524,7 +524,7 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4494 | `01954963e948dc26b476868ac4a57b844dee3f39c12070902efd9314a0f4d137` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 6055 | `1c7f93a3324c77d46e778f2ea776c05ea96cc612efdeb7835f9bdb67f0482266` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 7324 | `4fdf809c64dd89bc0a1d299438bd8982dcd87734e26bf10eb3386c8ff7b613ef` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 12287 | `f013a12cf726d72240ccf93ee2f022d1c67e942a78f04a05fad70bf51625b10e` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 12328 | `4eb5f0dd3ebbcd87fc60b07830dc43eaea6b140dd660e1df8b598ae8b2edbaac` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4595 | `a323c31e2f8305dfeb30a8489c45e853e4171e645ca183df48966b196682efcd` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2624 | `07757f42e54098ff2f2523c4538b55346a33454b7e06e18e07090341f0a951b7` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4282 | `dfb473fea080bb880ff9de2f5e9101bc616d2a4a8ed4a1f17be927d7aae75100` |
