@@ -12,6 +12,11 @@
 set -euo pipefail
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$ROOT"
+# Prefer the uv-managed venv when present (ADR-069). Wheel-smoke below still
+# uses an isolated pip --target install and must not rely on this PATH.
+if [ -x "$ROOT/.venv/bin/python" ]; then
+  export PATH="$ROOT/.venv/bin:$PATH"
+fi
 OUT="$ROOT/validation"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf "$TMP_ROOT"' EXIT

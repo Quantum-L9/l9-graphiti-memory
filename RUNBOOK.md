@@ -13,11 +13,16 @@ updated: 2026-07-27
 
 ## Install and verify
 
+Checkout-based (ADR-069):
+
 ```bash
-python -m pip install .
+uv sync --frozen --extra dev --extra server
+source .venv/bin/activate
 l9-memory resolve
 l9-memory health
 ```
+
+Published package: `pip install l9-graphite-memory`.
 
 The default database is `~/.local/share/l9-memory/memory.sqlite3`. Gate and recovery state is under `~/.local/state/l9-memory`.
 

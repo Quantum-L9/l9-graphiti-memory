@@ -34,7 +34,7 @@ The repository name uses **Graphiti** because the project integrates with Graphi
 - Explicit complete, partial, failed, duplicate, rejected, quarantined, archived, and deleted outcomes
 - No plaintext secret persistence in generated agent configuration
 - Installed-wheel operation without a source checkout
-- A machine-validated 58-ADR ledger and 44-decision harvest coverage map
+- A machine-validated 69-ADR ledger and 44-decision harvest coverage map
 
 ## L9 alignment boundary
 
@@ -62,11 +62,21 @@ The canonical SQLite store is fully functional without Zep, Neo4j, PostgreSQL, R
 
 ## Install
 
-```bash
-python -m pip install .
+Checkout-based development uses **uv** with the committed lockfile (ADR-069):
 
-# Optional remote MCP server and Zep projection
-python -m pip install '.[server,zep]'
+```bash
+# https://docs.astral.sh/uv/getting-started/installation/
+uv sync --frozen --extra dev --extra server
+source .venv/bin/activate   # or prefix commands with: uv run
+```
+
+Or: `bash scripts/install.sh` (requires `uv`).
+
+Published distribution consumers (no checkout) may still use pip:
+
+```bash
+python -m pip install l9-graphite-memory
+python -m pip install 'l9-graphite-memory[server,zep]'
 ```
 
 ## Quick start

@@ -93,6 +93,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-066 | [Secret-File Credential Resolution for Active-Memory Redis](ADR-066-secret-file-credential-resolution.md) | Accepted |
 | ADR-067 | [Active-Memory Public SDK and External-Runtime Lifecycle](ADR-067-active-memory-public-sdk-and-lifecycle.md) | Accepted |
 | ADR-068 | [Redis ACL Capability Contract for Active Memory](ADR-068-redis-acl-capability-contract.md) | Accepted |
+| ADR-069 | [uv as Canonical Python Package Manager](ADR-069-uv-package-manager.md) | Accepted |
 
 ## Validation
 

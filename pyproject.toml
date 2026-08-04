@@ -135,3 +135,8 @@ plugins = ["pydantic.mypy"]
 [[tool.mypy.overrides]]
 module = ["yaml", "infisical_client.*", "zep_cloud.*", "fastapi.*", "uvicorn.*", "redis.*"]
 ignore_missing_imports = true
+
+[tool.uv]
+# Lock all declared extras so CI/dev can `uv sync --frozen --extra …` without
+# re-resolving. Published wheels/sdists remain pip-installable without uv.
+package = true
