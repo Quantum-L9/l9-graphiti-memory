@@ -28,7 +28,7 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: Sync locked environment
-        run: uv sync --frozen --extra dev --extra server
+        run: uv sync --frozen --no-build --extra dev --extra server
       - name: Put uv venv on PATH
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - run: ruff check .

@@ -16,7 +16,7 @@ updated: 2026-07-27
 Checkout-based (ADR-069):
 
 ```bash
-uv sync --frozen --extra dev --extra server
+uv sync --frozen --no-build --extra dev --extra server
 source .venv/bin/activate
 l9-memory resolve
 l9-memory health

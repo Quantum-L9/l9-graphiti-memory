@@ -22,7 +22,7 @@ TEXT
 fi
 
 # Locked developer environment: runtime + CI extras.
-uv sync --frozen --extra dev --extra server
+uv sync --frozen --no-build --extra dev --extra server
 export PATH="$ROOT/.venv/bin:$PATH"
 PYTHON_BIN="${PYTHON_BIN:-$ROOT/.venv/bin/python}"
 

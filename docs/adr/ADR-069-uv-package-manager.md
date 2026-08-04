@@ -33,7 +33,7 @@ Adopt **uv** as the canonical Python dependency manager for this repository:
 1. Track `uv.lock` in git and regenerate it only via `uv lock` (committed with
    any dependency change in `pyproject.toml`).
 2. Developer and CI environments sync with
-   `uv sync --frozen --extra dev --extra server` (add further `--extra` flags
+   `uv sync --frozen --no-build --extra dev --extra server` (add further `--extra` flags
    when a workflow needs them).
 3. Prefer `uv run <command>` for repo-local tools (ruff, mypy, pytest, scripts).
 4. Keep **pip** for end-user installs of the published distribution and for the
@@ -86,7 +86,7 @@ Checkout-based development switches to `uv sync --frozen` (or
 
 - `uv lock` is a no-op against committed `uv.lock` (or the updated lock is
   committed)
-- `uv sync --frozen --extra dev --extra server` succeeds
+- `uv sync --frozen --no-build --extra dev --extra server` succeeds
 - `uv run ruff` / `uv run mypy` / `uv run pytest` (or PATH via `.venv`) succeed
 - `bash scripts/validate_release.sh` still passes wheel build + installed smoke
 
