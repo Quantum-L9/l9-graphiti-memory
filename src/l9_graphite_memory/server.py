@@ -27,11 +27,13 @@ from typing import Any
 try:
     from starlette.requests import Request
     from starlette.responses import JSONResponse
-except ModuleNotFoundError:  # [server] extra not installed; create_http_app() will error
+except (
+    ModuleNotFoundError
+):  # [server] extra not installed; create_http_app() will error
     Request = None  # type: ignore[assignment,misc]
     JSONResponse = None  # type: ignore[assignment,misc]
 
-from l9_graphite_memory.authz import TokenAuthenticator, build_local_principal
+from l9_graphite_memory.authz import TokenAuthenticator
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
 from l9_graphite_memory.errors import (
@@ -152,28 +154,10 @@ class MCPServer:
 
 
 def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
-    configured = any(
-        (
-            settings.local_read_namespaces,
-            settings.local_write_namespaces,
-            settings.local_promote_namespaces,
-        )
-    )
-    if configured:
-        principal = build_local_principal(
-            settings,
-            read_namespaces=settings.local_read_namespaces,
-            write_namespaces=settings.local_write_namespaces,
-            promote_namespaces=settings.local_promote_namespaces,
-        )
-    else:
-        _, principal = resolve_local_context(settings)
-    return principal.model_copy(
-        update={
-            "is_admin": settings.local_is_admin,
-            "auth_method": "stdio-local",
-        }
-    )
+    # Same ACL construction as CLI (runtime.local_principal_for_resolution):
+    # configured local_*_namespaces win; otherwise repository-scoped resolution.
+    _, principal = resolve_local_context(settings)
+    return principal.model_copy(update={"auth_method": "stdio-local"})
 
 
 def _write_json_line(obj: Any) -> None:
