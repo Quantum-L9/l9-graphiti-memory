@@ -1,13 +1,461 @@
-Processing ./.
-  Installing build dependencies: started
-  Installing build dependencies: finished with status 'done'
-  Getting requirements to build wheel: started
-  Getting requirements to build wheel: finished with status 'done'
-  Preparing metadata (pyproject.toml): started
-  Preparing metadata (pyproject.toml): finished with status 'done'
-Building wheels for collected packages: l9-graphite-memory
-  Building wheel for l9-graphite-memory (pyproject.toml): started
-  Building wheel for l9-graphite-memory (pyproject.toml): finished with status 'done'
-  Created wheel for l9-graphite-memory: filename=l9_graphite_memory-2.2.0-py3-none-any.whl size=188288 sha256=45a6bc56329f8eb7ee9577c89d332eec6b38e521b5ae2e5ccb946e5233448181
-  Stored in directory: /Users/ib-mac/Library/Caches/pip/wheels/cc/ed/e8/5b723a8f07e292cd8357048cb6ce0736b932fff03e5727f15a
-Successfully built l9-graphite-memory
+[93mWARNING[0m Both NO_COLOR and FORCE_COLOR environment variables are set, disabling color
+* Creating isolated environment: venv+pip...
+* Installing packages in isolated environment:
+  - setuptools>=68
+* Getting build dependencies for wheel...
+/private/var/folders/3m/0j6pb5k50k79kt8zpbwryf3c0000gn/T/build-env-2o6h5sn9/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+!!
+
+        ********************************************************************************
+        Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+
+        By 2027-Feb-18, you need to update your project and remove deprecated calls
+        or your builds will no longer be supported.
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  corresp(dist, value, root_dir)
+running egg_info
+creating src/l9_graphite_memory.egg-info
+writing src/l9_graphite_memory.egg-info/PKG-INFO
+writing dependency_links to src/l9_graphite_memory.egg-info/dependency_links.txt
+writing entry points to src/l9_graphite_memory.egg-info/entry_points.txt
+writing requirements to src/l9_graphite_memory.egg-info/requires.txt
+writing top-level names to src/l9_graphite_memory.egg-info/top_level.txt
+writing manifest file 'src/l9_graphite_memory.egg-info/SOURCES.txt'
+reading manifest file 'src/l9_graphite_memory.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+warning: no files found matching '*.json' under directory 'config'
+adding license file 'LICENSE'
+writing manifest file 'src/l9_graphite_memory.egg-info/SOURCES.txt'
+* Building wheel...
+/private/var/folders/3m/0j6pb5k50k79kt8zpbwryf3c0000gn/T/build-env-2o6h5sn9/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+!!
+
+        ********************************************************************************
+        Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+
+        By 2027-Feb-18, you need to update your project and remove deprecated calls
+        or your builds will no longer be supported.
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  corresp(dist, value, root_dir)
+running bdist_wheel
+running build
+running build_py
+creating build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/graphiti_memory_client.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/server.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/version.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/sdk.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/graphiti_gate_lib.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/transport.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/group_resolver.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/rate_limiter.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/__init__.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/runtime.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/cli.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/circuit_breaker.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/secrets.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/episode_contract.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/prune.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/errors.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/zep_transport.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/memory_guard.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/mcp_tools.py -> build/lib/l9_graphite_memory
+copying src/l9_graphite_memory/__main__.py -> build/lib/l9_graphite_memory
+creating build/lib/l9_graphite_memory/ingestion
+copying src/l9_graphite_memory/ingestion/__init__.py -> build/lib/l9_graphite_memory/ingestion
+copying src/l9_graphite_memory/ingestion/document.py -> build/lib/l9_graphite_memory/ingestion
+copying src/l9_graphite_memory/ingestion/repository.py -> build/lib/l9_graphite_memory/ingestion
+copying src/l9_graphite_memory/ingestion/profiles.py -> build/lib/l9_graphite_memory/ingestion
+creating build/lib/l9_graphite_memory/curation
+copying src/l9_graphite_memory/curation/procedural.py -> build/lib/l9_graphite_memory/curation
+copying src/l9_graphite_memory/curation/promotion.py -> build/lib/l9_graphite_memory/curation
+copying src/l9_graphite_memory/curation/__init__.py -> build/lib/l9_graphite_memory/curation
+copying src/l9_graphite_memory/curation/retention.py -> build/lib/l9_graphite_memory/curation
+creating build/lib/l9_graphite_memory/config
+copying src/l9_graphite_memory/config/models.py -> build/lib/l9_graphite_memory/config
+copying src/l9_graphite_memory/config/__init__.py -> build/lib/l9_graphite_memory/config
+copying src/l9_graphite_memory/config/loader.py -> build/lib/l9_graphite_memory/config
+creating build/lib/l9_graphite_memory/recovery
+copying src/l9_graphite_memory/recovery/__init__.py -> build/lib/l9_graphite_memory/recovery
+copying src/l9_graphite_memory/recovery/write_queue.py -> build/lib/l9_graphite_memory/recovery
+creating build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/temporal.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/enums.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/receipts.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/memory.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/__init__.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/requests.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/projection.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/identity.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/evidence.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/profiles.py -> build/lib/l9_graphite_memory/contracts
+copying src/l9_graphite_memory/contracts/privacy.py -> build/lib/l9_graphite_memory/contracts
+creating build/lib/l9_graphite_memory/client_config
+copying src/l9_graphite_memory/client_config/mcp_probe.py -> build/lib/l9_graphite_memory/client_config
+copying src/l9_graphite_memory/client_config/__init__.py -> build/lib/l9_graphite_memory/client_config
+copying src/l9_graphite_memory/client_config/contracts.py -> build/lib/l9_graphite_memory/client_config
+copying src/l9_graphite_memory/client_config/cursor.py -> build/lib/l9_graphite_memory/client_config
+creating build/lib/l9_graphite_memory/admission
+copying src/l9_graphite_memory/admission/policy.py -> build/lib/l9_graphite_memory/admission
+copying src/l9_graphite_memory/admission/__init__.py -> build/lib/l9_graphite_memory/admission
+copying src/l9_graphite_memory/admission/engine.py -> build/lib/l9_graphite_memory/admission
+copying src/l9_graphite_memory/admission/normalization.py -> build/lib/l9_graphite_memory/admission
+creating build/lib/l9_graphite_memory/observability
+copying src/l9_graphite_memory/observability/logging.py -> build/lib/l9_graphite_memory/observability
+copying src/l9_graphite_memory/observability/__init__.py -> build/lib/l9_graphite_memory/observability
+creating build/lib/l9_graphite_memory/projections
+copying src/l9_graphite_memory/projections/compiler.py -> build/lib/l9_graphite_memory/projections
+copying src/l9_graphite_memory/projections/manifest.py -> build/lib/l9_graphite_memory/projections
+copying src/l9_graphite_memory/projections/render.py -> build/lib/l9_graphite_memory/projections
+copying src/l9_graphite_memory/projections/__init__.py -> build/lib/l9_graphite_memory/projections
+copying src/l9_graphite_memory/projections/contracts.py -> build/lib/l9_graphite_memory/projections
+creating build/lib/l9_graphite_memory/integrations
+copying src/l9_graphite_memory/integrations/constellation.py -> build/lib/l9_graphite_memory/integrations
+copying src/l9_graphite_memory/integrations/session.py -> build/lib/l9_graphite_memory/integrations
+copying src/l9_graphite_memory/integrations/__init__.py -> build/lib/l9_graphite_memory/integrations
+creating build/lib/l9_graphite_memory/adapters
+copying src/l9_graphite_memory/adapters/__init__.py -> build/lib/l9_graphite_memory/adapters
+copying src/l9_graphite_memory/adapters/sqlite_store.py -> build/lib/l9_graphite_memory/adapters
+copying src/l9_graphite_memory/adapters/null_projection.py -> build/lib/l9_graphite_memory/adapters
+copying src/l9_graphite_memory/adapters/factory.py -> build/lib/l9_graphite_memory/adapters
+copying src/l9_graphite_memory/adapters/in_memory_store.py -> build/lib/l9_graphite_memory/adapters
+copying src/l9_graphite_memory/adapters/graphiti_projection.py -> build/lib/l9_graphite_memory/adapters
+creating build/lib/l9_graphite_memory/schema
+copying src/l9_graphite_memory/schema/registry.py -> build/lib/l9_graphite_memory/schema
+copying src/l9_graphite_memory/schema/__init__.py -> build/lib/l9_graphite_memory/schema
+copying src/l9_graphite_memory/schema/upcasters.py -> build/lib/l9_graphite_memory/schema
+creating build/lib/l9_graphite_memory/retrieval
+copying src/l9_graphite_memory/retrieval/planner.py -> build/lib/l9_graphite_memory/retrieval
+copying src/l9_graphite_memory/retrieval/budget.py -> build/lib/l9_graphite_memory/retrieval
+copying src/l9_graphite_memory/retrieval/__init__.py -> build/lib/l9_graphite_memory/retrieval
+copying src/l9_graphite_memory/retrieval/query_classifier.py -> build/lib/l9_graphite_memory/retrieval
+copying src/l9_graphite_memory/retrieval/ranking.py -> build/lib/l9_graphite_memory/retrieval
+creating build/lib/l9_graphite_memory/lineage
+copying src/l9_graphite_memory/lineage/__init__.py -> build/lib/l9_graphite_memory/lineage
+copying src/l9_graphite_memory/lineage/replay.py -> build/lib/l9_graphite_memory/lineage
+creating build/lib/l9_graphite_memory/integrity
+copying src/l9_graphite_memory/integrity/checkpoint.py -> build/lib/l9_graphite_memory/integrity
+copying src/l9_graphite_memory/integrity/__init__.py -> build/lib/l9_graphite_memory/integrity
+creating build/lib/l9_graphite_memory/authz
+copying src/l9_graphite_memory/authz/authenticator.py -> build/lib/l9_graphite_memory/authz
+copying src/l9_graphite_memory/authz/policy.py -> build/lib/l9_graphite_memory/authz
+copying src/l9_graphite_memory/authz/__init__.py -> build/lib/l9_graphite_memory/authz
+creating build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/models.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/deployment.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/credentials.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/client.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/ports.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/__init__.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/null_adapters.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/inmemory.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/redis_adapters.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/lifecycle.py -> build/lib/l9_graphite_memory/active
+copying src/l9_graphite_memory/active/errors.py -> build/lib/l9_graphite_memory/active
+creating build/lib/l9_graphite_memory/extraction
+copying src/l9_graphite_memory/extraction/__init__.py -> build/lib/l9_graphite_memory/extraction
+copying src/l9_graphite_memory/extraction/distiller.py -> build/lib/l9_graphite_memory/extraction
+copying src/l9_graphite_memory/extraction/atomic.py -> build/lib/l9_graphite_memory/extraction
+creating build/lib/l9_graphite_memory/ports
+copying src/l9_graphite_memory/ports/constellation.py -> build/lib/l9_graphite_memory/ports
+copying src/l9_graphite_memory/ports/clock.py -> build/lib/l9_graphite_memory/ports
+copying src/l9_graphite_memory/ports/__init__.py -> build/lib/l9_graphite_memory/ports
+copying src/l9_graphite_memory/ports/record_store.py -> build/lib/l9_graphite_memory/ports
+copying src/l9_graphite_memory/ports/projection.py -> build/lib/l9_graphite_memory/ports
+copying src/l9_graphite_memory/ports/synthesis.py -> build/lib/l9_graphite_memory/ports
+creating build/lib/l9_graphite_memory/services
+copying src/l9_graphite_memory/services/__init__.py -> build/lib/l9_graphite_memory/services
+copying src/l9_graphite_memory/services/outbox_worker.py -> build/lib/l9_graphite_memory/services
+copying src/l9_graphite_memory/services/memory_service.py -> build/lib/l9_graphite_memory/services
+running egg_info
+writing src/l9_graphite_memory.egg-info/PKG-INFO
+writing dependency_links to src/l9_graphite_memory.egg-info/dependency_links.txt
+writing entry points to src/l9_graphite_memory.egg-info/entry_points.txt
+writing requirements to src/l9_graphite_memory.egg-info/requires.txt
+writing top-level names to src/l9_graphite_memory.egg-info/top_level.txt
+reading manifest file 'src/l9_graphite_memory.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+warning: no files found matching '*.json' under directory 'config'
+adding license file 'LICENSE'
+writing manifest file 'src/l9_graphite_memory.egg-info/SOURCES.txt'
+creating build/lib/l9_graphite_memory/resources
+copying src/l9_graphite_memory/resources/defaults.yaml -> build/lib/l9_graphite_memory/resources
+copying src/l9_graphite_memory/resources/group_registry.yaml -> build/lib/l9_graphite_memory/resources
+copying src/l9_graphite_memory/resources/active_memory_redis_capabilities.yaml -> build/lib/l9_graphite_memory/resources
+copying src/l9_graphite_memory/resources/memory_contract.yaml -> build/lib/l9_graphite_memory/resources
+creating build/lib/l9_graphite_memory/resources/projections
+copying src/l9_graphite_memory/resources/projections/schema.json -> build/lib/l9_graphite_memory/resources/projections
+warning: build_py: byte-compiling is disabled, skipping.
+
+installing to build/bdist.macosx-15.0-arm64/wheel
+running install
+running install_lib
+creating build/bdist.macosx-15.0-arm64/wheel
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory
+copying build/lib/l9_graphite_memory/graphiti_memory_client.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/server.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/ingestion
+copying build/lib/l9_graphite_memory/ingestion/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ingestion
+copying build/lib/l9_graphite_memory/ingestion/document.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ingestion
+copying build/lib/l9_graphite_memory/ingestion/repository.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ingestion
+copying build/lib/l9_graphite_memory/ingestion/profiles.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ingestion
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/curation
+copying build/lib/l9_graphite_memory/curation/procedural.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/curation
+copying build/lib/l9_graphite_memory/curation/promotion.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/curation
+copying build/lib/l9_graphite_memory/curation/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/curation
+copying build/lib/l9_graphite_memory/curation/retention.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/curation
+copying build/lib/l9_graphite_memory/version.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/sdk.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/graphiti_gate_lib.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/config
+copying build/lib/l9_graphite_memory/config/models.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/config
+copying build/lib/l9_graphite_memory/config/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/config
+copying build/lib/l9_graphite_memory/config/loader.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/config
+copying build/lib/l9_graphite_memory/transport.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/recovery
+copying build/lib/l9_graphite_memory/recovery/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/recovery
+copying build/lib/l9_graphite_memory/recovery/write_queue.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/recovery
+copying build/lib/l9_graphite_memory/group_resolver.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/temporal.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/enums.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/receipts.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/memory.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/requests.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/projection.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/identity.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/evidence.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/profiles.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+copying build/lib/l9_graphite_memory/contracts/privacy.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/contracts
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/resources
+copying build/lib/l9_graphite_memory/resources/defaults.yaml -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/resources
+copying build/lib/l9_graphite_memory/resources/group_registry.yaml -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/resources
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/resources/projections
+copying build/lib/l9_graphite_memory/resources/projections/schema.json -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/resources/projections
+copying build/lib/l9_graphite_memory/resources/active_memory_redis_capabilities.yaml -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/resources
+copying build/lib/l9_graphite_memory/resources/memory_contract.yaml -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/resources
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/client_config
+copying build/lib/l9_graphite_memory/client_config/mcp_probe.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/client_config
+copying build/lib/l9_graphite_memory/client_config/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/client_config
+copying build/lib/l9_graphite_memory/client_config/contracts.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/client_config
+copying build/lib/l9_graphite_memory/client_config/cursor.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/client_config
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/admission
+copying build/lib/l9_graphite_memory/admission/policy.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/admission
+copying build/lib/l9_graphite_memory/admission/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/admission
+copying build/lib/l9_graphite_memory/admission/engine.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/admission
+copying build/lib/l9_graphite_memory/admission/normalization.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/admission
+copying build/lib/l9_graphite_memory/rate_limiter.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/observability
+copying build/lib/l9_graphite_memory/observability/logging.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/observability
+copying build/lib/l9_graphite_memory/observability/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/observability
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/projections
+copying build/lib/l9_graphite_memory/projections/compiler.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/projections
+copying build/lib/l9_graphite_memory/projections/manifest.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/projections
+copying build/lib/l9_graphite_memory/projections/render.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/projections
+copying build/lib/l9_graphite_memory/projections/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/projections
+copying build/lib/l9_graphite_memory/projections/contracts.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/projections
+copying build/lib/l9_graphite_memory/runtime.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/integrations
+copying build/lib/l9_graphite_memory/integrations/constellation.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/integrations
+copying build/lib/l9_graphite_memory/integrations/session.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/integrations
+copying build/lib/l9_graphite_memory/integrations/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/integrations
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/adapters
+copying build/lib/l9_graphite_memory/adapters/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/adapters
+copying build/lib/l9_graphite_memory/adapters/sqlite_store.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/adapters
+copying build/lib/l9_graphite_memory/adapters/null_projection.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/adapters
+copying build/lib/l9_graphite_memory/adapters/factory.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/adapters
+copying build/lib/l9_graphite_memory/adapters/in_memory_store.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/adapters
+copying build/lib/l9_graphite_memory/adapters/graphiti_projection.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/adapters
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/schema
+copying build/lib/l9_graphite_memory/schema/registry.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/schema
+copying build/lib/l9_graphite_memory/schema/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/schema
+copying build/lib/l9_graphite_memory/schema/upcasters.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/schema
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/retrieval
+copying build/lib/l9_graphite_memory/retrieval/planner.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/retrieval
+copying build/lib/l9_graphite_memory/retrieval/budget.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/retrieval
+copying build/lib/l9_graphite_memory/retrieval/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/retrieval
+copying build/lib/l9_graphite_memory/retrieval/query_classifier.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/retrieval
+copying build/lib/l9_graphite_memory/retrieval/ranking.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/retrieval
+copying build/lib/l9_graphite_memory/cli.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/circuit_breaker.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/secrets.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/lineage
+copying build/lib/l9_graphite_memory/lineage/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/lineage
+copying build/lib/l9_graphite_memory/lineage/replay.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/lineage
+copying build/lib/l9_graphite_memory/episode_contract.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/prune.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/integrity
+copying build/lib/l9_graphite_memory/integrity/checkpoint.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/integrity
+copying build/lib/l9_graphite_memory/integrity/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/integrity
+copying build/lib/l9_graphite_memory/errors.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/authz
+copying build/lib/l9_graphite_memory/authz/authenticator.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/authz
+copying build/lib/l9_graphite_memory/authz/policy.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/authz
+copying build/lib/l9_graphite_memory/authz/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/authz
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/models.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/deployment.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/credentials.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/client.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/ports.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/null_adapters.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/inmemory.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/redis_adapters.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/lifecycle.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/active/errors.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/active
+copying build/lib/l9_graphite_memory/zep_transport.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/memory_guard.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/extraction
+copying build/lib/l9_graphite_memory/extraction/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/extraction
+copying build/lib/l9_graphite_memory/extraction/distiller.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/extraction
+copying build/lib/l9_graphite_memory/extraction/atomic.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/extraction
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/ports
+copying build/lib/l9_graphite_memory/ports/constellation.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ports
+copying build/lib/l9_graphite_memory/ports/clock.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ports
+copying build/lib/l9_graphite_memory/ports/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ports
+copying build/lib/l9_graphite_memory/ports/record_store.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ports
+copying build/lib/l9_graphite_memory/ports/projection.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ports
+copying build/lib/l9_graphite_memory/ports/synthesis.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/ports
+copying build/lib/l9_graphite_memory/mcp_tools.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+copying build/lib/l9_graphite_memory/__main__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory/services
+copying build/lib/l9_graphite_memory/services/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/services
+copying build/lib/l9_graphite_memory/services/outbox_worker.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/services
+copying build/lib/l9_graphite_memory/services/memory_service.py -> build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory/services
+warning: install_lib: byte-compiling is disabled, skipping.
+
+running install_egg_info
+Copying src/l9_graphite_memory.egg-info to build/bdist.macosx-15.0-arm64/wheel/./l9_graphite_memory-2.2.0-py3.13.egg-info
+running install_scripts
+creating build/bdist.macosx-15.0-arm64/wheel/l9_graphite_memory-2.2.0.dist-info/WHEEL
+creating '/Users/ib-mac/l9-graphiti-memory/validation/dist/.tmp-u5gwpa89/l9_graphite_memory-2.2.0-py3-none-any.whl' and adding 'build/bdist.macosx-15.0-arm64/wheel' to it
+adding 'l9_graphite_memory/__init__.py'
+adding 'l9_graphite_memory/__main__.py'
+adding 'l9_graphite_memory/circuit_breaker.py'
+adding 'l9_graphite_memory/cli.py'
+adding 'l9_graphite_memory/episode_contract.py'
+adding 'l9_graphite_memory/errors.py'
+adding 'l9_graphite_memory/graphiti_gate_lib.py'
+adding 'l9_graphite_memory/graphiti_memory_client.py'
+adding 'l9_graphite_memory/group_resolver.py'
+adding 'l9_graphite_memory/mcp_tools.py'
+adding 'l9_graphite_memory/memory_guard.py'
+adding 'l9_graphite_memory/prune.py'
+adding 'l9_graphite_memory/rate_limiter.py'
+adding 'l9_graphite_memory/runtime.py'
+adding 'l9_graphite_memory/sdk.py'
+adding 'l9_graphite_memory/secrets.py'
+adding 'l9_graphite_memory/server.py'
+adding 'l9_graphite_memory/transport.py'
+adding 'l9_graphite_memory/version.py'
+adding 'l9_graphite_memory/zep_transport.py'
+adding 'l9_graphite_memory/active/__init__.py'
+adding 'l9_graphite_memory/active/client.py'
+adding 'l9_graphite_memory/active/credentials.py'
+adding 'l9_graphite_memory/active/deployment.py'
+adding 'l9_graphite_memory/active/errors.py'
+adding 'l9_graphite_memory/active/inmemory.py'
+adding 'l9_graphite_memory/active/lifecycle.py'
+adding 'l9_graphite_memory/active/models.py'
+adding 'l9_graphite_memory/active/null_adapters.py'
+adding 'l9_graphite_memory/active/ports.py'
+adding 'l9_graphite_memory/active/redis_adapters.py'
+adding 'l9_graphite_memory/adapters/__init__.py'
+adding 'l9_graphite_memory/adapters/factory.py'
+adding 'l9_graphite_memory/adapters/graphiti_projection.py'
+adding 'l9_graphite_memory/adapters/in_memory_store.py'
+adding 'l9_graphite_memory/adapters/null_projection.py'
+adding 'l9_graphite_memory/adapters/sqlite_store.py'
+adding 'l9_graphite_memory/admission/__init__.py'
+adding 'l9_graphite_memory/admission/engine.py'
+adding 'l9_graphite_memory/admission/normalization.py'
+adding 'l9_graphite_memory/admission/policy.py'
+adding 'l9_graphite_memory/authz/__init__.py'
+adding 'l9_graphite_memory/authz/authenticator.py'
+adding 'l9_graphite_memory/authz/policy.py'
+adding 'l9_graphite_memory/client_config/__init__.py'
+adding 'l9_graphite_memory/client_config/contracts.py'
+adding 'l9_graphite_memory/client_config/cursor.py'
+adding 'l9_graphite_memory/client_config/mcp_probe.py'
+adding 'l9_graphite_memory/config/__init__.py'
+adding 'l9_graphite_memory/config/loader.py'
+adding 'l9_graphite_memory/config/models.py'
+adding 'l9_graphite_memory/contracts/__init__.py'
+adding 'l9_graphite_memory/contracts/enums.py'
+adding 'l9_graphite_memory/contracts/evidence.py'
+adding 'l9_graphite_memory/contracts/identity.py'
+adding 'l9_graphite_memory/contracts/memory.py'
+adding 'l9_graphite_memory/contracts/privacy.py'
+adding 'l9_graphite_memory/contracts/profiles.py'
+adding 'l9_graphite_memory/contracts/projection.py'
+adding 'l9_graphite_memory/contracts/receipts.py'
+adding 'l9_graphite_memory/contracts/requests.py'
+adding 'l9_graphite_memory/contracts/temporal.py'
+adding 'l9_graphite_memory/curation/__init__.py'
+adding 'l9_graphite_memory/curation/procedural.py'
+adding 'l9_graphite_memory/curation/promotion.py'
+adding 'l9_graphite_memory/curation/retention.py'
+adding 'l9_graphite_memory/extraction/__init__.py'
+adding 'l9_graphite_memory/extraction/atomic.py'
+adding 'l9_graphite_memory/extraction/distiller.py'
+adding 'l9_graphite_memory/ingestion/__init__.py'
+adding 'l9_graphite_memory/ingestion/document.py'
+adding 'l9_graphite_memory/ingestion/profiles.py'
+adding 'l9_graphite_memory/ingestion/repository.py'
+adding 'l9_graphite_memory/integrations/__init__.py'
+adding 'l9_graphite_memory/integrations/constellation.py'
+adding 'l9_graphite_memory/integrations/session.py'
+adding 'l9_graphite_memory/integrity/__init__.py'
+adding 'l9_graphite_memory/integrity/checkpoint.py'
+adding 'l9_graphite_memory/lineage/__init__.py'
+adding 'l9_graphite_memory/lineage/replay.py'
+adding 'l9_graphite_memory/observability/__init__.py'
+adding 'l9_graphite_memory/observability/logging.py'
+adding 'l9_graphite_memory/ports/__init__.py'
+adding 'l9_graphite_memory/ports/clock.py'
+adding 'l9_graphite_memory/ports/constellation.py'
+adding 'l9_graphite_memory/ports/projection.py'
+adding 'l9_graphite_memory/ports/record_store.py'
+adding 'l9_graphite_memory/ports/synthesis.py'
+adding 'l9_graphite_memory/projections/__init__.py'
+adding 'l9_graphite_memory/projections/compiler.py'
+adding 'l9_graphite_memory/projections/contracts.py'
+adding 'l9_graphite_memory/projections/manifest.py'
+adding 'l9_graphite_memory/projections/render.py'
+adding 'l9_graphite_memory/recovery/__init__.py'
+adding 'l9_graphite_memory/recovery/write_queue.py'
+adding 'l9_graphite_memory/resources/active_memory_redis_capabilities.yaml'
+adding 'l9_graphite_memory/resources/defaults.yaml'
+adding 'l9_graphite_memory/resources/group_registry.yaml'
+adding 'l9_graphite_memory/resources/memory_contract.yaml'
+adding 'l9_graphite_memory/resources/projections/schema.json'
+adding 'l9_graphite_memory/retrieval/__init__.py'
+adding 'l9_graphite_memory/retrieval/budget.py'
+adding 'l9_graphite_memory/retrieval/planner.py'
+adding 'l9_graphite_memory/retrieval/query_classifier.py'
+adding 'l9_graphite_memory/retrieval/ranking.py'
+adding 'l9_graphite_memory/schema/__init__.py'
+adding 'l9_graphite_memory/schema/registry.py'
+adding 'l9_graphite_memory/schema/upcasters.py'
+adding 'l9_graphite_memory/services/__init__.py'
+adding 'l9_graphite_memory/services/memory_service.py'
+adding 'l9_graphite_memory/services/outbox_worker.py'
+adding 'l9_graphite_memory-2.2.0.dist-info/licenses/LICENSE'
+adding 'l9_graphite_memory-2.2.0.dist-info/METADATA'
+adding 'l9_graphite_memory-2.2.0.dist-info/WHEEL'
+adding 'l9_graphite_memory-2.2.0.dist-info/entry_points.txt'
+adding 'l9_graphite_memory-2.2.0.dist-info/top_level.txt'
+adding 'l9_graphite_memory-2.2.0.dist-info/RECORD'
+removing build/bdist.macosx-15.0-arm64/wheel
+Successfully built l9_graphite_memory-2.2.0-py3-none-any.whl
