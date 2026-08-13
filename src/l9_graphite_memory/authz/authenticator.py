@@ -35,6 +35,7 @@ def _principal_from_config(
         write_namespaces=config.write_namespaces,
         promote_namespaces=config.promote_namespaces,
         is_admin=config.is_admin,
+        is_global_admin=config.is_global_admin,
         auth_method=auth_method,
     )
 

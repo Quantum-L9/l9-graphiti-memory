@@ -30,6 +30,8 @@ from l9_graphite_memory.contracts import (
     WriteReceipt,
 )
 
+from .service_capability import ServiceWriteCapability
+
 
 class RecordStore(Protocol):
     name: str
@@ -42,6 +44,7 @@ class RecordStore(Protocol):
 
     def commit_write(
         self,
+        capability: ServiceWriteCapability,
         record: MemoryRecord | None,
         receipt: WriteReceipt,
         *,
@@ -76,10 +79,12 @@ class RecordStore(Protocol):
 
     def transition_state(self, event: MemoryStatusEvent) -> None: ...
 
-    def save_phase_lock(self, receipt: PhaseLockReceipt) -> None: ...
+    def save_phase_lock(
+        self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
+    ) -> None: ...
 
     def get_phase_lock(
-        self, namespace: str, task_signature: str
+        self, tenant_id: str, namespace: str, task_signature: str
     ) -> PhaseLockReceipt | None: ...
 
     def claim_outbox(self, *, limit: int, now: datetime) -> list[OutboxEvent]: ...
@@ -119,6 +124,7 @@ class RecordStore(Protocol):
 
     def commit_archive(
         self,
+        capability: ServiceWriteCapability,
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
@@ -126,6 +132,7 @@ class RecordStore(Protocol):
 
     def commit_deletion(
         self,
+        capability: ServiceWriteCapability,
         receipt: DeletionReceipt,
         redacted_record: MemoryRecord,
         *,

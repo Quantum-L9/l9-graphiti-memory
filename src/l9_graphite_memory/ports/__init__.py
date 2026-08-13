@@ -19,9 +19,15 @@ from .constellation import (
 )
 from .projection import ProjectionAdapter, ProjectionHit
 from .record_store import RecordStore
+from .service_capability import (
+    SERVICE_WRITE_CAPABILITY,
+    ServiceWriteCapability,
+    require_service_write_capability,
+)
 from .synthesis import ProceduralSynthesizer, SynthesizedProcedure
 
 __all__ = [
+    "SERVICE_WRITE_CAPABILITY",
     "Clock",
     "GateClientPort",
     "GateDispatchReceipt",
@@ -29,8 +35,10 @@ __all__ = [
     "ProjectionAdapter",
     "ProjectionHit",
     "RecordStore",
+    "ServiceWriteCapability",
     "SynthesizedProcedure",
     "SystemClock",
     "TransportPacketFactory",
     "TransportPacketPort",
+    "require_service_write_capability",
 ]

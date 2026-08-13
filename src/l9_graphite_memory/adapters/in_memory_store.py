@@ -30,6 +30,10 @@ from l9_graphite_memory.contracts import (
     ProjectionLink,
     WriteReceipt,
 )
+from l9_graphite_memory.ports.service_capability import (
+    ServiceWriteCapability,
+    require_service_write_capability,
+)
 
 
 class InMemoryRecordStore:
@@ -43,7 +47,7 @@ class InMemoryRecordStore:
         self.idempotency: dict[tuple[str, str, str], UUID] = {}
         self.status_events: list[MemoryStatusEvent] = []
         self.outbox: dict[UUID, OutboxEvent] = {}
-        self.phase_locks: dict[tuple[str, str], PhaseLockReceipt] = {}
+        self.phase_locks: dict[tuple[str, str, str], PhaseLockReceipt] = {}
         self.projection_links: dict[tuple[UUID, str], ProjectionLink] = {}
         self.initialized = False
 
@@ -62,12 +66,14 @@ class InMemoryRecordStore:
 
     def commit_write(
         self,
+        capability: ServiceWriteCapability,
         record: MemoryRecord | None,
         receipt: WriteReceipt,
         *,
         outbox_events: tuple[OutboxEvent, ...] = (),
         status_events: tuple[MemoryStatusEvent, ...] = (),
     ) -> None:
+        require_service_write_capability(capability)
         if record is not None:
             key = (record.tenant_id, record.namespace, record.idempotency_key)
             existing_id = self.idempotency.get(key)
@@ -157,13 +163,18 @@ class InMemoryRecordStore:
         )
         self.status_events.append(event)
 
-    def save_phase_lock(self, receipt: PhaseLockReceipt) -> None:
-        self.phase_locks[(receipt.namespace, receipt.task_signature)] = receipt
+    def save_phase_lock(
+        self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
+    ) -> None:
+        require_service_write_capability(capability)
+        self.phase_locks[
+            (receipt.tenant_id, receipt.namespace, receipt.task_signature)
+        ] = receipt
 
     def get_phase_lock(
-        self, namespace: str, task_signature: str
+        self, tenant_id: str, namespace: str, task_signature: str
     ) -> PhaseLockReceipt | None:
-        return self.phase_locks.get((namespace, task_signature))
+        return self.phase_locks.get((tenant_id, namespace, task_signature))
 
     def claim_outbox(self, *, limit: int, now: datetime) -> list[OutboxEvent]:
         candidates = [
@@ -259,10 +270,12 @@ class InMemoryRecordStore:
 
     def commit_archive(
         self,
+        capability: ServiceWriteCapability,
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
     ) -> None:
+        require_service_write_capability(capability)
         if not receipt.applied:
             raise ValueError("cannot persist a non-applied archive receipt")
         event_ids = {event.record_id for event in status_events}
@@ -293,11 +306,13 @@ class InMemoryRecordStore:
 
     def commit_deletion(
         self,
+        capability: ServiceWriteCapability,
         receipt: DeletionReceipt,
         redacted_record: MemoryRecord,
         *,
         outbox_event: OutboxEvent | None,
     ) -> None:
+        require_service_write_capability(capability)
         if redacted_record.record_id != receipt.record_id:
             raise ValueError("deletion receipt and record target differ")
         self.records[redacted_record.record_id] = redacted_record

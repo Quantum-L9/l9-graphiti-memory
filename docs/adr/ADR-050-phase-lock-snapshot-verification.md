@@ -28,6 +28,8 @@ A conflict check can become stale immediately after a lock is issued. A lock tha
 
 Bind every phase lock to a deterministic namespace snapshot digest, task signature, principal, policy version, and expiration. Verification recomputes the snapshot and fails when records, conflicts, policy, task, or time have changed.
 
+Phase-lock storage is keyed by `(tenant_id, namespace, task_signature)` in both the in-memory and SQLite stores. The lock receipt carries `tenant_id`, and issuance/verification derive it from the server-established principal. Two tenants that share a namespace and task signature therefore occupy distinct lock slots and can neither overwrite nor observe one another's lock. Legacy databases keyed only by `(namespace, task_signature)` are migrated by dropping the untenanted lock table so outstanding locks are invalidated rather than assigned an invented tenant owner.
+
 ## Alternatives Considered
 
 - Trust a boolean phase_lock flag
@@ -46,6 +48,7 @@ Bind every phase lock to a deterministic namespace snapshot digest, task signatu
 - The snapshot digest covers the current governed namespace state
 - Verification is required before task execution
 - Changed snapshots invalidate existing locks
+- Lock identity and storage are scoped by tenant; locks never collide or leak across tenants
 
 ## Consequences
 
