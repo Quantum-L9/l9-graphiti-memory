@@ -1,0 +1,21 @@
+{
+  "memory_service_write": true,
+  "path": "src/l9_graphite_memory/services/memory_service.py",
+  "second_canonical_write_path": false,
+  "wrappers_that_call_MemoryService.write": [
+    "sdk.py",
+    "cli.py",
+    "mcp_tools.py",
+    "integrations/session.py",
+    "ingestion/repository.py",
+    "extraction/distiller.py",
+    "curation/procedural.py",
+    "recovery/write_queue.py"
+  ],
+  "projection_only_write": [
+    "transport.py",
+    "zep_transport.py",
+    "adapters/graphiti_projection.py"
+  ],
+  "decision": "proceed"
+}

@@ -1,0 +1,15 @@
+schema: l9.generated_data_bind_receipt/v1
+activation_state: CODE_COMPLETE
+write_repository: Quantum-L9/l9-graphiti-memory
+branch: feat/generated-data-waves
+graphiti_origin_main: 448a0e4f82d7277300bd4064d559b242863347d8
+cursor_governance_contract_sha: 7f1c56e936f9917b32bf798fbdc3dc8dc07cf2ef
+canonical_write_path: l9_graphite_memory.services.MemoryService.write
+candidate_ingress_reaches_MemoryService_write_exactly_once: true
+second_canonical_write_path: false
+wave2_test_command: .venv/bin/pytest -q tests/deployment/generated_data
+wave2_test_result: "53 passed"
+notes:
+  - GeneratedDataService.ingest_governed_candidate calls MemoryService.write once per candidate.
+  - Reuse and invalidation also persist through MemoryService.write; no adapter-to-store writes.
+  - Cross-repo verifier scans live classifier.py and unit schema for class constants.

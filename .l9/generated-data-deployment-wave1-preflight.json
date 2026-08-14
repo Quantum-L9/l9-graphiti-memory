@@ -1,0 +1,46 @@
+{
+  "blocking_gaps": [],
+  "commands": {
+    "l9-memory": null,
+    "l9-memory-server": null
+  },
+  "cursor_governance_sha": "7f1c56e936f9917b32bf798fbdc3dc8dc07cf2ef",
+  "deployment_files_to_create": [
+    "capability-manifest.yaml",
+    "principal-policy.yaml",
+    "namespace-mapping.yaml",
+    "retention-policy.yaml",
+    "cursor-command-env.example",
+    "migration-runbook.md",
+    "activation-runbook.md",
+    "rollback-runbook.md",
+    "verify_generated_data_tools.py",
+    "verify_cross_repo_contract.py",
+    "verify_migration.py",
+    "verify_backup_restore.py",
+    "verify_selector_indexes.py",
+    "load_test_generated_data.py",
+    "live_end_to_end_proof.py"
+  ],
+  "graphiti_sha": "448a0e4f82d7277300bd4064d559b242863347d8",
+  "producer_files": [
+    {
+      "path": "/Users/ib-mac/Cursor-Governance-worktrees/wip-backlog-safety/environment/agents/generated-data/adapters/graphiti_memory.py",
+      "sha256": "4b88ad9dd570e93c852e8643c28e5157e893af8a72ab53b0e3b3c9d093f34dcf"
+    },
+    {
+      "path": "/Users/ib-mac/Cursor-Governance-worktrees/wip-backlog-safety/environment/agents/generated-data/retrieval/context_query.py",
+      "sha256": "c5ee17791ee59a2ae1a0fc315ff4b9c75f5610c3103b0c1b21ddf019d431a99d"
+    },
+    {
+      "path": "/Users/ib-mac/Cursor-Governance-worktrees/wip-backlog-safety/environment/agents/generated-data/retrieval/reuse_recorder.py",
+      "sha256": "423c335bf64f496cdaa34072f57b4fbbdd93499ac126b41aa12369ee5b2dcf1c"
+    },
+    {
+      "path": "/Users/ib-mac/Cursor-Governance-worktrees/wip-backlog-safety/environment/agents/generated-data/invalidation/repository_event_bridge.py",
+      "sha256": "49f6651759753433d810fe56d411c624ce2d609570c24ccc2c56efb81e1f8293"
+    }
+  ],
+  "read_only_contract_repository": "/Users/ib-mac/Cursor-Governance-worktrees/wip-backlog-safety",
+  "write_repository": "/Users/ib-mac/l9-graphiti-memory"
+}

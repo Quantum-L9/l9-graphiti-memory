@@ -1,0 +1,84 @@
+schema_version: "1.0.0"
+integration: cursor_governance_generated_data
+enabled: true
+
+candidate_ingress:
+  supported_schema_majors:
+    - 1
+  supported_classes:
+    - repository_fact
+    - dependency_finding
+    - implementation_surface
+    - rejected_approach
+    - context_requirement
+    - artifact_lineage
+  rejected_classes:
+    - architecture_boundary
+    - ownership_finding
+    - task_contract_gap
+    - policy_candidate
+    - invariant_candidate
+    - regression_candidate
+    - validation_procedure
+    - failure_pattern
+    - reusable_pattern_candidate
+    - unresolved_unknown
+    - follow_on_opportunity
+  authority_class: advisory
+  route: memory
+  required_promotion_decision: promote
+  idempotency_field: candidate_id
+  may_override_repository_state: false
+  may_override_canonical_authority: false
+
+reuse:
+  supported_schema_majors:
+    - 1
+  supported_outcomes:
+    - accelerated_execution
+    - prevented_error
+    - improved_validation
+    - improved_context
+    - reduced_discovery
+    - improved_scope_control
+    - improved_contract
+    - no_observable_value
+    - caused_confusion
+    - stale
+    - incorrect
+  selection_is_proven_reuse: false
+  injection_is_proven_reuse: false
+  finalized_outcome_is_proven_reuse: true
+
+invalidation:
+  supported_schema_majors:
+    - 1
+  supported_event_types:
+    - repository_path_changed
+    - repository_base_changed
+    - schema_version_changed
+    - contract_version_changed
+    - policy_version_changed
+    - architecture_owner_changed
+    - dependency_upgraded
+    - contradictory_evidence_accepted
+    - failed_reuse_reported
+    - expiration_reached
+  deletes_memory: false
+  creates_replacement_record: false
+  requires_structured_selectors: true
+  natural_language_matching_forbidden: true
+
+retrieval:
+  search_owner: existing_memory_service
+  hydrate_owner: existing_memory_service
+  excludes_invalidated_by_default: true
+  historical_audit_may_include_invalidated: true
+  reuse_signal_may_override_authorization: false
+  reuse_signal_may_override_lifecycle: false
+  reuse_signal_may_override_temporal_validity: false
+
+canonical_storage:
+  owner: existing_memory_service
+  projection_required: false
+  direct_adapter_store_writes_forbidden: true

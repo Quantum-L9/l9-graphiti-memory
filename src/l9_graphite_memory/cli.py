@@ -60,7 +60,7 @@ from l9_graphite_memory.runtime import (
     local_principal_for_resolution,
 )
 from l9_graphite_memory.secrets import load_secrets_sync
-from l9_graphite_memory.services import OutboxWorker
+from l9_graphite_memory.services import GeneratedDataService, OutboxWorker
 
 _LEGACY_KIND_MAP = {
     "lesson": MemoryClass.PROCEDURAL,
@@ -738,6 +738,64 @@ def cmd_client(args: argparse.Namespace) -> int:
     raise ValueError(f"unsupported cursor action: {action}")
 
 
+def _read_json_payload(args: argparse.Namespace) -> dict[str, Any]:
+    if getattr(args, "file", None):
+        value = json.loads(Path(args.file).read_text(encoding="utf-8"))
+    else:
+        raw = sys.stdin.read()
+        if not raw.strip():
+            raise L9MemoryError("JSON payload required on stdin or --file")
+        value = json.loads(raw)
+    if not isinstance(value, dict):
+        raise L9MemoryError("JSON payload must be an object")
+    return value
+
+
+def cmd_ingest_governed_candidate(args: argparse.Namespace) -> int:
+    runtime = _runtime(args)
+    try:
+        _, principal = _context(runtime, args)
+        result = GeneratedDataService(runtime.service).ingest_governed_candidate(
+            principal, _read_json_payload(args)
+        )
+        _print(result)
+        return 0 if result.status.value != "rejected" else 7
+    finally:
+        runtime.close()
+
+
+def cmd_record_reuse(args: argparse.Namespace) -> int:
+    runtime = _runtime(args)
+    try:
+        _, principal = _context(runtime, args)
+        result = GeneratedDataService(runtime.service).record_reuse(
+            principal, _read_json_payload(args)
+        )
+        _print(result)
+        return 0 if result.status.value != "rejected" else 7
+    finally:
+        runtime.close()
+
+
+def cmd_invalidate_source(args: argparse.Namespace) -> int:
+    runtime = _runtime(args)
+    try:
+        _, principal = _context(runtime, args)
+        result = GeneratedDataService(runtime.service).invalidate_by_source(
+            principal, _read_json_payload(args)
+        )
+        _print(result)
+        return 0 if result.status.value != "rejected" else 7
+    finally:
+        runtime.close()
+
+
+def cmd_generated_data_capabilities(args: argparse.Namespace) -> int:
+    del args
+    _print(GeneratedDataService.generated_data_capabilities())
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="L9 contract-governed memory")
     parser.add_argument("--config", default=None, help="Optional YAML settings file")
@@ -913,6 +971,13 @@ def build_parser() -> argparse.ArgumentParser:
     cursor_uninstall.add_argument("--interpreter", default=None)
     cursor_uninstall.add_argument("--dry-run", action="store_true")
     cursor_uninstall.add_argument("--restore-backup", default=None)
+    ingest_gd = sub.add_parser("ingest-governed-candidate")
+    ingest_gd.add_argument("--file", default=None)
+    reuse_gd = sub.add_parser("record-reuse")
+    reuse_gd.add_argument("--file", default=None)
+    invalidate_gd = sub.add_parser("invalidate-source")
+    invalidate_gd.add_argument("--file", default=None)
+    sub.add_parser("generated-data-capabilities")
     return parser
 
 
@@ -943,6 +1008,10 @@ def main(argv: list[str] | None = None) -> int:
         "outbox-run": cmd_outbox_run,
         "recovery-replay": cmd_recovery_replay,
         "client": cmd_client,
+        "ingest-governed-candidate": cmd_ingest_governed_candidate,
+        "record-reuse": cmd_record_reuse,
+        "invalidate-source": cmd_invalidate_source,
+        "generated-data-capabilities": cmd_generated_data_capabilities,
     }
     try:
         return handlers[args.command](args)

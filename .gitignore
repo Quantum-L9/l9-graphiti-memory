@@ -38,6 +38,7 @@ htmlcov/
 *.sqlite3-wal
 *.state.json
 .l9-memory/
+.l9/memory/
 validation/wheel-site/
 validation/installed-run/
 validation/installed-smoke/
