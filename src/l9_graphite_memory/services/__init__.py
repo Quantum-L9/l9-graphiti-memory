@@ -10,7 +10,8 @@
 
 """Canonical application services."""
 
+from .generated_data import GeneratedDataService
 from .memory_service import MemoryService
 from .outbox_worker import OutboxWorker
 
-__all__ = ["MemoryService", "OutboxWorker"]
+__all__ = ["GeneratedDataService", "MemoryService", "OutboxWorker"]

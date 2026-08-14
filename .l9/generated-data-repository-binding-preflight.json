@@ -1,0 +1,43 @@
+{
+  "canonical_write_service": "l9_graphite_memory.services.MemoryService",
+  "canonical_write_method": "write",
+  "canonical_write_request": "l9_graphite_memory.contracts.MemoryWriteRequest",
+  "canonical_principal": "l9_graphite_memory.contracts.MemoryPrincipal",
+  "canonical_record": "l9_graphite_memory.contracts.MemoryRecord",
+  "canonical_receipt": "l9_graphite_memory.contracts.WriteReceipt",
+  "canonical_store_protocol": "l9_graphite_memory.ports.record_store.RecordStore",
+  "canonical_store_implementations": [
+    "l9_graphite_memory.adapters.sqlite_store.SqliteRecordStore",
+    "l9_graphite_memory.adapters.in_memory_store.InMemoryRecordStore"
+  ],
+  "migration_owner": "l9_graphite_memory.adapters.sqlite_store",
+  "command_owner": "l9_graphite_memory.cli",
+  "mcp_owner": "l9_graphite_memory.mcp_tools",
+  "health_owner": "l9_graphite_memory.services.MemoryService.health",
+  "observability_owner": "l9_graphite_memory.services.MemoryService",
+  "search_owner": "l9_graphite_memory.services.MemoryService.search",
+  "hydrate_owner": "l9_graphite_memory.services.MemoryService.hydrate",
+  "lifecycle_owner": "l9_graphite_memory.services.MemoryService.apply_retention",
+  "serialization_owner": "l9_graphite_memory.contracts",
+  "existing_candidate_ingress": [
+    "l9_graphite_memory.cli.cmd_write",
+    "l9_graphite_memory.mcp_tools.MCPToolApplication._ingest"
+  ],
+  "existing_reuse_support": [],
+  "existing_invalidation_support": [
+    "l9_graphite_memory.services.MemoryService.apply_retention"
+  ],
+  "files_to_create": [
+    "src/l9_graphite_memory/contracts/generated_data.py",
+    "src/l9_graphite_memory/services/generated_data.py"
+  ],
+  "files_to_modify": [
+    "src/l9_graphite_memory/cli.py",
+    "src/l9_graphite_memory/mcp_tools.py",
+    "src/l9_graphite_memory/services/__init__.py",
+    "deployment/generated-data/verify_cross_repo_contract.py"
+  ],
+  "collisions": [],
+  "blocking_incompatibilities": [],
+  "second_canonical_write_path": false
+}

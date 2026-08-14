@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "MemoryReuseEvent",
+  "event_id": "reuse-wave1-001",
+  "record_id": "record-wave1-001",
+  "consumer": {
+    "repository": "Quantum-L9/l9-graphiti-memory",
+    "campaign_id": "campaign-wave1-002",
+    "action_id": "verify-wave1-002",
+    "agent_id": "agent-verifier-wave1-002",
+    "role": "verifier"
+  },
+  "use": {
+    "query": "Where is the canonical memory write boundary?",
+    "injection_method": "agent_contract_context",
+    "context_pack_id": "context-pack-wave1-001"
+  },
+  "outcome": "reduced_discovery",
+  "evidence": {
+    "verification_artifact_id": "verification-wave1-001",
+    "description": "The verifier did not need to rediscover the canonical write owner."
+  },
+  "correction_required": false,
+  "validity_confirmed": true,
+  "occurred_at": "2026-08-02T19:40:00Z",
+  "metadata": {
+    "producer": "Cursor-Governance"
+  }
+}
