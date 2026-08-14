@@ -6,8 +6,6 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
-from typing import Mapping
-
 
 ROOT = Path(__file__).resolve().parents[3]
 DEPLOYMENT = ROOT / "deployment" / "generated-data"
@@ -56,8 +54,7 @@ class CrossRepositoryContractTests(unittest.TestCase):
                 "--cursor-root",
                 str(self.cursor),
             ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
             check=False,
             timeout=30,
@@ -89,8 +86,7 @@ class CrossRepositoryContractTests(unittest.TestCase):
                 "--cursor-root",
                 str(self.cursor),
             ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
             check=False,
             timeout=30,

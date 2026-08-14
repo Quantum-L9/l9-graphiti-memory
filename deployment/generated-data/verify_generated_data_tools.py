@@ -6,10 +6,10 @@ import os
 import shlex
 import shutil
 import subprocess
-import sys
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 try:
     import yaml
@@ -40,7 +40,7 @@ class Check:
 def load_yaml(path: Path) -> Mapping[str, Any]:
     value = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(value, Mapping):
-        raise ValueError(f"{path} must contain a mapping")
+        raise TypeError(f"{path} must contain a mapping")
     return value
 
 
@@ -61,8 +61,7 @@ def run_json_command(
             if payload is not None
             else None
         ),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         timeout=timeout,
         check=False,
@@ -221,8 +220,7 @@ def local_checks() -> list[Check]:
         ):
             completed = subprocess.run(
                 list(command),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 timeout=30,
                 check=False,

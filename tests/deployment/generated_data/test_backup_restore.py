@@ -9,7 +9,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[3]
 VERIFIER = (
     ROOT
@@ -65,8 +64,7 @@ class BackupRestoreTests(unittest.TestCase):
                     "--output-dir",
                     str(output),
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 check=False,
                 timeout=30,
@@ -112,8 +110,7 @@ class BackupRestoreTests(unittest.TestCase):
                     "--output-dir",
                     str(output),
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 check=True,
                 timeout=30,
@@ -136,8 +133,7 @@ class BackupRestoreTests(unittest.TestCase):
                     "--output-dir",
                     str(root / "output"),
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 check=False,
                 timeout=30,

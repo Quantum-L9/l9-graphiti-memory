@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import yaml
-
 
 ROOT = Path(__file__).resolve().parents[3]
 PATH = (
@@ -21,7 +21,7 @@ def load_mapping() -> Mapping[str, Any]:
         PATH.read_text(encoding="utf-8")
     )
     if not isinstance(value, Mapping):
-        raise AssertionError(
+        raise TypeError(
             "namespace-mapping root must be a mapping"
         )
     return value

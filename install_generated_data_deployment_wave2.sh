@@ -2208,10 +2208,10 @@ python -m unittest discover \
 
 # Run through pytest when available, without requiring pytest installation.
 if command -v uv >/dev/null 2>&1 \
-  && uv run python -c 'import pytest' >/dev/null 2>&1
+  && uv run --no-build python -c 'import pytest' >/dev/null 2>&1
 then
   CURSOR_GOVERNANCE_ROOT="$CURSOR_ROOT" \
-  uv run pytest -q "$TESTS"
+  uv run --no-build pytest -q "$TESTS"
 elif python -c 'import pytest' >/dev/null 2>&1
 then
   CURSOR_GOVERNANCE_ROOT="$CURSOR_ROOT" \

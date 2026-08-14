@@ -5,7 +5,6 @@ import hashlib
 import json
 import shutil
 import sqlite3
-import tempfile
 from pathlib import Path
 from typing import Any
 

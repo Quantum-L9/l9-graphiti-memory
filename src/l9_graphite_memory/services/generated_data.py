@@ -13,7 +13,6 @@
 from __future__ import annotations
 
 from typing import Any
-from uuid import UUID
 
 from l9_graphite_memory.contracts import (
     Confidence,
@@ -36,7 +35,6 @@ from l9_graphite_memory.contracts.generated_data import (
     SourceInvalidationRequest,
     SourceInvalidationStatus,
 )
-from l9_graphite_memory.errors import L9MemoryError
 from l9_graphite_memory.services.memory_service import MemoryService
 
 WRITE_PATH = "l9_graphite_memory.services.MemoryService.write"
@@ -83,13 +81,12 @@ class GeneratedDataService:
             idempotency_key=f"generated-data:{candidate.candidate_id}",
         )
         receipt = self.memory.write(principal, request)
-        status = (
-            MemoryCandidateIngestionStatus.DUPLICATE
-            if receipt.status.value == "duplicate"
-            else MemoryCandidateIngestionStatus.ADMITTED
-            if receipt.status.value not in {"rejected"}
-            else MemoryCandidateIngestionStatus.REJECTED
-        )
+        if receipt.status.value == "duplicate":
+            status = MemoryCandidateIngestionStatus.DUPLICATE
+        elif receipt.status.value not in {"rejected"}:
+            status = MemoryCandidateIngestionStatus.ADMITTED
+        else:
+            status = MemoryCandidateIngestionStatus.REJECTED
         return MemoryCandidateIngestionResult(
             status=status,
             candidate_id=candidate.candidate_id,
@@ -139,13 +136,12 @@ class GeneratedDataService:
             references=(event.record_id,),
         )
         receipt = self.memory.write(principal, request)
-        status = (
-            MemoryReuseStatus.DUPLICATE
-            if receipt.status.value == "duplicate"
-            else MemoryReuseStatus.RECORDED
-            if receipt.status.value not in {"rejected"}
-            else MemoryReuseStatus.REJECTED
-        )
+        if receipt.status.value == "duplicate":
+            status = MemoryReuseStatus.DUPLICATE
+        elif receipt.status.value not in {"rejected"}:
+            status = MemoryReuseStatus.RECORDED
+        else:
+            status = MemoryReuseStatus.REJECTED
         return MemoryReuseReceipt(
             status=status,
             event_id=event.event_id,
@@ -157,11 +153,12 @@ class GeneratedDataService:
         self, principal: MemoryPrincipal, payload: dict[str, Any]
     ) -> SourceInvalidationReceipt:
         request_model = SourceInvalidationRequest.model_validate(payload)
-        namespace = (
-            f"repository/{request_model.repository}"
-            if request_model.repository
-            else (principal.write_namespaces[0] if principal.write_namespaces else "default")
-        )
+        if request_model.repository:
+            namespace = f"repository/{request_model.repository}"
+        elif principal.write_namespaces:
+            namespace = principal.write_namespaces[0]
+        else:
+            namespace = "default"
         request = MemoryWriteRequest(
             namespace=namespace,
             memory_class=MemoryClass.META,

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import stat
 import subprocess
 import sys
@@ -9,7 +8,6 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[3]
 HARNESS = (
@@ -74,8 +72,7 @@ class LoadHarnessTests(unittest.TestCase):
                     "--iterations",
                     "8",
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 check=False,
                 timeout=30,
@@ -122,8 +119,7 @@ class LoadHarnessTests(unittest.TestCase):
                     "--iterations",
                     "2",
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 check=False,
                 timeout=30,
@@ -163,8 +159,7 @@ class LoadHarnessTests(unittest.TestCase):
                     "--iterations",
                     "4",
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 check=False,
                 timeout=30,

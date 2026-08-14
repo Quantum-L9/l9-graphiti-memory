@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import json
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import yaml
-
 
 ROOT = Path(__file__).resolve().parents[3]
 DEPLOYMENT = ROOT / "deployment" / "generated-data"
@@ -17,7 +17,7 @@ def load_yaml(name: str) -> Mapping[str, Any]:
         (DEPLOYMENT / name).read_text(encoding="utf-8")
     )
     if not isinstance(value, Mapping):
-        raise AssertionError(f"{name} root must be a mapping")
+        raise TypeError(f"{name} root must be a mapping")
     return value
 
 

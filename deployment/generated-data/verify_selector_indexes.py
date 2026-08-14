@@ -6,7 +6,6 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-
 REQUIRED_SELECTOR_COLUMNS = {
     "record_id",
     "selector_type",

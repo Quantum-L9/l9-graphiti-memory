@@ -8,7 +8,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[3]
 VERIFIER = (
     ROOT
@@ -80,8 +79,7 @@ class SelectorIndexTests(unittest.TestCase):
                     "--database",
                     str(database),
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 check=False,
                 timeout=30,
@@ -121,8 +119,7 @@ class SelectorIndexTests(unittest.TestCase):
                     "--database",
                     str(database),
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 check=False,
                 timeout=30,

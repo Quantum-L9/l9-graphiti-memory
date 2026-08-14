@@ -8,9 +8,8 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Mapping
-
 
 ROOT = Path(__file__).resolve().parents[3]
 LIVE = (
@@ -64,8 +63,7 @@ def execute(
             "--mode",
             "commands",
         ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         env=env,
         check=False,
@@ -188,18 +186,16 @@ class LiveProofFailClosedTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             directory = Path(temp)
 
-            state = directory / "state.json"
-
             command = write_command(
                 directory,
                 "router",
-                f"""
+                """
                 import json
                 import os
                 import sys
 
                 name = os.path.basename(sys.argv[0])
-                payload = {{}}
+                payload = {}
                 try:
                     payload = json.load(sys.stdin)
                 except Exception:
@@ -207,18 +203,18 @@ class LiveProofFailClosedTests(unittest.TestCase):
 
                 print(
                     json.dumps(
-                        {{
+                        {
                             "status": "accepted",
                             "record_id": "record-1",
                             "storage_committed": True,
-                            "runtime": {{
+                            "runtime": {
                                 "candidate_ingress_ready": True,
                                 "mcp_tool_plane_ready": True
-                            }},
+                            },
                             "records": [
-                                {{"record_id": "record-1"}}
+                                {"record_id": "record-1"}
                             ]
-                        }}
+                        }
                     )
                 )
                 """,

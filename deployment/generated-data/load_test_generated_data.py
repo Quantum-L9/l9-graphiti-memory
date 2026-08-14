@@ -8,10 +8,10 @@ import shlex
 import statistics
 import subprocess
 import time
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence
-
+from typing import Any
 
 DEPLOYMENT = Path(__file__).resolve().parent
 
@@ -37,8 +37,7 @@ def invoke(
             sort_keys=True,
             separators=(",", ":"),
         ),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         timeout=timeout,
         check=False,

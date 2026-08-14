@@ -6,9 +6,10 @@ import shutil
 import sqlite3
 import subprocess
 import tempfile
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -114,12 +115,20 @@ def run_existing_migration(
                     ["bash", str(script), "--help"]
                 )
 
-    evidence: list[str] = []
+    evidence: list[str] = [
+        json.dumps(
+            {
+                "database": str(database),
+                "apply": apply,
+                "mode": "surface-probe-only",
+            },
+            sort_keys=True,
+        )
+    ]
     for command in commands:
         completed = subprocess.run(
             command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
             timeout=60,
             check=False,

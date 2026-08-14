@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import yaml
-
 
 ROOT = Path(__file__).resolve().parents[3]
 POLICY_PATH = (
@@ -21,7 +21,7 @@ def load_policy() -> Mapping[str, Any]:
         POLICY_PATH.read_text(encoding="utf-8")
     )
     if not isinstance(value, Mapping):
-        raise AssertionError(
+        raise TypeError(
             "principal-policy root must be a mapping"
         )
     return value
@@ -67,7 +67,7 @@ class PrincipalPolicyTests(unittest.TestCase):
         fields = set(
             producer["stored_as_provenance"]
         )
-        self.assertTrue(
+        self.assertLessEqual(
             {
                 "campaign_id",
                 "graph_id",
@@ -76,8 +76,8 @@ class PrincipalPolicyTests(unittest.TestCase):
                 "role",
                 "lease_id",
                 "packet_id",
-            }
-            <= fields
+            },
+            fields,
         )
 
     def test_dangerous_authority_is_denied(self) -> None:

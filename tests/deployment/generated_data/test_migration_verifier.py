@@ -8,7 +8,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[3]
 VERIFIER = (
     ROOT
@@ -69,8 +68,7 @@ def invoke(
             str(database),
             *extra,
         ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         check=False,
         timeout=60,

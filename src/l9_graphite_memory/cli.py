@@ -740,11 +740,15 @@ def cmd_client(args: argparse.Namespace) -> int:
 
 def _read_json_payload(args: argparse.Namespace) -> dict[str, Any]:
     if getattr(args, "file", None):
-        return json.loads(Path(args.file).read_text(encoding="utf-8"))
-    raw = sys.stdin.read()
-    if not raw.strip():
-        raise L9MemoryError("JSON payload required on stdin or --file")
-    return json.loads(raw)
+        value = json.loads(Path(args.file).read_text(encoding="utf-8"))
+    else:
+        raw = sys.stdin.read()
+        if not raw.strip():
+            raise L9MemoryError("JSON payload required on stdin or --file")
+        value = json.loads(raw)
+    if not isinstance(value, dict):
+        raise L9MemoryError("JSON payload must be an object")
+    return value
 
 
 def cmd_ingest_governed_candidate(args: argparse.Namespace) -> int:

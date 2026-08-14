@@ -5,9 +5,8 @@ import ast
 import hashlib
 import json
 import os
-import re
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable, Mapping
 
 try:
     import yaml
@@ -16,6 +15,8 @@ except ImportError as exc:
 
 
 DEPLOYMENT = Path(__file__).resolve().parent
+GENERATED_DATA_AGENT_DIR = Path("environment/agents/generated-data")
+CAPABILITY_MANIFEST = "capability-manifest.yaml"
 
 
 def locate_cursor_root(explicit: str | None) -> Path:
@@ -35,7 +36,7 @@ def locate_cursor_root(explicit: str | None) -> Path:
             root.is_dir()
             and (
                 root
-                / "environment/agents/generated-data"
+                / GENERATED_DATA_AGENT_DIR
                 / "adapters"
                 / "graphiti_memory.py"
             ).is_file()
@@ -77,25 +78,25 @@ def main() -> int:
     producer_files = {
         "candidate": (
             cursor
-            / "environment/agents/generated-data"
+            / GENERATED_DATA_AGENT_DIR
             / "adapters"
             / "graphiti_memory.py"
         ),
         "query": (
             cursor
-            / "environment/agents/generated-data"
+            / GENERATED_DATA_AGENT_DIR
             / "retrieval"
             / "context_query.py"
         ),
         "reuse": (
             cursor
-            / "environment/agents/generated-data"
+            / GENERATED_DATA_AGENT_DIR
             / "retrieval"
             / "reuse_recorder.py"
         ),
         "invalidation": (
             cursor
-            / "environment/agents/generated-data"
+            / GENERATED_DATA_AGENT_DIR
             / "invalidation"
             / "repository_event_bridge.py"
         ),
@@ -103,7 +104,7 @@ def main() -> int:
 
     manifest = yaml.safe_load(
         (
-            DEPLOYMENT / "capability-manifest.yaml"
+            DEPLOYMENT / CAPABILITY_MANIFEST
         ).read_text(encoding="utf-8")
     )
 
@@ -121,13 +122,13 @@ def main() -> int:
 
     classifier = (
         cursor
-        / "environment/agents/generated-data"
+        / GENERATED_DATA_AGENT_DIR
         / "runtime"
         / "classifier.py"
     )
     unit_schema = (
         cursor
-        / "environment/agents/generated-data"
+        / GENERATED_DATA_AGENT_DIR
         / "schemas"
         / "generated-data-unit.schema.json"
     )
@@ -240,10 +241,10 @@ def main() -> int:
         "consumer_files": {
             "manifest": {
                 "path": str(
-                    DEPLOYMENT / "capability-manifest.yaml"
+                    DEPLOYMENT / CAPABILITY_MANIFEST
                 ),
                 "sha256": sha256(
-                    DEPLOYMENT / "capability-manifest.yaml"
+                    DEPLOYMENT / CAPABILITY_MANIFEST
                 ),
             }
         },
@@ -270,8 +271,7 @@ def _git_sha(root: Path) -> str:
 
     completed = subprocess.run(
         ["git", "-C", str(root), "rev-parse", "HEAD"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         check=False,
     )

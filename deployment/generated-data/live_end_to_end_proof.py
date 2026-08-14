@@ -6,9 +6,9 @@ import os
 import shlex
 import subprocess
 import uuid
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Mapping, Sequence
-
+from typing import Any
 
 DEPLOYMENT = Path(__file__).resolve().parent
 
@@ -41,8 +41,7 @@ def invoke(
             if payload is not None
             else None
         ),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         timeout=timeout,
         check=False,
@@ -273,7 +272,15 @@ def main() -> int:
 
         result["cross_repo_contract_proven"] = True
 
-    except Exception as exc:
+    except (
+        ProofFailure,
+        OSError,
+        ValueError,
+        KeyError,
+        TypeError,
+        json.JSONDecodeError,
+        subprocess.TimeoutExpired,
+    ) as exc:
         failures.append(str(exc))
 
     required = (

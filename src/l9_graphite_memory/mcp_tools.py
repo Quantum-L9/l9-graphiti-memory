@@ -659,18 +659,24 @@ class MCPToolApplication:
         self, principal: MemoryPrincipal, args: dict[str, Any]
     ) -> Any:
         payload = args.get("candidate") if "candidate" in args else args
+        if not isinstance(payload, dict):
+            raise TypeError("candidate payload must be an object")
         return GeneratedDataService(self.service).ingest_governed_candidate(
             principal, payload
         )
 
     def _record_reuse(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         payload = args.get("event") if "event" in args else args
+        if not isinstance(payload, dict):
+            raise TypeError("reuse event payload must be an object")
         return GeneratedDataService(self.service).record_reuse(principal, payload)
 
     def _invalidate_source(
         self, principal: MemoryPrincipal, args: dict[str, Any]
     ) -> Any:
         payload = args.get("request") if "request" in args else args
+        if not isinstance(payload, dict):
+            raise TypeError("invalidation request payload must be an object")
         return GeneratedDataService(self.service).invalidate_by_source(
             principal, payload
         )

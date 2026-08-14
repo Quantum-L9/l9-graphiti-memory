@@ -8,9 +8,8 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
-
 
 ROOT = Path(__file__).resolve().parents[3]
 DEPLOYMENT = ROOT / "deployment" / "generated-data"
@@ -43,8 +42,7 @@ def run(
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         env=dict(env or os.environ),
         check=False,
