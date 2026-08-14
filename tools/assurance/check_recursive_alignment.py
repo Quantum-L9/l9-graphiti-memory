@@ -46,6 +46,7 @@ EXCLUDED_PARTS = {
 ALLOWED_TOP_LEVEL = {
     ".github",
     ".gitignore",
+    ".l9",
     ".pre-commit-config.yaml",
     ".python-version",
     "AGENTS.md",
@@ -56,7 +57,10 @@ ALLOWED_TOP_LEVEL = {
     "CONTRIBUTING.md",
     "CONVERGENCE_REPORT.yaml",
     "DELTA_REPORT.md",
+    "deployment",
     "IMPROVEMENT_REPORT.md",
+    "install_generated_data_deployment_wave1.sh",
+    "install_generated_data_deployment_wave2.sh",
     "LICENSE",
     "MANIFEST.in",
     "MANIFEST.md",
