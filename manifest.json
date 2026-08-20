@@ -718,7 +718,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "88b948b00e2875b8959296f1db665e3766f87a6237552e667306d0fe0e03807a",
+      "sha256": "41661e1b3b865e5ead2fd9fe78f02883ae1b60b2de4fec5fc9dadc7096696ad6",
       "size_bytes": 106850
     },
     {
@@ -8366,8 +8366,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "50d0aa4e67f31db365f58f53bff81d27df7bec3ba737b8c45a37b0bae0ac199b",
-      "size_bytes": 12328
+      "sha256": "2796b8c35ae0bc9e8431955a17d0fda91404f5e8665b2c1c64a553dc39cd05a8",
+      "size_bytes": 12647
     },
     {
       "category": "assurance",
@@ -9774,7 +9774,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "8dc010918b341429d1a24613daf3f77f92eb718cba004918326886d47309d65d",
+      "sha256": "1f6b22fb6848f4a03dc9b0ff3f0213df3b14ad4de7a2639586b7cd655fcabb4f",
       "size_bytes": 1355
     },
     {
@@ -9790,7 +9790,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "5404ee84f2c3aa53c71b79e0d94b91871e1a82ed1a7c57b7e9fab55a2fa49463",
+      "sha256": "b2ecd7e7029b99463f218841f4495e2745bbc147eba1b76a47bc6432f9730365",
       "size_bytes": 993
     },
     {
@@ -9806,7 +9806,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "6809c8acd0de3d686d60834f7015056ef960218e3166da8723426ddc90030af0",
+      "sha256": "fbcdf1b1e4e6ef12b65d78a90303feffa56e096da1f9981ac817ce104490b4a4",
       "size_bytes": 441
     },
     {
@@ -9902,8 +9902,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "11c0ea614e4f97912b46012d702e92444cfb6762ccea62439a6c1ac06807ca9a",
-      "size_bytes": 658
+      "sha256": "1ec6b70cace01122d2d9f1dce34228bc00c2946d852c40bfd3a39f701dc1f288",
+      "size_bytes": 659
     },
     {
       "category": "validation_evidence",
@@ -9934,7 +9934,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "94f09e2072c3d68f720602fc87e8c60c554752d705e33a77c6ea16b7b2617737",
+      "sha256": "d708cc2228ee83b5cbf0ab875fb30765b02b0307402f8bb9d8217fe09793bba3",
       "size_bytes": 3991
     },
     {
@@ -9966,7 +9966,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "d60a8667ba7003c3951dee134db254d5d6c85662cb8c784f3aabfd02679a63a7",
+      "sha256": "ca87dae209ec3f4599d34798c04d81e1725b4c3e1f497b81519ecb660d053b00",
       "size_bytes": 950
     },
     {
@@ -10046,7 +10046,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "4a0f2e0ac6961f9abfc97481e385ff852817185da0189070bdd30ec13003f20a",
+      "sha256": "ccf99f1f06dfd644b225def65f6a1461a7c92bc80069eecd96e9476b2b0f1c89",
       "size_bytes": 36913
     },
     {
@@ -10062,7 +10062,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/wheel_install.txt",
-      "sha256": "cb04a97383df4d43a0dea37093be7a3a0f8ea5e6b610068c3f07a1cd865c86b5",
+      "sha256": "f32bd55232729ce9871e5f8809cecf2b0480f0b99bb9450635d67f53aefa4fe0",
       "size_bytes": 266
     },
     {
@@ -10094,7 +10094,7 @@
         "version": "2.2.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "598ffb91ce1801b62a0878b1813835863001b89efeaa0833e5e2bbb22bde5a60",
+      "sha256": "95f694e93636cd2dde67b8e4b5bf144e6241ea127e9d7ed6e1fdc021060803c1",
       "size_bytes": 11387
     },
     {

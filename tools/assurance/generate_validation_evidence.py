@@ -46,8 +46,12 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        "294 tests pass",
-        r"294 passed",
+        # 290 is the count with no sibling Cursor-Governance checkout, which is
+        # what CI sees. The four cross-repo contract tests skip without it, so a
+        # workspace that has both repos side by side reports 294 instead; set
+        # CURSOR_GOVERNANCE_ROOT to a nonexistent path to reproduce CI locally.
+        "290 tests pass",
+        r"290 passed",
     ),
     CheckSpec(
         "V-002",
