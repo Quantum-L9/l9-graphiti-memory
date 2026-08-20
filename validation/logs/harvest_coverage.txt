@@ -1,1 +1,1 @@
-PASS: 44 harvest decisions closed {'blocked_external': 4, 'implemented': 35, 'rejected_boundary': 5}
+PASS: 49 harvest decisions closed {'blocked_external': 4, 'implemented': 39, 'rejected_boundary': 6}

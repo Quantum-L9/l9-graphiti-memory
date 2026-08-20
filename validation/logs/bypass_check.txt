@@ -1,1 +1,1 @@
-PASS: no canonical memory write bypasses detected
+PASS: no canonical memory write bypasses or deferred-ingestion paths detected

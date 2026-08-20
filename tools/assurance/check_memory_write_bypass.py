@@ -27,6 +27,18 @@ _ALLOWED_SQL_FILES = {
 _ALLOWED_COMMIT_CALLERS = {
     "src/l9_graphite_memory/services/memory_service.py",
 }
+# Lifecycle transitions append a status event and move a record between states.
+# They never rewrite content, and the store enforces the expected previous
+# state, but they still mutate canonical state, so the set of modules allowed
+# to perform one is explicit rather than incidental.
+_ALLOWED_TRANSITION_CALLERS = {
+    "src/l9_graphite_memory/services/memory_service.py",
+    "src/l9_graphite_memory/maintenance/service.py",
+    # Store adapters implement the operation; they are not callers of it.
+    "src/l9_graphite_memory/adapters/in_memory_store.py",
+    "src/l9_graphite_memory/adapters/sqlite_store.py",
+    "src/l9_graphite_memory/adapters/postgres_store.py",
+}
 # A canonical write becomes durable during the operation or fails. Only the
 # one-way drain for the retired deferred-ingestion release may still read a
 # serialized MemoryWriteRequest off disk, and it can never write one back.
@@ -134,6 +146,18 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
                     )
                 )
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+            if (
+                node.func.attr == "transition_state"
+                and relative not in _ALLOWED_TRANSITION_CALLERS
+            ):
+                violations.append(
+                    Violation(
+                        relative,
+                        node.lineno,
+                        "direct-lifecycle-transition",
+                        lines[node.lineno - 1].strip()[:300],
+                    )
+                )
             if (
                 node.func.attr == "commit_write"
                 and relative not in _ALLOWED_COMMIT_CALLERS
