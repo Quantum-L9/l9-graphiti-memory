@@ -184,6 +184,26 @@ Consolidation is additive: it writes a derived record citing its sources and mar
 
 `reconcile` reports contradictions it must not resolve. Those findings recur on every run until someone settles them — that is deliberate, not a loop.
 
+### Nightly scheduled run
+
+`.github/workflows/nightly-maintenance.yml` runs maintenance at 02:00 America/New_York.
+
+GitHub evaluates cron in UTC only, so the workflow fires at both 06:00 and 07:00 UTC (02:00 EDT and 02:00 EST) and `tools/ci/nightly_maintenance_gate.py` admits exactly one. On the spring-forward date, when 02:00 local does not exist, the gate admits the 03:00 firing so the day is not skipped.
+
+The runner is a caller, not a replica. It reaches the shared canonical store over the network (ADR-072) and never creates, caches, uploads, downloads, or commits a database file.
+
+Configure before enabling:
+
+| Setting | Kind | Purpose |
+|---|---|---|
+| `L9_MEMORY_POSTGRES_DSN` | environment secret | shared canonical store, TLS required |
+| `L9_MEMORY_TENANT_ID` | environment variable | tenant the run operates in |
+| `L9_MEMORY_MAINTENANCE_NAMESPACES` | environment variable | comma-separated namespaces to maintain |
+
+Scope the credential to the `memory-maintenance` GitHub environment. The workflow grants the run `MAINTAIN` only — it sets no write, promote, or administrator namespaces, and the database role it connects as should be similarly restricted.
+
+Scheduled runs apply. `workflow_dispatch` defaults to a dry run; tick `apply` to make a manual run take effect.
+
 ## Canonical write failure
 
 Canonical ingestion is immediate (ADR-070). When the canonical store is unreachable, the write call raises and the caller must surface that failure. Do not record a local success, and never write provider or database state directly as a fallback. Restore the canonical store, then have the caller retry with the same explicit `idempotency_key` so the retry is recognized as the same operation.

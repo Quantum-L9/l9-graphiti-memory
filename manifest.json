@@ -1,5 +1,5 @@
 {
-  "file_count": 648,
+  "file_count": 652,
   "files": [
     {
       "category": "ci",
@@ -64,6 +64,22 @@
       "path": ".github/workflows/codeql.yml",
       "sha256": "5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf",
       "size_bytes": 589
+    },
+    {
+      "category": "ci",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "ci",
+        "owner": "memory-control-plane",
+        "path": ".github/workflows/nightly-maintenance.yml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".github/workflows/nightly-maintenance.yml",
+      "sha256": "975ddeedd9e1a384ea5184420fe73df4277e5475c1a8d3898540df798aada5c7",
+      "size_bytes": 4463
     },
     {
       "category": "ci",
@@ -391,6 +407,22 @@
         "l9_schema": 1,
         "layer": "repository_root",
         "owner": "memory-control-plane",
+        "path": ".ruff_cache/0.16.1/2019567467784949876",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": ".ruff_cache/0.16.1/2019567467784949876",
+      "sha256": "252bc703171727ae0588de959b1ebe3f5fea86452d9f1218f5c000876e1057ec",
+      "size_bytes": 188
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository_root",
+        "owner": "memory-control-plane",
         "path": ".ruff_cache/0.16.1/361066809617368378",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -446,8 +478,8 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/4536961000515111188",
-      "sha256": "46932ef575ad2b761a0c1f9e1d04bee3a1fdac5bbc35913ea0d6d31d8180f096",
-      "size_bytes": 3396
+      "sha256": "cdeaf202e15e9b917dc733530fe320d4aa13c9f2e861eaa712d21323bae6b4e2",
+      "size_bytes": 3468
     },
     {
       "category": "repository_root",
@@ -462,7 +494,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/5247635586378110818",
-      "sha256": "3eea153f6c08ab52ae6b7457692b5774f58fe3ad5689ca692107cc3cde81ed2f",
+      "sha256": "ff613f299c6f0f780ba9828727a5e772b5551f2a2fbf0d2b7fa6b1b7bf379df0",
       "size_bytes": 980
     },
     {
@@ -478,7 +510,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/7960358840359295221",
-      "sha256": "21eebd7cca0ae5b8d8e483955dbef469cfe7ad2aeeb30f0a804d82c8366acbb9",
+      "sha256": "87d3c05587a4342ed24ba25dfb4e0ba2a9e873095b5778ff710bd445b38bb5aa",
       "size_bytes": 6596
     },
     {
@@ -510,7 +542,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/8051939835530468283",
-      "sha256": "afcad01ec88ab0b2c885bdd09f205029b9a656a62b5dd16c32a17fb8d2c518ad",
+      "sha256": "a9d75085425600f7183cc7143b867c72c6c2ff9b303486b91cbcf0c9d84bf6d0",
       "size_bytes": 1180
     },
     {
@@ -718,8 +750,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "055c529f2a4c7a420704e64745c1b40c3451c19f73d7254d79c2266410425b4c",
-      "size_bytes": 109372
+      "sha256": "5196842105d48ee5f8038209ad68a819d799491a4ac5d1b8c05f745f2026eb8a",
+      "size_bytes": 109967
     },
     {
       "category": "repository_root",
@@ -798,8 +830,8 @@
         "version": "2.2.0"
       },
       "path": "RUNBOOK.md",
-      "sha256": "d6f9eaf7f0b54cc09020949e13d9a3a1d8ed4223669c5c2a78ccbc0e93ae1cfe",
-      "size_bytes": 10633
+      "sha256": "c6d9b8f445dfaf232a9df204b8db1bf3a77916dc3027d5b4fb1facdb6a57b611",
+      "size_bytes": 11923
     },
     {
       "category": "repository_root",
@@ -4526,8 +4558,8 @@
         "version": "2.2.0"
       },
       "path": "docs/harvest_coverage.yaml",
-      "sha256": "f0ac6871e8e456afc9be27ae135ba9c50797b723b618161ce2501a5bdb0056b7",
-      "size_bytes": 23125
+      "sha256": "3208ed80f21c7fb4147dff4b36b03f1d0e993396e3169c960b4b90bd7f2d9754",
+      "size_bytes": 23532
     },
     {
       "category": "hooks",
@@ -8263,6 +8295,22 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/unit/test_nightly_maintenance_schedule.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/unit/test_nightly_maintenance_schedule.py",
+      "sha256": "a43612239ff28f2b3234f60517400f5980e3ef364fde5375745578ff7f324294",
+      "size_bytes": 7974
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/unit/test_normalization.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -8704,6 +8752,22 @@
       "path": "tools/assurance/validate_projection_manifests.py",
       "sha256": "ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5",
       "size_bytes": 2468
+    },
+    {
+      "category": "assurance",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "assurance",
+        "owner": "memory-control-plane",
+        "path": "tools/ci/nightly_maintenance_gate.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tools/ci/nightly_maintenance_gate.py",
+      "sha256": "d987a70f78c7d51e2c2ce2464ac5d00258146437b7e5dc4a6fe4b03e23a1844c",
+      "size_bytes": 3741
     },
     {
       "category": "assurance",

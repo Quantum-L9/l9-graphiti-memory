@@ -1,0 +1,122 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .github/workflows/nightly-maintenance.yml
+#   layer: ci
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+name: Nightly Memory Maintenance
+
+# Canonical-memory maintenance runs at 02:00 America/New_York (ADR-075).
+#
+# GitHub evaluates cron in UTC only, so no single expression is 02:00 in a
+# daylight-saving zone. This fires at both candidate instants -- 06:00 UTC
+# (02:00 EDT) and 07:00 UTC (02:00 EST) -- and tools/ci/nightly_maintenance_gate.py
+# admits exactly one of them, including on the spring-forward date when 02:00
+# local does not exist.
+on:
+  schedule:
+    - cron: '0 6,7 * * *'
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: Namespace to maintain
+        required: true
+        type: string
+      apply:
+        description: Apply the plan (unchecked runs a dry run)
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+# One maintenance run at a time. A run that overruns its window must not be
+# joined by the next one against the same canonical store.
+concurrency:
+  group: nightly-memory-maintenance
+  cancel-in-progress: false
+
+jobs:
+  maintain:
+    runs-on: ubuntu-latest
+    environment: memory-maintenance
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: '3.13'
+
+      - name: Decide whether this firing is the 02:00 America/New_York run
+        id: gate
+        run: |
+          python tools/ci/nightly_maintenance_gate.py \
+            ${{ github.event_name == 'workflow_dispatch' && '--force' || '' }}
+
+      - name: Sync locked environment
+        if: steps.gate.outputs.should_run == 'true'
+        run: uv sync --frozen --no-install-project --no-build --extra postgres
+
+      - name: Put uv venv on PATH
+        if: steps.gate.outputs.should_run == 'true'
+        run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Expose src on PYTHONPATH
+        if: steps.gate.outputs.should_run == 'true'
+        run: echo "PYTHONPATH=$PWD/src${PYTHONPATH:+:$PYTHONPATH}" >> "$GITHUB_ENV"
+
+      # The runner is a caller, not a replica. Canonical state lives in the
+      # shared store (ADR-072); this job never creates, downloads, uploads,
+      # caches, or commits a database file, and never writes to the store
+      # except through the l9 control plane (ADR-075).
+      - name: Run canonical memory maintenance
+        if: steps.gate.outputs.should_run == 'true'
+        env:
+          L9_MEMORY_STORE_BACKEND: postgres
+          L9_MEMORY_POSTGRES_DSN: ${{ secrets.L9_MEMORY_POSTGRES_DSN }}
+          L9_MEMORY_PROJECTION_BACKEND: none
+          L9_MEMORY_LOCAL_PRINCIPAL_ID: nightly-maintenance
+          L9_MEMORY_LOCAL_TENANT_ID: ${{ vars.L9_MEMORY_TENANT_ID }}
+          L9_MEMORY_LOCAL_READ_NAMESPACES: ${{ vars.L9_MEMORY_MAINTENANCE_NAMESPACES }}
+          # Least privilege: MAINTAIN only. No write, promote, archive, or
+          # administrator grant is issued to the scheduled principal.
+          L9_MEMORY_LOCAL_MAINTAIN_NAMESPACES: ${{ vars.L9_MEMORY_MAINTENANCE_NAMESPACES }}
+          L9_MEMORY_JSON_LOGS: 'true'
+        run: |
+          set -euo pipefail
+          NAMESPACE='${{ inputs.namespace }}'
+          if [ -z "$NAMESPACE" ]; then
+            NAMESPACE='${{ vars.L9_MEMORY_MAINTENANCE_NAMESPACES }}'
+          fi
+          if [ -z "$NAMESPACE" ]; then
+            echo "no maintenance namespace configured" >&2
+            exit 1
+          fi
+          APPLY='--apply'
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ] \
+             && [ '${{ inputs.apply }}' != 'true' ]; then
+            APPLY=''
+          fi
+          for ns in $(echo "$NAMESPACE" | tr ',' ' '); do
+            echo "== maintaining $ns =="
+            l9-memory maintain \
+              --group-id "$ns" \
+              --reason "nightly maintenance run ${{ github.run_id }}" \
+              $APPLY \
+              | tee "maintenance-$ns.json"
+          done
+
+      - name: Upload maintenance receipts
+        if: always() && steps.gate.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: maintenance-receipts-${{ github.run_id }}
+          path: maintenance-*.json
+          if-no-files-found: ignore

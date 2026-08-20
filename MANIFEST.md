@@ -35,19 +35,19 @@ updated: 2026-07-22
 | Category | Files |
 |---|---:|
 | `architecture_decisions` | 76 |
-| `assurance` | 91 |
-| `ci` | 7 |
+| `assurance` | 92 |
+| `ci` | 8 |
 | `configuration` | 10 |
 | `documentation` | 124 |
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 118 |
-| `repository_root` | 92 |
+| `repository_root` | 93 |
 | `skill` | 2 |
-| `tests` | 80 |
+| `tests` | 81 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **647**
+- Hashed inventory files below: **651**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -60,6 +60,7 @@ updated: 2026-07-22
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
 | `.github/workflows/ci.yml` | `ci` | `ci` | 1527 | `30dae8c405ae21fef044d4f3428b20c0e95e608f5ca6fdda0009dce0e5ea4028` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
+| `.github/workflows/nightly-maintenance.yml` | `ci` | `ci` | 4463 | `975ddeedd9e1a384ea5184420fe73df4277e5475c1a8d3898540df798aada5c7` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1439 | `a0020911d065fb943ffd8c2eda19f2fb21060ea782ffdf1830fbb9d5dffbc72b` |
 | `.github/workflows/typescript-client-publish.yml` | `ci` | `ci` | 1549 | `6e9febe7a4d4c57a954dcb2065d11c200ed6b0419e92f3e69a5f3bf771cd9319` |
 | `.github/workflows/typescript-client.yml` | `ci` | `ci` | 1147 | `c89466f9930d3d4628bc2d8ed3df9c0248a7d2e692fd2a34b4f288fa1b26cc5e` |
@@ -80,14 +81,15 @@ updated: 2026-07-22
 | `.ruff_cache/0.16.1/1483091467689581761` | `repository_root` | `repository_root` | 268 | `6530e0c56c2056fb6d1453b5b8d3d2f1e67819cbf3bc36b0787acf6b7ad92018` |
 | `.ruff_cache/0.16.1/15186538230129234716` | `repository_root` | `repository_root` | 220 | `f797b54776a376661eb3e61848a13eab4bb236ba942695ea84932c8ee8293b51` |
 | `.ruff_cache/0.16.1/17154279117025428306` | `repository_root` | `repository_root` | 188 | `08a653a4cd07e0ad6e5e7182a428a2be18e3ddaf8669f2fd3f4fe8926fc2293a` |
+| `.ruff_cache/0.16.1/2019567467784949876` | `repository_root` | `repository_root` | 188 | `252bc703171727ae0588de959b1ebe3f5fea86452d9f1218f5c000876e1057ec` |
 | `.ruff_cache/0.16.1/361066809617368378` | `repository_root` | `repository_root` | 548 | `ef74c1c26fb3af55519cec5dccc4dd42c1e2f88f7900506ab1989ccd4415f50a` |
 | `.ruff_cache/0.16.1/4121772862165530183` | `repository_root` | `repository_root` | 220 | `426c05b332a62ea06f070ef69b1502283431f0bc14675d556fe4727f350d0b3d` |
 | `.ruff_cache/0.16.1/4328373330480621607` | `repository_root` | `repository_root` | 1012 | `b7c4e4535e0fe256a09c16606bd4e8be7c5ddd3d8f79eb6ad59ca8d0c27ce962` |
-| `.ruff_cache/0.16.1/4536961000515111188` | `repository_root` | `repository_root` | 3396 | `46932ef575ad2b761a0c1f9e1d04bee3a1fdac5bbc35913ea0d6d31d8180f096` |
-| `.ruff_cache/0.16.1/5247635586378110818` | `repository_root` | `repository_root` | 980 | `3eea153f6c08ab52ae6b7457692b5774f58fe3ad5689ca692107cc3cde81ed2f` |
-| `.ruff_cache/0.16.1/7960358840359295221` | `repository_root` | `repository_root` | 6596 | `21eebd7cca0ae5b8d8e483955dbef469cfe7ad2aeeb30f0a804d82c8366acbb9` |
+| `.ruff_cache/0.16.1/4536961000515111188` | `repository_root` | `repository_root` | 3468 | `cdeaf202e15e9b917dc733530fe320d4aa13c9f2e861eaa712d21323bae6b4e2` |
+| `.ruff_cache/0.16.1/5247635586378110818` | `repository_root` | `repository_root` | 980 | `ff613f299c6f0f780ba9828727a5e772b5551f2a2fbf0d2b7fa6b1b7bf379df0` |
+| `.ruff_cache/0.16.1/7960358840359295221` | `repository_root` | `repository_root` | 6596 | `87d3c05587a4342ed24ba25dfb4e0ba2a9e873095b5778ff710bd445b38bb5aa` |
 | `.ruff_cache/0.16.1/8042097741992751317` | `repository_root` | `repository_root` | 284 | `7bc9b53c92c202644bbc61dec971028a34acacb574eda32efffbeef5cedb07dc` |
-| `.ruff_cache/0.16.1/8051939835530468283` | `repository_root` | `repository_root` | 1180 | `afcad01ec88ab0b2c885bdd09f205029b9a656a62b5dd16c32a17fb8d2c518ad` |
+| `.ruff_cache/0.16.1/8051939835530468283` | `repository_root` | `repository_root` | 1180 | `a9d75085425600f7183cc7143b867c72c6c2ff9b303486b91cbcf0c9d84bf6d0` |
 | `.ruff_cache/0.16.1/9843344255070885202` | `repository_root` | `repository_root` | 476 | `04d3d5135c434496403ed7bc1664b0281fdc78fd42c6cf02b192eea9c799634e` |
 | `.ruff_cache/CACHEDIR.TAG` | `repository_root` | `repository_root` | 43 | `5953156d7e0c564a427251316eaf26f8870e6483ae2197f916b630e4f93e31ae` |
 | `AGENTS.md` | `repository_root` | `repository_root` | 1266 | `c346c82e66ad3854449c7d00eac3992c5b9de1c4395fffab0a10c9f609301b71` |
@@ -104,7 +106,7 @@ updated: 2026-07-22
 | `QUICKSTART.md` | `repository_root` | `repository_root` | 1907 | `a406510d18ce914d4fa9f848cc6735370245782b889f66ef12fb91f72b03de0c` |
 | `README.md` | `repository_root` | `repository_root` | 6604 | `83a5f5d6347220d3981c2dca9e22e24a5183b3e4bcd1288c4bcedbf2eb52ef30` |
 | `ROADMAP.md` | `repository_root` | `repository_root` | 2054 | `f6a75e296999b40744e0a16e5456700a318f5d40aab7d647dd1222d17e7c2ad3` |
-| `RUNBOOK.md` | `repository_root` | `repository_root` | 10633 | `d6f9eaf7f0b54cc09020949e13d9a3a1d8ed4223669c5c2a78ccbc0e93ae1cfe` |
+| `RUNBOOK.md` | `repository_root` | `repository_root` | 11923 | `c6d9b8f445dfaf232a9df204b8db1bf3a77916dc3027d5b4fb1facdb6a57b611` |
 | `SECURITY.md` | `repository_root` | `repository_root` | 1718 | `8eb44c129daf83b389343dcf462662b6c6282a63cac6048cf084e10d2b964980` |
 | `VALIDATION.md` | `repository_root` | `repository_root` | 5960 | `7aec6fa09a4f0ce29a5451fef82b9501067fa37be717f555600868fcf55a97d8` |
 | `clients/typescript/.gitignore` | `repository_root` | `repository_root` | 241 | `1d5b064bd1c842c4de03f06db85b14a3592e57fe45030462e6341e69b621f432` |
@@ -337,7 +339,7 @@ updated: 2026-07-22
 | `docs/generated-data-waves/handoff.md` | `documentation` | `documentation` | 26187 | `9ae5d715cbf4dee0f679cfe679486ce5272595dd7084a66be50b71504e6c6611` |
 | `docs/generated-data-waves/wave 1.md` | `documentation` | `documentation` | 71598 | `9d607fb1b075643a3a737c48d5a0e08c0f96e1203bef1c4ad2d6d317ed2b1988` |
 | `docs/generated-data-waves/wave 2.md` | `documentation` | `documentation` | 61070 | `9f7ba89e15ee469d9092bf2b111a05f512434bd72c4dba6733b7ab3e0d48bde7` |
-| `docs/harvest_coverage.yaml` | `documentation` | `documentation` | 23125 | `f0ac6871e8e456afc9be27ae135ba9c50797b723b618161ce2501a5bdb0056b7` |
+| `docs/harvest_coverage.yaml` | `documentation` | `documentation` | 23532 | `3208ed80f21c7fb4147dff4b36b03f1d0e993396e3169c960b4b90bd7f2d9754` |
 | `hooks/graphiti-gate-edits.sh` | `hooks` | `hooks` | 358 | `29c1929141d3a27581a191b61021c197c5a2e30f6c47b3aa7574dccf388ac248` |
 | `hooks/graphiti-gate-shell.sh` | `hooks` | `hooks` | 351 | `a0d160caeca8a0b2be539d9a012b31f2805954bb54741d41ae2f4927637e5385` |
 | `hooks/graphiti-gate-subagent.sh` | `hooks` | `hooks` | 357 | `174d1642741954f70df6c8302aa21e8bd656fc22fd372ca9265feff6e7783ab2` |
@@ -571,6 +573,7 @@ updated: 2026-07-22
 | `tests/unit/test_http_transport_dialect.py` | `tests` | `tests` | 1582 | `b903e799b4ac9b269e901f81857f89cd29f4fad72f968e47e951e842a5e0713f` |
 | `tests/unit/test_ingestion.py` | `tests` | `tests` | 852 | `1ffd2c304764e6c96267741719019d71f01475dfd431dd8485848a3cc90f753a` |
 | `tests/unit/test_maintenance_authority.py` | `tests` | `tests` | 5132 | `296b85c92dfb9234db691ea93449d9d72856b6755f127dc1e8997bb3010cd5f0` |
+| `tests/unit/test_nightly_maintenance_schedule.py` | `tests` | `tests` | 7974 | `a43612239ff28f2b3234f60517400f5980e3ef364fde5375745578ff7f324294` |
 | `tests/unit/test_normalization.py` | `tests` | `tests` | 1226 | `c4abbe50fd9977e44b42350855cf7e2f3ae1a74a163ab4148e67e41bc7e31711` |
 | `tests/unit/test_profiles.py` | `tests` | `tests` | 3459 | `ad9ec8611e29eeb4d91ff619a5fb729d53611a2f53985b5cee93dc8994d20f67` |
 | `tests/unit/test_projection_compiler.py` | `tests` | `tests` | 6352 | `272445f7505ce477fa0f3e6494a3615e5233bf398b53af1fd1cb8cc248eafb59` |
@@ -599,6 +602,7 @@ updated: 2026-07-22
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4282 | `dfb473fea080bb880ff9de2f5e9101bc616d2a4a8ed4a1f17be927d7aae75100` |
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2418 | `b7a0e2d83cf5a9b4c09d2f83662a719c4c0dd4f91082fc743561f9f191943d56` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2468 | `ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5` |
+| `tools/ci/nightly_maintenance_gate.py` | `assurance` | `assurance` | 3741 | `d987a70f78c7d51e2c2ce2464ac5d00258146437b7e5dc4a6fe4b03e23a1844c` |
 | `tools/phase6/AGENT_EXECUTION_PROMPT.md` | `assurance` | `assurance` | 2506 | `05e1399a3e37cb652198efb42b259c69db003cfaf7917114d0756118e3909009` |
 | `tools/phase6/BUILD_REPORT.md` | `assurance` | `assurance` | 1092 | `092960451042850b00f0fefd41a0edc7dc857146316846685681d7974972eb76` |
 | `tools/phase6/CHANGE_REPORT.md` | `assurance` | `assurance` | 4066 | `71fa93b0f25a5904234b2ebaf2eeae194897ca5d158590b8e3fb2e5e68c2a6e3` |

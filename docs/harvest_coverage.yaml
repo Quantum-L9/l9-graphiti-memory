@@ -181,6 +181,13 @@ entries:
     implementation_paths: [src/l9_graphite_memory/maintenance/planner.py, src/l9_graphite_memory/maintenance/service.py, src/l9_graphite_memory/contracts/maintenance.py]
     test_paths: [tests/integration/test_maintenance_engine.py, tests/unit/test_maintenance_authority.py, tests/conformance/test_maintenance_ledger.py]
     adr_paths: [docs/adr/ADR-075-scheduled-canonical-memory-maintenance.md]
+  - id: H-019d
+    concept: GitHub-hosted nightly maintenance scheduling at 02:00 America/New_York
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [.github/workflows/nightly-maintenance.yml, tools/ci/nightly_maintenance_gate.py]
+    test_paths: [tests/unit/test_nightly_maintenance_schedule.py]
+    adr_paths: [docs/adr/ADR-075-scheduled-canonical-memory-maintenance.md]
   - id: H-020
     concept: Session ingestion and context restoration adapters
     sources: [l9_ops_commit_pack]
