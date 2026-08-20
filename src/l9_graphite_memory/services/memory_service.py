@@ -58,7 +58,13 @@ from l9_graphite_memory.curation import (
 )
 from l9_graphite_memory.errors import AuthorizationError, StoreError
 from l9_graphite_memory.lineage import LineageReplay, LineageReplayer
-from l9_graphite_memory.ports import Clock, ProjectionAdapter, RecordStore, SystemClock
+from l9_graphite_memory.ports import (
+    SERVICE_WRITE_CAPABILITY,
+    Clock,
+    ProjectionAdapter,
+    RecordStore,
+    SystemClock,
+)
 from l9_graphite_memory.retrieval import ContextBudgetAllocator, RetrievalPlanner
 from l9_graphite_memory.version import MEMORY_SCHEMA_VERSION, PACKAGE_VERSION
 
@@ -162,7 +168,7 @@ class MemoryService:
                 warnings=admission.warnings,
             )
             if not request.dry_run:
-                self.store.commit_write(None, receipt)
+                self.store.commit_write(SERVICE_WRITE_CAPABILITY, None, receipt)
             return receipt
 
         if admission.status is WriteStatus.REJECTED:
@@ -178,7 +184,7 @@ class MemoryService:
                 warnings=admission.warnings,
             )
             if not request.dry_run:
-                self.store.commit_write(None, receipt)
+                self.store.commit_write(SERVICE_WRITE_CAPABILITY, None, receipt)
             return receipt
 
         now = self.clock.now()
@@ -304,6 +310,7 @@ class MemoryService:
         ]
         if not request.dry_run:
             self.store.commit_write(
+                SERVICE_WRITE_CAPABILITY,
                 record,
                 receipt,
                 outbox_events=outbox_events,
@@ -315,7 +322,7 @@ class MemoryService:
         record = self.store.get_record(record_id)
         if record is None:
             return None
-        if record.tenant_id != principal.tenant_id and not principal.is_admin:
+        if record.tenant_id != principal.tenant_id and not principal.can_cross_tenant:
             raise AuthorizationError("record belongs to a different tenant")
         self.namespace_policy.require(
             principal, AuthorizationAction.READ, record.namespace
@@ -468,6 +475,7 @@ class MemoryService:
         report = self.conflicts(principal, request.namespace)
         now = self.clock.now()
         receipt = PhaseLockReceipt(
+            tenant_id=principal.tenant_id,
             namespace=request.namespace,
             task_signature=request.task_signature,
             granted=report.status is OperationStatus.COMPLETE
@@ -478,7 +486,7 @@ class MemoryService:
             principal_id=principal.principal_id,
             created_at=now,
         )
-        self.store.save_phase_lock(receipt)
+        self.store.save_phase_lock(SERVICE_WRITE_CAPABILITY, receipt)
         return receipt
 
     def verify_phase_lock(
@@ -489,7 +497,9 @@ class MemoryService:
     ) -> PhaseLockVerification:
         self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
         now = self.clock.now()
-        lock = self.store.get_phase_lock(namespace, task_signature)
+        lock = self.store.get_phase_lock(
+            principal.tenant_id, namespace, task_signature
+        )
         report = self.conflicts(principal, namespace)
         reasons: list[str] = []
         if lock is None:
@@ -649,7 +659,11 @@ class MemoryService:
                 )
                 for record_id in archived_ids
             )
-            self.store.commit_archive(archive_receipt, status_events=status_events)
+            self.store.commit_archive(
+                SERVICE_WRITE_CAPABILITY,
+                archive_receipt,
+                status_events=status_events,
+            )
         return RetentionReceipt(
             namespace=namespace,
             applied=apply,
@@ -664,7 +678,7 @@ class MemoryService:
         record = self.store.get_record(request.record_id)
         if record is None:
             raise StoreError(f"record not found: {request.record_id}")
-        if record.tenant_id != principal.tenant_id and not principal.is_admin:
+        if record.tenant_id != principal.tenant_id and not principal.can_cross_tenant:
             raise AuthorizationError("deletion target belongs to a different tenant")
         authorization = self.namespace_policy.require(
             principal,
@@ -768,6 +782,7 @@ class MemoryService:
             }
         )
         self.store.commit_deletion(
+            SERVICE_WRITE_CAPABILITY,
             receipt,
             redacted_record,
             outbox_event=event,

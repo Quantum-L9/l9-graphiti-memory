@@ -1,3 +1,14 @@
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/generated-data-waves/wave 1.md
+layer: documentation
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
 Wave 1 belongs **only** in `Quantum-L9/l9-graphiti-memory`. It uses the repository’s existing `l9-memory` CLI/MCP/service surfaces and treats `Cursor-Governance` as a read-only contract source. The repository’s canonical store remains authoritative, while external Graphiti projection remains optional. ([GitHub][1])
 
 Feed this entire prompt to the Claude Code agent in the `l9-graphiti-memory` checkout.

@@ -30,6 +30,7 @@ def test_phase_lock_receipt_is_mirrored_and_denial_clears_marker(
     now = datetime.now(timezone.utc)
     runtime = _runtime(tmp_path)
     granted = PhaseLockReceipt(
+        tenant_id="tenant-a",
         namespace="repo-a",
         task_signature="task-signature",
         granted=True,

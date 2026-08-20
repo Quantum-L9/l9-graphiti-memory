@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .l9/generated-data-bind-receipt.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 schema: l9.generated_data_bind_receipt/v1
 activation_state: CODE_COMPLETE
 write_repository: Quantum-L9/l9-graphiti-memory

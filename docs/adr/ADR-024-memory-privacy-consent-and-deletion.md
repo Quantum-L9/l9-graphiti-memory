@@ -43,6 +43,7 @@ The alternatives above are rejected because they duplicate authority, hide failu
 - Private classes have stronger admission rules
 - Deletion authority is separate from write authority
 - Deletion does not leave searchable projections
+- Tenant isolation applies to every access, including administrators; a tenant administrator cannot get or delete another tenant's record even when its ID is known (cross-tenant action requires the explicit `is_global_admin` claim per ADR-006)
 
 ## Consequences
 

@@ -28,6 +28,8 @@ The old MCP server trusted caller-supplied group_id values. Remote clients could
 
 Authenticated MemoryPrincipal claims are established server-side. NamespacePolicy evaluates read, write, promote, archive, and administration independently. Requested namespaces are intersected with claims; identity fields in payloads are ignored. Local CLI and stdio principals are repository-scoped or explicitly configured, and administrator authority is disabled unless `local_is_admin` is deliberately enabled.
 
+Administrator authority (`is_admin`) is scoped to the principal's own tenant. It grants elevated operations — such as reading quarantined or deleted records, deletion, and archival — *within* that tenant only, and never crosses the tenant boundary. Acting on records that belong to a different tenant requires the distinct, explicitly modelled `is_global_admin` claim, which is disabled by default (`local_is_global_admin: false`) and carried as a separate principal/token field so that tenant-admin and global-superadmin semantics are never collapsed into a single boolean.
+
 ## Alternatives Considered
 
 - Authorize by group_id format
@@ -43,6 +45,7 @@ The alternatives above are rejected because they duplicate authority, hide failu
 - Caller identity is never writable by the request body
 - Read authority does not imply write authority
 - No cross-tenant record is returned even if record ID is known
+- `is_admin` grants authority only within the principal's own tenant; crossing the tenant boundary requires the explicit `is_global_admin` claim
 - Local and stdio operation never imply wildcard or administrator authority
 
 ## Consequences

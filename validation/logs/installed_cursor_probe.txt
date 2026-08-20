@@ -1,19 +1,19 @@
 {
   "command_argv": [
-    "/Users/ib-mac/l9-graphiti-memory/.venv/bin/python3",
+    "/home/user/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-11T22:03:38.758083Z",
+  "created_at": "2026-08-20T20:50:11.150602Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "5c4e9dd4-bb52-4bef-8c29-68236fe233c1",
+  "receipt_id": "616880e8-f3c5-4b4f-a92c-24038186e296",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
@@ -42,5 +42,5 @@
     }
   ],
   "timed_out": false,
-  "tool_count": 22
+  "tool_count": 26
 }

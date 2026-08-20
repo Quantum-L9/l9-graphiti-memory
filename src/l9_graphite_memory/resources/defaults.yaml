@@ -17,6 +17,7 @@ local_read_namespaces: []
 local_write_namespaces: []
 local_promote_namespaces: []
 local_is_admin: false
+local_is_global_admin: false
 outbox_batch_size: 50
 outbox_max_attempts: 8
 default_search_limit: 20

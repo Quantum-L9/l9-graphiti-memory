@@ -31,7 +31,21 @@ class MemoryPrincipal(BaseModel):
     write_namespaces: tuple[str, ...] = ()
     promote_namespaces: tuple[str, ...] = ()
     is_admin: bool = False
+    is_global_admin: bool = False
     auth_method: str = "local"
+
+    @property
+    def can_cross_tenant(self) -> bool:
+        """Whether this principal may act on records outside its own tenant.
+
+        Tenant isolation (ADR-006, ADR-024) applies to every access. ``is_admin``
+        grants elevated authority *within* the principal's tenant only; crossing
+        the tenant boundary requires the distinct, explicitly modelled
+        ``is_global_admin`` claim so tenant-admin and global-superadmin
+        semantics are never collapsed into a single boolean.
+        """
+
+        return self.is_global_admin
 
     @property
     def audit_subject(self) -> str:
