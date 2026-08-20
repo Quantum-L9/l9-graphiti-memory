@@ -15,7 +15,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class TokenPrincipalConfig(BaseModel):
@@ -47,7 +47,13 @@ class MemorySettings(BaseModel):
     state_dir: Path = Field(
         default_factory=lambda: Path("~/.local/state/l9-memory").expanduser()
     )
+    # "sqlite" is a local/single-process ledger and is not a distributed
+    # authority. Shared multi-agent deployments must select "postgres" so every
+    # agent and worker reads and writes one canonical store (ADR-072).
+    store_backend: Literal["sqlite", "postgres"] = "sqlite"
     database_path: Path | None = None
+    postgres_dsn: str | None = None
+    postgres_statement_timeout_ms: int = Field(default=30_000, ge=1_000, le=600_000)
     registry_path: Path | None = None
     workspace_namespace: str = "l9-workspace"
 
@@ -105,6 +111,21 @@ class MemorySettings(BaseModel):
             raise ValueError(f"unsupported log level: {value}")
         return normalized
 
+    @model_validator(mode="after")
+    def validate_store_backend(self) -> MemorySettings:
+        if self.store_backend == "postgres" and not (self.postgres_dsn or "").strip():
+            raise ValueError(
+                "store_backend 'postgres' requires postgres_dsn "
+                "(set L9_MEMORY_POSTGRES_DSN)"
+            )
+        return self
+
     @property
     def resolved_database_path(self) -> Path:
         return (self.database_path or self.data_dir / "memory.sqlite3").expanduser()
+
+    @property
+    def is_shared_store(self) -> bool:
+        """True when canonical state is shared rather than process-local."""
+
+        return self.store_backend == "postgres"

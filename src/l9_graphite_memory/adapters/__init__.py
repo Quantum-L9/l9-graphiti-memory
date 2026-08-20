@@ -14,12 +14,14 @@ from .factory import build_projection, build_store
 from .graphiti_projection import GraphitiProjection
 from .in_memory_store import InMemoryRecordStore
 from .null_projection import NullProjection
+from .postgres_store import PostgresRecordStore
 from .sqlite_store import SQLiteRecordStore
 
 __all__ = [
     "GraphitiProjection",
     "InMemoryRecordStore",
     "NullProjection",
+    "PostgresRecordStore",
     "SQLiteRecordStore",
     "build_projection",
     "build_store",

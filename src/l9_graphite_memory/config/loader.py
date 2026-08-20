@@ -26,7 +26,10 @@ from .models import MemorySettings, TokenPrincipalConfig
 _ENV_TO_FIELD = {
     "L9_MEMORY_DATA_DIR": "data_dir",
     "L9_MEMORY_STATE_DIR": "state_dir",
+    "L9_MEMORY_STORE_BACKEND": "store_backend",
     "L9_MEMORY_DATABASE_PATH": "database_path",
+    "L9_MEMORY_POSTGRES_DSN": "postgres_dsn",
+    "L9_MEMORY_POSTGRES_STATEMENT_TIMEOUT_MS": "postgres_statement_timeout_ms",
     "L9_MEMORY_REGISTRY_PATH": "registry_path",
     "L9_MEMORY_WORKSPACE_NAMESPACE": "workspace_namespace",
     "L9_MEMORY_ENABLED": "memory_enabled",
@@ -74,6 +77,7 @@ _LIST_FIELDS = {
 
 
 _INT_FIELDS = {
+    "postgres_statement_timeout_ms",
     "gate_ttl_minutes",
     "outbox_batch_size",
     "outbox_max_attempts",

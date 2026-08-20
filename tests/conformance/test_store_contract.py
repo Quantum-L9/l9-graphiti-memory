@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+import os
+import uuid
 from pathlib import Path
 
 import pytest
@@ -28,16 +30,51 @@ from l9_graphite_memory.contracts import (
 )
 from l9_graphite_memory.services import MemoryService
 
+POSTGRES_DSN_ENV = "L9_MEMORY_TEST_POSTGRES_DSN"
 
-def stores(tmp_path: Path):
-    return [InMemoryRecordStore(), SQLiteRecordStore(tmp_path / "conformance.sqlite3")]
+# Backend identifiers exercised by every contract case below. "postgres" is the
+# shared production backend and runs whenever a test DSN is configured; without
+# one it skips loudly rather than silently narrowing the matrix (ADR-072).
+BACKENDS = ("memory", "sqlite", "postgres")
 
 
-@pytest.mark.parametrize("index", [0, 1])
+def _postgres_dsn() -> str:
+    dsn = os.environ.get(POSTGRES_DSN_ENV, "").strip()
+    if not dsn:
+        pytest.skip(
+            f"{POSTGRES_DSN_ENV} is not set; the shared-backend conformance matrix "
+            "requires a PostgreSQL test database"
+        )
+    return dsn
+
+
+def build_store(backend: str, tmp_path: Path):
+    """Construct one conforming store. Postgres is isolated per test by schema."""
+
+    if backend == "memory":
+        return InMemoryRecordStore()
+    if backend == "sqlite":
+        return SQLiteRecordStore(tmp_path / f"conformance-{uuid.uuid4().hex}.sqlite3")
+    if backend == "postgres":
+        from l9_graphite_memory.adapters import PostgresRecordStore
+
+        dsn = _postgres_dsn()
+        schema = f"l9_conformance_{uuid.uuid4().hex}"
+        store = PostgresRecordStore(dsn)
+        connection = store._connection()
+        with connection.cursor() as cursor:
+            cursor.execute(f'CREATE SCHEMA "{schema}"')
+            cursor.execute(f'SET search_path TO "{schema}"')
+        connection.commit()
+        return store
+    raise AssertionError(f"unknown backend: {backend}")
+
+
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_store_adapters_share_write_read_contract(
-    tmp_path: Path, principal, index: int
+    tmp_path: Path, principal, backend: str
 ) -> None:
-    store = stores(tmp_path)[index]
+    store = build_store(backend, tmp_path)
     service = MemoryService(store, NullProjection())
     service.initialize()
     receipt = service.write(
@@ -52,20 +89,21 @@ def test_store_adapters_share_write_read_contract(
     )
     assert service.get(principal, receipt.record_id).content == "Adapter conformance"
     assert store.health()["healthy"]
+    store.close()
 
 
-@pytest.mark.parametrize("index", [0, 1])
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_store_adapters_commit_archive_with_receipt(
     tmp_path: Path,
     principal,
     admin_principal,
-    index: int,
+    backend: str,
 ) -> None:
     from datetime import datetime, timedelta, timezone
 
     from l9_graphite_memory.contracts import MemoryState
 
-    store = stores(tmp_path)[index]
+    store = build_store(backend, tmp_path)
     service = MemoryService(store, NullProjection())
     service.initialize()
     now = datetime.now(timezone.utc)
@@ -88,12 +126,12 @@ def test_store_adapters_commit_archive_with_receipt(
     store.close()
 
 
-@pytest.mark.parametrize("index", [0, 1])
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_store_adapters_commit_verified_deletion_with_receipt(
     tmp_path: Path,
     principal,
     admin_principal,
-    index: int,
+    backend: str,
 ) -> None:
     from l9_graphite_memory.contracts import (
         DeletionRequest,
@@ -101,7 +139,7 @@ def test_store_adapters_commit_verified_deletion_with_receipt(
         MemoryState,
     )
 
-    store = stores(tmp_path)[index]
+    store = build_store(backend, tmp_path)
     service = MemoryService(store, NullProjection())
     service.initialize()
     write = service.write(
@@ -129,17 +167,11 @@ def test_store_adapters_commit_verified_deletion_with_receipt(
     store.close()
 
 
-@pytest.mark.parametrize("store_kind", ["memory", "sqlite"])
+@pytest.mark.parametrize("store_kind", BACKENDS)
 def test_projection_link_round_trip(store_kind: str, tmp_path) -> None:
-
-    from l9_graphite_memory.adapters import InMemoryRecordStore, SQLiteRecordStore
     from l9_graphite_memory.contracts import ProjectionLink
 
-    store = (
-        InMemoryRecordStore()
-        if store_kind == "memory"
-        else SQLiteRecordStore(tmp_path / "projection-links.db")
-    )
+    store = build_store(store_kind, tmp_path)
     store.initialize()
     try:
         # Projection links are constrained to canonical records. Create a minimal record through fixtures.

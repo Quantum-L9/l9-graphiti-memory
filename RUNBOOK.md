@@ -24,7 +24,19 @@ l9-memory health
 
 Published package: `pip install l9-graphite-memory`.
 
-The default database is `~/.local/share/l9-memory/memory.sqlite3`. Gate state is under `~/.local/state/l9-memory`.
+The default canonical store is SQLite at `~/.local/share/l9-memory/memory.sqlite3`. Gate state is under `~/.local/state/l9-memory`.
+
+A SQLite file is authoritative only for processes that can open it. Any deployment where more than one agent, worker, or scheduled job must share memory requires the shared backend (ADR-072):
+
+```bash
+export L9_MEMORY_STORE_BACKEND=postgres
+# Resolve the DSN from the runtime secret path; never write it into a file in
+# this repository. Require TLS with sslmode=require in the DSN.
+export L9_MEMORY_POSTGRES_DSN="$(read_secret l9/memory/postgres_dsn)"
+l9-memory health
+```
+
+Startup fails if `postgres` is selected without a DSN. Never point two deployments at two different SQLite files and treat them as one memory.
 
 ## Local standalone mode
 

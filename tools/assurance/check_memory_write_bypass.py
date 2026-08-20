@@ -22,6 +22,7 @@ from pathlib import Path
 
 _ALLOWED_SQL_FILES = {
     "src/l9_graphite_memory/adapters/sqlite_store.py",
+    "src/l9_graphite_memory/adapters/postgres_store.py",
 }
 _ALLOWED_COMMIT_CALLERS = {
     "src/l9_graphite_memory/services/memory_service.py",

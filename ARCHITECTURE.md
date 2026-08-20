@@ -133,4 +133,6 @@ Projection writes must return or establish a stable episode locator. The locator
 
 ## Extension model
 
-Add a store by implementing `RecordStore` and passing conformance tests. Add a projection by implementing `ProjectionAdapter`, returning stable locators, and passing search, health, and erasure tests. Add an ingestion source by constructing typed requests and calling `MemoryService`. Add enrichment through idempotent outbox consumers. Do not add another memory control plane.
+Canonical state lives in the configured `RecordStore`. `sqlite` is a local single-process ledger; `postgres` is the shared authority for multi-agent and scheduled deployments (ADR-072). Selection is explicit and never falls back silently.
+
+Add a store by implementing `RecordStore` and passing conformance tests on every backend. Add a projection by implementing `ProjectionAdapter`, returning stable locators, and passing search, health, and erasure tests. Add an ingestion source by constructing typed requests and calling `MemoryService`. Add enrichment through idempotent outbox consumers. Do not add another memory control plane.

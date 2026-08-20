@@ -142,6 +142,13 @@ entries:
     implementation_paths: [src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/sqlite_store.py]
     test_paths: [tests/integration/test_outbox.py]
     adr_paths: [docs/adr/ADR-018-outbox-and-write-recovery.md, docs/adr/ADR-046-core-commit-versus-asynchronous-enrichment.md]
+  - id: H-018a
+    concept: Shared durable canonical store for multi-agent deployments
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/adapters/postgres_store.py, src/l9_graphite_memory/adapters/factory.py, src/l9_graphite_memory/config/models.py]
+    test_paths: [tests/conformance/test_store_contract.py, tests/conformance/test_shared_canonical_store.py]
+    adr_paths: [docs/adr/ADR-072-shared-canonical-store-backend.md]
   - id: H-019
     concept: Ingress recovery queue for unavailable canonical service
     sources: [l9_ops_commit_pack, legacy_memory_pack]
