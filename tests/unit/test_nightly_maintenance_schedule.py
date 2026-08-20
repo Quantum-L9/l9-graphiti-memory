@@ -14,6 +14,7 @@ is a caller of the control plane rather than an owner of canonical state."""
 from __future__ import annotations
 
 import importlib.util
+import re
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -232,7 +233,42 @@ def test_workflow_carries_a_run_identity(workflow) -> None:
     run_step = next(
         step for step in steps if step.get("name") == "Run canonical memory maintenance"
     )
-    assert "github.run_id" in run_step["run"]
+    # Bound as an environment variable, not expanded into the script.
+    assert run_step["env"]["RUN_ID"] == "${{ github.run_id }}"
+    assert "${RUN_ID}" in run_step["run"]
+
+
+def test_no_workflow_expression_is_expanded_inside_a_run_body(workflow) -> None:
+    """githubactions:S7630 — a dispatch input expanded in a run block is shell.
+
+    workflow_dispatch inputs come from whoever triggers the run, so binding
+    them to environment variables is what keeps them data instead of code.
+    """
+
+    offenders: list[tuple[str, list[str]]] = []
+    for step in _job(workflow)["steps"]:
+        body = step.get("run")
+        if body and "${{" in body:
+            offenders.append(
+                (step.get("name", "<unnamed>"), re.findall(r"\$\{\{[^}]*\}\}", body))
+            )
+
+    assert offenders == []
+
+
+def test_dispatch_inputs_reach_the_script_only_through_env(workflow) -> None:
+    run_step = next(
+        step
+        for step in _job(workflow)["steps"]
+        if step.get("name") == "Run canonical memory maintenance"
+    )
+    env = run_step["env"]
+
+    assert env["INPUT_NAMESPACE"] == "${{ inputs.namespace }}"
+    assert env["INPUT_APPLY"] == "${{ inputs.apply }}"
+    # Referenced as shell variables, so their contents are never parsed as code.
+    assert "${INPUT_NAMESPACE:-}" in run_step["run"]
+    assert "${INPUT_APPLY}" in run_step["run"]
 
 
 def test_scheduled_runs_apply_and_manual_runs_default_to_dry_run(workflow) -> None:

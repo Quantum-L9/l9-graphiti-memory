@@ -56,9 +56,15 @@ jobs:
 
       - name: Decide whether this firing is the 02:00 America/New_York run
         id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          python tools/ci/nightly_maintenance_gate.py \
-            ${{ github.event_name == 'workflow_dispatch' && '--force' || '' }}
+          set -euo pipefail
+          if [ "${EVENT_NAME}" = 'workflow_dispatch' ]; then
+            python tools/ci/nightly_maintenance_gate.py --force
+          else
+            python tools/ci/nightly_maintenance_gate.py
+          fi
 
       - name: Sync locked environment
         if: steps.gate.outputs.should_run == 'true'
@@ -89,26 +95,35 @@ jobs:
           # administrator grant is issued to the scheduled principal.
           L9_MEMORY_LOCAL_MAINTAIN_NAMESPACES: ${{ vars.L9_MEMORY_MAINTENANCE_NAMESPACES }}
           L9_MEMORY_JSON_LOGS: 'true'
+          # Every expression below is bound to an environment variable rather
+          # than interpolated into the script. workflow_dispatch inputs are
+          # supplied by whoever triggers the run, so expanding one inside a
+          # run block would let it be read as shell (githubactions:S7630).
+          INPUT_NAMESPACE: ${{ inputs.namespace }}
+          INPUT_APPLY: ${{ inputs.apply }}
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+          CONFIGURED_NAMESPACES: ${{ vars.L9_MEMORY_MAINTENANCE_NAMESPACES }}
         run: |
           set -euo pipefail
-          NAMESPACE='${{ inputs.namespace }}'
+          NAMESPACE="${INPUT_NAMESPACE:-}"
           if [ -z "$NAMESPACE" ]; then
-            NAMESPACE='${{ vars.L9_MEMORY_MAINTENANCE_NAMESPACES }}'
+            NAMESPACE="${CONFIGURED_NAMESPACES:-}"
           fi
           if [ -z "$NAMESPACE" ]; then
             echo "no maintenance namespace configured" >&2
             exit 1
           fi
           APPLY='--apply'
-          if [ '${{ github.event_name }}' = 'workflow_dispatch' ] \
-             && [ '${{ inputs.apply }}' != 'true' ]; then
+          if [ "${EVENT_NAME}" = 'workflow_dispatch' ] \
+             && [ "${INPUT_APPLY}" != 'true' ]; then
             APPLY=''
           fi
           for ns in $(echo "$NAMESPACE" | tr ',' ' '); do
             echo "== maintaining $ns =="
             l9-memory maintain \
               --group-id "$ns" \
-              --reason "nightly maintenance run ${{ github.run_id }}" \
+              --reason "nightly maintenance run ${RUN_ID}" \
               $APPLY \
               | tee "maintenance-$ns.json"
           done

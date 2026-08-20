@@ -155,7 +155,10 @@ class MaintenanceService:
             valid_from=valid_from,
             valid_to=valid_to,
             source_observed_at=primary.temporal.source_observed_at,
-            tags=tuple({*(tag for record in ordered for tag in record.tags), "consolidated"}),
+            tags=(
+                *sorted({tag for record in ordered for tag in record.tags}),
+                "consolidated",
+            ),
             metadata={
                 "maintenance_operation": action.operation.value,
                 "maintenance_action_digest": action.action_digest,
@@ -257,7 +260,6 @@ class MaintenanceService:
         action: MaintenanceAction,
         by_id: dict[UUID, MemoryRecord],
         *,
-        namespace: str,
         now: datetime,
     ) -> MaintenanceAction:
         for record_id in action.archived_record_ids:
@@ -362,7 +364,6 @@ class MaintenanceService:
                             principal,
                             action,
                             by_id,
-                            namespace=request.namespace,
                             now=self.service.clock.now(),
                         )
                     )
