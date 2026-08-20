@@ -10,6 +10,11 @@
 
 """One-way migration utilities for legacy durable state."""
 
+from .backend_transition import (
+    BackendTransitionReport,
+    PriorLedger,
+    detect_backend_transition,
+)
 from .legacy_write_queue import (
     LEGACY_QUEUE_DIRNAME,
     LegacyDrainItem,
@@ -20,8 +25,11 @@ from .legacy_write_queue import (
 
 __all__ = [
     "LEGACY_QUEUE_DIRNAME",
+    "BackendTransitionReport",
     "LegacyDrainItem",
     "LegacyDrainReport",
     "LegacyQueuedWrite",
     "LegacyWriteQueueDrain",
+    "PriorLedger",
+    "detect_backend_transition",
 ]

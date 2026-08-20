@@ -43,6 +43,7 @@ from l9_graphite_memory.contracts import (
     PhaseLockReceipt,
     PhaseLockRequest,
     PhaseLockVerification,
+    ProjectionRebuildReceipt,
     PromotionRequest,
     Provenance,
     RetentionReceipt,
@@ -859,6 +860,80 @@ class MemoryService:
         """Compatibility surface for archive-first retention."""
 
         return self.apply_retention(principal, namespace, apply=apply).archive_receipt
+
+    def rebuild_projection(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        apply: bool,
+        limit: int = 1_000,
+        reason: str = "projection rebuild",
+    ) -> ProjectionRebuildReceipt:
+        """Re-project active canonical records that have no live projection.
+
+        Retirement under a withdraw-only provider removes the projected copy
+        (ADR-076), so this is how it is undone: every active record without a
+        projection link is queued for projection again. Projections are
+        derivations, so rebuilding is always safe and never touches canonical
+        state.
+        """
+
+        authorization = self.namespace_policy.require(
+            principal,
+            AuthorizationAction.MAINTAIN if apply else AuthorizationAction.READ,
+            namespace,
+        )
+        if self.projection.name == "none":
+            raise StoreError(
+                "projection backend is 'none'; there is nothing to rebuild"
+            )
+        now = self.clock.now()
+        candidates = self.store.list_unprojected_records(
+            principal.tenant_id,
+            namespace,
+            self.projection.name,
+            limit=limit,
+        )
+        total_active = len(
+            self.store.list_records(
+                principal.tenant_id,
+                namespace,
+                states=(MemoryState.ACTIVE,),
+                limit=limit,
+            )
+        )
+        events = tuple(
+            OutboxEvent(
+                event_type="memory.record.project",
+                aggregate_id=record.record_id,
+                namespace=namespace,
+                payload={
+                    "record_id": str(record.record_id),
+                    "schema_version": record.schema_version,
+                    "rebuild": True,
+                },
+                created_at=now,
+                next_attempt_at=now,
+            )
+            for record in candidates
+        )
+        receipt = ProjectionRebuildReceipt(
+            namespace=namespace,
+            projection_name=self.projection.name,
+            applied=apply,
+            considered_record_count=total_active,
+            already_projected_count=max(total_active - len(candidates), 0),
+            queued_record_ids=tuple(record.record_id for record in candidates),
+            outbox_event_ids=tuple(event.event_id for event in events),
+            authorization=authorization,
+            reason=reason,
+            actor=principal.audit_subject,
+            created_at=now,
+        )
+        if apply and events:
+            self.store.commit_projection_rebuild(receipt, outbox_events=events)
+        return receipt
 
     def health(self) -> HealthReport:
         store_health = self.store.health()

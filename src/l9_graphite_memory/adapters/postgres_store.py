@@ -33,6 +33,8 @@ from l9_graphite_memory.contracts import (
     OutboxStatus,
     PhaseLockReceipt,
     ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
     WriteReceipt,
 )
 from l9_graphite_memory.errors import ConfigurationError, StoreError
@@ -860,6 +862,78 @@ class PostgresRecordStore:
                 )
         except psycopg2.Error as exc:
             raise StoreError(f"projection link deletion failed: {exc}") from exc
+
+    def save_projection_retirement(
+        self, receipt: ProjectionRetirementReceipt
+    ) -> None:
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="projection_retirement",
+                    aggregate_id=str(receipt.record_id),
+                    status=receipt.retirement_mode.value,
+                    created_at=receipt.retired_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+        except psycopg2.Error as exc:
+            raise StoreError(f"projection retirement receipt failed: {exc}") from exc
+
+    def list_unprojected_records(
+        self,
+        tenant_id: str,
+        namespace: str,
+        projection_name: str,
+        *,
+        limit: int = 1_000,
+    ) -> list[MemoryRecord]:
+        with self._cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT r.record_json FROM memory_records AS r
+                LEFT JOIN projection_links AS l
+                  ON l.record_id = r.record_id AND l.projection_name = %s
+                WHERE r.tenant_id = %s AND r.namespace = %s AND r.state = %s
+                  AND l.record_id IS NULL
+                ORDER BY r.recorded_at ASC LIMIT %s
+                """,
+                (
+                    projection_name,
+                    tenant_id,
+                    namespace,
+                    MemoryState.ACTIVE.value,
+                    limit,
+                ),
+            )
+            rows = cursor.fetchall()
+        return [self._row_to_record(row) for row in rows]
+
+    def commit_projection_rebuild(
+        self,
+        receipt: ProjectionRebuildReceipt,
+        *,
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied rebuild receipt")
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="projection_rebuild",
+                    aggregate_id=receipt.namespace,
+                    status="applied",
+                    created_at=receipt.created_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+                for event in outbox_events:
+                    self._insert_outbox(tx, event)
+        except psycopg2.Error as exc:
+            raise StoreError(f"projection rebuild failed: {exc}") from exc
 
     # -- maintenance ledger ---------------------------------------------------
 

@@ -42,7 +42,12 @@ from .profiles import (
     ProfileFact,
     SessionContext,
 )
-from .projection import ProjectionLink
+from .projection import (
+    ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
+    RetirementMode,
+)
 from .receipts import (
     AdmissionDecision,
     ArchiveReceipt,
@@ -118,11 +123,14 @@ __all__ = [
     "PreferenceRecord",
     "ProfileFact",
     "ProjectionLink",
+    "ProjectionRebuildReceipt",
+    "ProjectionRetirementReceipt",
     "PromotionRequest",
     "Provenance",
     "QueryPattern",
     "RetentionDecision",
     "RetentionReceipt",
+    "RetirementMode",
     "ScoreFactors",
     "SearchHit",
     "SearchReceipt",

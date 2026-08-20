@@ -20,7 +20,12 @@ import time
 from datetime import datetime, timedelta
 
 from l9_graphite_memory.config import MemorySettings, load_settings
-from l9_graphite_memory.contracts import OutboxEvent, OutboxStatus, ProjectionLink
+from l9_graphite_memory.contracts import (
+    OutboxEvent,
+    OutboxStatus,
+    ProjectionLink,
+    ProjectionRetirementReceipt,
+)
 from l9_graphite_memory.errors import StoreError
 from l9_graphite_memory.observability import configure_logging, get_logger
 from l9_graphite_memory.ports import Clock, ProjectionAdapter, RecordStore, SystemClock
@@ -154,14 +159,35 @@ class OutboxWorker:
                         )
                     else:
                         reason = event.payload.get("reason")
-                        self.projection.retire(
+                        reason_text = reason if isinstance(reason, str) else "retired"
+                        result = self.projection.retire(
                             event.aggregate_id,
                             event.namespace,
                             locator=link.locator,
-                            reason=reason if isinstance(reason, str) else "",
+                            reason=reason_text,
                         )
                         self.store.delete_projection_link(
                             event.aggregate_id, self.projection.name
+                        )
+                        # A provider whose only removal primitive is deletion
+                        # cannot distinguish this from a privacy erasure in its
+                        # own logs. Record the distinction in canonical state,
+                        # where it does not depend on the provider (ADR-076).
+                        self.store.save_projection_retirement(
+                            ProjectionRetirementReceipt(
+                                record_id=event.aggregate_id,
+                                namespace=event.namespace,
+                                projection_name=self.projection.name,
+                                retirement_mode=self.projection.retirement_mode,
+                                locator=link.locator,
+                                reason=reason_text,
+                                rebuildable=True,
+                                outbox_event_id=event.event_id,
+                                provider_result=result
+                                if isinstance(result, dict)
+                                else {},
+                                retired_at=now,
+                            )
                         )
                 elif event.event_type == "memory.record.erase":
                     link = self.store.get_projection_link(

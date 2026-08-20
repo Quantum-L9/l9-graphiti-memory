@@ -17,7 +17,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from l9_graphite_memory.contracts import MemoryRecord
+from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
 
 
 class ProjectionHit(BaseModel):
@@ -32,6 +32,11 @@ class ProjectionHit(BaseModel):
 class ProjectionAdapter(Protocol):
     name: str
     capabilities: tuple[str, ...]
+    # Whether this provider can deactivate a projected record or only remove
+    # it. Declared rather than inferred, so the ceiling is machine-readable and
+    # a caller can tell whether retirement is reversible at the provider
+    # (ADR-076).
+    retirement_mode: RetirementMode
 
     def health(self) -> dict[str, Any]: ...
 

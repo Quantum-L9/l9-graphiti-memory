@@ -17,7 +17,7 @@ import re
 from typing import Any
 from uuid import UUID
 
-from l9_graphite_memory.contracts import MemoryRecord
+from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.ports import ProjectionHit
 from l9_graphite_memory.transport import MemoryTransport
@@ -28,6 +28,10 @@ _RECORD_ID_PATTERN = re.compile(r'"record_id"\s*:\s*"([0-9a-fA-F-]{36})"')
 class GraphitiProjection:
     name = "graphiti"
     capabilities: tuple[str, ...] = ("graph-search", "semantic-search")
+    # Graphiti exposes delete_episode and no deactivation primitive, so
+    # retirement removes the projected episode and is undone by re-projection
+    # rather than by reactivating in place (ADR-076).
+    retirement_mode = RetirementMode.WITHDRAW
 
     def __init__(self, transport: MemoryTransport) -> None:
         self.transport = transport

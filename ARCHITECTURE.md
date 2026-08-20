@@ -127,6 +127,8 @@ No backend failure is represented as zero results.
 
 Projections have three operations (ADR-074). `project` makes a current record retrievable. `retire` withdraws a projection when the record is superseded or archived: the canonical record keeps its content, evidence, and history, and no deletion receipt is produced. `erase` destroys the projected copy under verified privacy deletion. Retirement intent is committed in the same transaction as the canonical transition that caused it.
 
+Adapters declare a `retirement_mode`. A provider that can deactivate a projected record is `native`; one offering only removal is `withdraw`. Graphiti is `withdraw`, so retirement there removes the episode and is undone by `rebuild-projection` rather than reactivated in place. Every retirement writes a receipt to canonical state, so the retirement/erasure distinction does not depend on the provider's own log (ADR-076).
+
 ## Projection erasure
 
 Projection writes must return or establish a stable episode locator. The locator is stored in the canonical store as a `ProjectionLink`. A deletion outbox event loads that locator and invokes the provider deletion operation. Graphiti uses `delete_episode`; Zep uses `graph.episode.delete`. The link is removed only after provider confirmation, then the canonical deletion receipt becomes complete.

@@ -38,6 +38,26 @@ l9-memory health
 
 Startup fails if `postgres` is selected without a DSN. Never point two deployments at two different SQLite files and treat them as one memory.
 
+### Changing backends
+
+Changing `L9_MEMORY_STORE_BACKEND` points the control plane at a *different* canonical store. Your existing records are not moved — moving them is a separate, evidence-bound operation that this package deliberately does not perform (ADR-072).
+
+Startup refuses when the configured store is empty while a prior ledger still holds records, and names the ledger and its record count (ADR-077):
+
+```
+canonical store backend 'postgres' is empty, but this deployment has a prior
+canonical ledger that still holds records:
+  - sqlite at /root/.local/share/l9-memory/memory.sqlite3 (1482 records)
+```
+
+If the switch is a deliberate fresh start, say so:
+
+```bash
+export L9_MEMORY_ACKNOWLEDGE_BACKEND_TRANSITION=1
+```
+
+The guard only detects a local SQLite ledger, because that is all it can read without credentials. A move between two remote backends is not detected — verify those by hand before cutting over.
+
 ## Local standalone mode
 
 No external credentials are needed:
@@ -203,6 +223,19 @@ Configure before enabling:
 Scope the credential to the `memory-maintenance` GitHub environment. The workflow grants the run `MAINTAIN` only — it sets no write, promote, or administrator namespaces, and the database role it connects as should be similarly restricted.
 
 Scheduled runs apply. `workflow_dispatch` defaults to a dry run; tick `apply` to make a manual run take effect.
+
+## Rebuilding a projection
+
+Projections are derivations, so they can always be rebuilt from canonical state. Retiring a projection on a provider with no deactivation primitive (Graphiti) removes the projected episode, so restoring an archived record to active leaves it invisible to projection-backed search until it is re-projected (ADR-076):
+
+```bash
+l9-memory rebuild-projection --group-id repo-a            # dry run
+l9-memory rebuild-projection --group-id repo-a --apply
+```
+
+This queues a projection event for every active record with no live projection link, then the outbox worker delivers them. It requires `MAINTAIN` to apply and never touches canonical state. A large rebuild generates provider traffic proportional to the namespace, so run it deliberately.
+
+Every retirement writes a `ProjectionRetirementReceipt` to canonical state recording the mode, locator, and reason. That is what distinguishes a retirement from a privacy erasure — the provider's own log cannot, since both use `delete_episode`.
 
 ## Canonical write failure
 

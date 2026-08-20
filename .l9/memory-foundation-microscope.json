@@ -6,11 +6,11 @@
   "scope": "Quantum-L9/l9-graphiti-memory",
   "cursor_governance_mutated": false,
   "regression_matrix": {
-    "pytest_with_shared_backend": "446 passed, 0 failed",
-    "pytest_without_shared_backend": "410 passed, 36 skipped, 0 failed",
+    "pytest_with_shared_backend": "477 passed, 0 failed",
+    "pytest_without_shared_backend": "434 passed, 43 skipped, 0 failed",
     "ruff": "pass",
-    "mypy": "pass (112 source files)",
-    "validate_release.sh": "exit 0 — 22 local checks evidenced; 5 external blockers recorded",
+    "mypy": "pass (113 source files)",
+    "validate_release.sh": "exit 0 \u2014 22 local checks evidenced; 5 external blockers recorded",
     "external_blockers_preexisting": [
       "live provider proof",
       "production migration proof",
@@ -34,7 +34,7 @@
     },
     "runner_local_store_as_distributed_authority": {
       "status": "resolved",
-      "evidence": "store_backend selects sqlite or postgres with no silent fallback; a DSN-less postgres selection is rejected at configuration and construction. The nightly workflow references no database file and CI now runs the shared-backend matrix against a real PostgreSQL service."
+      "evidence": "store_backend selects sqlite or postgres with no silent fallback; a DSN-less postgres selection is rejected at configuration and construction. The nightly workflow references no database file and CI now runs the shared-backend matrix against a real PostgreSQL service. Remediated further by ADR-077: build_store fails closed when the configured store is empty while a prior local ledger still holds records, naming the ledger and its count, with an explicit L9_MEMORY_ACKNOWLEDGE_BACKEND_TRANSITION escape hatch."
     },
     "unrecoverable_outbox_processing": {
       "status": "resolved",
@@ -42,7 +42,7 @@
     },
     "projection_retirement_conflated_with_erasure": {
       "status": "resolved",
-      "evidence": "ProjectionAdapter.retire is distinct from erase; supersession and archive emit retirement intent in the same transaction as the canonical transition. Archive preserves content, evidence, and state and produces no deletion receipt."
+      "evidence": "ProjectionAdapter.retire is distinct from erase; supersession and archive emit retirement intent in the same transaction as the canonical transition. Archive preserves content, evidence, and state and produces no deletion receipt. Remediated further by ADR-076: adapters declare a retirement_mode, every retirement writes a ProjectionRetirementReceipt to canonical state (validated to never assert erasure), and MemoryService.rebuild_projection re-projects withdrawn records so withdrawal is reversible."
     },
     "blanket_administrator_scheduler_credential": {
       "status": "resolved",
@@ -54,9 +54,9 @@
     }
   },
   "known_limitations_stated_not_hidden": [
-    "GraphitiProjection.retire calls the same delete_episode primitive as erase because Graphiti exposes no native deactivation operation. ADR-074 states this explicitly; the operations still differ in authority, receipts, and what survives.",
-    "GitHub cron is UTC-only, so 02:00 America/New_York is achieved by firing at both candidate UTC instants and gating. Verified as a property across all 365 days of 2026 including both DST transitions.",
-    "Migrating existing canonical data between store backends is deliberately not authorized by this work and remains a separate evidence-bound operation."
+    "Graphiti exposes no native deactivation primitive, so GraphitiProjection.retire calls the same delete_episode tool as erase. ADR-076 declares the ceiling as RetirementMode.WITHDRAW, records every retirement in canonical state so the distinction does not depend on the provider log, and adds rebuild-projection so withdrawal is reversible. The shared provider call remains a provider ceiling, not a defect.",
+    "GitHub cron is UTC-only, so 02:00 America/New_York is achieved by firing at both candidate UTC instants and gating. Verified as a property across all 365 days of 2026 including both DST transitions. Residual: a firing delayed more than 59 minutes by GitHub is skipped; maintenance is idempotent and watermarked, so the next run absorbs the backlog, but the skip is currently silent. Not remediated in this PR.",
+    "Cross-backend data migration remains deliberately out of scope and unauthorized (ADR-072). ADR-077 guards the operational trap that boundary left open: a local-ledger-to-shared-backend transition now fails closed instead of serving a healthy empty store. Transitions between two remote backends are still undetectable without credentials and are documented as requiring manual verification."
   ],
   "unresolved_p0_p1_ownership_seams": 0,
   "decision": "converge"

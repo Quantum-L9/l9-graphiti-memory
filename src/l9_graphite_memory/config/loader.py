@@ -30,6 +30,7 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_DATABASE_PATH": "database_path",
     "L9_MEMORY_POSTGRES_DSN": "postgres_dsn",
     "L9_MEMORY_POSTGRES_STATEMENT_TIMEOUT_MS": "postgres_statement_timeout_ms",
+    "L9_MEMORY_ACKNOWLEDGE_BACKEND_TRANSITION": "acknowledge_backend_transition",
     "L9_MEMORY_REGISTRY_PATH": "registry_path",
     "L9_MEMORY_WORKSPACE_NAMESPACE": "workspace_namespace",
     "L9_MEMORY_ENABLED": "memory_enabled",
@@ -64,6 +65,7 @@ _ENV_TO_FIELD = {
 }
 
 _BOOL_FIELDS = {
+    "acknowledge_backend_transition",
     "memory_enabled",
     "write_gates_enabled",
     "projection_required",

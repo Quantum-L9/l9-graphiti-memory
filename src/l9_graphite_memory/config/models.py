@@ -55,6 +55,10 @@ class MemorySettings(BaseModel):
     database_path: Path | None = None
     postgres_dsn: str | None = None
     postgres_statement_timeout_ms: int = Field(default=30_000, ge=1_000, le=600_000)
+    # Selecting a different backend points at a different canonical store.
+    # Startup refuses when the configured store is empty while a prior ledger
+    # still holds records, unless the operator says that is intended (ADR-077).
+    acknowledge_backend_transition: bool = False
     registry_path: Path | None = None
     workspace_namespace: str = "l9-workspace"
 

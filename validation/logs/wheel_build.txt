@@ -2,7 +2,7 @@
 * Installing packages in isolated environment:
   - setuptools>=68
 * Getting build dependencies for wheel...
-/tmp/build-env-i4omncdf/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+/tmp/build-env-ocet7ajb/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
 !!
 
         ********************************************************************************
@@ -30,7 +30,7 @@ warning: no files found matching '*.json' under directory 'config'
 adding license file 'LICENSE'
 writing manifest file 'src/l9_graphite_memory.egg-info/SOURCES.txt'
 * Building wheel...
-/tmp/build-env-i4omncdf/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+/tmp/build-env-ocet7ajb/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
 !!
 
         ********************************************************************************
@@ -168,6 +168,7 @@ copying src/l9_graphite_memory/ports/projection.py -> build/lib/l9_graphite_memo
 copying src/l9_graphite_memory/ports/synthesis.py -> build/lib/l9_graphite_memory/ports
 creating build/lib/l9_graphite_memory/migration
 copying src/l9_graphite_memory/migration/__init__.py -> build/lib/l9_graphite_memory/migration
+copying src/l9_graphite_memory/migration/backend_transition.py -> build/lib/l9_graphite_memory/migration
 copying src/l9_graphite_memory/migration/legacy_write_queue.py -> build/lib/l9_graphite_memory/migration
 creating build/lib/l9_graphite_memory/adapters
 copying src/l9_graphite_memory/adapters/in_memory_store.py -> build/lib/l9_graphite_memory/adapters
@@ -333,6 +334,7 @@ copying build/lib/l9_graphite_memory/graphiti_gate_lib.py -> build/bdist.linux-x
 copying build/lib/l9_graphite_memory/server.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/migration
 copying build/lib/l9_graphite_memory/migration/__init__.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/migration
+copying build/lib/l9_graphite_memory/migration/backend_transition.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/migration
 copying build/lib/l9_graphite_memory/migration/legacy_write_queue.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/migration
 copying build/lib/l9_graphite_memory/version.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/adapters
@@ -354,7 +356,7 @@ running install_egg_info
 Copying src/l9_graphite_memory.egg-info to build/bdist.linux-x86_64/wheel/./l9_graphite_memory-2.2.0-py3.13.egg-info
 running install_scripts
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory-2.2.0.dist-info/WHEEL
-creating '/home/user/l9-graphiti-memory/validation/dist/.tmp-4lii7r3i/l9_graphite_memory-2.2.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+creating '/home/user/l9-graphiti-memory/validation/dist/.tmp-q84letee/l9_graphite_memory-2.2.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
 adding 'l9_graphite_memory/__init__.py'
 adding 'l9_graphite_memory/__main__.py'
 adding 'l9_graphite_memory/circuit_breaker.py'
@@ -442,6 +444,7 @@ adding 'l9_graphite_memory/maintenance/__init__.py'
 adding 'l9_graphite_memory/maintenance/planner.py'
 adding 'l9_graphite_memory/maintenance/service.py'
 adding 'l9_graphite_memory/migration/__init__.py'
+adding 'l9_graphite_memory/migration/backend_transition.py'
 adding 'l9_graphite_memory/migration/legacy_write_queue.py'
 adding 'l9_graphite_memory/observability/__init__.py'
 adding 'l9_graphite_memory/observability/logging.py'

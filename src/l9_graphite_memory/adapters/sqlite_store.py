@@ -35,6 +35,8 @@ from l9_graphite_memory.contracts import (
     OutboxStatus,
     PhaseLockReceipt,
     ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
     WriteReceipt,
 )
 from l9_graphite_memory.errors import StoreError
@@ -885,6 +887,88 @@ class SQLiteRecordStore:
             .fetchall()
         )
         return frozenset(str(row["action_digest"]) for row in rows)
+
+    def save_projection_retirement(
+        self, receipt: ProjectionRetirementReceipt
+    ) -> None:
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "projection_retirement",
+                        str(receipt.record_id),
+                        receipt.retirement_mode.value,
+                        _dt(receipt.retired_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+        except sqlite3.Error as exc:
+            raise StoreError(f"projection retirement receipt failed: {exc}") from exc
+
+    def list_unprojected_records(
+        self,
+        tenant_id: str,
+        namespace: str,
+        projection_name: str,
+        *,
+        limit: int = 1_000,
+    ) -> list[MemoryRecord]:
+        rows = (
+            self._connection()
+            .execute(
+                """
+                SELECT r.record_json FROM memory_records AS r
+                LEFT JOIN projection_links AS l
+                  ON l.record_id = r.record_id AND l.projection_name = ?
+                WHERE r.tenant_id = ? AND r.namespace = ? AND r.state = ?
+                  AND l.record_id IS NULL
+                ORDER BY r.recorded_at ASC LIMIT ?
+                """,
+                (
+                    projection_name,
+                    tenant_id,
+                    namespace,
+                    MemoryState.ACTIVE.value,
+                    limit,
+                ),
+            )
+            .fetchall()
+        )
+        return [self._row_to_record(row) for row in rows]
+
+    def commit_projection_rebuild(
+        self,
+        receipt: ProjectionRebuildReceipt,
+        *,
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied rebuild receipt")
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "projection_rebuild",
+                        receipt.namespace,
+                        "applied",
+                        _dt(receipt.created_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for event in outbox_events:
+                    self._insert_outbox(tx, event)
+        except sqlite3.Error as exc:
+            raise StoreError(f"projection rebuild failed: {exc}") from exc
 
     def stats(self) -> dict[str, Any]:
         connection = self._connection()

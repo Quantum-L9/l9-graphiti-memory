@@ -34,20 +34,20 @@ updated: 2026-07-22
 
 | Category | Files |
 |---|---:|
-| `architecture_decisions` | 76 |
+| `architecture_decisions` | 78 |
 | `assurance` | 92 |
 | `ci` | 8 |
 | `configuration` | 10 |
 | `documentation` | 124 |
 | `hooks` | 9 |
 | `operations` | 8 |
-| `production_source` | 118 |
+| `production_source` | 119 |
 | `repository_root` | 94 |
 | `skill` | 2 |
-| `tests` | 81 |
+| `tests` | 83 |
 | `validation_evidence` | 31 |
 
-- Hashed inventory files below: **653**
+- Hashed inventory files below: **658**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -69,10 +69,10 @@ updated: 2026-07-22
 | `.l9/generated-data-deployment-wave1-preflight.json` | `repository_root` | `repository_root` | 1881 | `18edd9f12c5d758f0cf737ee9af0c9aa34588a48313021712ddc0035cf83e650` |
 | `.l9/generated-data-repository-binding-preflight.json` | `repository_root` | `repository_root` | 1981 | `a5566fe67ad128fc0e2357f8945d3eaa3a8ff551b7dc14d8bcd1755d50d08dd2` |
 | `.l9/generated-data-write-path-preflight.json` | `repository_root` | `repository_root` | 531 | `e095074722f77a2a568004257102c36a52a340ec13dead36b045c0d938152a71` |
-| `.l9/memory-foundation-microscope.json` | `repository_root` | `repository_root` | 4145 | `f3c8784434166ee55f39117b5920f9c95625d3527c29b3328d5ae023fe3379fc` |
+| `.l9/memory-foundation-microscope.json` | `repository_root` | `repository_root` | 5286 | `650894b1fd68a9f8f6bcc2241d9e9524e7d3db40a20eda1b5f744be064773b1c` |
 | `.l9/memory-foundation-preflight.json` | `repository_root` | `repository_root` | 4383 | `72c51d381c180e72b61672aa59eef4ca3bd7d9461727460ed146c1c907e25ffa` |
 | `.mypy_cache/.gitignore` | `repository_root` | `repository_root` | 251 | `05d5de6cfad8105c667dc81c54a3ea5f231af609db1eac5d6febdd593677b6b8` |
-| `.mypy_cache/3.10/cache.db` | `repository_root` | `repository_root` | 10354688 | `0761156b62e1110f99d6b974e246bd01cf9ab7e1f2b3424139592070cdd72eb6` |
+| `.mypy_cache/3.10/cache.db` | `repository_root` | `repository_root` | 10403840 | `d82e7de3b2ee08d50dd528d7bf80fb3588c775d4d387b6c96b2a11d933103c43` |
 | `.mypy_cache/CACHEDIR.TAG` | `repository_root` | `repository_root` | 190 | `f1c13afc555358c9033b0f1f30aaa177fe88bda40f4b8a24598400d547876adc` |
 | `.pre-commit-config.yaml` | `repository_root` | `repository_root` | 505 | `f7d6670a379d5978d660479a51a80b86b2ad0ae1acde826f1b474d17952051a8` |
 | `.python-version` | `repository_root` | `repository_root` | 5 | `02e735b3dfe1c32833eb550b7ff8ffa17f5f2bc3fa1e7bae61a8f5a3883ce398` |
@@ -86,16 +86,16 @@ updated: 2026-07-22
 | `.ruff_cache/0.16.1/361066809617368378` | `repository_root` | `repository_root` | 548 | `ef74c1c26fb3af55519cec5dccc4dd42c1e2f88f7900506ab1989ccd4415f50a` |
 | `.ruff_cache/0.16.1/4121772862165530183` | `repository_root` | `repository_root` | 220 | `426c05b332a62ea06f070ef69b1502283431f0bc14675d556fe4727f350d0b3d` |
 | `.ruff_cache/0.16.1/4328373330480621607` | `repository_root` | `repository_root` | 1012 | `b7c4e4535e0fe256a09c16606bd4e8be7c5ddd3d8f79eb6ad59ca8d0c27ce962` |
-| `.ruff_cache/0.16.1/4536961000515111188` | `repository_root` | `repository_root` | 3468 | `cbb6ff18c7a9d1b42a1f5f644b80d9c6e49e17658c4995ed52d1d905b78ac422` |
-| `.ruff_cache/0.16.1/5247635586378110818` | `repository_root` | `repository_root` | 980 | `ff613f299c6f0f780ba9828727a5e772b5551f2a2fbf0d2b7fa6b1b7bf379df0` |
-| `.ruff_cache/0.16.1/7960358840359295221` | `repository_root` | `repository_root` | 6596 | `87d3c05587a4342ed24ba25dfb4e0ba2a9e873095b5778ff710bd445b38bb5aa` |
+| `.ruff_cache/0.16.1/4536961000515111188` | `repository_root` | `repository_root` | 3540 | `7b4a2952ab5b5f768af7df200d64305f38f8a0b9571d7b75716061e549911ce8` |
+| `.ruff_cache/0.16.1/5247635586378110818` | `repository_root` | `repository_root` | 1060 | `b69c11c4d334aa6787be944df5e174ec2ba41466a824b4d577dbfee880d8d052` |
+| `.ruff_cache/0.16.1/7960358840359295221` | `repository_root` | `repository_root` | 6660 | `bf30386622fdfb4db2b562e515704ef432a5409d8b75df199b72ac26f37eb771` |
 | `.ruff_cache/0.16.1/8042097741992751317` | `repository_root` | `repository_root` | 284 | `7bc9b53c92c202644bbc61dec971028a34acacb574eda32efffbeef5cedb07dc` |
-| `.ruff_cache/0.16.1/8051939835530468283` | `repository_root` | `repository_root` | 1180 | `dc7b72044063d11d3dfa5cf03cd670fca31a26be39d1de681bdd393129117e18` |
+| `.ruff_cache/0.16.1/8051939835530468283` | `repository_root` | `repository_root` | 1180 | `18c270890ef826e0e76baafe72bcd45b2565c94ece142c8b2a84bee74d150b38` |
 | `.ruff_cache/0.16.1/9843344255070885202` | `repository_root` | `repository_root` | 476 | `04d3d5135c434496403ed7bc1664b0281fdc78fd42c6cf02b192eea9c799634e` |
 | `.ruff_cache/CACHEDIR.TAG` | `repository_root` | `repository_root` | 43 | `5953156d7e0c564a427251316eaf26f8870e6483ae2197f916b630e4f93e31ae` |
 | `AGENTS.md` | `repository_root` | `repository_root` | 1266 | `c346c82e66ad3854449c7d00eac3992c5b9de1c4395fffab0a10c9f609301b71` |
 | `ALIGNMENT.md` | `repository_root` | `repository_root` | 1675 | `5ce57067860473dbc010cc8ab7ab5ea65d5ff66d9cc02f567745c1eb350cf255` |
-| `ARCHITECTURE.md` | `repository_root` | `repository_root` | 9075 | `a9bbcbb2c83178ef185f7a1ca1a47d69308b986e2f0f3d168961cb625ed75749` |
+| `ARCHITECTURE.md` | `repository_root` | `repository_root` | 9499 | `2b2afdc34ee432539f24d8b3279e2b49af7dee446eb8dfabdc9a76ca2b3a5dbb` |
 | `CHANGE_SUMMARY.md` | `repository_root` | `repository_root` | 2213 | `cde3be8fe41714379bb3c92a683533a2bc874b8425a47143695315cf456b6de9` |
 | `CONTRIBUTING.md` | `repository_root` | `repository_root` | 666 | `052f310924cad01f2f4735d476f54b1b75058b15249bc2ad0b4a42d467acaf67` |
 | `CONVERGENCE_REPORT.yaml` | `repository_root` | `repository_root` | 2369 | `1b049f9264b7fa1ffbbf65ee663c10ccad1a3ed15b9bd1d457e1965baf66bc49` |
@@ -105,9 +105,9 @@ updated: 2026-07-22
 | `MANIFEST.in` | `repository_root` | `repository_root` | 624 | `0b09fe70fcf48900117c6dfd3a56a4037d93e3b1c50f2dad9cfa1e5286b54986` |
 | `MIGRATION.md` | `repository_root` | `repository_root` | 3306 | `07f086cc8f907cc98ac550198bfd65f25038e566abc77f755b7d0ea36688fc49` |
 | `QUICKSTART.md` | `repository_root` | `repository_root` | 1907 | `a406510d18ce914d4fa9f848cc6735370245782b889f66ef12fb91f72b03de0c` |
-| `README.md` | `repository_root` | `repository_root` | 6604 | `83a5f5d6347220d3981c2dca9e22e24a5183b3e4bcd1288c4bcedbf2eb52ef30` |
+| `README.md` | `repository_root` | `repository_root` | 6624 | `d7e1224a83278f5c501bd272f2268ddf3a5dff99658bcd30209b1604ed9e0b72` |
 | `ROADMAP.md` | `repository_root` | `repository_root` | 2054 | `f6a75e296999b40744e0a16e5456700a318f5d40aab7d647dd1222d17e7c2ad3` |
-| `RUNBOOK.md` | `repository_root` | `repository_root` | 11923 | `c6d9b8f445dfaf232a9df204b8db1bf3a77916dc3027d5b4fb1facdb6a57b611` |
+| `RUNBOOK.md` | `repository_root` | `repository_root` | 13871 | `e145d183dbc4fb90ac2ea747a8a5335b4483a539f7b65a17d72a14ebec2374e4` |
 | `SECURITY.md` | `repository_root` | `repository_root` | 1718 | `8eb44c129daf83b389343dcf462662b6c6282a63cac6048cf084e10d2b964980` |
 | `VALIDATION.md` | `repository_root` | `repository_root` | 5960 | `7aec6fa09a4f0ce29a5451fef82b9501067fa37be717f555600868fcf55a97d8` |
 | `clients/typescript/.gitignore` | `repository_root` | `repository_root` | 241 | `1d5b064bd1c842c4de03f06db85b14a3592e57fe45030462e6341e69b621f432` |
@@ -335,12 +335,14 @@ updated: 2026-07-22
 | `docs/adr/ADR-073-leased-outbox-claims.md` | `architecture_decisions` | `architecture_decisions` | 5858 | `ea5a898840e6cc0814b4226b91407834b393915198b879df7d2a138f5f98b8ef` |
 | `docs/adr/ADR-074-projection-retirement-lifecycle.md` | `architecture_decisions` | `architecture_decisions` | 6970 | `9ff2a560e2dbac899d57a103d023fed0e6648933e2c3279382483faca066b777` |
 | `docs/adr/ADR-075-scheduled-canonical-memory-maintenance.md` | `architecture_decisions` | `architecture_decisions` | 8384 | `f22feaa908afe4e4a4b342414493d47ee126685464607a519051b1d599eccd04` |
-| `docs/adr/README.md` | `architecture_decisions` | `architecture_decisions` | 9448 | `56804eaac1985d1340b2ee860e06098cdde2ab674bffd7cadeb165276a6b477a` |
+| `docs/adr/ADR-076-projection-retirement-capability-ceiling.md` | `architecture_decisions` | `architecture_decisions` | 7330 | `819987b7102631bc5d285be1dfefd1e501ac94c5c0b3cb072af0fcff07148f23` |
+| `docs/adr/ADR-077-canonical-store-backend-transition-safety.md` | `architecture_decisions` | `architecture_decisions` | 6582 | `4b63f49baaad179bd32d282a1e28e1290563fc353a2270f506cb8bf47a1dcb2e` |
+| `docs/adr/README.md` | `architecture_decisions` | `architecture_decisions` | 9692 | `b003beeff5f40b2afabcb7d7f5605baab003319b25eadd8de325c54dfa9b9ddf` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/generated-data-waves/handoff.md` | `documentation` | `documentation` | 26187 | `9ae5d715cbf4dee0f679cfe679486ce5272595dd7084a66be50b71504e6c6611` |
 | `docs/generated-data-waves/wave 1.md` | `documentation` | `documentation` | 71598 | `9d607fb1b075643a3a737c48d5a0e08c0f96e1203bef1c4ad2d6d317ed2b1988` |
 | `docs/generated-data-waves/wave 2.md` | `documentation` | `documentation` | 61070 | `9f7ba89e15ee469d9092bf2b111a05f512434bd72c4dba6733b7ab3e0d48bde7` |
-| `docs/harvest_coverage.yaml` | `documentation` | `documentation` | 23532 | `3208ed80f21c7fb4147dff4b36b03f1d0e993396e3169c960b4b90bd7f2d9754` |
+| `docs/harvest_coverage.yaml` | `documentation` | `documentation` | 24462 | `f8f176363d0353af788ef0504001d341ec63ff256d8011273b7a39c330afa2fe` |
 | `hooks/graphiti-gate-edits.sh` | `hooks` | `hooks` | 358 | `29c1929141d3a27581a191b61021c197c5a2e30f6c47b3aa7574dccf388ac248` |
 | `hooks/graphiti-gate-shell.sh` | `hooks` | `hooks` | 351 | `a0d160caeca8a0b2be539d9a012b31f2805954bb54741d41ae2f4927637e5385` |
 | `hooks/graphiti-gate-subagent.sh` | `hooks` | `hooks` | 357 | `174d1642741954f70df6c8302aa21e8bd656fc22fd372ca9265feff6e7783ab2` |
@@ -400,12 +402,12 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/active/ports.py` | `production_source` | `production_source` | 5365 | `b256470d1262b8101cd1df9920d9ec905261fe5e90a9345f019f2e410096d7ba` |
 | `src/l9_graphite_memory/active/redis_adapters.py` | `production_source` | `production_source` | 15175 | `85fe7b14347e14c71065d62c13410de0680c0ceb9b1fe2600cfc41ab6fd9c00e` |
 | `src/l9_graphite_memory/adapters/__init__.py` | `production_source` | `adapter` | 755 | `71a1202cb6d01ad6275cd633260ae6b286abc4f5b3728b613c6979081896b4f5` |
-| `src/l9_graphite_memory/adapters/factory.py` | `production_source` | `adapter` | 2679 | `b5c0c3aaef1e9987a0bf537c6f2d03b4e8c09b1a3142ea8000848f8e19bda685` |
-| `src/l9_graphite_memory/adapters/graphiti_projection.py` | `production_source` | `adapter` | 11024 | `4d36c4f1a4a7fff9700026690d3e67f2b6b10222c667f60d2eae132b3bb82556` |
-| `src/l9_graphite_memory/adapters/in_memory_store.py` | `production_source` | `adapter` | 13797 | `e21f1e8c566670c60c9f4857c40c4b19a89a368ad3083f5a982eec27466243f9` |
-| `src/l9_graphite_memory/adapters/null_projection.py` | `production_source` | `adapter` | 2081 | `250fab946bf57261130bec791d54edcf1781d3e9aacc32184e121252b3df0517` |
-| `src/l9_graphite_memory/adapters/postgres_store.py` | `production_source` | `adapter` | 44566 | `5c9cb2b8352ba982a55d910594200cd8cfd775e88f0fc8a8a9f9da8e9b080881` |
-| `src/l9_graphite_memory/adapters/sqlite_store.py` | `production_source` | `adapter` | 41710 | `38a36373873c677507582b1d091b2a0ca4fc13c06509a129d3394d6dc80f3418` |
+| `src/l9_graphite_memory/adapters/factory.py` | `production_source` | `adapter` | 3136 | `7259676d491fbef2c4110581826686fc70a7f4594399928a7814bd265dd3eb6f` |
+| `src/l9_graphite_memory/adapters/graphiti_projection.py` | `production_source` | `adapter` | 11290 | `d5457950b3f85ffe8bff0d129ed5e80e428e4ae604cf581f5f267ed6b91ec197` |
+| `src/l9_graphite_memory/adapters/in_memory_store.py` | `production_source` | `adapter` | 15195 | `329cb51152851ea71b10ee16203de61379b8e35b14e7ae25d7e43dbcb2e4c03f` |
+| `src/l9_graphite_memory/adapters/null_projection.py` | `production_source` | `adapter` | 2237 | `9d07767c4b0c5828059d19a09de682bee924606951296e1dfa376a123bc49846` |
+| `src/l9_graphite_memory/adapters/postgres_store.py` | `production_source` | `adapter` | 47301 | `873cbe133ccc101f47bf428b72e9e5b0c0c3a4a913a84f0e499c5e2779d9814a` |
+| `src/l9_graphite_memory/adapters/sqlite_store.py` | `production_source` | `adapter` | 44778 | `adc7b7146741d5bbe5a8c0dfa98f72aff4e6938854f84a97684e190f203fda25` |
 | `src/l9_graphite_memory/admission/__init__.py` | `production_source` | `production_source` | 559 | `f2971a2efc56e707a4218e67c8b699910a960734ff4816733da9f9ff7ab974ab` |
 | `src/l9_graphite_memory/admission/engine.py` | `production_source` | `production_source` | 5267 | `6179d6043d235d443ae241e24cd4c48cff1e6f86fcd26c9805a41acba60d2e16` |
 | `src/l9_graphite_memory/admission/normalization.py` | `production_source` | `production_source` | 3724 | `4229113ab73238f852539ecceffa5aac470d53db84ba39ff549cdd36139470df` |
@@ -414,15 +416,15 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/authz/authenticator.py` | `production_source` | `production_source` | 3106 | `998cc54e70d02db867652119eae75806f811420e58393b74dee47ac0c360f9da` |
 | `src/l9_graphite_memory/authz/policy.py` | `production_source` | `production_source` | 2836 | `e4a31c3d46c06d20b2c86ba815e6c9c29915427923ab554f8a06a38bb72137f5` |
 | `src/l9_graphite_memory/circuit_breaker.py` | `production_source` | `production_source` | 2784 | `48348de22f97e017768d47ac47930ed19167e290eeb614d79f474c4bdc7d7499` |
-| `src/l9_graphite_memory/cli.py` | `production_source` | `production_source` | 39255 | `68458fe769463fff7d72185ab99ae8b77650624b5c179052450c9e33cd8d88fe` |
+| `src/l9_graphite_memory/cli.py` | `production_source` | `production_source` | 40370 | `8de3d8584895d3a962ede939dde80614f7b31c66783751e78baba00c6bce1421` |
 | `src/l9_graphite_memory/client_config/__init__.py` | `production_source` | `production_source` | 1508 | `8be2bf37736e4d79a2f078f6d94941cc66ac7317b12669d27be736fa357180d4` |
 | `src/l9_graphite_memory/client_config/contracts.py` | `production_source` | `production_source` | 4106 | `bf5326b877a34d17382c2cfa17187a150297b87a15af328f4c97367db6be60b6` |
 | `src/l9_graphite_memory/client_config/cursor.py` | `production_source` | `production_source` | 18792 | `00a6f98b8087870a229eab6b2e9d1f22f7be325237bc11e9f7bf87f6b76e88b2` |
 | `src/l9_graphite_memory/client_config/mcp_probe.py` | `production_source` | `production_source` | 10457 | `5ed6a4e1795e2ee8d111341447cb9227d4ab3fb41e5e87feef11b61447738404` |
 | `src/l9_graphite_memory/config/__init__.py` | `production_source` | `production_source` | 448 | `ca7aaaa346d76faa176d150b1fe24a6c29318c3bece0bb48c7c419ef56fcae7f` |
-| `src/l9_graphite_memory/config/loader.py` | `production_source` | `production_source` | 6377 | `21c35093ed039c0dadbadb7102c9f1fdba8482ff00f12669ca13ce6d7f825ba2` |
-| `src/l9_graphite_memory/config/models.py` | `production_source` | `production_source` | 5045 | `74b8c6c9ae9993208f66a06c5cdde8457239c5aaa72a3dea1736e94046271fe7` |
-| `src/l9_graphite_memory/contracts/__init__.py` | `production_source` | `contract` | 3014 | `4e4d5dfc19f4bb7687db42c7364a1b7971ec1af0af998e7245456446feb0cfd6` |
+| `src/l9_graphite_memory/config/loader.py` | `production_source` | `production_source` | 6497 | `dba4e640d607f38db6d1b49eeb77a13cff680524001f97d9f178df3bcd752dcd` |
+| `src/l9_graphite_memory/config/models.py` | `production_source` | `production_source` | 5327 | `da011ee2e014eaae6ba110c6e74f6715f0eacfb90fa2e7f5caec07048f5d264a` |
+| `src/l9_graphite_memory/contracts/__init__.py` | `production_source` | `contract` | 3195 | `654174e6d31a596f8361aaf71e9308d086e56c5f7b9724c0026b0495c9e9c8ec` |
 | `src/l9_graphite_memory/contracts/enums.py` | `production_source` | `contract` | 2931 | `8a782f884683e35827c2caa0cf858de8c867f97ce04834b981a3bfcb38db9030` |
 | `src/l9_graphite_memory/contracts/evidence.py` | `production_source` | `contract` | 2887 | `d28ad47ee2b3b83743de8cc57caef44e104335447399f962faadfc197753daf6` |
 | `src/l9_graphite_memory/contracts/generated_data.py` | `production_source` | `contract` | 7107 | `af862dba2e9d146aa2ebed765048ad35c36a702dbe48e6e46afde398691f041b` |
@@ -431,7 +433,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/contracts/memory.py` | `production_source` | `contract` | 3213 | `fffc735bc5592d03e81451909ed19520357224baa87ae59a35302549d62b71f3` |
 | `src/l9_graphite_memory/contracts/privacy.py` | `production_source` | `contract` | 1817 | `2cf69d83577bd96d51e3d54adf20ab394d47fd3f1fd8987c837c7023950b2696` |
 | `src/l9_graphite_memory/contracts/profiles.py` | `production_source` | `contract` | 3235 | `ba1550aa91af50829129325fa14af66711f84ee57fdb09085e3859e33de18a54` |
-| `src/l9_graphite_memory/contracts/projection.py` | `production_source` | `contract` | 1275 | `1c86e80efef6e4a98e497cec7a421b1678aa6e69ef153521212d5e5d55d999dc` |
+| `src/l9_graphite_memory/contracts/projection.py` | `production_source` | `contract` | 4404 | `9f57136a9247695a5a180c8c4388d815ab1901b4d4bef59c15da53d689446aab` |
 | `src/l9_graphite_memory/contracts/receipts.py` | `production_source` | `contract` | 9081 | `0705bf8298b3d12a749e1013aee9076eae7049ca082d5b2eebcf14e57f2d86a7` |
 | `src/l9_graphite_memory/contracts/requests.py` | `production_source` | `contract` | 4723 | `00c8cdb6347f99764cd7947eb0eece114844ef7582681ca44dff724ff968cfa2` |
 | `src/l9_graphite_memory/contracts/temporal.py` | `production_source` | `contract` | 1578 | `6af6a8efd0b8132ef8b7b5d66f1565751fe7ad617be84863ebb94535b6b62951` |
@@ -463,15 +465,16 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/maintenance/service.py` | `production_source` | `production_source` | 15692 | `c5906e4e7d83daef23bdd767a6c409b5c9a6cb4b14cea75e60785b787c13a348` |
 | `src/l9_graphite_memory/mcp_tools.py` | `production_source` | `production_source` | 26566 | `be018cebc30ac19407dfa45659bb8ff4836a2c248620a96e4c45397b962c13c8` |
 | `src/l9_graphite_memory/memory_guard.py` | `production_source` | `production_source` | 8162 | `33a50457fa4694e300e2ca98c97e8447d0ac31e849dfeca98ae949f44d41cb60` |
-| `src/l9_graphite_memory/migration/__init__.py` | `production_source` | `production_source` | 598 | `c456925aa51a2961a72f7fbd7fe0828d8bdd04b8a6d47aa586a8472aa0a61a30` |
+| `src/l9_graphite_memory/migration/__init__.py` | `production_source` | `production_source` | 794 | `89f56ba52ee6f769b9b59572561b8aca46e62f9e0871a7150513007d6e6d576e` |
+| `src/l9_graphite_memory/migration/backend_transition.py` | `production_source` | `production_source` | 6291 | `3fafcea8e177830a7f78ac7706cd91166f81f8390567cb20848c4b4664dda69d` |
 | `src/l9_graphite_memory/migration/legacy_write_queue.py` | `production_source` | `production_source` | 7365 | `5b8e4210aec8ad188e2be51770c9f7e487b1c10ddf9fb9d9a61be107ec13a9fc` |
 | `src/l9_graphite_memory/observability/__init__.py` | `production_source` | `production_source` | 373 | `2584326a5b626b9415d794c630aa2df323129384bb6cfe822b9cc3536cd6c6ec` |
 | `src/l9_graphite_memory/observability/logging.py` | `production_source` | `production_source` | 2202 | `00dc62ce8a59e14a3b7adaa2ac8cce778ee1355578c7a2534498bdffdd490615` |
 | `src/l9_graphite_memory/ports/__init__.py` | `production_source` | `port` | 889 | `e1de907e7bce7dfe72aecb8d88b1066f099c4ffc58c34eb2937802249a631225` |
 | `src/l9_graphite_memory/ports/clock.py` | `production_source` | `port` | 542 | `41677121a8599f45abe3b0ce0d02a3893833048e33eb25f6f1ee3be61a651b85` |
 | `src/l9_graphite_memory/ports/constellation.py` | `production_source` | `port` | 1839 | `05ae33baee7318cd153cf0a8f4ab27013b9149d75b63419892e1db5ae5a2d1ea` |
-| `src/l9_graphite_memory/ports/projection.py` | `production_source` | `port` | 2327 | `f1c2b8324b93b8de74e1a15b5bb8c297248866b31d505768ede5d407c48194e4` |
-| `src/l9_graphite_memory/ports/record_store.py` | `production_source` | `port` | 4260 | `3516b5bf5b515be9064264ab3106136822d365a3a5d3d862759fbb70651719bd` |
+| `src/l9_graphite_memory/ports/projection.py` | `production_source` | `port` | 2626 | `cdfa706bb40ab20cc05f58a65adfd4ce1786477095983bdb2da040f5ef1bcd86` |
+| `src/l9_graphite_memory/ports/record_store.py` | `production_source` | `port` | 5066 | `a7fbcc8587ad209908bd4d945a7efe03e10656fa18b5e927e610badfd7da6ea4` |
 | `src/l9_graphite_memory/ports/synthesis.py` | `production_source` | `port` | 931 | `91ab07322c108f0836fe76ddf4bc1adb68a884ade1b1a90511e195202ea756b8` |
 | `src/l9_graphite_memory/projections/__init__.py` | `production_source` | `production_source` | 1071 | `5ccda5a5778d3b022bae47d309045018349e55cd5b58c8ad2b4b0834f86cb4df` |
 | `src/l9_graphite_memory/projections/compiler.py` | `production_source` | `production_source` | 4117 | `771995f9849309a0a7950edcccf06788b5201d346400b99953405ef642f33733` |
@@ -499,8 +502,8 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/server.py` | `production_source` | `production_source` | 11257 | `081f42956c3c8f3a21cf108f00fdd1c90a4dc0a03962c28960bbeaeccbd516ae` |
 | `src/l9_graphite_memory/services/__init__.py` | `production_source` | `service` | 474 | `1c5499701993253acd4a359a336fd654ef53a28ac02953b1ccc4a0033ff42158` |
 | `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 8020 | `93e9a02ef29df55ba6cbd59a12dd364767f1efa4cb0cb67ec7e2eefb5dfee2a9` |
-| `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 34954 | `8a77cc93fe667207fbc9d09a82268f91b1d5eff2d25c5e38c113ec5c670c9379` |
-| `src/l9_graphite_memory/services/outbox_worker.py` | `production_source` | `service` | 10896 | `a450dfa0bf3ee06032605f0f7e80b60bac3a243c794faff6e8d5d3f453f28b58` |
+| `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 37661 | `f00791e25a42aa8b45f24b4524d8ace810b9cd5ea1f3575eabdc9342bc9e3bca` |
+| `src/l9_graphite_memory/services/outbox_worker.py` | `production_source` | `service` | 12199 | `fd7db4c3513f2ebf420fa1ae4520ece9ed81a3cf673cd9ef8502ae761924557d` |
 | `src/l9_graphite_memory/transport.py` | `production_source` | `production_source` | 13884 | `290a4ad833522eb7ddc5c2ccada06f377dcda1364a1eb7c4084ea0dd614252d9` |
 | `src/l9_graphite_memory/version.py` | `production_source` | `production_source` | 710 | `e9daf7706b6b8e63c3f34b60c724905d5ea248912f002747b19fa26bc9f56dcb` |
 | `src/l9_graphite_memory/zep_transport.py` | `production_source` | `production_source` | 9054 | `3edbd2c790d6da7f62f91ed4fdc817dbd18b88b422b7038a28cb40716f820972` |
@@ -540,10 +543,11 @@ updated: 2026-07-22
 | `tests/integration/test_memory_service.py` | `tests` | `tests` | 9023 | `d3837f71971f36de0c730802fae238bcb1e9d455cf5f7109ea53971236806915` |
 | `tests/integration/test_operation_identity.py` | `tests` | `tests` | 4062 | `124e92051bc08b8de29734a92ac2aea88a24f450ff86def2d5f5bdf74861f861` |
 | `tests/integration/test_outbox.py` | `tests` | `tests` | 2603 | `d46d574516bda00ea7488314a1edcf4566c0d7b21b86987b1be71e7ab7579c37` |
-| `tests/integration/test_outbox_leases.py` | `tests` | `tests` | 9300 | `8d1a8cabd47930b9bc939f79d9ca707175b2fffbd958cc3536a548ab7aea7bb9` |
+| `tests/integration/test_outbox_leases.py` | `tests` | `tests` | 9366 | `461fdd5cba24187735f0af98313e5d2094402a21dad2be16b86210d19121de7f` |
 | `tests/integration/test_privacy_deletion.py` | `tests` | `tests` | 5988 | `f843f9f33dfec07ec4caafdadb353dc95a979daabd6c852a9675f2121cc8beec` |
 | `tests/integration/test_procedural_synthesis.py` | `tests` | `tests` | 1878 | `e806d3e67b181dc8f1e1ba538e28c7844466ebdfd9d229aed64670bebd27e458` |
-| `tests/integration/test_projection_lifecycle.py` | `tests` | `tests` | 9185 | `d1a3c8505d1c0b2de266327d0950c2444e75d88ab15d6ace248291b8cba7080c` |
+| `tests/integration/test_projection_lifecycle.py` | `tests` | `tests` | 9251 | `e7363a0dba9fd57ba542c99662550c4598348d13e073170faaabe55be02192c7` |
+| `tests/integration/test_projection_retirement_recovery.py` | `tests` | `tests` | 10468 | `c4adf93117bafd2ff64b661fe8b38c07baa652c144b927c6d9c0445ca5b9dc5e` |
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `tests` | 2824 | `8c7c49b8e02491ec2c62dd2207db9f1436e01fed100148d1fc8178f3be2279bb` |
 | `tests/regression/test_assurance_tools.py` | `tests` | `tests` | 1982 | `79f0cb7dae4814c1a6ed73858b9ab47d05518c0dcb6d975d998902e62f6908ef` |
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `tests` | 4402 | `c7a3a9655f55dde20ccdaa277748c389911440e0f8ff46f4f5279abedc1c2031` |
@@ -560,6 +564,7 @@ updated: 2026-07-22
 | `tests/unit/active/test_redis_acl_renderer.py` | `tests` | `tests` | 1799 | `f66b9b1b3ed25badb639592183bf732b4b9fb27955c75fd03241040727d8b7e3` |
 | `tests/unit/test_atomic_extraction.py` | `tests` | `tests` | 1896 | `36fc3da3c860259f994fe130b15748712ac662983b335974117ca4e7cc0cf58a` |
 | `tests/unit/test_authz.py` | `tests` | `tests` | 1534 | `5f6ec6bf799bf3067e06f2c34575fc5d23344b38d67f1f6abaa183554c3f38cb` |
+| `tests/unit/test_backend_transition_guard.py` | `tests` | `tests` | 6944 | `d7bf8650d4493dee6ddef1b62b629f91f534fab9dbccdd9f62aea9972052455d` |
 | `tests/unit/test_checkpoint_integrity.py` | `tests` | `tests` | 963 | `b34e5b74b79dad9049724517a940f4264dbd2cf92532b7a12f58041ed6e6468b` |
 | `tests/unit/test_cli_parser.py` | `tests` | `tests` | 1151 | `33445cdfa1478de7778d0b297ad1ccec4e3181969cfb686875b87ca68b31ba61` |
 | `tests/unit/test_cli_state.py` | `tests` | `tests` | 1729 | `32c921770c9bb5d5e4aa43f4a0910920779d0317a7e9dbb7869494820822130e` |
@@ -592,14 +597,14 @@ updated: 2026-07-22
 | `tools/assurance/check_config_drift.py` | `assurance` | `assurance` | 3316 | `08cddccd1462182cbbd007782b297cebb2b2e10331be33c71badf0fc6acdce73` |
 | `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 4257 | `1c8b8ebb0ca50057e8c595e05e33311091df7fcbf0d33eb7863760df88ff8fd4` |
 | `tools/assurance/check_layer_boundaries.py` | `assurance` | `assurance` | 3341 | `c504e3864969a96f7474641d31dc9d8e25008c871a940ca157c27f5b43e27f92` |
-| `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 7927 | `1c6e468d91c729463fd501a220410234755c19b3642db70fee9ce9fa20efb28f` |
+| `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 8500 | `a4c2d94b1320e8ccd09fa9cd7ef3ee76dd204fccfad162dbd3248984d2b9c965` |
 | `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12713 | `29de3ef805e9bbddacb279f0fe7c949b5c6bf99520db210fc5c03183101f3885` |
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4494 | `01954963e948dc26b476868ac4a57b844dee3f39c12070902efd9314a0f4d137` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 6055 | `1c7f93a3324c77d46e778f2ea776c05ea96cc612efdeb7835f9bdb67f0482266` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 7324 | `4fdf809c64dd89bc0a1d299438bd8982dcd87734e26bf10eb3386c8ff7b613ef` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 12328 | `b6ebbe70a6606a6eedf1219a1ef07c9ec9fc5941607ee078f32fe8de1872d6a2` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 12328 | `4496433ac674ddc0d971ea92b0761418da34bcce0ba809bf5eff98adccb92e07` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4595 | `a323c31e2f8305dfeb30a8489c45e853e4171e645ca183df48966b196682efcd` |
-| `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2624 | `1afb7c98ad7aeff2092f39a0efd7291cdb96acf153824dda21b7fb4302a73bda` |
+| `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2624 | `2e983a8407014f80c44caace7ee4a81e51ff2bc95827cd7551cbbfe2a4e8e4cf` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4282 | `dfb473fea080bb880ff9de2f5e9101bc616d2a4a8ed4a1f17be927d7aae75100` |
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2418 | `b7a0e2d83cf5a9b4c09d2f83662a719c4c0dd4f91082fc743561f9f191943d56` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2468 | `ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5` |
@@ -678,34 +683,34 @@ updated: 2026-07-22
 | `tools/phase6/tests/test_hardening.py` | `assurance` | `assurance` | 41037 | `19507aa553e0fa6da00a7ea5b96e449537be2daa48cf927d4d105810fb92c115` |
 | `tools/phase6/validation_report.yaml` | `assurance` | `assurance` | 1497 | `93351fb155a5b74c4fb46fe38c276d6a88912583ef5678261fc13af221026f36` |
 | `uv.lock` | `repository_root` | `repository_root` | 325559 | `7410b127217c335d4aa6cabd38ef4c9f1c930b5bb60bae8c6fe0a883049f80c1` |
-| `validation/SHA256SUMS` | `validation_evidence` | `validation_evidence` | 108 | `554189e12ebc3449b213ac466225de07c78aa9b294ae852b01b018f9d149d1f4` |
-| `validation/dist/l9_graphite_memory-2.2.0-py3-none-any.whl` | `validation_evidence` | `validation_evidence` | 219376 | `780bf219b99d83cbeca2a6800229132a87efd7264c9e0d858906ee89ad122a0d` |
-| `validation/logs/adr_validation.txt` | `validation_evidence` | `validation_evidence` | 35 | `bb0dcbf78d336a30074ed1ab9800644c8f576baaf09368d8a01a3cb2ee9feefe` |
+| `validation/SHA256SUMS` | `validation_evidence` | `validation_evidence` | 108 | `da54301ed1c33ae69b0fdef850b724255fba92a31ebb019592704b383217f7d2` |
+| `validation/dist/l9_graphite_memory-2.2.0-py3-none-any.whl` | `validation_evidence` | `validation_evidence` | 225255 | `b5b256747f6cf37acc33e262bfc09e220880d93e3c843521d322726cd9ca3076` |
+| `validation/logs/adr_validation.txt` | `validation_evidence` | `validation_evidence` | 35 | `77171308e92aa2c4250299973c356714bd87f40bf0e031478540992f27a0a433` |
 | `validation/logs/bypass_check.txt` | `validation_evidence` | `validation_evidence` | 78 | `02fed3c856fe825ff8c2c04b68f49c3046d205367eb68cea6285987ef1665159` |
 | `validation/logs/committed_secrets.txt` | `validation_evidence` | `validation_evidence` | 200 | `80e92f5557ab8a050e1aa12d5dd276dbdf727b4f6523246bba108bb41a883bfe` |
 | `validation/logs/compileall.txt` | `validation_evidence` | `validation_evidence` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 | `validation/logs/config_drift.txt` | `validation_evidence` | `validation_evidence` | 122 | `dc0c81f558b8a41eff16a5ad07b4c65615b10c11c149202d1db27ea0d6a5c3e0` |
-| `validation/logs/harvest_coverage.txt` | `validation_evidence` | `validation_evidence` | 101 | `be92d2cb2803ca2f5db87353cbf04dcbadddd22d1f003585f001850385869f6a` |
-| `validation/logs/installed_cursor_client.txt` | `validation_evidence` | `validation_evidence` | 1355 | `842b7dfe9ce1c7a81253ff48e026bbc32b9c3485052f028ad91b6f96e50d4ec8` |
-| `validation/logs/installed_cursor_probe.txt` | `validation_evidence` | `validation_evidence` | 993 | `6d329e4e59c8766ca16f637892361f595ec6c08f40555ad59e43e200a9cdee81` |
-| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 441 | `b2f3e9688e088334502dac884f4305fb973f2ec46ffa21e73c9d51f9baac348c` |
+| `validation/logs/harvest_coverage.txt` | `validation_evidence` | `validation_evidence` | 101 | `72c4cb7e4ce0e24fb5c6613c6a5b8953af02e774223b42594ad0ecb97e2ddd98` |
+| `validation/logs/installed_cursor_client.txt` | `validation_evidence` | `validation_evidence` | 1355 | `c00c0d8f365fd12fedefe1cd05e3a0462beddacbc2edd8f56c05c2d8cf40b4cc` |
+| `validation/logs/installed_cursor_probe.txt` | `validation_evidence` | `validation_evidence` | 993 | `b54c35f3a0da84a286ad8e19e32118afe5d99e19f3ed81d3c0ec8700e88cd5a7` |
+| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 441 | `d9e923c4283282d98010dc45d9c78d9165328cfb980b6ca4c8e70a3e477b38fb` |
 | `validation/logs/installed_mcp.txt` | `validation_evidence` | `validation_evidence` | 74 | `d6ed8b31caf0a6e3b92c37656b04281124ca2744e07b4e675d46f3a364961db5` |
 | `validation/logs/installed_resolve.txt` | `validation_evidence` | `validation_evidence` | 137 | `eae6487763b5416bca0bd4e711b38b74b9231186d8682cf75cea4615fc74efd2` |
 | `validation/logs/l9_meta.txt` | `validation_evidence` | `validation_evidence` | 83 | `e305e6a7e79c48e68745c71dc7b65912068010b67a512ae8498745be7137adf0` |
 | `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `cb9b24685725174c9f8a99ad71c0fb7d83dc50e6759a69da6f09d35e3022e765` |
 | `validation/logs/layer_boundaries.txt` | `validation_evidence` | `validation_evidence` | 80 | `3a9e49589664f3aa63e6e470f64d79e8db7957485afb4027533c1c654e07005b` |
-| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 657 | `da9b589055ff68b84ecec39b40b492ca2c4ae65d62f77b0b34d091dba084373f` |
-| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `9085df0627672e4b09eec113e622196fcaba87e4b069be78e48cbbbb7f9567a8` |
-| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 4019 | `5a8a3083d987123421ee35b9860ebdc621db3394b25a16197cf4904ca29c3756` |
+| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 655 | `feff241ffe0b01cc936b7a6ba58775dbdb5c282fdcf7c630c5bc7cbbca2ce135` |
+| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `08b5d429ed8ff486d6269a8074da243fe4dfd2698f8804ba8ff7e0bde8b8d5be` |
+| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 4017 | `9ca2b319f0b145183fcc0833571594d2b80b7f1dab5b71bed8adc4472e956b30` |
 | `validation/logs/projection_manifests.txt` | `validation_evidence` | `validation_evidence` | 511 | `69fa3ce535fa3fc7d9a6e71446b6b4209dc4f1e8c728d0e7a22096933703a6ab` |
-| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 1110 | `d38668e6b34723da4dd67c7bd623e7a89ca1e25c40f562fd4623806651458476` |
+| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 1110 | `23e4214114fae59c5981421ee408caca65daab0d2f4361ec85c3be043b8b1674` |
 | `validation/logs/recursive_alignment.txt` | `validation_evidence` | `validation_evidence` | 70 | `e5e2d7db7b0c91990f7fdf089e78d343fd212368e0ad3f99c300b5fdd530f993` |
 | `validation/logs/shell_syntax.txt` | `validation_evidence` | `validation_evidence` | 23 | `a0c54f351e5a214abe7090433031f08eb3a95539d861058de5c2d7da6309d2d8` |
-| `validation/logs/source_quality.txt` | `validation_evidence` | `validation_evidence` | 67 | `b7b8934a570a8d5197cbf651ade6d18e3373a9ce01fbebdcc6fe201345e2f41c` |
+| `validation/logs/source_quality.txt` | `validation_evidence` | `validation_evidence` | 67 | `a7da894c8d1b4ee6ffe88a9cc045a7b32dd4151f7257cee46a2c2bb1dcef99ff` |
 | `validation/logs/validation_evidence.txt` | `validation_evidence` | `validation_evidence` | 62 | `b458ca9ab0f3bfc62b1e19838579c88c4f824bb502249e68fa3bc48b61d61b2e` |
-| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 38179 | `87a551552f492102686f60f27374e6f2e79c7ff1b18ce74930fd278ab22ff540` |
-| `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 267 | `79390e385112fb2e4d5fd726bac51e6220b653080d56027b42890a0342c1cdf3` |
-| `validation/logs/wiring_audit.txt` | `validation_evidence` | `validation_evidence` | 35 | `12e15aa66511553f52cf237d710d103cc7ccf63ef0ba2adb7ee0f087b3f1578e` |
-| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 11387 | `32ac5251294e878e2eee98e5f4e97ab91f8a0a994602c53134dbf43f07ce4fd0` |
+| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 38478 | `2e31a1d1ac129df7cdc781f0319fadb6be7ceb16d70ec712b8eb7a30089d1313` |
+| `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 266 | `6feae44368a40653ff15044928b8f1504ae74ec983c70b4d7b4f6edf046623bc` |
+| `validation/logs/wiring_audit.txt` | `validation_evidence` | `validation_evidence` | 35 | `65bccb029ff20bc4f8235de6d7f786e67e2641fcb109b350911745e67245371e` |
+| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 11387 | `490d64d7b8617aded8bd94e1393533cb899dbcc4285443eea8e258e4ca6460bc` |
 | `validation/validation_findings.jsonl` | `validation_evidence` | `validation_evidence` | 2717 | `5f2afa8ba52b03d2451510acc296faaddfc3046e5f787c5d769cc560e7edb700` |
 | `validation/validation_report.yaml` | `validation_evidence` | `validation_evidence` | 474 | `edfe4c42452a880dba112f7c178e22c27e5172bd3f2777eefb063b8ea80cdc96` |

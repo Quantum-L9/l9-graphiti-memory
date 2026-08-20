@@ -29,6 +29,8 @@ from l9_graphite_memory.contracts import (
     OutboxStatus,
     PhaseLockReceipt,
     ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
     WriteReceipt,
 )
 from l9_graphite_memory.errors import StoreError
@@ -48,6 +50,8 @@ class InMemoryRecordStore:
         self.phase_locks: dict[tuple[str, str], PhaseLockReceipt] = {}
         self.projection_links: dict[tuple[UUID, str], ProjectionLink] = {}
         self.maintenance_runs: list[MaintenanceRunReceipt] = []
+        self.projection_retirements: list[ProjectionRetirementReceipt] = []
+        self.projection_rebuilds: list[ProjectionRebuildReceipt] = []
         self.initialized = False
 
     def initialize(self) -> None:
@@ -269,6 +273,42 @@ class InMemoryRecordStore:
             "by_state": by_state,
             "by_class": by_class,
         }
+
+    def save_projection_retirement(
+        self, receipt: ProjectionRetirementReceipt
+    ) -> None:
+        self.projection_retirements.append(receipt)
+
+    def list_unprojected_records(
+        self,
+        tenant_id: str,
+        namespace: str,
+        projection_name: str,
+        *,
+        limit: int = 1_000,
+    ) -> list[MemoryRecord]:
+        candidates = [
+            record
+            for record in self.records.values()
+            if record.tenant_id == tenant_id
+            and record.namespace == namespace
+            and record.state is MemoryState.ACTIVE
+            and (record.record_id, projection_name) not in self.projection_links
+        ]
+        candidates.sort(key=lambda item: item.temporal.recorded_at)
+        return candidates[:limit]
+
+    def commit_projection_rebuild(
+        self,
+        receipt: ProjectionRebuildReceipt,
+        *,
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied rebuild receipt")
+        self.projection_rebuilds.append(receipt)
+        for event in outbox_events:
+            self.outbox[event.event_id] = event
 
     def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
         self.maintenance_runs.append(receipt)

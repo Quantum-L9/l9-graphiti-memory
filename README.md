@@ -100,7 +100,7 @@ Sensitive profile writes require purpose-bound consent evidence. Verified deleti
 health, resolve, write, search, hydrate, get, stats, conflicts,
 phase-lock, verify-phase-lock, lineage, bootstrap, import, distill,
 inject, autoseed-check, prune, promote, delete,
-synthesize-procedures, maintain, outbox-run,
+synthesize-procedures, maintain, rebuild-projection, outbox-run,
 drain-legacy-write-queue
 ```
 

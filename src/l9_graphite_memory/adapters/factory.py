@@ -42,6 +42,18 @@ def build_store(settings: MemorySettings) -> RecordStore:
             f"unsupported store backend: {settings.store_backend}"
         )
     store.initialize()
+
+    # A freshly initialized store reports itself healthy with zero records.
+    # Refuse to start quietly in that state when a prior ledger still holds
+    # this deployment's memory (ADR-077).
+    from l9_graphite_memory.migration.backend_transition import (
+        detect_backend_transition,
+    )
+
+    report = detect_backend_transition(settings, store)
+    if report.blocking:
+        store.close()
+        raise ConfigurationError(report.describe())
     return store
 
 

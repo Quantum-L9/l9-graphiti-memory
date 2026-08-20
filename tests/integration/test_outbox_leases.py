@@ -24,6 +24,7 @@ from l9_graphite_memory.contracts import (
     MemoryWriteRequest,
     OutboxStatus,
     Provenance,
+    RetirementMode,
 )
 from l9_graphite_memory.errors import StoreError
 from l9_graphite_memory.services import MemoryService
@@ -35,6 +36,7 @@ class RecordingProjection:
 
     name = "recording"
     capabilities: tuple[str, ...] = ()
+    retirement_mode = RetirementMode.WITHDRAW
 
     def __init__(self) -> None:
         self.projected: list[uuid.UUID] = []

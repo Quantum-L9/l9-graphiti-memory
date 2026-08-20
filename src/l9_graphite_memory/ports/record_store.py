@@ -28,6 +28,8 @@ from l9_graphite_memory.contracts import (
     OutboxStatus,
     PhaseLockReceipt,
     ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
     WriteReceipt,
 )
 
@@ -119,6 +121,32 @@ class RecordStore(Protocol):
     ) -> ProjectionLink | None: ...
 
     def delete_projection_link(self, record_id: UUID, projection_name: str) -> None: ...
+
+    def save_projection_retirement(
+        self, receipt: ProjectionRetirementReceipt
+    ) -> None:
+        """Record that a projection was withdrawn, and why, in canonical state."""
+        ...
+
+    def list_unprojected_records(
+        self,
+        tenant_id: str,
+        namespace: str,
+        projection_name: str,
+        *,
+        limit: int = 1_000,
+    ) -> list[MemoryRecord]:
+        """Active records with no live projection link for this provider."""
+        ...
+
+    def commit_projection_rebuild(
+        self,
+        receipt: ProjectionRebuildReceipt,
+        *,
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        """Atomically record a rebuild and enqueue its projection events."""
+        ...
 
     def stats(self) -> dict[str, Any]: ...
 

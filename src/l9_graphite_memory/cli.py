@@ -604,6 +604,28 @@ def cmd_prune(args: argparse.Namespace) -> int:
         runtime.close()
 
 
+def cmd_rebuild_projection(args: argparse.Namespace) -> int:
+    """Re-project active records that have no live projection link."""
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        receipt = runtime.service.rebuild_projection(
+            principal,
+            namespace,
+            apply=args.apply,
+            limit=args.limit,
+            reason=args.reason,
+        )
+        _print(receipt)
+        return 0
+    finally:
+        runtime.close()
+
+
 def cmd_maintain(args: argparse.Namespace) -> int:
     """Run scheduled canonical-memory maintenance for one namespace."""
 
@@ -1001,6 +1023,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="apply the plan; without it the run is a dry run",
     )
 
+    rebuild = sub.add_parser("rebuild-projection")
+    rebuild.add_argument("--group-id", default=None)
+    rebuild.add_argument("--limit", type=int, default=1_000)
+    rebuild.add_argument("--reason", default="projection rebuild")
+    rebuild.add_argument(
+        "--apply",
+        action="store_true",
+        help="queue the projection events; without it the run is a dry run",
+    )
+
     sub.add_parser("outbox-run")
     drain_legacy = sub.add_parser("drain-legacy-write-queue")
     drain_legacy.add_argument("--group-id", default=None)
@@ -1065,6 +1097,7 @@ def main(argv: list[str] | None = None) -> int:
         "delete": cmd_delete,
         "synthesize-procedures": cmd_synthesize_procedures,
         "maintain": cmd_maintain,
+        "rebuild-projection": cmd_rebuild_projection,
         "outbox-run": cmd_outbox_run,
         "drain-legacy-write-queue": cmd_drain_legacy_write_queue,
         "client": cmd_client,

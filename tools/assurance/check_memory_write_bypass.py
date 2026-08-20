@@ -46,6 +46,15 @@ _ALLOWED_DEFERRED_INGESTION_READERS = {
     "src/l9_graphite_memory/migration/legacy_write_queue.py",
 }
 _REQUEST_SERIALIZERS = {"model_dump", "model_dump_json"}
+# Opening a SQLite file directly is a write bypass everywhere except when
+# inspecting a store this process is NOT configured to use. The backend
+# transition guard reads a prior ledger read-only to decide whether startup
+# should fail closed (ADR-077). It is exempt from the connect rule only; the
+# mutation-marker rule below still applies to it in full, so it cannot acquire
+# a write path without failing this check.
+_ALLOWED_SQLITE_READERS = {
+    "src/l9_graphite_memory/migration/backend_transition.py",
+}
 _MUTATION_MARKERS = (
     "insert into memory_records",
     "update memory_records",
@@ -175,6 +184,7 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
                 and isinstance(node.func.value, ast.Name)
                 and node.func.value.id == "sqlite3"
                 and relative not in _ALLOWED_SQL_FILES
+                and relative not in _ALLOWED_SQLITE_READERS
             ):
                 violations.append(
                     Violation(
