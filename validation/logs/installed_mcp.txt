@@ -1,1 +1,1 @@
-22 tools loaded; entrypoints, constellation bridge, and resources present
+26 tools loaded; entrypoints, constellation bridge, and resources present

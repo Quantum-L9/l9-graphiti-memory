@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: deployment/generated-data/verify_backup_restore.py
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 from __future__ import annotations
 
 import argparse

@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: install_generated_data_deployment_wave1.sh
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
 set -euo pipefail
 
 ROOT="${1:-.}"

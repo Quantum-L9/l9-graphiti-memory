@@ -16,9 +16,9 @@ PASS  MCP inventory
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-13T10:28:28.637750Z",
+  "created_at": "2026-08-20T20:46:34.295466Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.iiTdplTk30/cursor/mcp.json",
+  "path": "/tmp/tmp.uisDhUQfok/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,7 +26,7 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "67cdb8f4-0ac0-4b44-afa9-ff5d521ddd4e",
+  "receipt_id": "49d37e23-2ec3-48bf-b1e7-0ffd51218874",
   "status": "dry_run",
   "warnings": []
 }
@@ -39,14 +39,14 @@ PASS  cursor client dry-run
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-13T10:28:29.906335Z",
+  "created_at": "2026-08-20T20:46:35.624007Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "62f1f37b-c2b3-45ac-a55b-fc33b17032bc",
+  "receipt_id": "5c14d8df-f84e-4d71-8539-818cf2c428b1",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
@@ -75,7 +75,7 @@ PASS  cursor client dry-run
     }
   ],
   "timed_out": false,
-  "tool_count": 22
+  "tool_count": 26
 }
 PASS  cursor instantiation probe
 PASS  shell syntax graphiti-gate-edits.sh
@@ -97,7 +97,7 @@ PASS: core, adapter, service, and integration dependency directions are aligned
 PASS  layer boundary alignment
 PASS: recursive L9 alignment contract satisfied across all ten passes
 PASS  recursive L9 alignment
-PASS: 568 manifested files exist with matching size and SHA-256
+PASS: 617 manifested files exist with matching size and SHA-256
 PASS  release manifest
 PASS: no canonical memory write bypasses detected
 PASS  write bypass assurance
@@ -123,25 +123,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.7254,
-      "p50_ms": 0.4591,
-      "p95_ms": 0.7254,
+      "max_ms": 0.5079,
+      "p50_ms": 0.4301,
+      "p95_ms": 0.5079,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.4881,
-      "p50_ms": 0.3323,
-      "p95_ms": 0.4832,
+      "max_ms": 0.5621,
+      "p50_ms": 0.3071,
+      "p95_ms": 0.4163,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.5719,
-      "p50_ms": 0.0959,
-      "p95_ms": 0.1903,
+      "max_ms": 0.5517,
+      "p50_ms": 0.0961,
+      "p95_ms": 0.1698,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0
