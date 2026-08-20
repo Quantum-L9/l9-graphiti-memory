@@ -62,11 +62,19 @@ def make_postgres_store(schema: str | None = None):
     base_dsn = postgres_test_dsn()
     schema = schema or f"l9_test_{uuid.uuid4().hex}"
 
+    import psycopg2.sql
+
     bootstrap = PostgresRecordStore(base_dsn)
     try:
         connection = bootstrap._connection()
         with connection.cursor() as cursor:
-            cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+            # Composed as an identifier rather than formatted into the
+            # statement, so the schema name can never be read as SQL.
+            cursor.execute(
+                psycopg2.sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(
+                    psycopg2.sql.Identifier(schema)
+                )
+            )
         connection.commit()
     finally:
         bootstrap.close()

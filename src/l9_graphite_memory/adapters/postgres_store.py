@@ -55,6 +55,28 @@ else:  # pragma: no cover - runtime alias
 _SCHEMA_VERSION = 7
 
 
+# Fixed query text. Retrieval varies only by selecting one of these constants,
+# so no value is ever formatted into a statement.
+_SEARCH_RECORDS_PREDICATES = (
+    "SELECT record_json FROM memory_records "
+    "WHERE tenant_id = %s AND namespace IN %s AND state IN %s "
+    "AND confidence_score >= %s AND valid_from <= %s "
+    "AND (valid_to IS NULL OR valid_to > %s) AND recorded_at <= %s"
+)
+_SEARCH_RECORDS_ORDER = " ORDER BY recorded_at DESC LIMIT %s"
+_SEARCH_RECORDS_SQL = _SEARCH_RECORDS_PREDICATES + _SEARCH_RECORDS_ORDER
+_SEARCH_RECORDS_BY_CLASS_SQL = (
+    _SEARCH_RECORDS_PREDICATES + " AND memory_class IN %s" + _SEARCH_RECORDS_ORDER
+)
+_LIST_RECORDS_PREDICATES = (
+    "SELECT record_json FROM memory_records WHERE tenant_id = %s AND namespace = %s"
+)
+_LIST_RECORDS_SQL = _LIST_RECORDS_PREDICATES + _SEARCH_RECORDS_ORDER
+_LIST_RECORDS_BY_STATE_SQL = (
+    _LIST_RECORDS_PREDICATES + " AND state IN %s" + _SEARCH_RECORDS_ORDER
+)
+
+
 def _json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), default=str)
 
@@ -568,34 +590,26 @@ class PostgresRecordStore:
             states.append(MemoryState.SUPERSEDED.value)
         if request.include_archived:
             states.append(MemoryState.ARCHIVED.value)
-        params: list[Any] = [tenant_id, tuple(namespaces), tuple(states)]
-        where = [
-            "tenant_id = %s",
-            "namespace IN %s",
-            "state IN %s",
-            "confidence_score >= %s",
-            "valid_from <= %s",
-            "(valid_to IS NULL OR valid_to > %s)",
-            "recorded_at <= %s",
+        params: list[Any] = [
+            tenant_id,
+            tuple(namespaces),
+            tuple(states),
+            request.min_confidence,
+            request.valid_at,
+            request.valid_at,
+            request.recorded_before or request.valid_at,
         ]
-        params.extend(
-            [
-                request.min_confidence,
-                request.valid_at,
-                request.valid_at,
-                request.recorded_before or request.valid_at,
-            ]
-        )
+        # Every statement below is a literal. Nothing is interpolated into SQL:
+        # values travel as bound parameters, and the only variation is which
+        # constant string is selected.
         if request.memory_classes:
-            where.append("memory_class IN %s")
             params.append(tuple(item.value for item in request.memory_classes))
+            statement = _SEARCH_RECORDS_BY_CLASS_SQL
+        else:
+            statement = _SEARCH_RECORDS_SQL
         params.append(request.limit * 20)
-        sql = (
-            "SELECT record_json FROM memory_records "
-            f"WHERE {' AND '.join(where)} ORDER BY recorded_at DESC LIMIT %s"
-        )
         with self._cursor() as cursor:
-            cursor.execute(sql, params)
+            cursor.execute(statement, params)
             rows = cursor.fetchall()
         return [self._row_to_record(row) for row in rows]
 
@@ -608,17 +622,14 @@ class PostgresRecordStore:
         limit: int = 1_000,
     ) -> list[MemoryRecord]:
         params: list[Any] = [tenant_id, namespace]
-        sql = (
-            "SELECT record_json FROM memory_records "
-            "WHERE tenant_id = %s AND namespace = %s"
-        )
         if states:
-            sql += " AND state IN %s"
             params.append(tuple(item.value for item in states))
-        sql += " ORDER BY recorded_at DESC LIMIT %s"
+            statement = _LIST_RECORDS_BY_STATE_SQL
+        else:
+            statement = _LIST_RECORDS_SQL
         params.append(limit)
         with self._cursor() as cursor:
-            cursor.execute(sql, params)
+            cursor.execute(statement, params)
             rows = cursor.fetchall()
         return [self._row_to_record(row) for row in rows]
 

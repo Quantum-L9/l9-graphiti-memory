@@ -1,19 +1,19 @@
 {
   "command_argv": [
-    "/tmp/v31b/l9-graphiti-memory/.venv/bin/python3",
+    "/tmp/v31c/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-20T21:07:23.013742Z",
+  "created_at": "2026-08-20T21:13:40.831525Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "cf2ed2e8-c92a-4982-ba38-8427857dbc14",
+  "receipt_id": "d137006b-059e-4d55-912e-1e58cf2dc694",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
