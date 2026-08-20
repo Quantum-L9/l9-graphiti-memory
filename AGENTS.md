@@ -24,7 +24,7 @@ No file is immune from correction. These invariants are protected:
 3. Canonical persistence is atomic and evidence-bearing.
 4. Valid time and transaction time remain distinct.
 5. Graph and semantic systems are projections.
-6. No direct store/provider write bypass.
+6. No direct store/provider write bypass. Canonical store mutations require the MemoryService-issued write capability at run time and are gated by the release-blocking bypass scanner; the capability is a process-local defense-in-depth control, not an OS privilege boundary (ADR-036).
 7. No secret persistence in generated config.
 8. No release claim without executable validation.
 9. Client instantiation flows through `client_config`; no ad hoc MCP config edits.

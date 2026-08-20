@@ -28,6 +28,10 @@ Direct SQL, provider calls, and subprocess writes repeatedly bypassed validation
 
 A release-blocking assurance scanner detects direct commit, SQL mutation, and provider write patterns outside approved storage and service modules. Exceptions require an explicit reviewed manifest entry with rationale and expiry.
 
+In addition to the static scanner, every canonical-mutation method on a `RecordStore` (`commit_write`, `commit_deletion`, `commit_archive`, `save_phase_lock`) requires a `ServiceWriteCapability` issued by the `MemoryService` control plane. Store adapters reject any canonical mutation that does not present the single process-wide capability, so the storage side effect is technically dependent on a service-issued capability rather than merely governed by repository-source review. The scanner additionally forbids referencing or forwarding that capability outside the control plane.
+
+Trust boundary (stated explicitly to avoid overclaiming): within a single trusted operating-system process, arbitrary Python can reach any in-memory object through introspection. The capability, the scanner, and the layering rules are therefore a defense-in-depth control that raises the bar against accidental and casual bypass and makes the canonical-write dependency inspectable — not an operating-system privilege boundary. A deployment that must resist hostile in-process code has to place canonical persistence behind a real process or database privilege boundary; this repository's guarantee is that first-party production source cannot bypass the service, enforced at build time by the scanner and at run time by the capability.
+
 ## Alternatives Considered
 
 - Rely on reviewer memory
@@ -41,6 +45,8 @@ The alternatives above are rejected because they duplicate authority, hide failu
 ## Invariants
 
 - Public adapters never call RecordStore.commit_write
+- Canonical store mutations require a MemoryService-issued write capability at run time
+- The service write capability is never referenced or forwarded outside the control plane
 - Migrations are isolated from runtime code
 - Exceptions are visible and temporary
 
@@ -62,6 +68,7 @@ Migration is compatibility-first: preserve externally valid command and protocol
 
 - Run check_memory_write_bypass.py
 - Negative fixture test
+- Direct-store canonical mutation without the capability is rejected at run time
 - Review approved_bypasses.yaml
 
 ## Rollback Conditions

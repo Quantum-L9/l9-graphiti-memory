@@ -54,6 +54,7 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_LOCAL_PROMOTE_NAMESPACES": "local_promote_namespaces",
     "L9_MEMORY_LOCAL_MAINTAIN_NAMESPACES": "local_maintain_namespaces",
     "L9_MEMORY_LOCAL_IS_ADMIN": "local_is_admin",
+    "L9_MEMORY_LOCAL_IS_GLOBAL_ADMIN": "local_is_global_admin",
     "L9_MEMORY_OUTBOX_BATCH_SIZE": "outbox_batch_size",
     "L9_MEMORY_OUTBOX_MAX_ATTEMPTS": "outbox_max_attempts",
     "L9_MEMORY_OUTBOX_BASE_DELAY_SECONDS": "outbox_base_delay_seconds",
@@ -72,6 +73,7 @@ _BOOL_FIELDS = {
     "http_auth_required",
     "json_logs",
     "local_is_admin",
+    "local_is_global_admin",
 }
 _LIST_FIELDS = {
     "local_read_namespaces",

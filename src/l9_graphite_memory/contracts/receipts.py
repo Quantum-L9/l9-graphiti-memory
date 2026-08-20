@@ -213,6 +213,7 @@ class PhaseLockReceipt(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     lock_id: UUID = Field(default_factory=uuid4)
+    tenant_id: str
     namespace: str
     task_signature: str
     granted: bool

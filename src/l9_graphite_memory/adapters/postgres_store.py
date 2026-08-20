@@ -38,6 +38,10 @@ from l9_graphite_memory.contracts import (
     WriteReceipt,
 )
 from l9_graphite_memory.errors import ConfigurationError, StoreError
+from l9_graphite_memory.ports.service_capability import (
+    ServiceWriteCapability,
+    require_service_write_capability,
+)
 from l9_graphite_memory.schema import schema_registry
 
 # Register built-in migrations.
@@ -48,7 +52,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 else:  # pragma: no cover - runtime alias
     _Connection = Any
 
-_SCHEMA_VERSION = 6
+_SCHEMA_VERSION = 7
 
 
 def _json(value: Any) -> str:
@@ -271,13 +275,14 @@ class PostgresRecordStore:
             """
             CREATE TABLE IF NOT EXISTS phase_locks (
                 lock_id TEXT PRIMARY KEY,
+                tenant_id TEXT NOT NULL,
                 namespace TEXT NOT NULL,
                 task_signature TEXT NOT NULL,
                 granted BOOLEAN NOT NULL,
                 expires_at TIMESTAMPTZ NOT NULL,
                 created_at TIMESTAMPTZ NOT NULL,
                 receipt_json TEXT NOT NULL,
-                UNIQUE(namespace, task_signature)
+                UNIQUE(tenant_id, namespace, task_signature)
             )
             """,
         ]
@@ -492,12 +497,14 @@ class PostgresRecordStore:
 
     def commit_write(
         self,
+        capability: ServiceWriteCapability,
         record: MemoryRecord | None,
         receipt: WriteReceipt,
         *,
         outbox_events: tuple[OutboxEvent, ...] = (),
         status_events: tuple[MemoryStatusEvent, ...] = (),
     ) -> None:
+        require_service_write_capability(capability)
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
@@ -641,13 +648,16 @@ class PostgresRecordStore:
 
     # -- phase locks ----------------------------------------------------------
 
-    def save_phase_lock(self, receipt: PhaseLockReceipt) -> None:
+    def save_phase_lock(
+        self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
+    ) -> None:
+        require_service_write_capability(capability)
         with self._transaction() as tx:
             tx.execute(
                 """
-                INSERT INTO phase_locks(lock_id, namespace, task_signature, granted, expires_at, created_at, receipt_json)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT(namespace, task_signature) DO UPDATE SET
+                INSERT INTO phase_locks(lock_id, tenant_id, namespace, task_signature, granted, expires_at, created_at, receipt_json)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT(tenant_id, namespace, task_signature) DO UPDATE SET
                     lock_id = excluded.lock_id,
                     granted = excluded.granted,
                     expires_at = excluded.expires_at,
@@ -656,6 +666,7 @@ class PostgresRecordStore:
                 """,
                 (
                     str(receipt.lock_id),
+                    receipt.tenant_id,
                     receipt.namespace,
                     receipt.task_signature,
                     receipt.granted,
@@ -666,12 +677,13 @@ class PostgresRecordStore:
             )
 
     def get_phase_lock(
-        self, namespace: str, task_signature: str
+        self, tenant_id: str, namespace: str, task_signature: str
     ) -> PhaseLockReceipt | None:
         with self._cursor() as cursor:
             cursor.execute(
-                "SELECT receipt_json FROM phase_locks WHERE namespace = %s AND task_signature = %s",
-                (namespace, task_signature),
+                "SELECT receipt_json FROM phase_locks "
+                "WHERE tenant_id = %s AND namespace = %s AND task_signature = %s",
+                (tenant_id, namespace, task_signature),
             )
             row = cursor.fetchone()
         return (
@@ -912,10 +924,12 @@ class PostgresRecordStore:
 
     def commit_projection_rebuild(
         self,
+        capability: ServiceWriteCapability,
         receipt: ProjectionRebuildReceipt,
         *,
         outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None:
+        require_service_write_capability(capability)
         if not receipt.applied:
             raise StoreError("cannot persist a non-applied rebuild receipt")
         psycopg2 = _driver()
@@ -1043,11 +1057,13 @@ class PostgresRecordStore:
 
     def commit_archive(
         self,
+        capability: ServiceWriteCapability,
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
         outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None:
+        require_service_write_capability(capability)
         if not receipt.applied:
             raise StoreError("cannot persist a non-applied archive receipt")
         event_ids = {event.record_id for event in status_events}
@@ -1080,11 +1096,13 @@ class PostgresRecordStore:
 
     def commit_deletion(
         self,
+        capability: ServiceWriteCapability,
         receipt: DeletionReceipt,
         redacted_record: MemoryRecord,
         *,
         outbox_event: OutboxEvent | None,
     ) -> None:
+        require_service_write_capability(capability)
         if redacted_record.record_id != receipt.record_id:
             raise StoreError("deletion receipt and redacted record target differ")
         psycopg2 = _driver()

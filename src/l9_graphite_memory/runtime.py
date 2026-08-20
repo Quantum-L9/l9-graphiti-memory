@@ -100,7 +100,12 @@ def local_principal_for_resolution(
             promote_namespaces=write_namespaces,
             maintain_namespaces=write_namespaces,
         )
-    return principal.model_copy(update={"is_admin": settings.local_is_admin})
+    return principal.model_copy(
+        update={
+            "is_admin": settings.local_is_admin,
+            "is_global_admin": settings.local_is_global_admin,
+        }
+    )
 
 
 def resolve_local_context(

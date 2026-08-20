@@ -55,6 +55,34 @@ _REQUEST_SERIALIZERS = {"model_dump", "model_dump_json"}
 _ALLOWED_SQLITE_READERS = {
     "src/l9_graphite_memory/migration/backend_transition.py",
 }
+# Canonical-mutation store methods that must only be invoked by the service
+# control plane. They each require the service-issued write capability at
+# runtime; this static rule catches bypass attempts in repository source before
+# release.
+_GUARDED_STORE_METHODS = {
+    "commit_write",
+    "commit_deletion",
+    "commit_archive",
+    "save_phase_lock",
+    # Enqueues projection events inside a receipt transaction, so it is a
+    # canonical mutation and carries the same capability (ADR-076).
+    "commit_projection_rebuild",
+}
+# Only these modules may reference the service write capability. Anything else
+# forwarding it would be minting proof-of-service for a bypass.
+_ALLOWED_CAPABILITY_FILES = {
+    "src/l9_graphite_memory/services/memory_service.py",
+    "src/l9_graphite_memory/ports/service_capability.py",
+    "src/l9_graphite_memory/ports/record_store.py",
+    "src/l9_graphite_memory/ports/__init__.py",
+    "src/l9_graphite_memory/adapters/sqlite_store.py",
+    "src/l9_graphite_memory/adapters/in_memory_store.py",
+    "src/l9_graphite_memory/adapters/postgres_store.py",
+}
+_CAPABILITY_NAMES = {
+    "SERVICE_WRITE_CAPABILITY",
+    "require_service_write_capability",
+}
 _MUTATION_MARKERS = (
     "insert into memory_records",
     "update memory_records",
@@ -154,6 +182,32 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
                         lines[node.lineno - 1].strip()[:300],
                     )
                 )
+        if (
+            isinstance(node, ast.Name)
+            and node.id in _CAPABILITY_NAMES
+            and relative not in _ALLOWED_CAPABILITY_FILES
+        ):
+            violations.append(
+                Violation(
+                    relative,
+                    node.lineno,
+                    "service-write-capability-leak",
+                    lines[node.lineno - 1].strip()[:300],
+                )
+            )
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr in _CAPABILITY_NAMES
+            and relative not in _ALLOWED_CAPABILITY_FILES
+        ):
+            violations.append(
+                Violation(
+                    relative,
+                    node.lineno,
+                    "service-write-capability-leak",
+                    lines[node.lineno - 1].strip()[:300],
+                )
+            )
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
             if (
                 node.func.attr == "transition_state"
@@ -168,7 +222,7 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
                     )
                 )
             if (
-                node.func.attr == "commit_write"
+                node.func.attr in _GUARDED_STORE_METHODS
                 and relative not in _ALLOWED_COMMIT_CALLERS
             ):
                 violations.append(

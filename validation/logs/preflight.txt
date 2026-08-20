@@ -10,15 +10,15 @@ PASS  MCP inventory
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/home/user/l9-graphiti-memory/.venv/bin/python3",
+    "/tmp/v31b/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-20T20:31:05.740117Z",
+  "created_at": "2026-08-20T21:07:09.214924Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.T1lordKoGB/cursor/mcp.json",
+  "path": "/tmp/tmp.6MuOVTo1YP/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,27 +26,27 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "2ca3a218-a597-4cb1-a449-810376a07c9f",
+  "receipt_id": "42b680e1-e707-4b6e-be0f-3d28cc9152c9",
   "status": "dry_run",
   "warnings": []
 }
 PASS  cursor client dry-run
 {
   "command_argv": [
-    "/home/user/l9-graphiti-memory/.venv/bin/python3",
+    "/tmp/v31b/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-20T20:31:07.178216Z",
+  "created_at": "2026-08-20T21:07:10.553008Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "5b38aca7-a896-486c-ba2d-4fb8a0767242",
+  "receipt_id": "5515dece-ecbf-427b-b832-f00e768e3e5f",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
@@ -97,7 +97,7 @@ PASS: core, adapter, service, and integration dependency directions are aligned
 PASS  layer boundary alignment
 PASS: recursive L9 alignment contract satisfied across all ten passes
 PASS  recursive L9 alignment
-PASS: 643 manifested files exist with matching size and SHA-256
+PASS: 645 manifested files exist with matching size and SHA-256
 PASS  release manifest
 PASS: no canonical memory write bypasses or deferred-ingestion paths detected
 PASS  write bypass assurance
@@ -123,25 +123,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.5874,
-      "p50_ms": 0.4418,
-      "p95_ms": 0.5874,
+      "max_ms": 0.5141,
+      "p50_ms": 0.4457,
+      "p95_ms": 0.5141,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.5354,
-      "p50_ms": 0.3491,
-      "p95_ms": 0.427,
+      "max_ms": 0.5725,
+      "p50_ms": 0.3112,
+      "p95_ms": 0.4157,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.6782,
-      "p50_ms": 0.1155,
-      "p95_ms": 0.496,
+      "max_ms": 0.6448,
+      "p50_ms": 0.1202,
+      "p95_ms": 0.3777,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

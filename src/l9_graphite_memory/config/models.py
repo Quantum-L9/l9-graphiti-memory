@@ -35,6 +35,7 @@ class TokenPrincipalConfig(BaseModel):
     promote_namespaces: tuple[str, ...] = ()
     maintain_namespaces: tuple[str, ...] = ()
     is_admin: bool = False
+    is_global_admin: bool = False
 
 
 class MemorySettings(BaseModel):
@@ -86,6 +87,7 @@ class MemorySettings(BaseModel):
     local_promote_namespaces: tuple[str, ...] = ()
     local_maintain_namespaces: tuple[str, ...] = ()
     local_is_admin: bool = False
+    local_is_global_admin: bool = False
 
     outbox_batch_size: int = Field(default=50, ge=1, le=1_000)
     outbox_max_attempts: int = Field(default=8, ge=1, le=100)

@@ -1,5 +1,5 @@
 {
-  "file_count": 659,
+  "file_count": 661,
   "files": [
     {
       "category": "ci",
@@ -270,8 +270,8 @@
         "version": "2.2.0"
       },
       "path": ".mypy_cache/3.10/cache.db",
-      "sha256": "d82e7de3b2ee08d50dd528d7bf80fb3588c775d4d387b6c96b2a11d933103c43",
-      "size_bytes": 10403840
+      "sha256": "3dac8b953757db3ca23952de548c5a01674a73205b690b580d6f1e97e022f77d",
+      "size_bytes": 10432512
     },
     {
       "category": "repository_root",
@@ -366,7 +366,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/12621990275945616696",
-      "sha256": "d345bf6f039ff03f139412e325768fd23fb34829391163033d1ea06ea0c089f6",
+      "sha256": "83dad7a9e9e3b86f3972149d3d8f81d704c4c35b5322406b649d17034e4acfd6",
       "size_bytes": 764
     },
     {
@@ -430,7 +430,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/2019567467784949876",
-      "sha256": "8caa324a5d5504ab0cd3d4b886410d125b92c7f057d35d33551f527afe6a5cf3",
+      "sha256": "af946fdea1d3cee9ac49f02eedc2cc89c4dd30b8258fc1a50560a9bc5b0c9512",
       "size_bytes": 188
     },
     {
@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/361066809617368378",
-      "sha256": "ef74c1c26fb3af55519cec5dccc4dd42c1e2f88f7900506ab1989ccd4415f50a",
+      "sha256": "f2d6fea4031cdb0aaa03cc64b9b878f7a69358a529a5f884b22117bc6c234b28",
       "size_bytes": 548
     },
     {
@@ -494,7 +494,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/4536961000515111188",
-      "sha256": "7b4a2952ab5b5f768af7df200d64305f38f8a0b9571d7b75716061e549911ce8",
+      "sha256": "5dccb4d14c227fca723f3011c3176d28d8f62aaaf686044b2756b1d460d320a2",
       "size_bytes": 3540
     },
     {
@@ -510,8 +510,8 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/5247635586378110818",
-      "sha256": "b69c11c4d334aa6787be944df5e174ec2ba41466a824b4d577dbfee880d8d052",
-      "size_bytes": 1060
+      "sha256": "e5ac40fd83fe4417f958994cf901b5372efcb1bd545b301cb6b8a949ebe7f118",
+      "size_bytes": 1180
     },
     {
       "category": "repository_root",
@@ -526,8 +526,8 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/7960358840359295221",
-      "sha256": "bf30386622fdfb4db2b562e515704ef432a5409d8b75df199b72ac26f37eb771",
-      "size_bytes": 6660
+      "sha256": "f3f1b0f570a96c457879739f263cba1aceab71588bee247d92c47d6c49f6923e",
+      "size_bytes": 6820
     },
     {
       "category": "repository_root",
@@ -558,7 +558,7 @@
         "version": "2.2.0"
       },
       "path": ".ruff_cache/0.16.1/8051939835530468283",
-      "sha256": "18c270890ef826e0e76baafe72bcd45b2565c94ece142c8b2a84bee74d150b38",
+      "sha256": "e8611db82b90a0f94c165b6e132364fc07176b6ef46c995c08aee738191e9a1c",
       "size_bytes": 1180
     },
     {
@@ -606,8 +606,8 @@
         "version": "2.2.0"
       },
       "path": "AGENTS.md",
-      "sha256": "c346c82e66ad3854449c7d00eac3992c5b9de1c4395fffab0a10c9f609301b71",
-      "size_bytes": 1266
+      "sha256": "ceec3c4da6e460c523532cb791bc63be136c9e1065a236871e36c14443bc036b",
+      "size_bytes": 1508
     },
     {
       "category": "repository_root",
@@ -766,8 +766,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "a7426e266b2bddc5e41b3a79c730f1eb2aa3ef138038e8dec73618bfa23aec45",
-      "size_bytes": 111201
+      "sha256": "6f44e2fd32351383be37a703d204c20af5c307f323eddad1113b8ad585cf9056",
+      "size_bytes": 111522
     },
     {
       "category": "repository_root",
@@ -3374,8 +3374,8 @@
         "version": "2.2.0"
       },
       "path": "docs/adr/ADR-006-namespace-authorization.md",
-      "sha256": "26877e8cfebffdcc1dd9462852c1d405c6458c6977d378713e20c77b6083d000",
-      "size_bytes": 2784
+      "sha256": "c4ed63e3be99e46b952cd914088ecf65b5bec2b6766ff34bbbf70c920797a58d",
+      "size_bytes": 3509
     },
     {
       "category": "architecture_decisions",
@@ -3662,8 +3662,8 @@
         "version": "2.2.0"
       },
       "path": "docs/adr/ADR-024-memory-privacy-consent-and-deletion.md",
-      "sha256": "dd31fb8a37a419235f9be2c6dbc54edefe336e4084c038ae3436da73a11987d4",
-      "size_bytes": 2582
+      "sha256": "af73f0573264d1aa92a1f1eab8cb37c96faf84ecc1156c265ecfa6563678aeaa",
+      "size_bytes": 2826
     },
     {
       "category": "architecture_decisions",
@@ -3854,8 +3854,8 @@
         "version": "2.2.0"
       },
       "path": "docs/adr/ADR-036-canonical-write-bypass-enforcement.md",
-      "sha256": "e122fbad59ce1b455501cbb9e4c5c94c0f84d74f0d9cb3fed2cf9952f08270a6",
-      "size_bytes": 2448
+      "sha256": "bbf1ac66ab434e2aab48306e2f101559aedb08c9d3aace683b821ec073e2df20",
+      "size_bytes": 4033
     },
     {
       "category": "architecture_decisions",
@@ -4078,8 +4078,8 @@
         "version": "2.2.0"
       },
       "path": "docs/adr/ADR-050-phase-lock-snapshot-verification.md",
-      "sha256": "c47b32383693358228b01bf7970a966d5600090fbdd07719a89738e932d21409",
-      "size_bytes": 2197
+      "sha256": "aaad466a9a2aa65c660b20f52e5f6b0bf6d7c303372a291a3a0f322c60b46b08",
+      "size_bytes": 2862
     },
     {
       "category": "architecture_decisions",
@@ -5550,8 +5550,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/adapters/__init__.py",
-      "sha256": "71a1202cb6d01ad6275cd633260ae6b286abc4f5b3728b613c6979081896b4f5",
-      "size_bytes": 755
+      "sha256": "22ec67937903b0f25066082926a2d156ce4528b81e81c21b23c1e04786449321",
+      "size_bytes": 1753
     },
     {
       "category": "production_source",
@@ -5598,8 +5598,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/adapters/in_memory_store.py",
-      "sha256": "329cb51152851ea71b10ee16203de61379b8e35b14e7ae25d7e43dbcb2e4c03f",
-      "size_bytes": 15195
+      "sha256": "ee2ef44056cdacb8cf75e936c63adf50b13eb35e7652918fe5ca32e512e0c39e",
+      "size_bytes": 15885
     },
     {
       "category": "production_source",
@@ -5630,8 +5630,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/adapters/postgres_store.py",
-      "sha256": "873cbe133ccc101f47bf428b72e9e5b0c0c3a4a913a84f0e499c5e2779d9814a",
-      "size_bytes": 47301
+      "sha256": "7cdba05bbeb9fe692d44ea52a0eb7c1f07df5fcbeb7d55106f8c88b6316ddfd5",
+      "size_bytes": 48100
     },
     {
       "category": "production_source",
@@ -5646,8 +5646,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/adapters/sqlite_store.py",
-      "sha256": "adc7b7146741d5bbe5a8c0dfa98f72aff4e6938854f84a97684e190f203fda25",
-      "size_bytes": 44778
+      "sha256": "b065fe1b085653d56ca67bd81134e411579e0df24d113ef2a0787ba9fde5b9d3",
+      "size_bytes": 46319
     },
     {
       "category": "production_source",
@@ -5742,8 +5742,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/authz/authenticator.py",
-      "sha256": "998cc54e70d02db867652119eae75806f811420e58393b74dee47ac0c360f9da",
-      "size_bytes": 3106
+      "sha256": "9881d9d230957ef080f42a5e71d7ed95376ad7847b75391d47a291d448de6192",
+      "size_bytes": 3154
     },
     {
       "category": "production_source",
@@ -5886,8 +5886,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/config/loader.py",
-      "sha256": "dba4e640d607f38db6d1b49eeb77a13cff680524001f97d9f178df3bcd752dcd",
-      "size_bytes": 6497
+      "sha256": "ff6fe98b1c11067e7ace14ac268e8ad5c5aef1cf11475447c7dc9d1394bde3f4",
+      "size_bytes": 6590
     },
     {
       "category": "production_source",
@@ -5902,8 +5902,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/config/models.py",
-      "sha256": "da011ee2e014eaae6ba110c6e74f6715f0eacfb90fa2e7f5caec07048f5d264a",
-      "size_bytes": 5327
+      "sha256": "5103048513c14068b106fa3013eca83de87df923101736ea53ab6b311809e683",
+      "size_bytes": 5401
     },
     {
       "category": "production_source",
@@ -5982,8 +5982,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/contracts/identity.py",
-      "sha256": "46e037addba1c0c8edf35fb5453ed1c8dc54f0031d63fa0ead7e1a0cd4f5a163",
-      "size_bytes": 1394
+      "sha256": "66375f00719a3402f1e8f391dadeb8b68b6ffbe89b310ddc805a9b228a9e5c80",
+      "size_bytes": 1977
     },
     {
       "category": "production_source",
@@ -6078,8 +6078,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/contracts/receipts.py",
-      "sha256": "0705bf8298b3d12a749e1013aee9076eae7049ca082d5b2eebcf14e57f2d86a7",
-      "size_bytes": 9081
+      "sha256": "878526afa297790858413d5383a4fe9eadebc7918231cf589d88652c2fa2841f",
+      "size_bytes": 9100
     },
     {
       "category": "production_source",
@@ -6654,8 +6654,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/ports/__init__.py",
-      "sha256": "e1de907e7bce7dfe72aecb8d88b1066f099c4ffc58c34eb2937802249a631225",
-      "size_bytes": 889
+      "sha256": "b57f0c4d71df7fa95730c44f515b4541924b7aff4e117eddca9b747d12f4ec03",
+      "size_bytes": 1123
     },
     {
       "category": "production_source",
@@ -6718,8 +6718,24 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/ports/record_store.py",
-      "sha256": "a7fbcc8587ad209908bd4d945a7efe03e10656fa18b5e927e610badfd7da6ea4",
-      "size_bytes": 5066
+      "sha256": "ebe877c5f014c88dc1f70bbbe027831e19101b4fece2fe193e2c1c0f278ffba0",
+      "size_bytes": 5488
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "port",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/ports/service_capability.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "src/l9_graphite_memory/ports/service_capability.py",
+      "sha256": "046db165cfe0d912dae4e81797d65723bf1a501ec61ea70c0c9b5a28ca617f0b",
+      "size_bytes": 3253
     },
     {
       "category": "production_source",
@@ -6878,8 +6894,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/resources/defaults.yaml",
-      "sha256": "0d1e8d2d520504a197af9885d7d7d08797ef3f4bf1b11f24b1fee417c9bd3ff0",
-      "size_bytes": 568
+      "sha256": "4e75c62804218532448852e8e8b5fdd6eadcca62fad0e06c22a9bc81ba1c84a4",
+      "size_bytes": 597
     },
     {
       "category": "production_source",
@@ -7022,8 +7038,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/runtime.py",
-      "sha256": "edb4f35955abf26905941e8ec1a32b8374ea47f06cabeb84d1d659b12a6fd854",
-      "size_bytes": 3934
+      "sha256": "186f28d1feb6f19d9336aca818d82db26665945b92c3efe026da2a28126ab7e4",
+      "size_bytes": 4034
     },
     {
       "category": "production_source",
@@ -7166,8 +7182,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/services/memory_service.py",
-      "sha256": "f00791e25a42aa8b45f24b4524d8ace810b9cd5ea1f3575eabdc9342bc9e3bca",
-      "size_bytes": 37661
+      "sha256": "8817c4964bd48db20edcfea6b3a4b74db208b53a6444c75ecbe076a6a7a7920b",
+      "size_bytes": 38070
     },
     {
       "category": "production_source",
@@ -7911,6 +7927,22 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/integration/test_runtime_enforcement_audit.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/integration/test_runtime_enforcement_audit.py",
+      "sha256": "b0a65c72d326732cefc547123ad362f9eff4523c58b773647734700ef1399a33",
+      "size_bytes": 8948
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/regression/test_assurance_tools.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -8206,8 +8238,8 @@
         "version": "2.2.0"
       },
       "path": "tests/unit/test_cli_state.py",
-      "sha256": "32c921770c9bb5d5e4aa43f4a0910920779d0317a7e9dbb7869494820822130e",
-      "size_bytes": 1729
+      "sha256": "c58c7a526583f27814c964ceba61e8c9357c2c150d0edc8cad695771f1296c99",
+      "size_bytes": 1759
     },
     {
       "category": "tests",
@@ -8686,8 +8718,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/check_memory_write_bypass.py",
-      "sha256": "a4c2d94b1320e8ccd09fa9cd7ef3ee76dd204fccfad162dbd3248984d2b9c965",
-      "size_bytes": 8500
+      "sha256": "9cdd8e7a6f1f08002ccb3aff215dda48005bb1a9f5850351443db1e91113fd7a",
+      "size_bytes": 10564
     },
     {
       "category": "assurance",
@@ -8766,8 +8798,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "4496433ac674ddc0d971ea92b0761418da34bcce0ba809bf5eff98adccb92e07",
-      "size_bytes": 12328
+      "sha256": "e5bb4e66c41aed3fd87d7279f4c4597eeecf5f98c603882bcf7cd90eb70f07a4",
+      "size_bytes": 12708
     },
     {
       "category": "assurance",
@@ -10062,7 +10094,7 @@
         "version": "2.2.0"
       },
       "path": "validation/SHA256SUMS",
-      "sha256": "da54301ed1c33ae69b0fdef850b724255fba92a31ebb019592704b383217f7d2",
+      "sha256": "1b593804cc31d8ea8cbc81b39bba811ff3081ec8bafed61dbed89274b975adfb",
       "size_bytes": 108
     },
     {
@@ -10078,8 +10110,8 @@
         "version": "2.2.0"
       },
       "path": "validation/dist/l9_graphite_memory-2.2.0-py3-none-any.whl",
-      "sha256": "b5b256747f6cf37acc33e262bfc09e220880d93e3c843521d322726cd9ca3076",
-      "size_bytes": 225255
+      "sha256": "9b14f386928832ab4478f10243a9656ff34a92b3dd597869de1a7a729719ae1e",
+      "size_bytes": 228371
     },
     {
       "category": "validation_evidence",
@@ -10190,8 +10222,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "c00c0d8f365fd12fedefe1cd05e3a0462beddacbc2edd8f56c05c2d8cf40b4cc",
-      "size_bytes": 1355
+      "sha256": "6bd8ecaffe66a7374d96336d767c1738062d1bd8b17291d78bc26263a3404a32",
+      "size_bytes": 1353
     },
     {
       "category": "validation_evidence",
@@ -10206,8 +10238,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "b54c35f3a0da84a286ad8e19e32118afe5d99e19f3ed81d3c0ec8700e88cd5a7",
-      "size_bytes": 993
+      "sha256": "99d832c10aac0dcf15f368d6ace89af38222f64c6cdc23cb1a6e88ff2dd8e983",
+      "size_bytes": 992
     },
     {
       "category": "validation_evidence",
@@ -10222,7 +10254,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "d9e923c4283282d98010dc45d9c78d9165328cfb980b6ca4c8e70a3e477b38fb",
+      "sha256": "50d6d98df0ef31acfd4136794c603b08cb83eb04773c96e06aa09d23db53bb98",
       "size_bytes": 441
     },
     {
@@ -10318,8 +10350,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "feff241ffe0b01cc936b7a6ba58775dbdb5c282fdcf7c630c5bc7cbbca2ce135",
-      "size_bytes": 655
+      "sha256": "778266b30b5cf5ee8e3cc67523f799641dafd2883429de2ed5766dcb905eff47",
+      "size_bytes": 659
     },
     {
       "category": "validation_evidence",
@@ -10334,7 +10366,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/manifest_validation.txt",
-      "sha256": "08b5d429ed8ff486d6269a8074da243fe4dfd2698f8804ba8ff7e0bde8b8d5be",
+      "sha256": "50d4cd2bf599557d50bbb7a9f2c93ea592b5d879caee643cd9628d27b8ed51e4",
       "size_bytes": 64
     },
     {
@@ -10350,7 +10382,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "9ca2b319f0b145183fcc0833571594d2b80b7f1dab5b71bed8adc4472e956b30",
+      "sha256": "b03ad7d5eaf9eebb03b254bab334a3584fd89a6762297832e2887200ded7cdcc",
       "size_bytes": 4017
     },
     {
@@ -10382,8 +10414,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "23e4214114fae59c5981421ee408caca65daab0d2f4361ec85c3be043b8b1674",
-      "size_bytes": 1110
+      "sha256": "f2924283dfe773784a2eef4e4321a9dbe0c296fc5a7ae3decabf844f89157855",
+      "size_bytes": 1351
     },
     {
       "category": "validation_evidence",
@@ -10430,7 +10462,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/source_quality.txt",
-      "sha256": "a7da894c8d1b4ee6ffe88a9cc045a7b32dd4151f7257cee46a2c2bb1dcef99ff",
+      "sha256": "e4c5826a283a2e54748ae86a94af046953aea60e2c7b2c4b824d02833de34fb1",
       "size_bytes": 67
     },
     {
@@ -10462,8 +10494,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "2e31a1d1ac129df7cdc781f0319fadb6be7ceb16d70ec712b8eb7a30089d1313",
-      "size_bytes": 38478
+      "sha256": "7ca68661e096420af00db26778b171f6fc4bc63d4738ef079b3a194e968c9484",
+      "size_bytes": 38756
     },
     {
       "category": "validation_evidence",
@@ -10478,8 +10510,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/wheel_install.txt",
-      "sha256": "6feae44368a40653ff15044928b8f1504ae74ec983c70b4d7b4f6edf046623bc",
-      "size_bytes": 266
+      "sha256": "fbe0c0d2f5d7e3ee836cb9546314a03a172b007b81e52e1c34566a3a274229cd",
+      "size_bytes": 265
     },
     {
       "category": "validation_evidence",
@@ -10494,7 +10526,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/wiring_audit.txt",
-      "sha256": "65bccb029ff20bc4f8235de6d7f786e67e2641fcb109b350911745e67245371e",
+      "sha256": "c2661703e7a31a6bf338977d413b1a1c8de3ebdaa31cedb1f93c0963441cacea",
       "size_bytes": 35
     },
     {
@@ -10510,7 +10542,7 @@
         "version": "2.2.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "490d64d7b8617aded8bd94e1393533cb899dbcc4285443eea8e258e4ca6460bc",
+      "sha256": "8025bcc46c2175751de6bf6c6411f9343748645de74fd9af7060162faa5c279d",
       "size_bytes": 11387
     },
     {

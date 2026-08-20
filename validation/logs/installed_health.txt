@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-08-20T20:31:16.544661Z",
+  "checked_at": "2026-08-20T21:07:19.663910Z",
   "degraded_reasons": [],
   "outbox_backlog": 0,
   "package_version": "2.2.0",
@@ -13,8 +13,8 @@
   "store": {
     "healthy": true,
     "name": "sqlite",
-    "path": "/tmp/tmp.uMEFgg4zga/installed-smoke/data/memory.sqlite3",
+    "path": "/tmp/tmp.58ER51baBN/installed-smoke/data/memory.sqlite3",
     "records": 0,
-    "schema_version": 6
+    "schema_version": 7
   }
 }
