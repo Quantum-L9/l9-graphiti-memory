@@ -55,6 +55,7 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_OUTBOX_BATCH_SIZE": "outbox_batch_size",
     "L9_MEMORY_OUTBOX_MAX_ATTEMPTS": "outbox_max_attempts",
     "L9_MEMORY_OUTBOX_BASE_DELAY_SECONDS": "outbox_base_delay_seconds",
+    "L9_MEMORY_OUTBOX_LEASE_SECONDS": "outbox_lease_seconds",
     "L9_MEMORY_DEFAULT_SEARCH_LIMIT": "default_search_limit",
     "L9_MEMORY_DEFAULT_TOKEN_BUDGET": "default_token_budget",
     "L9_MEMORY_LOG_LEVEL": "log_level",
@@ -82,6 +83,7 @@ _INT_FIELDS = {
     "outbox_batch_size",
     "outbox_max_attempts",
     "outbox_base_delay_seconds",
+    "outbox_lease_seconds",
     "default_search_limit",
     "default_token_budget",
 }

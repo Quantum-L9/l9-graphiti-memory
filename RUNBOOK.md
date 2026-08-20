@@ -211,6 +211,8 @@ Never restore secrets into the repository.
 | phase lock denied | conflicts exist or retrieval is indeterminate | reconcile and request a new lock |
 | projection event retrying | provider unavailable or locator/tool missing | repair provider and rerun worker |
 | outbox dead event | retries exhausted | inspect event and replay deliberately after remediation |
+| outbox event stuck PROCESSING | worker died mid-delivery | none; the lease expires after `L9_MEMORY_OUTBOX_LEASE_SECONDS` and the next claim cycle recovers it |
+| worker reports `lease_lost` | delivery outran the lease and another worker recovered the event | raise `L9_MEMORY_OUTBOX_LEASE_SECONDS` above the slowest projection call |
 | write raised StoreError | canonical store unavailable | restore the store, then retry with the same idempotency key |
 | legacy queue item retained | pre-v2.3 queued write could not be admitted | inspect the preserved file and the reported error |
 | prefetch hook error | hydration failed | leave gates off during diagnosis or restore service |

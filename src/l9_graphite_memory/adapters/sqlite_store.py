@@ -17,10 +17,10 @@ import sqlite3
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
@@ -42,7 +42,7 @@ from l9_graphite_memory.schema import schema_registry
 # Register built-in migrations.
 from l9_graphite_memory.schema import upcasters as _upcasters  # noqa: F401
 
-_SCHEMA_VERSION = 4
+_SCHEMA_VERSION = 5
 
 
 def _json(value: Any) -> str:
@@ -172,10 +172,14 @@ class SQLiteRecordStore:
                 last_error TEXT,
                 created_at TEXT NOT NULL,
                 delivered_at TEXT,
+                lease_id TEXT,
+                lease_owner TEXT,
+                lease_expires_at TEXT,
                 event_json TEXT NOT NULL
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_outbox_due ON outbox_events(status, next_attempt_at)",
+            "CREATE INDEX IF NOT EXISTS idx_outbox_lease ON outbox_events(status, lease_expires_at)",
             """
             CREATE TABLE IF NOT EXISTS projection_links (
                 record_id TEXT NOT NULL,
@@ -213,6 +217,13 @@ class SQLiteRecordStore:
                 tx.execute(
                     "ALTER TABLE memory_records ADD COLUMN references_json TEXT NOT NULL DEFAULT '[]'"
                 )
+            outbox_columns = {
+                str(row[1])
+                for row in tx.execute("PRAGMA table_info(outbox_events)").fetchall()
+            }
+            for column in ("lease_id", "lease_owner", "lease_expires_at"):
+                if column not in outbox_columns:
+                    tx.execute(f"ALTER TABLE outbox_events ADD COLUMN {column} TEXT")
             tx.execute(
                 "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)",
                 (_SCHEMA_VERSION, datetime.now(timezone.utc).isoformat()),
@@ -414,8 +425,9 @@ class SQLiteRecordStore:
             """
             INSERT INTO outbox_events(
                 event_id, event_type, aggregate_id, namespace, status, attempts,
-                next_attempt_at, last_error, created_at, delivered_at, event_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                next_attempt_at, last_error, created_at, delivered_at,
+                lease_id, lease_owner, lease_expires_at, event_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(event.event_id),
@@ -428,6 +440,9 @@ class SQLiteRecordStore:
                 event.last_error,
                 _dt(event.created_at),
                 _dt(event.delivered_at),
+                str(event.lease_id) if event.lease_id else None,
+                event.lease_owner,
+                _dt(event.lease_expires_at),
                 _json(event.model_dump(mode="json")),
             ),
         )
@@ -594,28 +609,59 @@ class SQLiteRecordStore:
             else None
         )
 
-    def claim_outbox(self, *, limit: int, now: datetime) -> list[OutboxEvent]:
+    def claim_outbox(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+        lease_seconds: int = 300,
+        lease_owner: str = "outbox-worker",
+    ) -> list[OutboxEvent]:
+        expires_at = now + timedelta(seconds=lease_seconds)
         with self._transaction() as tx:
             rows = tx.execute(
                 """
                 SELECT event_id, event_json FROM outbox_events
-                WHERE status IN (?, ?) AND next_attempt_at <= ?
+                WHERE (status IN (?, ?) AND next_attempt_at <= ?)
+                   OR (status = ? AND (lease_expires_at IS NULL OR lease_expires_at <= ?))
                 ORDER BY created_at ASC LIMIT ?
                 """,
-                (OutboxStatus.PENDING.value, OutboxStatus.RETRY.value, _dt(now), limit),
+                (
+                    OutboxStatus.PENDING.value,
+                    OutboxStatus.RETRY.value,
+                    _dt(now),
+                    OutboxStatus.PROCESSING.value,
+                    _dt(now),
+                    limit,
+                ),
             ).fetchall()
-            event_ids = [str(row["event_id"]) for row in rows]
-            for event_id in event_ids:
-                tx.execute(
-                    "UPDATE outbox_events SET status = ? WHERE event_id = ?",
-                    (OutboxStatus.PROCESSING.value, event_id),
-                )
             events: list[OutboxEvent] = []
             for row in rows:
                 event = OutboxEvent.model_validate_json(str(row["event_json"]))
-                events.append(
-                    event.model_copy(update={"status": OutboxStatus.PROCESSING})
+                leased = event.model_copy(
+                    update={
+                        "status": OutboxStatus.PROCESSING,
+                        "lease_id": uuid4(),
+                        "lease_owner": lease_owner,
+                        "lease_expires_at": expires_at,
+                    }
                 )
+                tx.execute(
+                    """
+                    UPDATE outbox_events
+                    SET status = ?, lease_id = ?, lease_owner = ?, lease_expires_at = ?, event_json = ?
+                    WHERE event_id = ?
+                    """,
+                    (
+                        OutboxStatus.PROCESSING.value,
+                        str(leased.lease_id),
+                        lease_owner,
+                        _dt(expires_at),
+                        _json(leased.model_dump(mode="json")),
+                        str(row["event_id"]),
+                    ),
+                )
+                events.append(leased)
             return events
 
     def update_outbox(
@@ -627,6 +673,7 @@ class SQLiteRecordStore:
         next_attempt_at: datetime,
         last_error: str | None,
         delivered_at: datetime | None = None,
+        lease_id: UUID | None = None,
     ) -> None:
         with self._transaction() as tx:
             row = tx.execute(
@@ -636,6 +683,11 @@ class SQLiteRecordStore:
             if row is None:
                 raise StoreError(f"outbox event not found: {event_id}")
             event = OutboxEvent.model_validate_json(str(row["event_json"]))
+            if lease_id is not None and event.lease_id != lease_id:
+                raise StoreError(
+                    f"outbox lease is no longer held for {event_id}; "
+                    "another worker owns this event"
+                )
             updated = event.model_copy(
                 update={
                     "status": status,
@@ -643,12 +695,16 @@ class SQLiteRecordStore:
                     "next_attempt_at": next_attempt_at,
                     "last_error": last_error,
                     "delivered_at": delivered_at,
+                    "lease_id": None,
+                    "lease_owner": None,
+                    "lease_expires_at": None,
                 }
             )
             tx.execute(
                 """
                 UPDATE outbox_events
-                SET status = ?, attempts = ?, next_attempt_at = ?, last_error = ?, delivered_at = ?, event_json = ?
+                SET status = ?, attempts = ?, next_attempt_at = ?, last_error = ?, delivered_at = ?,
+                    lease_id = NULL, lease_owner = NULL, lease_expires_at = NULL, event_json = ?
                 WHERE event_id = ?
                 """,
                 (

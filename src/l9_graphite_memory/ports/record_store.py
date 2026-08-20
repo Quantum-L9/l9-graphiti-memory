@@ -82,7 +82,16 @@ class RecordStore(Protocol):
         self, namespace: str, task_signature: str
     ) -> PhaseLockReceipt | None: ...
 
-    def claim_outbox(self, *, limit: int, now: datetime) -> list[OutboxEvent]: ...
+    def claim_outbox(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+        lease_seconds: int = 300,
+        lease_owner: str = "outbox-worker",
+    ) -> list[OutboxEvent]:
+        """Lease due events, including any whose prior lease has expired."""
+        ...
 
     def update_outbox(
         self,
@@ -93,7 +102,10 @@ class RecordStore(Protocol):
         next_attempt_at: datetime,
         last_error: str | None,
         delivered_at: datetime | None = None,
-    ) -> None: ...
+        lease_id: UUID | None = None,
+    ) -> None:
+        """Settle a leased event. A non-matching ``lease_id`` must be rejected."""
+        ...
 
     def outbox_backlog(self) -> int: ...
 

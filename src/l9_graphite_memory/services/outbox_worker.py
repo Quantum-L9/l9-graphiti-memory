@@ -13,12 +13,15 @@
 from __future__ import annotations
 
 import argparse
+import os
+import socket
 import sys
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from l9_graphite_memory.config import MemorySettings, load_settings
-from l9_graphite_memory.contracts import OutboxStatus, ProjectionLink
+from l9_graphite_memory.contracts import OutboxEvent, OutboxStatus, ProjectionLink
+from l9_graphite_memory.errors import StoreError
 from l9_graphite_memory.observability import configure_logging, get_logger
 from l9_graphite_memory.ports import Clock, ProjectionAdapter, RecordStore, SystemClock
 
@@ -33,18 +36,73 @@ class OutboxWorker:
         settings: MemorySettings,
         *,
         clock: Clock | None = None,
+        worker_id: str | None = None,
     ) -> None:
         self.store = store
         self.projection = projection
         self.settings = settings
         self.clock = clock or SystemClock()
+        # Identifies this worker in outbox leases so an operator can see which
+        # worker holds a claim and which one abandoned it.
+        self.worker_id = worker_id or f"{socket.gethostname()}:{os.getpid()}"
+
+    def _settle(
+        self,
+        event: OutboxEvent,
+        *,
+        status: OutboxStatus,
+        attempts: int,
+        next_attempt_at: datetime,
+        last_error: str | None,
+        delivered_at: datetime | None = None,
+    ) -> bool:
+        """Record the outcome of a leased event.
+
+        Returns False when this worker no longer holds the lease, which means
+        another worker recovered the event and owns its outcome. Writing the
+        outcome anyway would overwrite that worker's result, so the caller
+        drops it instead.
+        """
+
+        try:
+            self.store.update_outbox(
+                event.event_id,
+                status=status,
+                attempts=attempts,
+                next_attempt_at=next_attempt_at,
+                last_error=last_error,
+                delivered_at=delivered_at,
+                lease_id=event.lease_id,
+            )
+        except StoreError as exc:
+            log.warning(
+                "outbox_lease_lost",
+                extra={
+                    "event_id": str(event.event_id),
+                    "worker_id": self.worker_id,
+                    "error": str(exc),
+                },
+            )
+            return False
+        return True
 
     def run_once(self) -> dict[str, int]:
         if self.projection.name == "none":
-            return {"claimed": 0, "delivered": 0, "retried": 0, "dead": 0}
+            return {
+                "claimed": 0,
+                "delivered": 0,
+                "retried": 0,
+                "dead": 0,
+                "lease_lost": 0,
+            }
         now = self.clock.now()
-        events = self.store.claim_outbox(limit=self.settings.outbox_batch_size, now=now)
-        delivered = retried = dead = 0
+        events = self.store.claim_outbox(
+            limit=self.settings.outbox_batch_size,
+            now=now,
+            lease_seconds=self.settings.outbox_lease_seconds,
+            lease_owner=self.worker_id,
+        )
+        delivered = retried = dead = lost = 0
         for event in events:
             attempts = event.attempts + 1
             try:
@@ -108,15 +166,18 @@ class OutboxWorker:
                     raise RuntimeError(
                         f"unsupported outbox event type: {event.event_type}"
                     )
-                self.store.update_outbox(
-                    event.event_id,
+                settled = self._settle(
+                    event,
                     status=OutboxStatus.DELIVERED,
                     attempts=attempts,
                     next_attempt_at=now,
                     last_error=None,
                     delivered_at=now,
                 )
-                delivered += 1
+                if settled:
+                    delivered += 1
+                else:
+                    lost += 1
             except Exception as exc:  # noqa: BLE001
                 if attempts >= self.settings.outbox_max_attempts:
                     status = OutboxStatus.DEAD
@@ -129,13 +190,19 @@ class OutboxWorker:
                         2 ** min(attempts - 1, 10)
                     )
                     next_attempt = now + timedelta(seconds=delay)
-                self.store.update_outbox(
-                    event.event_id,
+                if not self._settle(
+                    event,
                     status=status,
                     attempts=attempts,
                     next_attempt_at=next_attempt,
                     last_error=str(exc),
-                )
+                ):
+                    if status is OutboxStatus.DEAD:
+                        dead -= 1
+                    else:
+                        retried -= 1
+                    lost += 1
+                    continue
                 log.warning(
                     "outbox_delivery_failed",
                     extra={
@@ -150,6 +217,7 @@ class OutboxWorker:
             "delivered": delivered,
             "retried": retried,
             "dead": dead,
+            "lease_lost": lost,
         }
 
 

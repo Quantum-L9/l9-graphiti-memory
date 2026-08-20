@@ -272,6 +272,12 @@ class OutboxEvent(BaseModel):
     last_error: str | None = None
     created_at: datetime = Field(default_factory=utc_now)
     delivered_at: datetime | None = None
+    # A PROCESSING claim is a time-bounded lease, not ownership in perpetuity.
+    # A worker that dies mid-delivery leaves lease_expires_at in the past, and
+    # the next claim cycle recovers the event (ADR-073).
+    lease_id: UUID | None = None
+    lease_owner: str | None = Field(default=None, max_length=200)
+    lease_expires_at: datetime | None = None
 
 
 class HealthReport(BaseModel):

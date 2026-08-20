@@ -16,9 +16,9 @@ import json
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
@@ -45,7 +45,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 else:  # pragma: no cover - runtime alias
     _Connection = Any
 
-_SCHEMA_VERSION = 4
+_SCHEMA_VERSION = 5
 
 
 def _json(value: Any) -> str:
@@ -216,10 +216,17 @@ class PostgresRecordStore:
                 last_error TEXT,
                 created_at TIMESTAMPTZ NOT NULL,
                 delivered_at TIMESTAMPTZ,
+                lease_id TEXT,
+                lease_owner TEXT,
+                lease_expires_at TIMESTAMPTZ,
                 event_json TEXT NOT NULL
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_outbox_due ON outbox_events(status, next_attempt_at)",
+            "CREATE INDEX IF NOT EXISTS idx_outbox_lease ON outbox_events(status, lease_expires_at)",
+            "ALTER TABLE outbox_events ADD COLUMN IF NOT EXISTS lease_id TEXT",
+            "ALTER TABLE outbox_events ADD COLUMN IF NOT EXISTS lease_owner TEXT",
+            "ALTER TABLE outbox_events ADD COLUMN IF NOT EXISTS lease_expires_at TIMESTAMPTZ",
             """
             CREATE TABLE IF NOT EXISTS projection_links (
                 record_id TEXT NOT NULL REFERENCES memory_records(record_id),
@@ -430,8 +437,9 @@ class PostgresRecordStore:
             """
             INSERT INTO outbox_events(
                 event_id, event_type, aggregate_id, namespace, status, attempts,
-                next_attempt_at, last_error, created_at, delivered_at, event_json
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                next_attempt_at, last_error, created_at, delivered_at,
+                lease_id, lease_owner, lease_expires_at, event_json
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 str(event.event_id),
@@ -444,6 +452,9 @@ class PostgresRecordStore:
                 event.last_error,
                 event.created_at,
                 event.delivered_at,
+                str(event.lease_id) if event.lease_id else None,
+                event.lease_owner,
+                event.lease_expires_at,
                 _json(event.model_dump(mode="json")),
             ),
         )
@@ -642,28 +653,65 @@ class PostgresRecordStore:
 
     # -- outbox ---------------------------------------------------------------
 
-    def claim_outbox(self, *, limit: int, now: datetime) -> list[OutboxEvent]:
+    def claim_outbox(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+        lease_seconds: int = 300,
+        lease_owner: str = "outbox-worker",
+    ) -> list[OutboxEvent]:
+        expires_at = now + timedelta(seconds=lease_seconds)
         with self._transaction() as tx:
+            # SKIP LOCKED makes two concurrent claim cycles disjoint: a row
+            # another transaction is already claiming is passed over rather
+            # than waited on, so no event can be owned twice.
             tx.execute(
                 """
                 SELECT event_id, event_json FROM outbox_events
-                WHERE status IN (%s, %s) AND next_attempt_at <= %s
+                WHERE (status IN (%s, %s) AND next_attempt_at <= %s)
+                   OR (status = %s AND (lease_expires_at IS NULL OR lease_expires_at <= %s))
                 ORDER BY created_at ASC LIMIT %s
                 FOR UPDATE SKIP LOCKED
                 """,
-                (OutboxStatus.PENDING.value, OutboxStatus.RETRY.value, now, limit),
+                (
+                    OutboxStatus.PENDING.value,
+                    OutboxStatus.RETRY.value,
+                    now,
+                    OutboxStatus.PROCESSING.value,
+                    now,
+                    limit,
+                ),
             )
             rows = tx.fetchall()
             events: list[OutboxEvent] = []
             for row in rows:
-                tx.execute(
-                    "UPDATE outbox_events SET status = %s WHERE event_id = %s",
-                    (OutboxStatus.PROCESSING.value, str(row["event_id"])),
-                )
                 event = OutboxEvent.model_validate_json(str(row["event_json"]))
-                events.append(
-                    event.model_copy(update={"status": OutboxStatus.PROCESSING})
+                leased = event.model_copy(
+                    update={
+                        "status": OutboxStatus.PROCESSING,
+                        "lease_id": uuid4(),
+                        "lease_owner": lease_owner,
+                        "lease_expires_at": expires_at,
+                    }
                 )
+                tx.execute(
+                    """
+                    UPDATE outbox_events
+                    SET status = %s, lease_id = %s, lease_owner = %s,
+                        lease_expires_at = %s, event_json = %s
+                    WHERE event_id = %s
+                    """,
+                    (
+                        OutboxStatus.PROCESSING.value,
+                        str(leased.lease_id),
+                        lease_owner,
+                        expires_at,
+                        _json(leased.model_dump(mode="json")),
+                        str(row["event_id"]),
+                    ),
+                )
+                events.append(leased)
             return events
 
     def update_outbox(
@@ -675,6 +723,7 @@ class PostgresRecordStore:
         next_attempt_at: datetime,
         last_error: str | None,
         delivered_at: datetime | None = None,
+        lease_id: UUID | None = None,
     ) -> None:
         with self._transaction() as tx:
             tx.execute(
@@ -685,6 +734,11 @@ class PostgresRecordStore:
             if row is None:
                 raise StoreError(f"outbox event not found: {event_id}")
             event = OutboxEvent.model_validate_json(str(row["event_json"]))
+            if lease_id is not None and event.lease_id != lease_id:
+                raise StoreError(
+                    f"outbox lease is no longer held for {event_id}; "
+                    "another worker owns this event"
+                )
             updated = event.model_copy(
                 update={
                     "status": status,
@@ -692,13 +746,17 @@ class PostgresRecordStore:
                     "next_attempt_at": next_attempt_at,
                     "last_error": last_error,
                     "delivered_at": delivered_at,
+                    "lease_id": None,
+                    "lease_owner": None,
+                    "lease_expires_at": None,
                 }
             )
             tx.execute(
                 """
                 UPDATE outbox_events
                 SET status = %s, attempts = %s, next_attempt_at = %s, last_error = %s,
-                    delivered_at = %s, event_json = %s
+                    delivered_at = %s, lease_id = NULL, lease_owner = NULL,
+                    lease_expires_at = NULL, event_json = %s
                 WHERE event_id = %s
                 """,
                 (

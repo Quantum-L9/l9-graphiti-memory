@@ -84,6 +84,9 @@ class MemorySettings(BaseModel):
     outbox_batch_size: int = Field(default=50, ge=1, le=1_000)
     outbox_max_attempts: int = Field(default=8, ge=1, le=100)
     outbox_base_delay_seconds: int = Field(default=5, ge=1, le=3_600)
+    # How long a claimed outbox event stays owned before another worker may
+    # recover it. Must exceed the slowest expected projection call.
+    outbox_lease_seconds: int = Field(default=300, ge=5, le=86_400)
 
     default_search_limit: int = Field(default=20, ge=1, le=200)
     default_token_budget: int = Field(default=1_200, ge=128, le=64_000)

@@ -12,7 +12,6 @@
 
 from __future__ import annotations
 
-import os
 import uuid
 from pathlib import Path
 
@@ -29,15 +28,7 @@ from l9_graphite_memory.contracts import (
 )
 from l9_graphite_memory.errors import ConfigurationError
 from l9_graphite_memory.services import MemoryService
-
-POSTGRES_DSN_ENV = "L9_MEMORY_TEST_POSTGRES_DSN"
-
-
-def _dsn() -> str:
-    dsn = os.environ.get(POSTGRES_DSN_ENV, "").strip()
-    if not dsn:
-        pytest.skip(f"{POSTGRES_DSN_ENV} is not set")
-    return dsn
+from tests.conftest import make_postgres_store
 
 
 def _request(content: str) -> MemoryWriteRequest:
@@ -119,21 +110,10 @@ def test_two_sqlite_files_are_independent_authorities(tmp_path: Path, principal)
 def test_shared_backend_is_one_authority_for_independent_clients(principal) -> None:
     """SP-05: separate clients of the shared store observe one canonical state."""
 
-    from l9_graphite_memory.adapters import PostgresRecordStore
-
-    dsn = _dsn()
     schema = f"l9_shared_{uuid.uuid4().hex}"
-
-    writer = PostgresRecordStore(dsn)
-    reader = PostgresRecordStore(dsn)
+    writer = make_postgres_store(schema)
+    reader = make_postgres_store(schema)
     try:
-        for store in (writer, reader):
-            connection = store._connection()
-            with connection.cursor() as cursor:
-                cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
-                cursor.execute(f'SET search_path TO "{schema}"')
-            connection.commit()
-
         writer.initialize()
         reader.initialize()
 

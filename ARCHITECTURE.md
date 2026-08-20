@@ -129,6 +129,7 @@ Projection writes must return or establish a stable episode locator. The locator
 - Optional projection and extraction failures produce explicit partial or failed receipts.
 - A canonical write becomes durable during the operation or raises; there is no deferred, queued-but-successful outcome (ADR-070).
 - Outbox retries use bounded exponential backoff and terminal dead state.
+- Outbox claims are time-bounded leases, so a worker that dies mid-delivery leaves an event that the next claim cycle recovers rather than stranding it in `PROCESSING` (ADR-073).
 - No direct database emergency path exists.
 
 ## Extension model

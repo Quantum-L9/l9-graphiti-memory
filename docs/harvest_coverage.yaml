@@ -139,9 +139,9 @@ entries:
     concept: Durable atomic outbox retries replay and terminal dead-letter state
     sources: [l9_ops_commit_pack, legacy_memory_pack, original_repo]
     status: implemented
-    implementation_paths: [src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/sqlite_store.py]
-    test_paths: [tests/integration/test_outbox.py]
-    adr_paths: [docs/adr/ADR-018-outbox-and-write-recovery.md, docs/adr/ADR-046-core-commit-versus-asynchronous-enrichment.md]
+    implementation_paths: [src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/sqlite_store.py, src/l9_graphite_memory/adapters/postgres_store.py]
+    test_paths: [tests/integration/test_outbox.py, tests/integration/test_outbox_leases.py]
+    adr_paths: [docs/adr/ADR-018-outbox-and-write-recovery.md, docs/adr/ADR-046-core-commit-versus-asynchronous-enrichment.md, docs/adr/ADR-073-leased-outbox-claims.md]
   - id: H-018a
     concept: Shared durable canonical store for multi-agent deployments
     sources: [l9_ops_commit_pack]
