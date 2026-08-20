@@ -167,6 +167,13 @@ entries:
     implementation_paths: [src/l9_graphite_memory/migration/legacy_write_queue.py]
     test_paths: [tests/integration/test_immediate_canonical_ingestion.py]
     adr_paths: [docs/adr/ADR-070-immediate-canonical-ingestion.md]
+  - id: H-019b
+    concept: Projection retirement lifecycle distinct from privacy erasure
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/ports/projection.py, src/l9_graphite_memory/services/memory_service.py, src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/graphiti_projection.py]
+    test_paths: [tests/integration/test_projection_lifecycle.py]
+    adr_paths: [docs/adr/ADR-074-projection-retirement-lifecycle.md]
   - id: H-020
     concept: Session ingestion and context restoration adapters
     sources: [l9_ops_commit_pack]

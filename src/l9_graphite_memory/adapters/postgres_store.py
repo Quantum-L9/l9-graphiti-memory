@@ -867,6 +867,7 @@ class PostgresRecordStore:
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None:
         if not receipt.applied:
             raise StoreError("cannot persist a non-applied archive receipt")
@@ -889,6 +890,8 @@ class PostgresRecordStore:
                 )
                 for event in status_events:
                     self._insert_status_event(tx, event)
+                for outbox_event in outbox_events:
+                    self._insert_outbox(tx, outbox_event)
         except psycopg2.IntegrityError as exc:
             raise StoreError(
                 f"atomic archive violated store constraints: {exc}"

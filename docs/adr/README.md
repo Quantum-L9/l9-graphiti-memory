@@ -98,6 +98,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-071 | [Operation Identity Versus Semantic Digest](ADR-071-operation-identity-versus-semantic-digest.md) | Accepted |
 | ADR-072 | [Shared Canonical Store Backend](ADR-072-shared-canonical-store-backend.md) | Accepted |
 | ADR-073 | [Leased Outbox Claims](ADR-073-leased-outbox-claims.md) | Accepted |
+| ADR-074 | [Projection Retirement Lifecycle](ADR-074-projection-retirement-lifecycle.md) | Accepted |
 
 ## Validation
 
@@ -107,4 +108,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-073 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-074 ledger and all mandatory sections.

@@ -263,18 +263,39 @@ class MemoryService:
 
         outbox_events: tuple[OutboxEvent, ...] = ()
         if state is MemoryState.ACTIVE and self.projection.name != "none":
-            event = OutboxEvent(
-                event_type="memory.record.project",
-                aggregate_id=record.record_id,
-                namespace=record.namespace,
-                payload={
-                    "record_id": str(record.record_id),
-                    "schema_version": record.schema_version,
-                },
-                created_at=now,
-                next_attempt_at=now,
+            events = [
+                OutboxEvent(
+                    event_type="memory.record.project",
+                    aggregate_id=record.record_id,
+                    namespace=record.namespace,
+                    payload={
+                        "record_id": str(record.record_id),
+                        "schema_version": record.schema_version,
+                    },
+                    created_at=now,
+                    next_attempt_at=now,
+                )
+            ]
+            # A superseded record must stop being projected, or retrieval keeps
+            # surfacing truth the canonical store has already replaced. The
+            # retirement intent commits in the same transaction as the
+            # supersession itself, so the two cannot diverge (ADR-074).
+            events.extend(
+                OutboxEvent(
+                    event_type="memory.record.retire",
+                    aggregate_id=superseded_id,
+                    namespace=record.namespace,
+                    payload={
+                        "record_id": str(superseded_id),
+                        "reason": f"superseded by {record.record_id}",
+                        "superseded_by": str(record.record_id),
+                    },
+                    created_at=now,
+                    next_attempt_at=now,
+                )
+                for superseded_id in effective_supersedes
             )
-            outbox_events = (event,)
+            outbox_events = tuple(events)
 
         receipt = WriteReceipt(
             status=admission.status,
@@ -662,7 +683,33 @@ class MemoryService:
                 )
                 for record_id in archived_ids
             )
-            self.store.commit_archive(archive_receipt, status_events=status_events)
+            # Archiving withdraws the record from active retrieval, so its
+            # projection must be withdrawn too. This is retirement, not privacy
+            # erasure: the canonical content is preserved (ADR-074).
+            retire_events = (
+                tuple(
+                    OutboxEvent(
+                        event_type="memory.record.retire",
+                        aggregate_id=record_id,
+                        namespace=namespace,
+                        payload={
+                            "record_id": str(record_id),
+                            "reason": archive_receipt.reason,
+                            "archive_receipt_id": str(archive_receipt.receipt_id),
+                        },
+                        created_at=now,
+                        next_attempt_at=now,
+                    )
+                    for record_id in archived_ids
+                )
+                if self.projection.name != "none"
+                else ()
+            )
+            self.store.commit_archive(
+                archive_receipt,
+                status_events=status_events,
+                outbox_events=retire_events,
+            )
         return RetentionReceipt(
             namespace=namespace,
             applied=apply,

@@ -294,6 +294,7 @@ class InMemoryRecordStore:
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None:
         if not receipt.applied:
             raise ValueError("cannot persist a non-applied archive receipt")
@@ -322,6 +323,8 @@ class InMemoryRecordStore:
         self.records.update(updates)
         self.status_events.extend(status_events)
         self.archive_receipts[receipt.receipt_id] = receipt
+        for outbox_event in outbox_events:
+            self.outbox[outbox_event.event_id] = outbox_event
 
     def commit_deletion(
         self,

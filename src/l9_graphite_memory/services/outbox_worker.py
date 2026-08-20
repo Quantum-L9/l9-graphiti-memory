@@ -134,6 +134,35 @@ class OutboxWorker:
                             created_at=now,
                         )
                     )
+                elif event.event_type == "memory.record.retire":
+                    # Withdraw a superseded or archived projection. This path
+                    # must never touch canonical state: the record keeps its
+                    # content and its lifecycle history, and only the derived
+                    # projection is withdrawn (ADR-074).
+                    link = self.store.get_projection_link(
+                        event.aggregate_id, self.projection.name
+                    )
+                    if link is None:
+                        # Nothing was ever projected, so there is nothing to
+                        # withdraw. Retirement is satisfied.
+                        log.info(
+                            "projection_retire_noop",
+                            extra={
+                                "event_id": str(event.event_id),
+                                "record_id": str(event.aggregate_id),
+                            },
+                        )
+                    else:
+                        reason = event.payload.get("reason")
+                        self.projection.retire(
+                            event.aggregate_id,
+                            event.namespace,
+                            locator=link.locator,
+                            reason=reason if isinstance(reason, str) else "",
+                        )
+                        self.store.delete_projection_link(
+                            event.aggregate_id, self.projection.name
+                        )
                 elif event.event_type == "memory.record.erase":
                     link = self.store.get_projection_link(
                         event.aggregate_id, self.projection.name

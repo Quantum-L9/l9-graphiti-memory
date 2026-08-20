@@ -33,6 +33,23 @@ class NullProjection:
             "record_id": str(record.record_id),
         }
 
+    def retire(
+        self,
+        record_id: UUID,
+        namespace: str,
+        *,
+        locator: str | None = None,
+        reason: str = "",
+    ) -> dict[str, Any]:
+        return {
+            "retired": True,
+            "erased": False,
+            "reason": reason or "projection disabled; nothing to withdraw",
+            "record_id": str(record_id),
+            "namespace": namespace,
+            "locator": locator,
+        }
+
     def erase(
         self,
         record_id: UUID,

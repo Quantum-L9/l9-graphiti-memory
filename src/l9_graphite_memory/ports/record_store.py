@@ -134,6 +134,7 @@ class RecordStore(Protocol):
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None: ...
 
     def commit_deletion(
