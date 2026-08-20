@@ -67,7 +67,7 @@ def main() -> int:
             failures.append(f"{path.name}: indented Markdown heading renders as code")
         if path.name not in index:
             failures.append(f"{path.name}: missing from ADR index")
-    expected = set(range(1, 71))
+    expected = set(range(1, 72))
     if seen != expected:
         failures.append(
             f"ADR number set mismatch: missing={sorted(expected - seen)} extra={sorted(seen - expected)}"

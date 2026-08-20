@@ -70,8 +70,8 @@ entries:
     sources: [all_packs]
     status: implemented
     implementation_paths: [src/l9_graphite_memory/services/memory_service.py, src/l9_graphite_memory/adapters/sqlite_store.py]
-    test_paths: [tests/integration/test_memory_service.py, tests/conformance/test_store_contract.py]
-    adr_paths: [docs/adr/ADR-008-idempotency-deduplication-and-supersession.md]
+    test_paths: [tests/integration/test_memory_service.py, tests/conformance/test_store_contract.py, tests/integration/test_operation_identity.py]
+    adr_paths: [docs/adr/ADR-008-idempotency-deduplication-and-supersession.md, docs/adr/ADR-071-operation-identity-versus-semantic-digest.md]
   - id: H-009
     concept: Typed hydration with authorized namespaces and token budgeting
     sources: [l9_ops_commit_pack, memory_packs, original_repo]

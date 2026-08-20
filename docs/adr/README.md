@@ -95,6 +95,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-068 | [Redis ACL Capability Contract for Active Memory](ADR-068-redis-acl-capability-contract.md) | Accepted |
 | ADR-069 | [uv as Canonical Python Package Manager](ADR-069-uv-package-manager.md) | Accepted |
 | ADR-070 | [Immediate Canonical Ingestion](ADR-070-immediate-canonical-ingestion.md) | Accepted |
+| ADR-071 | [Operation Identity Versus Semantic Digest](ADR-071-operation-identity-versus-semantic-digest.md) | Accepted |
 
 ## Validation
 
@@ -104,4 +105,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-070 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-071 ledger and all mandatory sections.

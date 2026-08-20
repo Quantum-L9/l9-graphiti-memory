@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from l9_graphite_memory.admission import AdmissionEngine, normalize_candidate
 from l9_graphite_memory.admission.normalization import canonical_json, sha256_text
@@ -103,10 +103,18 @@ class MemoryService:
         self.store.initialize()
 
     @staticmethod
-    def _idempotency_key(request: MemoryWriteRequest, normalized_digest: str) -> str:
-        return (
-            request.idempotency_key or f"memory:{request.namespace}:{normalized_digest}"
-        )
+    def _operation_identity(request: MemoryWriteRequest) -> str:
+        """Resolve the retry identity of this write, never its meaning.
+
+        An explicit ``idempotency_key`` names the operation, so a retry of that
+        operation collapses onto the same record. Without one, each call is a
+        distinct operation and is admitted on its own merits even when another
+        record already holds identical content. The semantic digest is recorded
+        on the record as a maintenance candidate signal and never governs
+        admission (ADR-071).
+        """
+
+        return request.idempotency_key or f"operation:{request.namespace}:{uuid4()}"
 
     def write(
         self, principal: MemoryPrincipal, request: MemoryWriteRequest
@@ -129,13 +137,15 @@ class MemoryService:
                 else None,
             },
         )
-        idempotency_key = self._idempotency_key(
-            request, normalization.normalized_digest
-        )
-        existing = self.store.find_by_idempotency(
-            principal.tenant_id,
-            request.namespace,
-            idempotency_key,
+        idempotency_key = self._operation_identity(request)
+        existing = (
+            self.store.find_by_idempotency(
+                principal.tenant_id,
+                request.namespace,
+                idempotency_key,
+            )
+            if request.idempotency_key
+            else None
         )
         admission = self.admission.evaluate(
             request,
@@ -157,6 +167,7 @@ class MemoryService:
                 normalized_digest=normalization.normalized_digest,
                 original_digest=normalization.original_digest,
                 idempotency_key=idempotency_key,
+                idempotency_key_supplied=request.idempotency_key is not None,
                 admission=admission,
                 authorization=authorization,
                 warnings=admission.warnings,
@@ -173,6 +184,7 @@ class MemoryService:
                 normalized_digest=normalization.normalized_digest,
                 original_digest=normalization.original_digest,
                 idempotency_key=idempotency_key,
+                idempotency_key_supplied=request.idempotency_key is not None,
                 admission=admission,
                 authorization=authorization,
                 warnings=admission.warnings,
@@ -272,6 +284,7 @@ class MemoryService:
             normalized_digest=record.normalized_digest,
             original_digest=record.original_digest,
             idempotency_key=record.idempotency_key,
+            idempotency_key_supplied=request.idempotency_key is not None,
             admission=admission,
             authorization=authorization,
             outbox_event_ids=tuple(event.event_id for event in outbox_events),

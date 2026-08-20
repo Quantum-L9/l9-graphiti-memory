@@ -26,7 +26,7 @@ Legacy code used search heuristics to discover near duplicates and sometimes ret
 
 ## Decision
 
-Writes use an explicit idempotency key or a canonical digest-derived key. Exact replay returns the original record ID. Corrections create new records and append supersession state events; prior truth is never overwritten.
+Writes use an explicit idempotency key. Exact replay of that key returns the original record ID. (The digest-derived fallback originally specified here was withdrawn by ADR-071: retry identity is explicit, and a write without a key is a distinct operation.) Corrections create new records and append supersession state events; prior truth is never overwritten.
 
 ## Alternatives Considered
 
@@ -40,7 +40,7 @@ The alternatives above are rejected because they duplicate authority, hide failu
 
 ## Invariants
 
-- Same tenant, namespace, and idempotency key resolves to one record
+- Same tenant, namespace, and explicit idempotency key resolves to one record
 - Supersession preserves the old record and lineage
 - Retries never create duplicate outbox effects
 

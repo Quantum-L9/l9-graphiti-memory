@@ -40,6 +40,11 @@ class MemoryWriteRequest(BaseModel):
     source_observed_at: datetime | None = None
     tags: tuple[str, ...] = ()
     metadata: dict[str, Any] = Field(default_factory=dict)
+    # Explicit operation identity. Two calls that carry the same key are the
+    # same operation, so the second is a retry and dedupes. Omitting it means
+    # "this is a new operation": identical content submitted twice without a
+    # key is admitted twice, and semantic duplication is resolved later by
+    # scheduled maintenance rather than at admission (ADR-071).
     idempotency_key: str | None = Field(default=None, max_length=300)
     supersedes: tuple[UUID, ...] = ()
     references: tuple[UUID, ...] = ()

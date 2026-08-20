@@ -39,7 +39,7 @@ updated: 2026-07-22
                      | normalize/redact |
                      | validate/upcast  |
                      | consent/admit    |
-                     | idempotency      |
+                     | operation identity|
                      | atomic commit    |
                      | typed receipt    |
                      +---+----------+---+
@@ -73,7 +73,7 @@ Optional editor hooks use `memory_guard.py` to verify an expiring hydration and 
 - operation receipts
 - phase-lock receipts
 - outbox events
-- idempotency mappings
+- operation-identity mappings
 - projection links containing stable provider locators
 
 Graph and semantic providers are rebuildable projections. They may improve retrieval, but they cannot create canonical records, grant authority, or define lifecycle state.
@@ -82,14 +82,15 @@ Graph and semantic providers are rebuildable projections. They may improve retri
 
 1. An adapter establishes a server-derived `MemoryPrincipal`.
 2. `NamespacePolicy` evaluates write authority.
-3. The normalizer computes original and normalized digests, redacts supported PII, and emits safety signals.
-4. Sensitive profile classes verify current purpose-bound consent.
-5. `AdmissionEngine` emits a versioned decision.
-6. `MemoryService` assigns valid-time and transaction-time coordinates.
-7. `RecordStore` atomically persists the record, lifecycle status, receipt, and projection outbox event.
-8. `OutboxWorker` projects asynchronously and persists the returned provider locator.
+3. The normalizer computes original and normalized digests, redacts supported PII, and emits safety signals. The normalized digest is a maintenance candidate signal; it never governs admission (ADR-071).
+4. `MemoryService` resolves operation identity from the caller's explicit `idempotency_key`, or mints a per-call identity when none was supplied. A duplicate lookup runs only for an explicit key.
+5. Sensitive profile classes verify current purpose-bound consent.
+6. `AdmissionEngine` emits a versioned decision.
+7. `MemoryService` assigns valid-time and transaction-time coordinates.
+8. `RecordStore` atomically persists the record, lifecycle status, receipt, and projection outbox event.
+9. `OutboxWorker` projects asynchronously and persists the returned provider locator.
 
-No provider call or direct SQL fallback can bypass the canonical service.
+The write is canonical when step 8 commits, or it raises. No provider call, local queue, or direct SQL fallback can bypass or defer the canonical service (ADR-070).
 
 ## Extraction and source ingestion
 

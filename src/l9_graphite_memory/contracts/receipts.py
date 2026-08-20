@@ -75,6 +75,7 @@ class WriteReceipt(BaseModel):
     normalized_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
     original_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
     idempotency_key: str
+    idempotency_key_supplied: bool = False
     admission: AdmissionDecision
     authorization: AuthorizationReceipt
     outbox_event_ids: tuple[UUID, ...] = ()
