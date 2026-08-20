@@ -1,0 +1,42 @@
+schema_version: "1.0.0"
+
+principal:
+  id: cursor-governance-generated-data
+  type: service
+
+permissions:
+  - memory.candidate.ingest
+  - memory.search
+  - memory.hydrate
+  - memory.reuse.record
+  - memory.source.invalidate
+  - memory.capabilities.read
+
+producer_identity:
+  authenticated_caller: cursor-governance-generated-data
+  stored_as_provenance:
+    - campaign_id
+    - graph_id
+    - action_id
+    - agent_id
+    - role
+    - lease_id
+    - packet_id
+    - repository
+    - repository_class
+    - base_sha
+
+constraints:
+  direct_subagent_canonical_write: false
+  may_override_repository_state: false
+  may_override_canonical_authority: false
+  may_promote_memory: false
+  may_delete_memory: false
+  may_widen_visibility: false
+  invalidation_requires_namespace_authority: true
+
+denied_operations:
+  - memory.delete
+  - memory.promote
+  - memory.policy.override
+  - memory.namespace.widen

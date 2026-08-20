@@ -46,8 +46,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        "241 tests pass",
-        r"241 passed",
+        "278 tests pass",
+        r"278 passed",
     ),
     CheckSpec(
         "V-002",
@@ -136,8 +136,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "production Python",
         "check_source_quality.py",
         "logs/source_quality.txt",
-        "107 production files pass",
-        r"PASS: 107 production Python files",
+        "108 production files pass",
+        r"PASS: 108 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -217,8 +217,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "installed MCP/resources/entrypoints",
         "installed smoke script",
         "logs/installed_mcp.txt",
-        "22 tools and required surfaces load",
-        r"22 tools loaded",
+        "26 tools and required surfaces load",
+        r"26 tools loaded",
     ),
     CheckSpec(
         "V-021",

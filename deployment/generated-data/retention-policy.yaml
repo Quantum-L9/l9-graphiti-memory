@@ -1,0 +1,32 @@
+schema_version: "1.0.0"
+
+producer_candidate_body:
+  retention: audit_window
+  default_days: 90
+  canonical_memory_content_retained_separately: true
+
+reuse_events:
+  retention: long_term
+  minimum_days: 730
+  immutable: true
+
+invalidation_events:
+  retention: at_least_record_lifetime
+  immutable: true
+
+selector_index:
+  retention: record_lifecycle_bound
+  deactivate_with_record: true
+
+receipts:
+  retention: governance_audit_period
+  minimum_days: 730
+  hash_chain_required_when_supported: true
+
+raw_subagent_packets:
+  owner: Cursor-Governance
+  store_in_graphiti: false
+
+historical_evidence:
+  delete_on_invalidation: false
+  preserve_lineage: true

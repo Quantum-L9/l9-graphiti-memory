@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "integration": "cursor_governance_generated_data",
+  "enabled": true,
+  "runtime": {
+    "canonical_store_ready": true,
+    "migration_version": "unknown",
+    "authorization_ready": true,
+    "namespace_mapping_ready": true,
+    "selector_index_ready": true,
+    "candidate_ingress_ready": true,
+    "reuse_persistence_ready": true,
+    "invalidation_ready": true,
+    "search_ready": true,
+    "hydrate_ready": true,
+    "mcp_tool_plane_ready": false,
+    "projection_ready": false,
+    "projection_required": false
+  },
+  "contracts": {
+    "candidate_schema_majors": [
+      1
+    ],
+    "reuse_schema_majors": [
+      1
+    ],
+    "invalidation_schema_majors": [
+      1
+    ],
+    "supported_classes": [
+      "repository_fact",
+      "dependency_finding",
+      "implementation_surface",
+      "rejected_approach",
+      "context_requirement",
+      "artifact_lineage"
+    ],
+    "supported_reuse_outcomes": [
+      "accelerated_execution",
+      "prevented_error",
+      "improved_validation",
+      "improved_context",
+      "reduced_discovery",
+      "improved_scope_control",
+      "improved_contract",
+      "no_observable_value",
+      "caused_confusion",
+      "stale",
+      "incorrect"
+    ],
+    "supported_invalidation_events": [
+      "repository_path_changed",
+      "repository_base_changed",
+      "schema_version_changed",
+      "contract_version_changed",
+      "policy_version_changed",
+      "architecture_owner_changed",
+      "dependency_upgraded",
+      "contradictory_evidence_accepted",
+      "failed_reuse_reported",
+      "expiration_reached"
+    ]
+  },
+  "repository": {
+    "version": "unknown",
+    "commit_sha": "unknown"
+  }
+}

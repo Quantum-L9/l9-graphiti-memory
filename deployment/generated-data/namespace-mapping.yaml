@@ -1,0 +1,39 @@
+schema_version: "1.0.0"
+
+visibility:
+  campaign_local:
+    template: "campaign/{campaign_id}"
+    maximum_scope: campaign
+    required_fields:
+      - campaign_id
+
+  repository_local:
+    template: "repository/{repository}"
+    maximum_scope: repository
+    required_fields:
+      - repository
+
+  project_group:
+    template: "project-group/{project_group}"
+    maximum_scope: project_group
+    required_fields:
+      - project_group
+
+  constellation_internal:
+    template: "constellation/internal"
+    maximum_scope: constellation
+    required_fields: []
+
+  restricted:
+    template: "restricted/{policy_id}"
+    maximum_scope: restricted
+    required_fields:
+      - policy_id
+
+rules:
+  widening_forbidden: true
+  narrowing_allowed: true
+  unknown_visibility: reject
+  cross_repository_search_implicit: false
+  reuse_inherits_record_namespace: true
+  invalidation_requires_all_matched_namespace_authority: true

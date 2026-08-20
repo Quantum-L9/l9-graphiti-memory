@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "MemoryCandidate",
+  "candidate_id": "memcand-wave1-governed-001",
+  "source": {
+    "campaign_id": "campaign-wave1-001",
+    "graph_id": "graph-wave1-001",
+    "action_id": "recon-wave1-001",
+    "agent_id": "agent-recon-wave1-001",
+    "role": "recon",
+    "lease_id": "lease-wave1-001",
+    "repository": "Quantum-L9/l9-graphiti-memory",
+    "repository_class": "l9_python",
+    "base_sha": "1111111111111111111111111111111111111111",
+    "packet_id": "packet-wave1-001",
+    "primary_artifact_id": "artifact-recon-wave1-001"
+  },
+  "knowledge": {
+    "unit_id": "unit-repository-fact-wave1-001",
+    "statement": "The canonical memory service is the authorized durable write boundary.",
+    "primary_class": "repository_fact",
+    "epistemic_status": "observed",
+    "scope": {
+      "repositories": [
+        "Quantum-L9/l9-graphiti-memory"
+      ],
+      "repository_classes": [
+        "l9_python"
+      ],
+      "paths": [
+        "src/l9_graphite_memory/services"
+      ],
+      "task_types": [
+        "memory_integration"
+      ],
+      "roles": [
+        "executor",
+        "verifier"
+      ]
+    },
+    "confidence": 0.99,
+    "freshness": {
+      "observed_at": "2026-08-02T19:36:00Z",
+      "base_sha": "1111111111111111111111111111111111111111",
+      "expires_at": null
+    },
+    "expected_reuse": {
+      "task_local": false,
+      "cross_task": true,
+      "cross_campaign": true,
+      "cross_repository": false,
+      "description": "Future integrations must call the canonical service rather than storage directly."
+    },
+    "invalidation_conditions": [
+      {
+        "condition_type": "relevant_path_changed",
+        "selector": "src/l9_graphite_memory/services"
+      },
+      {
+        "condition_type": "architecture_owner_changed",
+        "selector": "canonical_memory_write_boundary"
+      }
+    ]
+  },
+  "governance": {
+    "authority_class": "advisory",
+    "route": "memory",
+    "routing_decision_id": "route-wave1-001",
+    "promotion_id": "promotion-wave1-001",
+    "promotion_decision": "promote",
+    "risk_class": "medium",
+    "visibility": "repository_local",
+    "may_override_repository_state": false,
+    "may_override_canonical_authority": false
+  },
+  "provenance": {
+    "source_evidence": [
+      {
+        "source_id": "source-memory-service-wave1",
+        "source_type": "repository_path",
+        "repository": "Quantum-L9/l9-graphiti-memory",
+        "path": "src/l9_graphite_memory/services",
+        "base_sha": "1111111111111111111111111111111111111111",
+        "locator": "directory"
+      }
+    ],
+    "input_artifacts": [],
+    "evidence_artifacts": [
+      "artifact-recon-wave1-001"
+    ],
+    "inspected_paths": [
+      "src/l9_graphite_memory/services"
+    ],
+    "executed_commands": [
+      "git rev-parse HEAD"
+    ],
+    "generated_at": "2026-08-02T19:36:00Z",
+    "statement_hash": "6e2e6194220977373ae1ab177c4bb8bb722e4b1daf678d5c9aa18787be2123fb",
+    "packet_hash": "211e3c3f269c8d69d1ba8a6a98087391e9db434b9b6451b85ddfc64188c3238d"
+  },
+  "generated_at": "2026-08-02T19:36:00Z"
+}

@@ -43,7 +43,7 @@ from l9_graphite_memory.curation.procedural import (
 from l9_graphite_memory.errors import AuthorizationError
 from l9_graphite_memory.extraction import SourceDistiller
 from l9_graphite_memory.ingestion import RepositoryBootstrapper
-from l9_graphite_memory.services import MemoryService
+from l9_graphite_memory.services import GeneratedDataService, MemoryService
 
 
 def _object_schema(
@@ -310,6 +310,26 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
         "description": "Check canonical store, projection, schema, and outbox health.",
         "inputSchema": _object_schema({}),
     },
+    {
+        "name": "memory.ingest_governed_candidate",
+        "description": "Admit one Cursor-Governance governed memory candidate through MemoryService.write.",
+        "inputSchema": _object_schema({"candidate": {"type": "object"}}, []),
+    },
+    {
+        "name": "memory.record_reuse",
+        "description": "Persist one generated-data reuse event through MemoryService.write.",
+        "inputSchema": _object_schema({"event": {"type": "object"}}, []),
+    },
+    {
+        "name": "memory.invalidate_source",
+        "description": "Record a source invalidation event without deleting memory.",
+        "inputSchema": _object_schema({"request": {"type": "object"}}, []),
+    },
+    {
+        "name": "memory.generated_data_capabilities",
+        "description": "Report generated-data ingress capability and write-path binding.",
+        "inputSchema": _object_schema({}),
+    },
 )
 
 ALIASES: dict[str, str] = {
@@ -400,6 +420,10 @@ class MCPToolApplication:
             "memory.distill": self._distill,
             "memory.synthesize_procedures": self._synthesize_procedures,
             "memory.health": self._health,
+            "memory.ingest_governed_candidate": self._ingest_governed_candidate,
+            "memory.record_reuse": self._record_reuse,
+            "memory.invalidate_source": self._invalidate_source,
+            "memory.generated_data_capabilities": self._generated_data_capabilities,
         }
         handler = handlers.get(canonical)
         if handler is None:
@@ -630,3 +654,34 @@ class MCPToolApplication:
 
     def _health(self, _principal: MemoryPrincipal, _args: dict[str, Any]) -> Any:
         return self.service.health()
+
+    def _ingest_governed_candidate(
+        self, principal: MemoryPrincipal, args: dict[str, Any]
+    ) -> Any:
+        payload = args.get("candidate") if "candidate" in args else args
+        if not isinstance(payload, dict):
+            raise TypeError("candidate payload must be an object")
+        return GeneratedDataService(self.service).ingest_governed_candidate(
+            principal, payload
+        )
+
+    def _record_reuse(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
+        payload = args.get("event") if "event" in args else args
+        if not isinstance(payload, dict):
+            raise TypeError("reuse event payload must be an object")
+        return GeneratedDataService(self.service).record_reuse(principal, payload)
+
+    def _invalidate_source(
+        self, principal: MemoryPrincipal, args: dict[str, Any]
+    ) -> Any:
+        payload = args.get("request") if "request" in args else args
+        if not isinstance(payload, dict):
+            raise TypeError("invalidation request payload must be an object")
+        return GeneratedDataService(self.service).invalidate_by_source(
+            principal, payload
+        )
+
+    def _generated_data_capabilities(
+        self, _principal: MemoryPrincipal, _args: dict[str, Any]
+    ) -> Any:
+        return GeneratedDataService.generated_data_capabilities()
