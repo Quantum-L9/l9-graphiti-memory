@@ -92,6 +92,10 @@ Graph and semantic providers are rebuildable projections. They may improve retri
 
 The write is canonical when step 8 commits, or it raises. No provider call, local queue, or direct SQL fallback can bypass or defer the canonical service (ADR-070).
 
+## Scheduled maintenance
+
+Semantic consolidation happens after admission, not during it (ADR-071). A scheduled pass under `MAINTAIN` authority plans and applies five bounded operations over records the store already holds: dedupe, refine, supersede, archive, and reconcile. Planning is pure and reproducible; consolidation derives a new record citing its sources and supersedes them, never rewriting canonical state in place. Runs are watermarked and digest-idempotent, so a rerun is a no-op and a concurrent live write is out of scope rather than half-processed. Contradictions are reported for governance, never auto-resolved (ADR-075).
+
 ## Extraction and source ingestion
 
 Atomic extraction converts source material into independently governed assertions with exact source ranges and source digests. Offline distillation can ingest documents, repositories, or session material through the same write path. Provider-backed extraction is optional and must return typed evidence, status, model metadata, and token-budget information.

@@ -119,9 +119,28 @@ class MemoryService:
     def write(
         self, principal: MemoryPrincipal, request: MemoryWriteRequest
     ) -> WriteReceipt:
+        """Admit a new memory under the caller's WRITE grant."""
+
+        return self._admit(principal, request, action=AuthorizationAction.WRITE)
+
+    def _admit(
+        self,
+        principal: MemoryPrincipal,
+        request: MemoryWriteRequest,
+        *,
+        action: AuthorizationAction,
+    ) -> WriteReceipt:
+        """Single admission implementation behind an explicit authority gate.
+
+        ``action`` names which grant admits this record. Ingestion uses WRITE.
+        Scheduled maintenance uses MAINTAIN, so a nightly principal can derive
+        consolidated memories from records the store already holds without
+        gaining the authority to ingest new source material (ADR-075).
+        """
+
         authorization = self.namespace_policy.evaluate(
             principal,
-            AuthorizationAction.WRITE,
+            action,
             request.namespace,
         )
         normalization = normalize_candidate(

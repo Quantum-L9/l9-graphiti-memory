@@ -165,6 +165,25 @@ l9-memory-worker --once
 
 Zep health is `unverified` until a real operation succeeds. Configuration alone is not connectivity proof.
 
+## Scheduled maintenance
+
+Semantic duplication is admitted on the hot path and resolved later (ADR-071, ADR-075). Maintenance operates only on records that are already canonical.
+
+Always review a plan before applying it:
+
+```bash
+l9-memory maintain --group-id repo-a                 # dry run; prints the plan
+l9-memory maintain --group-id repo-a --apply
+```
+
+Restrict a run with repeatable `--operation` values (`dedupe`, `refine`, `supersede`, `archive`, `reconcile`), and bound it with `--max-records` and `--max-actions`.
+
+The principal needs `MAINTAIN` on the namespace and nothing else. Grant it with `L9_MEMORY_LOCAL_MAINTAIN_NAMESPACES`, or `maintain_namespaces` on a token principal. Do not give a maintenance credential `is_admin`.
+
+Consolidation is additive: it writes a derived record citing its sources and marks the sources `superseded`. Nothing is rewritten in place, so a consolidation judged wrong can be undone by an explicit governance action.
+
+`reconcile` reports contradictions it must not resolve. Those findings recur on every run until someone settles them — that is deliberate, not a loop.
+
 ## Canonical write failure
 
 Canonical ingestion is immediate (ADR-070). When the canonical store is unreachable, the write call raises and the caller must surface that failure. Do not record a local success, and never write provider or database state directly as a fallback. Restore the canonical store, then have the caller retry with the same explicit `idempotency_key` so the retry is recognized as the same operation.
@@ -214,6 +233,8 @@ Never restore secrets into the repository.
 | outbox event stuck PROCESSING | worker died mid-delivery | none; the lease expires after `L9_MEMORY_OUTBOX_LEASE_SECONDS` and the next claim cycle recovers it |
 | worker reports `lease_lost` | delivery outran the lease and another worker recovered the event | raise `L9_MEMORY_OUTBOX_LEASE_SECONDS` above the slowest projection call |
 | write raised StoreError | canonical store unavailable | restore the store, then retry with the same idempotency key |
+| maintenance reports a reconcile action every night | a contradiction is unresolved | settle the conflicting records through governance; the finding is not suppressed until then |
+| maintenance action failed with `quarantined` | admission held the derived record for review | review the quarantined candidate as an administrator |
 | legacy queue item retained | pre-v2.3 queued write could not be admitted | inspect the preserved file and the reported error |
 | prefetch hook error | hydration failed | leave gates off during diagnosis or restore service |
 

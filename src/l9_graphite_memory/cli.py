@@ -28,12 +28,15 @@ from l9_graphite_memory.client_config import (
     probe_generated_server,
 )
 from l9_graphite_memory.contracts import (
+    ALL_MAINTENANCE_OPERATIONS,
     Confidence,
     ConsentGrant,
     DeletionRequest,
     EvidenceKind,
     EvidenceRef,
     HydrationRequest,
+    MaintenanceOperation,
+    MaintenanceRequest,
     MemoryAssertion,
     MemoryClass,
     MemoryPrincipal,
@@ -52,6 +55,7 @@ from l9_graphite_memory.errors import L9MemoryError
 from l9_graphite_memory.extraction import SourceDistiller
 from l9_graphite_memory.group_resolver import GroupResolution, resolve_group
 from l9_graphite_memory.ingestion import DocumentIngestor, RepositoryBootstrapper
+from l9_graphite_memory.maintenance import MaintenanceService
 from l9_graphite_memory.memory_guard import GuardEvidence
 from l9_graphite_memory.migration import LEGACY_QUEUE_DIRNAME, LegacyWriteQueueDrain
 from l9_graphite_memory.runtime import (
@@ -600,6 +604,35 @@ def cmd_prune(args: argparse.Namespace) -> int:
         runtime.close()
 
 
+def cmd_maintain(args: argparse.Namespace) -> int:
+    """Run scheduled canonical-memory maintenance for one namespace."""
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        operations = (
+            tuple(MaintenanceOperation(value) for value in args.operation)
+            if args.operation
+            else ALL_MAINTENANCE_OPERATIONS
+        )
+        request = MaintenanceRequest(
+            namespace=namespace,
+            operations=operations,
+            max_records=args.max_records,
+            max_actions=args.max_actions,
+            dry_run=not args.apply,
+            reason=args.reason,
+        )
+        receipt = MaintenanceService(runtime.service).run(principal, request)
+        _print(receipt)
+        return 0 if not receipt.failures else 2
+    finally:
+        runtime.close()
+
+
 def cmd_synthesize_procedures(args: argparse.Namespace) -> int:
     runtime = _runtime(args)
     try:
@@ -950,6 +983,24 @@ def build_parser() -> argparse.ArgumentParser:
     synthesize.add_argument("--minimum-support", type=int, default=3)
     synthesize.add_argument("--dry-run", action="store_true")
 
+    maintain = sub.add_parser("maintain")
+    maintain.add_argument("--group-id", default=None)
+    maintain.add_argument(
+        "--operation",
+        action="append",
+        choices=[item.value for item in MaintenanceOperation],
+        default=None,
+        help="restrict the run to specific operations (repeatable)",
+    )
+    maintain.add_argument("--max-records", type=int, default=5_000)
+    maintain.add_argument("--max-actions", type=int, default=500)
+    maintain.add_argument("--reason", default="scheduled maintenance")
+    maintain.add_argument(
+        "--apply",
+        action="store_true",
+        help="apply the plan; without it the run is a dry run",
+    )
+
     sub.add_parser("outbox-run")
     drain_legacy = sub.add_parser("drain-legacy-write-queue")
     drain_legacy.add_argument("--group-id", default=None)
@@ -1013,6 +1064,7 @@ def main(argv: list[str] | None = None) -> int:
         "promote": cmd_promote,
         "delete": cmd_delete,
         "synthesize-procedures": cmd_synthesize_procedures,
+        "maintain": cmd_maintain,
         "outbox-run": cmd_outbox_run,
         "drain-legacy-write-queue": cmd_drain_legacy_write_queue,
         "client": cmd_client,

@@ -64,6 +64,7 @@ def build_local_principal(
     read_namespaces: tuple[str, ...],
     write_namespaces: tuple[str, ...],
     promote_namespaces: tuple[str, ...] | None = None,
+    maintain_namespaces: tuple[str, ...] = (),
 ) -> MemoryPrincipal:
     """Create the trusted local principal used by CLI and stdio MCP."""
 
@@ -80,5 +81,6 @@ def build_local_principal(
         promote_namespaces=write_namespaces
         if promote_namespaces is None
         else promote_namespaces,
+        maintain_namespaces=maintain_namespaces,
         auth_method="local",
     )

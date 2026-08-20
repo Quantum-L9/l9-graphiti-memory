@@ -53,6 +53,7 @@ def _local_namespaces_configured(settings: MemorySettings) -> bool:
             settings.local_read_namespaces,
             settings.local_write_namespaces,
             settings.local_promote_namespaces,
+            settings.local_maintain_namespaces,
         )
     )
 
@@ -77,6 +78,7 @@ def local_principal_for_resolution(
             read_namespaces=settings.local_read_namespaces,
             write_namespaces=settings.local_write_namespaces,
             promote_namespaces=settings.local_promote_namespaces,
+            maintain_namespaces=settings.local_maintain_namespaces,
         )
     elif not resolution.group_id:
         principal = build_local_principal(
@@ -84,6 +86,7 @@ def local_principal_for_resolution(
             read_namespaces=(),
             write_namespaces=(),
             promote_namespaces=(),
+            maintain_namespaces=(),
         )
     else:
         read_values = [resolution.group_id]
@@ -95,6 +98,7 @@ def local_principal_for_resolution(
             read_namespaces=tuple(read_values),
             write_namespaces=write_namespaces,
             promote_namespaces=write_namespaces,
+            maintain_namespaces=write_namespaces,
         )
     return principal.model_copy(update={"is_admin": settings.local_is_admin})
 
