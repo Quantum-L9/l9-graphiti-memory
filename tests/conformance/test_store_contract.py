@@ -14,30 +14,25 @@ from pathlib import Path
 
 import pytest
 
-from l9_graphite_memory.adapters import (
-    InMemoryRecordStore,
-    NullProjection,
-    SQLiteRecordStore,
-)
+from l9_graphite_memory.adapters import NullProjection
 from l9_graphite_memory.contracts import (
     EvidenceKind,
     EvidenceRef,
     MemoryClass,
+    MemoryPrincipal,
     MemoryWriteRequest,
+    ProjectionLink,
     Provenance,
 )
 from l9_graphite_memory.services import MemoryService
+from tests.conftest import STORE_BACKENDS, make_store
 
 
-def stores(tmp_path: Path):
-    return [InMemoryRecordStore(), SQLiteRecordStore(tmp_path / "conformance.sqlite3")]
-
-
-@pytest.mark.parametrize("index", [0, 1])
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
 def test_store_adapters_share_write_read_contract(
-    tmp_path: Path, principal, index: int
+    tmp_path: Path, principal, backend: str
 ) -> None:
-    store = stores(tmp_path)[index]
+    store = make_store(backend, tmp_path)
     service = MemoryService(store, NullProjection())
     service.initialize()
     receipt = service.write(
@@ -52,20 +47,21 @@ def test_store_adapters_share_write_read_contract(
     )
     assert service.get(principal, receipt.record_id).content == "Adapter conformance"
     assert store.health()["healthy"]
+    store.close()
 
 
-@pytest.mark.parametrize("index", [0, 1])
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
 def test_store_adapters_commit_archive_with_receipt(
     tmp_path: Path,
     principal,
     admin_principal,
-    index: int,
+    backend: str,
 ) -> None:
     from datetime import datetime, timedelta, timezone
 
     from l9_graphite_memory.contracts import MemoryState
 
-    store = stores(tmp_path)[index]
+    store = make_store(backend, tmp_path)
     service = MemoryService(store, NullProjection())
     service.initialize()
     now = datetime.now(timezone.utc)
@@ -88,12 +84,12 @@ def test_store_adapters_commit_archive_with_receipt(
     store.close()
 
 
-@pytest.mark.parametrize("index", [0, 1])
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
 def test_store_adapters_commit_verified_deletion_with_receipt(
     tmp_path: Path,
     principal,
     admin_principal,
-    index: int,
+    backend: str,
 ) -> None:
     from l9_graphite_memory.contracts import (
         DeletionRequest,
@@ -101,7 +97,7 @@ def test_store_adapters_commit_verified_deletion_with_receipt(
         MemoryState,
     )
 
-    store = stores(tmp_path)[index]
+    store = make_store(backend, tmp_path)
     service = MemoryService(store, NullProjection())
     service.initialize()
     write = service.write(
@@ -129,28 +125,13 @@ def test_store_adapters_commit_verified_deletion_with_receipt(
     store.close()
 
 
-@pytest.mark.parametrize("store_kind", ["memory", "sqlite"])
+@pytest.mark.parametrize("store_kind", STORE_BACKENDS)
 def test_projection_link_round_trip(store_kind: str, tmp_path) -> None:
-
-    from l9_graphite_memory.adapters import InMemoryRecordStore, SQLiteRecordStore
-    from l9_graphite_memory.contracts import ProjectionLink
-
-    store = (
-        InMemoryRecordStore()
-        if store_kind == "memory"
-        else SQLiteRecordStore(tmp_path / "projection-links.db")
-    )
+    store = make_store(store_kind, tmp_path)
     store.initialize()
     try:
-        # Projection links are constrained to canonical records. Create a minimal record through fixtures.
-        from l9_graphite_memory.adapters import NullProjection
-        from l9_graphite_memory.contracts import (
-            MemoryPrincipal,
-            MemoryWriteRequest,
-            Provenance,
-        )
-        from l9_graphite_memory.services import MemoryService
-
+        # Projection links are constrained to canonical records, so create one
+        # through the canonical service first.
         principal = MemoryPrincipal(
             principal_id="tester",
             tenant_id="tenant",

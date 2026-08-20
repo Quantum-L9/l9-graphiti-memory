@@ -15,7 +15,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class TokenPrincipalConfig(BaseModel):
@@ -33,6 +33,7 @@ class TokenPrincipalConfig(BaseModel):
     read_namespaces: tuple[str, ...] = ()
     write_namespaces: tuple[str, ...] = ()
     promote_namespaces: tuple[str, ...] = ()
+    maintain_namespaces: tuple[str, ...] = ()
     is_admin: bool = False
     is_global_admin: bool = False
 
@@ -48,7 +49,17 @@ class MemorySettings(BaseModel):
     state_dir: Path = Field(
         default_factory=lambda: Path("~/.local/state/l9-memory").expanduser()
     )
+    # "sqlite" is a local/single-process ledger and is not a distributed
+    # authority. Shared multi-agent deployments must select "postgres" so every
+    # agent and worker reads and writes one canonical store (ADR-072).
+    store_backend: Literal["sqlite", "postgres"] = "sqlite"
     database_path: Path | None = None
+    postgres_dsn: str | None = None
+    postgres_statement_timeout_ms: int = Field(default=30_000, ge=1_000, le=600_000)
+    # Selecting a different backend points at a different canonical store.
+    # Startup refuses when the configured store is empty while a prior ledger
+    # still holds records, unless the operator says that is intended (ADR-077).
+    acknowledge_backend_transition: bool = False
     registry_path: Path | None = None
     workspace_namespace: str = "l9-workspace"
 
@@ -74,12 +85,16 @@ class MemorySettings(BaseModel):
     local_read_namespaces: tuple[str, ...] = ()
     local_write_namespaces: tuple[str, ...] = ()
     local_promote_namespaces: tuple[str, ...] = ()
+    local_maintain_namespaces: tuple[str, ...] = ()
     local_is_admin: bool = False
     local_is_global_admin: bool = False
 
     outbox_batch_size: int = Field(default=50, ge=1, le=1_000)
     outbox_max_attempts: int = Field(default=8, ge=1, le=100)
     outbox_base_delay_seconds: int = Field(default=5, ge=1, le=3_600)
+    # How long a claimed outbox event stays owned before another worker may
+    # recover it. Must exceed the slowest expected projection call.
+    outbox_lease_seconds: int = Field(default=300, ge=5, le=86_400)
 
     default_search_limit: int = Field(default=20, ge=1, le=200)
     default_token_budget: int = Field(default=1_200, ge=128, le=64_000)
@@ -107,6 +122,21 @@ class MemorySettings(BaseModel):
             raise ValueError(f"unsupported log level: {value}")
         return normalized
 
+    @model_validator(mode="after")
+    def validate_store_backend(self) -> MemorySettings:
+        if self.store_backend == "postgres" and not (self.postgres_dsn or "").strip():
+            raise ValueError(
+                "store_backend 'postgres' requires postgres_dsn "
+                "(set L9_MEMORY_POSTGRES_DSN)"
+            )
+        return self
+
     @property
     def resolved_database_path(self) -> Path:
         return (self.database_path or self.data_dir / "memory.sqlite3").expanduser()
+
+    @property
+    def is_shared_store(self) -> bool:
+        """True when canonical state is shared rather than process-local."""
+
+        return self.store_backend == "postgres"

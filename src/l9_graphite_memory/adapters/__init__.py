@@ -12,7 +12,8 @@
 
 The canonical control plane is ``MemoryService``; the supported way to obtain a
 store is :func:`build_store`, which returns a ``RecordStore`` bound to the
-service. The concrete ``InMemoryRecordStore`` / ``SQLiteRecordStore`` classes are
+service. The concrete ``InMemoryRecordStore`` / ``SQLiteRecordStore`` / ``PostgresRecordStore``
+classes are
 intentionally left out of ``__all__`` so ``from ...adapters import *`` does not
 advertise them as a public write surface (their canonical-mutation methods now
 require the service-issued write capability regardless — see
@@ -30,6 +31,7 @@ from .graphiti_projection import GraphitiProjection
 # capability regardless (ports.service_capability, ADR-036).
 from .in_memory_store import InMemoryRecordStore as InMemoryRecordStore
 from .null_projection import NullProjection
+from .postgres_store import PostgresRecordStore as PostgresRecordStore
 from .sqlite_store import SQLiteRecordStore as SQLiteRecordStore
 
 __all__ = [

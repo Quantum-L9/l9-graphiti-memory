@@ -11,14 +11,9 @@
 """L9 Graphite Memory public API."""
 
 from . import contracts
-from .integrations import (
-    ContextRestorer,
-    SessionEvent,
-    SessionIngestor,
-    SessionIngestResult,
-)
+from .integrations import ContextRestorer, SessionEvent, SessionIngestor
 from .integrity import CheckpointEnvelope, CheckpointIntegrity
-from .recovery import FileWriteRecoveryQueue, RecoveryReplayReport
+from .migration import LegacyDrainReport, LegacyWriteQueueDrain
 from .sdk import MemorySDK
 from .services.memory_service import MemoryService
 from .version import MEMORY_SCHEMA_VERSION, PACKAGE_VERSION
@@ -31,12 +26,11 @@ __all__ = [
     "CheckpointEnvelope",
     "CheckpointIntegrity",
     "ContextRestorer",
-    "FileWriteRecoveryQueue",
+    "LegacyDrainReport",
+    "LegacyWriteQueueDrain",
     "MemorySDK",
     "MemoryService",
-    "RecoveryReplayReport",
     "SessionEvent",
-    "SessionIngestResult",
     "SessionIngestor",
     "__version__",
     "contracts",

@@ -24,7 +24,39 @@ l9-memory health
 
 Published package: `pip install l9-graphite-memory`.
 
-The default database is `~/.local/share/l9-memory/memory.sqlite3`. Gate and recovery state is under `~/.local/state/l9-memory`.
+The default canonical store is SQLite at `~/.local/share/l9-memory/memory.sqlite3`. Gate state is under `~/.local/state/l9-memory`.
+
+A SQLite file is authoritative only for processes that can open it. Any deployment where more than one agent, worker, or scheduled job must share memory requires the shared backend (ADR-072):
+
+```bash
+export L9_MEMORY_STORE_BACKEND=postgres
+# Resolve the DSN from the runtime secret path; never write it into a file in
+# this repository. Require TLS with sslmode=require in the DSN.
+export L9_MEMORY_POSTGRES_DSN="$(read_secret l9/memory/postgres_dsn)"
+l9-memory health
+```
+
+Startup fails if `postgres` is selected without a DSN. Never point two deployments at two different SQLite files and treat them as one memory.
+
+### Changing backends
+
+Changing `L9_MEMORY_STORE_BACKEND` points the control plane at a *different* canonical store. Your existing records are not moved — moving them is a separate, evidence-bound operation that this package deliberately does not perform (ADR-072).
+
+Startup refuses when the configured store is empty while a prior ledger still holds records, and names the ledger and its record count (ADR-077):
+
+```
+canonical store backend 'postgres' is empty, but this deployment has a prior
+canonical ledger that still holds records:
+  - sqlite at /root/.local/share/l9-memory/memory.sqlite3 (1482 records)
+```
+
+If the switch is a deliberate fresh start, say so:
+
+```bash
+export L9_MEMORY_ACKNOWLEDGE_BACKEND_TRANSITION=1
+```
+
+The guard only detects a local SQLite ledger, because that is all it can read without credentials. A move between two remote backends is not detected — verify those by hand before cutting over.
 
 ## Local standalone mode
 
@@ -153,15 +185,72 @@ l9-memory-worker --once
 
 Zep health is `unverified` until a real operation succeeds. Configuration alone is not connectivity proof.
 
-## Ingress recovery
+## Scheduled maintenance
 
-When an adapter cannot reach the canonical service, enqueue the typed write request through the recovery API rather than writing provider or database state directly. Replay later:
+Semantic duplication is admitted on the hot path and resolved later (ADR-071, ADR-075). Maintenance operates only on records that are already canonical.
+
+Always review a plan before applying it:
 
 ```bash
-l9-memory recovery-replay --limit 100
+l9-memory maintain --group-id repo-a                 # dry run; prints the plan
+l9-memory maintain --group-id repo-a --apply
 ```
 
-Replayed requests still pass authorization, consent, admission, idempotency, and canonical persistence.
+Restrict a run with repeatable `--operation` values (`dedupe`, `refine`, `supersede`, `archive`, `reconcile`), and bound it with `--max-records` and `--max-actions`.
+
+The principal needs `MAINTAIN` on the namespace and nothing else. Grant it with `L9_MEMORY_LOCAL_MAINTAIN_NAMESPACES`, or `maintain_namespaces` on a token principal. Do not give a maintenance credential `is_admin`.
+
+Consolidation is additive: it writes a derived record citing its sources and marks the sources `superseded`. Nothing is rewritten in place, so a consolidation judged wrong can be undone by an explicit governance action.
+
+`reconcile` reports contradictions it must not resolve. Those findings recur on every run until someone settles them — that is deliberate, not a loop.
+
+### Nightly scheduled run
+
+`.github/workflows/nightly-maintenance.yml` runs maintenance at 02:00 America/New_York.
+
+GitHub evaluates cron in UTC only, so the workflow fires at both 06:00 and 07:00 UTC (02:00 EDT and 02:00 EST) and `tools/ci/nightly_maintenance_gate.py` admits exactly one. On the spring-forward date, when 02:00 local does not exist, the gate admits the 03:00 firing so the day is not skipped.
+
+The runner is a caller, not a replica. It reaches the shared canonical store over the network (ADR-072) and never creates, caches, uploads, downloads, or commits a database file.
+
+Configure before enabling:
+
+| Setting | Kind | Purpose |
+|---|---|---|
+| `L9_MEMORY_POSTGRES_DSN` | environment secret | shared canonical store, TLS required |
+| `L9_MEMORY_TENANT_ID` | environment variable | tenant the run operates in |
+| `L9_MEMORY_MAINTENANCE_NAMESPACES` | environment variable | comma-separated namespaces to maintain |
+
+Scope the credential to the `memory-maintenance` GitHub environment. The workflow grants the run `MAINTAIN` only — it sets no write, promote, or administrator namespaces, and the database role it connects as should be similarly restricted.
+
+Scheduled runs apply. `workflow_dispatch` defaults to a dry run; tick `apply` to make a manual run take effect.
+
+## Rebuilding a projection
+
+Projections are derivations, so they can always be rebuilt from canonical state. Retiring a projection on a provider with no deactivation primitive (Graphiti) removes the projected episode, so restoring an archived record to active leaves it invisible to projection-backed search until it is re-projected (ADR-076):
+
+```bash
+l9-memory rebuild-projection --group-id repo-a            # dry run
+l9-memory rebuild-projection --group-id repo-a --apply
+```
+
+This queues a projection event for every active record with no live projection link, then the outbox worker delivers them. It requires `MAINTAIN` to apply and never touches canonical state. A large rebuild generates provider traffic proportional to the namespace, so run it deliberately.
+
+Every retirement writes a `ProjectionRetirementReceipt` to canonical state recording the mode, locator, and reason. That is what distinguishes a retirement from a privacy erasure — the provider's own log cannot, since both use `delete_episode`.
+
+## Canonical write failure
+
+Canonical ingestion is immediate (ADR-070). When the canonical store is unreachable, the write call raises and the caller must surface that failure. Do not record a local success, and never write provider or database state directly as a fallback. Restore the canonical store, then have the caller retry with the same explicit `idempotency_key` so the retry is recognized as the same operation.
+
+### Draining a retired deferred-ingestion queue
+
+Releases before v2.3 kept an ingress recovery queue under `<state_dir>/write-recovery`. Drain it once, then remove the directory:
+
+```bash
+l9-memory drain-legacy-write-queue --dry-run --limit 100
+l9-memory drain-legacy-write-queue --limit 100
+```
+
+Drained requests still pass authorization, consent, admission, idempotency, and canonical persistence. The command exits non-zero while any item remains unreadable or undeliverable, and preserves those files rather than dropping them.
 
 ## Backup and restore
 
@@ -194,7 +283,12 @@ Never restore secrets into the repository.
 | phase lock denied | conflicts exist or retrieval is indeterminate | reconcile and request a new lock |
 | projection event retrying | provider unavailable or locator/tool missing | repair provider and rerun worker |
 | outbox dead event | retries exhausted | inspect event and replay deliberately after remediation |
-| recovery item pending | canonical service unavailable | restore service, then replay |
+| outbox event stuck PROCESSING | worker died mid-delivery | none; the lease expires after `L9_MEMORY_OUTBOX_LEASE_SECONDS` and the next claim cycle recovers it |
+| worker reports `lease_lost` | delivery outran the lease and another worker recovered the event | raise `L9_MEMORY_OUTBOX_LEASE_SECONDS` above the slowest projection call |
+| write raised StoreError | canonical store unavailable | restore the store, then retry with the same idempotency key |
+| maintenance reports a reconcile action every night | a contradiction is unresolved | settle the conflicting records through governance; the finding is not suppressed until then |
+| maintenance action failed with `quarantined` | admission held the derived record for review | review the quarantined candidate as an administrator |
+| legacy queue item retained | pre-v2.3 queued write could not be admitted | inspect the preserved file and the reported error |
 | prefetch hook error | hydration failed | leave gates off during diagnosis or restore service |
 
 ## Release validation

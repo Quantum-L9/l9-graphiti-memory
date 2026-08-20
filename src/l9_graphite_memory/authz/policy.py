@@ -34,6 +34,8 @@ class NamespacePolicy:
             return principal.write_namespaces
         if action is AuthorizationAction.PROMOTE:
             return principal.promote_namespaces
+        if action is AuthorizationAction.MAINTAIN:
+            return principal.maintain_namespaces
         if action in {AuthorizationAction.ARCHIVE, AuthorizationAction.ADMIN}:
             return ("*",) if principal.is_admin else ()
         return ()

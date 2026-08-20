@@ -70,8 +70,8 @@ entries:
     sources: [all_packs]
     status: implemented
     implementation_paths: [src/l9_graphite_memory/services/memory_service.py, src/l9_graphite_memory/adapters/sqlite_store.py]
-    test_paths: [tests/integration/test_memory_service.py, tests/conformance/test_store_contract.py]
-    adr_paths: [docs/adr/ADR-008-idempotency-deduplication-and-supersession.md]
+    test_paths: [tests/integration/test_memory_service.py, tests/conformance/test_store_contract.py, tests/integration/test_operation_identity.py]
+    adr_paths: [docs/adr/ADR-008-idempotency-deduplication-and-supersession.md, docs/adr/ADR-071-operation-identity-versus-semantic-digest.md]
   - id: H-009
     concept: Typed hydration with authorized namespaces and token budgeting
     sources: [l9_ops_commit_pack, memory_packs, original_repo]
@@ -139,16 +139,69 @@ entries:
     concept: Durable atomic outbox retries replay and terminal dead-letter state
     sources: [l9_ops_commit_pack, legacy_memory_pack, original_repo]
     status: implemented
-    implementation_paths: [src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/sqlite_store.py]
-    test_paths: [tests/integration/test_outbox.py]
-    adr_paths: [docs/adr/ADR-018-outbox-and-write-recovery.md, docs/adr/ADR-046-core-commit-versus-asynchronous-enrichment.md]
+    implementation_paths: [src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/sqlite_store.py, src/l9_graphite_memory/adapters/postgres_store.py]
+    test_paths: [tests/integration/test_outbox.py, tests/integration/test_outbox_leases.py]
+    adr_paths: [docs/adr/ADR-018-outbox-and-write-recovery.md, docs/adr/ADR-046-core-commit-versus-asynchronous-enrichment.md, docs/adr/ADR-073-leased-outbox-claims.md]
+  - id: H-018a
+    concept: Shared durable canonical store for multi-agent deployments
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/adapters/postgres_store.py, src/l9_graphite_memory/adapters/factory.py, src/l9_graphite_memory/config/models.py]
+    test_paths: [tests/conformance/test_store_contract.py, tests/conformance/test_shared_canonical_store.py]
+    adr_paths: [docs/adr/ADR-072-shared-canonical-store-backend.md]
   - id: H-019
     concept: Ingress recovery queue for unavailable canonical service
     sources: [l9_ops_commit_pack, legacy_memory_pack]
+    status: rejected_boundary
+    rationale: >-
+      Deferred canonical ingestion created a second definition of a successful
+      write: a caller could be told the operation succeeded while no canonical
+      record, receipt, or admission decision existed. ADR-070 makes ingestion
+      immediate or an explicit failure. Legacy queue state is drained one way by
+      migration/legacy_write_queue.py, which has no enqueue path.
+    adr_paths: [docs/adr/ADR-070-immediate-canonical-ingestion.md, docs/adr/ADR-055-canonical-ingress-write-recovery-queue.md]
+  - id: H-019a
+    concept: One-way drain of retired deferred-ingestion queue state
+    sources: [l9_ops_commit_pack]
     status: implemented
-    implementation_paths: [src/l9_graphite_memory/recovery/write_queue.py]
-    test_paths: [tests/integration/test_write_recovery.py]
-    adr_paths: [docs/adr/ADR-055-canonical-ingress-write-recovery-queue.md]
+    implementation_paths: [src/l9_graphite_memory/migration/legacy_write_queue.py]
+    test_paths: [tests/integration/test_immediate_canonical_ingestion.py]
+    adr_paths: [docs/adr/ADR-070-immediate-canonical-ingestion.md]
+  - id: H-019b
+    concept: Projection retirement lifecycle distinct from privacy erasure
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/ports/projection.py, src/l9_graphite_memory/services/memory_service.py, src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/graphiti_projection.py]
+    test_paths: [tests/integration/test_projection_lifecycle.py]
+    adr_paths: [docs/adr/ADR-074-projection-retirement-lifecycle.md]
+  - id: H-019c
+    concept: Scheduled canonical-memory maintenance under least-privilege authority
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/maintenance/planner.py, src/l9_graphite_memory/maintenance/service.py, src/l9_graphite_memory/contracts/maintenance.py]
+    test_paths: [tests/integration/test_maintenance_engine.py, tests/unit/test_maintenance_authority.py, tests/conformance/test_maintenance_ledger.py]
+    adr_paths: [docs/adr/ADR-075-scheduled-canonical-memory-maintenance.md]
+  - id: H-019d
+    concept: GitHub-hosted nightly maintenance scheduling at 02:00 America/New_York
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [.github/workflows/nightly-maintenance.yml, tools/ci/nightly_maintenance_gate.py]
+    test_paths: [tests/unit/test_nightly_maintenance_schedule.py]
+    adr_paths: [docs/adr/ADR-075-scheduled-canonical-memory-maintenance.md]
+  - id: H-019e
+    concept: Projection retirement capability ceiling, receipts, and rebuild
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/contracts/projection.py, src/l9_graphite_memory/services/memory_service.py, src/l9_graphite_memory/services/outbox_worker.py, src/l9_graphite_memory/adapters/graphiti_projection.py]
+    test_paths: [tests/integration/test_projection_retirement_recovery.py]
+    adr_paths: [docs/adr/ADR-076-projection-retirement-capability-ceiling.md]
+  - id: H-018b
+    concept: Canonical store backend transition guard
+    sources: [l9_ops_commit_pack]
+    status: implemented
+    implementation_paths: [src/l9_graphite_memory/migration/backend_transition.py, src/l9_graphite_memory/adapters/factory.py]
+    test_paths: [tests/unit/test_backend_transition_guard.py]
+    adr_paths: [docs/adr/ADR-077-canonical-store-backend-transition-safety.md]
   - id: H-020
     concept: Session ingestion and context restoration adapters
     sources: [l9_ops_commit_pack]

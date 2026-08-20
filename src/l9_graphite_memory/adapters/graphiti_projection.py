@@ -17,7 +17,7 @@ import re
 from typing import Any
 from uuid import UUID
 
-from l9_graphite_memory.contracts import MemoryRecord
+from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.ports import ProjectionHit
 from l9_graphite_memory.transport import MemoryTransport
@@ -28,6 +28,10 @@ _RECORD_ID_PATTERN = re.compile(r'"record_id"\s*:\s*"([0-9a-fA-F-]{36})"')
 class GraphitiProjection:
     name = "graphiti"
     capabilities: tuple[str, ...] = ("graph-search", "semantic-search")
+    # Graphiti exposes delete_episode and no deactivation primitive, so
+    # retirement removes the projected episode and is undone by re-projection
+    # rather than by reactivating in place (ADR-076).
+    retirement_mode = RetirementMode.WITHDRAW
 
     def __init__(self, transport: MemoryTransport) -> None:
         self.transport = transport
@@ -92,6 +96,47 @@ class GraphitiProjection:
             raise ProjectionError(f"projection write failed: {result['error']}")
         locator = self._extract_locator(result) or str(record.record_id)
         return {**result, "locator": locator, "record_id": str(record.record_id)}
+
+    def retire(
+        self,
+        record_id: UUID,
+        namespace: str,
+        *,
+        locator: str | None = None,
+        reason: str = "",
+    ) -> dict[str, Any]:
+        """Withdraw a superseded or archived episode from the graph.
+
+        Graphiti exposes no native "mark inactive" primitive, so withdrawing a
+        projection means removing the projected episode with ``delete_episode``.
+        That shared primitive is the only overlap with erasure: retirement
+        leaves the canonical record whole, produces no deletion receipt and no
+        tombstone, and the projection is rebuildable from canonical state at
+        any time (ADR-074).
+        """
+
+        if not locator or not locator.strip():
+            raise ProjectionError(
+                f"projection locator missing for record {record_id} in namespace {namespace}"
+            )
+        tools = set(self.transport.list_tools())
+        if "delete_episode" not in tools:
+            raise ProjectionError(
+                f"transport {self.transport.name} does not expose delete_episode; "
+                "projection retirement cannot complete"
+            )
+        result = self.transport.call_tool("delete_episode", {"uuid": locator})
+        if isinstance(result, dict) and result.get("error"):
+            raise ProjectionError(f"projection retirement failed: {result['error']}")
+        return {
+            "retired": True,
+            "erased": False,
+            "record_id": str(record_id),
+            "namespace": namespace,
+            "locator": locator,
+            "reason": reason,
+            "provider_result": result,
+        }
 
     def erase(
         self,

@@ -100,7 +100,8 @@ Sensitive profile writes require purpose-bound consent evidence. Verified deleti
 health, resolve, write, search, hydrate, get, stats, conflicts,
 phase-lock, verify-phase-lock, lineage, bootstrap, import, distill,
 inject, autoseed-check, prune, promote, delete,
-synthesize-procedures, outbox-run, recovery-replay
+synthesize-procedures, maintain, rebuild-projection, outbox-run,
+drain-legacy-write-queue
 ```
 
 Legacy MCP aliases `write`, `search`, `health`, `bootstrap`, `phase_lock`, and `conflicts` remain thin adapters to canonical `memory.*` handlers.
@@ -108,6 +109,11 @@ Legacy MCP aliases `write`, `search`, `health`, `bootstrap`, `phase_lock`, and `
 ## Configuration
 
 Copy `config/memory.yaml.example` and set `L9_MEMORY_CONFIG` to its path. Environment variables override YAML. Cursor and Claude config writers persist commands and non-secret settings only. Cursor instantiation is governed by the canonical `l9-memory client cursor` lifecycle (`inspect`, `install`, `verify`, `status`, `uninstall`); see `docs/CURSOR_INSTANTIATION.md` and ADR-064.
+
+Canonical store choices:
+
+- `sqlite` (default): a single-process local ledger. Not a distributed authority — only processes that can open the file share the memory.
+- `postgres`: the shared backend for multi-agent and scheduled deployments. Requires `L9_MEMORY_POSTGRES_DSN` and the `postgres` extra (`pip install 'l9-graphite-memory[postgres]'`). See ADR-072.
 
 Projection choices:
 

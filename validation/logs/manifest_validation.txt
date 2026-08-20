@@ -1,1 +1,1 @@
-PASS: 632 manifested files exist with matching size and SHA-256
+PASS: 660 manifested files exist with matching size and SHA-256

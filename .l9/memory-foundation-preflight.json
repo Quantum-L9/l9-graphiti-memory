@@ -1,0 +1,45 @@
+{
+  "preflight_id": "preflight.plan.memory.l9_graphiti_foundation.v1",
+  "source_ref": "plan.memory.l9_graphiti_foundation.v1",
+  "phase_id": "preflight",
+  "blocking": true,
+  "immutable_baseline": {
+    "repository": "Quantum-L9/l9-graphiti-memory",
+    "commit_sha": "f690d3f928391264cbffb8f507ad9acbba339603",
+    "branch": "claude/l9-graphiti-memory-foundation-4elt0e",
+    "dirty": false,
+    "allowed_local_dirt": "none",
+    "verification_rule": "reverify_at_execution_start"
+  },
+  "baseline_verified": true,
+  "drift_detected": false,
+  "probes": [
+    {"id": "CP-01", "capability": "branch + HEAD resolution", "result": "pass", "evidence": "git rev-parse HEAD == f690d3f928391264cbffb8f507ad9acbba339603 on claude/l9-graphiti-memory-foundation-4elt0e"},
+    {"id": "CP-02", "capability": "clean/known worktree", "result": "pass", "evidence": "git status --short produced no output"},
+    {"id": "CP-03", "capability": "repository write", "result": "pass", "evidence": "implementation paths under src/, tests/, .github/workflows/ are writable"},
+    {"id": "CP-04", "capability": "test runtime", "result": "pass_with_known_baseline_failure", "evidence": "uv sync --frozen --no-install-project --no-build --extra dev --extra server; pytest -q => 281 passed, 1 failed", "known_baseline_failure": {"test": "tests/regression/test_recursive_alignment.py::test_recursive_alignment_has_no_violations", "root_cause": "manifest.json and inline L9_META carriers were not regenerated when the generated-data wave files merged in #30; the owning generators are tools/assurance/apply_l9_meta.py and tools/assurance/generate_manifest.py", "remediation": "regenerate with the owning tooling during convergence, never by hand"}},
+    {"id": "CP-05", "capability": "shared SQL backend test capability", "result": "pass", "evidence": "PostgreSQL 16.13 server started locally on port 55432; psycopg2-binary 2.9.12 connects to database l9memtest"},
+    {"id": "CP-06", "capability": "GitHub Actions syntax capability", "result": "pass", "evidence": ".github/workflows/ci.yml parses as YAML; repository workflow conventions inspected"},
+    {"id": "CP-07", "capability": "remote push authority", "result": "deferred_to_convergence", "evidence": "origin https://github.com/Quantum-L9/l9-graphiti-memory; inspection only before convergence"}
+  ],
+  "seam_audit": {
+    "SP-02_SP-03_deferred_ingestion": [
+      "src/l9_graphite_memory/recovery/write_queue.py (FileWriteRecoveryQueue persists MemoryWriteRequest for later canonical ingestion)",
+      "src/l9_graphite_memory/integrations/session.py::SessionIngestor.ingest_or_queue (returns status='queued' on StoreError/OSError)",
+      "src/l9_graphite_memory/cli.py::cmd_recovery_replay + 'recovery-replay' subcommand",
+      "src/l9_graphite_memory/__init__.py re-exports FileWriteRecoveryQueue / RecoveryReplayReport"
+    ],
+    "SP-04_identity": "MemoryService._idempotency_key falls back to f'memory:{namespace}:{normalized_digest}' so semantic content, not operation identity, governs admission",
+    "SP-05_SP-06_store": "adapters/factory.py::build_store hard-codes SQLiteRecordStore; MemorySettings has no store-backend selector",
+    "SP-07_outbox": "adapters/sqlite_store.py::claim_outbox marks PROCESSING with no lease; abandoned claims never return to PENDING/RETRY",
+    "SP-08_SP-09_projection": "ports/projection.py exposes project/erase only; supersession and archive emit no projection retirement intent, so retirement would have to reuse privacy erasure",
+    "SP-10_SP-11_maintenance": "AuthorizationAction has no MAINTAIN member; ARCHIVE/ADMIN resolve to ('*',) only when principal.is_admin, forcing a blanket-administrator scheduler credential; no maintenance request/receipt contracts exist"
+  },
+  "envelope_constraints": {
+    "allowed_sql_files_allowlist": "tools/assurance/check_memory_write_bypass.py::_ALLOWED_SQL_FILES must admit any new SQL-bearing store adapter",
+    "allowed_commit_callers": "tools/assurance/check_memory_write_bypass.py::_ALLOWED_COMMIT_CALLERS restricts commit_write to services/memory_service.py",
+    "layer_boundaries": "tools/assurance/check_layer_boundaries.py forbids core modules importing cli/server/transport/secrets/authz.authenticator/integrations",
+    "cursor_governance": "write_deny: no mutation to Quantum-L9/Cursor-Governance in this execution"
+  },
+  "decision": "proceed"
+}

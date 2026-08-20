@@ -21,8 +21,39 @@ from .sqlite_store import SQLiteRecordStore
 
 
 def build_store(settings: MemorySettings) -> RecordStore:
-    store = SQLiteRecordStore(settings.resolved_database_path)
+    """Construct the configured canonical store. There is no silent fallback."""
+
+    store: RecordStore
+    if settings.store_backend == "sqlite":
+        store = SQLiteRecordStore(settings.resolved_database_path)
+    elif settings.store_backend == "postgres":
+        if not settings.postgres_dsn:
+            raise ConfigurationError(
+                "L9_MEMORY_POSTGRES_DSN is required for the postgres store backend"
+            )
+        from .postgres_store import PostgresRecordStore
+
+        store = PostgresRecordStore(
+            settings.postgres_dsn,
+            statement_timeout_ms=settings.postgres_statement_timeout_ms,
+        )
+    else:
+        raise ConfigurationError(
+            f"unsupported store backend: {settings.store_backend}"
+        )
     store.initialize()
+
+    # A freshly initialized store reports itself healthy with zero records.
+    # Refuse to start quietly in that state when a prior ledger still holds
+    # this deployment's memory (ADR-077).
+    from l9_graphite_memory.migration.backend_transition import (
+        detect_backend_transition,
+    )
+
+    report = detect_backend_transition(settings, store)
+    if report.blocking:
+        store.close()
+        raise ConfigurationError(report.describe())
     return store
 
 

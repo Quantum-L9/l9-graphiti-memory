@@ -21,6 +21,29 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.13']
+    # The shared canonical store is the production backend (ADR-072), so CI
+    # runs the store, ledger, outbox-lease, and maintenance matrices against a
+    # real PostgreSQL instance. Without it those cases skip and the suite would
+    # report green while never exercising the backend deployments actually use.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # Throwaway per-job container reachable only from this job, so it
+          # carries no password to commit. Production deployments use a real
+          # credential resolved from the runtime secret path (ADR-072).
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: l9memtest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
@@ -28,7 +51,7 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: Sync locked environment
-        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server
+        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres
       - name: Put uv venv on PATH
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Expose src on PYTHONPATH

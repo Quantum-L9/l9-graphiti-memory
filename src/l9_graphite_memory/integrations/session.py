@@ -25,8 +25,6 @@ from l9_graphite_memory.contracts import (
     Provenance,
     WriteReceipt,
 )
-from l9_graphite_memory.errors import StoreError
-from l9_graphite_memory.recovery import FileWriteRecoveryQueue, QueuedWrite
 from l9_graphite_memory.services import MemoryService
 
 
@@ -41,23 +39,16 @@ class SessionEvent(BaseModel):
     tags: tuple[str, ...] = ()
 
 
-class SessionIngestResult(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    status: str
-    receipt: WriteReceipt | None = None
-    queued_write: QueuedWrite | None = None
-    error: str | None = None
-
-
 class SessionIngestor:
-    def __init__(
-        self,
-        service: MemoryService,
-        recovery_queue: FileWriteRecoveryQueue | None = None,
-    ) -> None:
+    """Admit session events as canonical memory during the ingest call.
+
+    There is no deferred outcome: :meth:`ingest` either returns a canonical
+    write receipt or raises. A caller that cannot tolerate a failed write must
+    surface that failure, not record a local success.
+    """
+
+    def __init__(self, service: MemoryService) -> None:
         self.service = service
-        self.recovery_queue = recovery_queue
 
     @staticmethod
     def request(
@@ -108,31 +99,6 @@ class SessionIngestor:
             principal,
             self.request(principal, event, namespace=namespace, dry_run=dry_run),
         )
-
-    def ingest_or_queue(
-        self,
-        principal: MemoryPrincipal,
-        event: SessionEvent,
-        *,
-        namespace: str,
-        dry_run: bool = False,
-    ) -> SessionIngestResult:
-        request = self.request(principal, event, namespace=namespace, dry_run=dry_run)
-        try:
-            return SessionIngestResult(
-                status="delivered",
-                receipt=self.service.write(principal, request),
-            )
-        except (OSError, StoreError) as exc:
-            if self.recovery_queue is None:
-                raise
-            error = f"{type(exc).__name__}: {exc}"
-            queued = self.recovery_queue.enqueue(request, error=error)
-            return SessionIngestResult(
-                status="queued",
-                queued_write=queued,
-                error=error,
-            )
 
 
 class ContextRestorer:

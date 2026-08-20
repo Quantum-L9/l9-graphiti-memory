@@ -86,7 +86,28 @@ class AuthorizationAction(str, Enum):
     WRITE = "write"
     PROMOTE = "promote"
     ARCHIVE = "archive"
+    # Least-privilege authority for scheduled canonical-memory maintenance.
+    # It permits consolidating, superseding, and archiving records that are
+    # already canonical. It does not permit ingestion, deletion, or
+    # administration (ADR-075).
+    MAINTAIN = "maintain"
     ADMIN = "admin"
+
+
+class MaintenanceOperation(str, Enum):
+    """Bounded set of transformations scheduled maintenance may perform."""
+
+    DEDUPE = "dedupe"
+    REFINE = "refine"
+    SUPERSEDE = "supersede"
+    ARCHIVE = "archive"
+    RECONCILE = "reconcile"
+
+
+class MaintenanceStatus(str, Enum):
+    PLANNED = "planned"
+    APPLIED = "applied"
+    FAILED = "failed"
 
 
 class OutboxStatus(str, Enum):

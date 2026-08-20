@@ -19,6 +19,7 @@ from uuid import UUID
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
+    MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
     MemoryState,
@@ -27,6 +28,8 @@ from l9_graphite_memory.contracts import (
     OutboxStatus,
     PhaseLockReceipt,
     ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
     WriteReceipt,
 )
 
@@ -87,7 +90,16 @@ class RecordStore(Protocol):
         self, tenant_id: str, namespace: str, task_signature: str
     ) -> PhaseLockReceipt | None: ...
 
-    def claim_outbox(self, *, limit: int, now: datetime) -> list[OutboxEvent]: ...
+    def claim_outbox(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+        lease_seconds: int = 300,
+        lease_owner: str = "outbox-worker",
+    ) -> list[OutboxEvent]:
+        """Lease due events, including any whose prior lease has expired."""
+        ...
 
     def update_outbox(
         self,
@@ -98,7 +110,10 @@ class RecordStore(Protocol):
         next_attempt_at: datetime,
         last_error: str | None,
         delivered_at: datetime | None = None,
-    ) -> None: ...
+        lease_id: UUID | None = None,
+    ) -> None:
+        """Settle a leased event. A non-matching ``lease_id`` must be rejected."""
+        ...
 
     def outbox_backlog(self) -> int: ...
 
@@ -112,7 +127,54 @@ class RecordStore(Protocol):
 
     def delete_projection_link(self, record_id: UUID, projection_name: str) -> None: ...
 
+    def save_projection_retirement(
+        self, receipt: ProjectionRetirementReceipt
+    ) -> None:
+        """Record that a projection was withdrawn, and why, in canonical state."""
+        ...
+
+    def list_unprojected_records(
+        self,
+        tenant_id: str,
+        namespace: str,
+        projection_name: str,
+        *,
+        limit: int = 1_000,
+    ) -> list[MemoryRecord]:
+        """Active records with no live projection link for this provider."""
+        ...
+
+    def commit_projection_rebuild(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ProjectionRebuildReceipt,
+        *,
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        """Atomically record a rebuild and enqueue its projection events.
+
+        A canonical mutation, so it requires the service-issued capability
+        like the other four (ADR-036).
+        """
+        ...
+
     def stats(self) -> dict[str, Any]: ...
+
+    def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
+        """Append one maintenance run to the ledger."""
+        ...
+
+    def get_maintenance_watermark(
+        self, tenant_id: str, namespace: str
+    ) -> datetime | None:
+        """Watermark of the most recent applied run, or None if never run."""
+        ...
+
+    def find_maintenance_action_digests(
+        self, tenant_id: str, namespace: str
+    ) -> frozenset[str]:
+        """Digests of actions already applied, so a rerun does not repeat them."""
+        ...
 
     def list_expired(
         self,
@@ -128,6 +190,7 @@ class RecordStore(Protocol):
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None: ...
 
     def commit_deletion(

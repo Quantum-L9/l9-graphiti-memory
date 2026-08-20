@@ -46,12 +46,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        # 290 is the count with no sibling Cursor-Governance checkout, which is
-        # what CI sees. The four cross-repo contract tests skip without it, so a
-        # workspace that has both repos side by side reports 294 instead; set
-        # CURSOR_GOVERNANCE_ROOT to a nonexistent path to reproduce CI locally.
-        "290 tests pass",
-        r"290 passed",
+        # 487 is the count CI produces: the postgres service is present so the
+        # shared-backend matrix runs, while the four cross-repo contract tests
+        # skip because CI checks out only this repository. A workspace with a
+        # sibling Cursor-Governance checkout reports 491 instead; point
+        # CURSOR_GOVERNANCE_ROOT at a nonexistent path to reproduce CI.
+        "487 tests pass",
+        r"487 passed",
     ),
     CheckSpec(
         "V-002",
@@ -68,8 +69,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "docs/adr/",
         "validate_adrs.py",
         "logs/adr_validation.txt",
-        "69 ADRs complete and indexed",
-        r"PASS: 69 ADRs",
+        "77 ADRs complete and indexed",
+        r"PASS: 77 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -77,8 +78,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "docs/harvest_decisions.yaml",
         "validate_harvest_coverage.py",
         "logs/harvest_coverage.txt",
-        "44 harvest decisions closed",
-        r"PASS: 44 harvest decisions",
+        "51 harvest decisions closed",
+        r"PASS: 51 harvest decisions",
     ),
     CheckSpec(
         "V-005",
@@ -140,8 +141,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "production Python",
         "check_source_quality.py",
         "logs/source_quality.txt",
-        "109 production files pass",
-        r"PASS: 109 production Python files",
+        "115 production files pass",
+        r"PASS: 115 production Python files",
     ),
     CheckSpec(
         "V-012",

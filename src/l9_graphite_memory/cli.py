@@ -28,12 +28,15 @@ from l9_graphite_memory.client_config import (
     probe_generated_server,
 )
 from l9_graphite_memory.contracts import (
+    ALL_MAINTENANCE_OPERATIONS,
     Confidence,
     ConsentGrant,
     DeletionRequest,
     EvidenceKind,
     EvidenceRef,
     HydrationRequest,
+    MaintenanceOperation,
+    MaintenanceRequest,
     MemoryAssertion,
     MemoryClass,
     MemoryPrincipal,
@@ -52,8 +55,9 @@ from l9_graphite_memory.errors import L9MemoryError
 from l9_graphite_memory.extraction import SourceDistiller
 from l9_graphite_memory.group_resolver import GroupResolution, resolve_group
 from l9_graphite_memory.ingestion import DocumentIngestor, RepositoryBootstrapper
+from l9_graphite_memory.maintenance import MaintenanceService
 from l9_graphite_memory.memory_guard import GuardEvidence
-from l9_graphite_memory.recovery import FileWriteRecoveryQueue
+from l9_graphite_memory.migration import LEGACY_QUEUE_DIRNAME, LegacyWriteQueueDrain
 from l9_graphite_memory.runtime import (
     MemoryRuntime,
     build_runtime,
@@ -600,6 +604,57 @@ def cmd_prune(args: argparse.Namespace) -> int:
         runtime.close()
 
 
+def cmd_rebuild_projection(args: argparse.Namespace) -> int:
+    """Re-project active records that have no live projection link."""
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        receipt = runtime.service.rebuild_projection(
+            principal,
+            namespace,
+            apply=args.apply,
+            limit=args.limit,
+            reason=args.reason,
+        )
+        _print(receipt)
+        return 0
+    finally:
+        runtime.close()
+
+
+def cmd_maintain(args: argparse.Namespace) -> int:
+    """Run scheduled canonical-memory maintenance for one namespace."""
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        operations = (
+            tuple(MaintenanceOperation(value) for value in args.operation)
+            if args.operation
+            else ALL_MAINTENANCE_OPERATIONS
+        )
+        request = MaintenanceRequest(
+            namespace=namespace,
+            operations=operations,
+            max_records=args.max_records,
+            max_actions=args.max_actions,
+            dry_run=not args.apply,
+            reason=args.reason,
+        )
+        receipt = MaintenanceService(runtime.service).run(principal, request)
+        _print(receipt)
+        return 0 if not receipt.failures else 2
+    finally:
+        runtime.close()
+
+
 def cmd_synthesize_procedures(args: argparse.Namespace) -> int:
     runtime = _runtime(args)
     try:
@@ -691,16 +746,23 @@ def cmd_outbox_run(args: argparse.Namespace) -> int:
         runtime.close()
 
 
-def cmd_recovery_replay(args: argparse.Namespace) -> int:
+def cmd_drain_legacy_write_queue(args: argparse.Namespace) -> int:
+    """Drain a queue left behind by the retired deferred-ingestion release."""
+
     runtime = _runtime(args)
     try:
         resolution, principal = _context(runtime, args)
         if not resolution.group_id:
             raise L9MemoryError(resolution.error or "namespace is unresolved")
-        queue = FileWriteRecoveryQueue(runtime.settings.state_dir / "write-recovery")
-        report = queue.replay(runtime.service, principal, limit=args.limit)
+        drain = LegacyWriteQueueDrain(runtime.settings.state_dir / LEGACY_QUEUE_DIRNAME)
+        report = drain.drain(
+            runtime.service,
+            principal,
+            apply=not args.dry_run,
+            limit=args.limit,
+        )
         _print(report)
-        return 0 if report.retained == 0 else 2
+        return 0 if report.drained_cleanly else 2
     finally:
         runtime.close()
 
@@ -943,10 +1005,39 @@ def build_parser() -> argparse.ArgumentParser:
     synthesize.add_argument("--minimum-support", type=int, default=3)
     synthesize.add_argument("--dry-run", action="store_true")
 
+    maintain = sub.add_parser("maintain")
+    maintain.add_argument("--group-id", default=None)
+    maintain.add_argument(
+        "--operation",
+        action="append",
+        choices=[item.value for item in MaintenanceOperation],
+        default=None,
+        help="restrict the run to specific operations (repeatable)",
+    )
+    maintain.add_argument("--max-records", type=int, default=5_000)
+    maintain.add_argument("--max-actions", type=int, default=500)
+    maintain.add_argument("--reason", default="scheduled maintenance")
+    maintain.add_argument(
+        "--apply",
+        action="store_true",
+        help="apply the plan; without it the run is a dry run",
+    )
+
+    rebuild = sub.add_parser("rebuild-projection")
+    rebuild.add_argument("--group-id", default=None)
+    rebuild.add_argument("--limit", type=int, default=1_000)
+    rebuild.add_argument("--reason", default="projection rebuild")
+    rebuild.add_argument(
+        "--apply",
+        action="store_true",
+        help="queue the projection events; without it the run is a dry run",
+    )
+
     sub.add_parser("outbox-run")
-    recovery_replay = sub.add_parser("recovery-replay")
-    recovery_replay.add_argument("--group-id", default=None)
-    recovery_replay.add_argument("--limit", type=int, default=100)
+    drain_legacy = sub.add_parser("drain-legacy-write-queue")
+    drain_legacy.add_argument("--group-id", default=None)
+    drain_legacy.add_argument("--limit", type=int, default=100)
+    drain_legacy.add_argument("--dry-run", action="store_true")
 
     client = sub.add_parser("client")
     client_sub = client.add_subparsers(dest="client_target", required=True)
@@ -1005,8 +1096,10 @@ def main(argv: list[str] | None = None) -> int:
         "promote": cmd_promote,
         "delete": cmd_delete,
         "synthesize-procedures": cmd_synthesize_procedures,
+        "maintain": cmd_maintain,
+        "rebuild-projection": cmd_rebuild_projection,
         "outbox-run": cmd_outbox_run,
-        "recovery-replay": cmd_recovery_replay,
+        "drain-legacy-write-queue": cmd_drain_legacy_write_queue,
         "client": cmd_client,
         "ingest-governed-candidate": cmd_ingest_governed_candidate,
         "record-reuse": cmd_record_reuse,

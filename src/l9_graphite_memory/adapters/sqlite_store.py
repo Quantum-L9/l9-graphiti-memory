@@ -17,15 +17,16 @@ import sqlite3
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
     DeletionStatus,
+    MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
     MemoryState,
@@ -34,6 +35,8 @@ from l9_graphite_memory.contracts import (
     OutboxStatus,
     PhaseLockReceipt,
     ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
     WriteReceipt,
 )
 from l9_graphite_memory.errors import StoreError
@@ -46,7 +49,7 @@ from l9_graphite_memory.schema import schema_registry
 # Register built-in migrations.
 from l9_graphite_memory.schema import upcasters as _upcasters  # noqa: F401
 
-_SCHEMA_VERSION = 5
+_SCHEMA_VERSION = 7
 
 
 def _json(value: Any) -> str:
@@ -176,10 +179,14 @@ class SQLiteRecordStore:
                 last_error TEXT,
                 created_at TEXT NOT NULL,
                 delivered_at TEXT,
+                lease_id TEXT,
+                lease_owner TEXT,
+                lease_expires_at TEXT,
                 event_json TEXT NOT NULL
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_outbox_due ON outbox_events(status, next_attempt_at)",
+            "CREATE INDEX IF NOT EXISTS idx_outbox_lease ON outbox_events(status, lease_expires_at)",
             """
             CREATE TABLE IF NOT EXISTS projection_links (
                 record_id TEXT NOT NULL,
@@ -193,6 +200,32 @@ class SQLiteRecordStore:
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_projection_links_locator ON projection_links(projection_name, locator)",
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_runs (
+                run_id TEXT PRIMARY KEY,
+                tenant_id TEXT NOT NULL,
+                namespace TEXT NOT NULL,
+                status TEXT NOT NULL,
+                applied INTEGER NOT NULL,
+                watermark TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                completed_at TEXT,
+                receipt_json TEXT NOT NULL
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_maintenance_runs_namespace ON maintenance_runs(tenant_id, namespace, applied, watermark)",
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_actions (
+                action_digest TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                tenant_id TEXT NOT NULL,
+                namespace TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                applied INTEGER NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, namespace, action_digest)
+            )
+            """,
             """
             CREATE TABLE IF NOT EXISTS phase_locks (
                 lock_id TEXT PRIMARY KEY,
@@ -230,6 +263,13 @@ class SQLiteRecordStore:
                 tx.execute(
                     "ALTER TABLE memory_records ADD COLUMN references_json TEXT NOT NULL DEFAULT '[]'"
                 )
+            outbox_columns = {
+                str(row[1])
+                for row in tx.execute("PRAGMA table_info(outbox_events)").fetchall()
+            }
+            for column in ("lease_id", "lease_owner", "lease_expires_at"):
+                if column not in outbox_columns:
+                    tx.execute(f"ALTER TABLE outbox_events ADD COLUMN {column} TEXT")
             tx.execute(
                 "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)",
                 (_SCHEMA_VERSION, datetime.now(timezone.utc).isoformat()),
@@ -431,8 +471,9 @@ class SQLiteRecordStore:
             """
             INSERT INTO outbox_events(
                 event_id, event_type, aggregate_id, namespace, status, attempts,
-                next_attempt_at, last_error, created_at, delivered_at, event_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                next_attempt_at, last_error, created_at, delivered_at,
+                lease_id, lease_owner, lease_expires_at, event_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(event.event_id),
@@ -445,6 +486,9 @@ class SQLiteRecordStore:
                 event.last_error,
                 _dt(event.created_at),
                 _dt(event.delivered_at),
+                str(event.lease_id) if event.lease_id else None,
+                event.lease_owner,
+                _dt(event.lease_expires_at),
                 _json(event.model_dump(mode="json")),
             ),
         )
@@ -617,28 +661,59 @@ class SQLiteRecordStore:
             else None
         )
 
-    def claim_outbox(self, *, limit: int, now: datetime) -> list[OutboxEvent]:
+    def claim_outbox(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+        lease_seconds: int = 300,
+        lease_owner: str = "outbox-worker",
+    ) -> list[OutboxEvent]:
+        expires_at = now + timedelta(seconds=lease_seconds)
         with self._transaction() as tx:
             rows = tx.execute(
                 """
                 SELECT event_id, event_json FROM outbox_events
-                WHERE status IN (?, ?) AND next_attempt_at <= ?
+                WHERE (status IN (?, ?) AND next_attempt_at <= ?)
+                   OR (status = ? AND (lease_expires_at IS NULL OR lease_expires_at <= ?))
                 ORDER BY created_at ASC LIMIT ?
                 """,
-                (OutboxStatus.PENDING.value, OutboxStatus.RETRY.value, _dt(now), limit),
+                (
+                    OutboxStatus.PENDING.value,
+                    OutboxStatus.RETRY.value,
+                    _dt(now),
+                    OutboxStatus.PROCESSING.value,
+                    _dt(now),
+                    limit,
+                ),
             ).fetchall()
-            event_ids = [str(row["event_id"]) for row in rows]
-            for event_id in event_ids:
-                tx.execute(
-                    "UPDATE outbox_events SET status = ? WHERE event_id = ?",
-                    (OutboxStatus.PROCESSING.value, event_id),
-                )
             events: list[OutboxEvent] = []
             for row in rows:
                 event = OutboxEvent.model_validate_json(str(row["event_json"]))
-                events.append(
-                    event.model_copy(update={"status": OutboxStatus.PROCESSING})
+                leased = event.model_copy(
+                    update={
+                        "status": OutboxStatus.PROCESSING,
+                        "lease_id": uuid4(),
+                        "lease_owner": lease_owner,
+                        "lease_expires_at": expires_at,
+                    }
                 )
+                tx.execute(
+                    """
+                    UPDATE outbox_events
+                    SET status = ?, lease_id = ?, lease_owner = ?, lease_expires_at = ?, event_json = ?
+                    WHERE event_id = ?
+                    """,
+                    (
+                        OutboxStatus.PROCESSING.value,
+                        str(leased.lease_id),
+                        lease_owner,
+                        _dt(expires_at),
+                        _json(leased.model_dump(mode="json")),
+                        str(row["event_id"]),
+                    ),
+                )
+                events.append(leased)
             return events
 
     def update_outbox(
@@ -650,6 +725,7 @@ class SQLiteRecordStore:
         next_attempt_at: datetime,
         last_error: str | None,
         delivered_at: datetime | None = None,
+        lease_id: UUID | None = None,
     ) -> None:
         with self._transaction() as tx:
             row = tx.execute(
@@ -659,6 +735,11 @@ class SQLiteRecordStore:
             if row is None:
                 raise StoreError(f"outbox event not found: {event_id}")
             event = OutboxEvent.model_validate_json(str(row["event_json"]))
+            if lease_id is not None and event.lease_id != lease_id:
+                raise StoreError(
+                    f"outbox lease is no longer held for {event_id}; "
+                    "another worker owns this event"
+                )
             updated = event.model_copy(
                 update={
                     "status": status,
@@ -666,12 +747,16 @@ class SQLiteRecordStore:
                     "next_attempt_at": next_attempt_at,
                     "last_error": last_error,
                     "delivered_at": delivered_at,
+                    "lease_id": None,
+                    "lease_owner": None,
+                    "lease_expires_at": None,
                 }
             )
             tx.execute(
                 """
                 UPDATE outbox_events
-                SET status = ?, attempts = ?, next_attempt_at = ?, last_error = ?, delivered_at = ?, event_json = ?
+                SET status = ?, attempts = ?, next_attempt_at = ?, last_error = ?, delivered_at = ?,
+                    lease_id = NULL, lease_owner = NULL, lease_expires_at = NULL, event_json = ?
                 WHERE event_id = ?
                 """,
                 (
@@ -749,6 +834,167 @@ class SQLiteRecordStore:
         except sqlite3.Error as exc:
             raise StoreError(f"projection link deletion failed: {exc}") from exc
 
+    def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO maintenance_runs(
+                        run_id, tenant_id, namespace, status, applied, watermark,
+                        started_at, completed_at, receipt_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.run_id),
+                        receipt.tenant_id,
+                        receipt.namespace,
+                        receipt.status.value,
+                        int(receipt.applied),
+                        _dt(receipt.watermark),
+                        _dt(receipt.started_at),
+                        _dt(receipt.completed_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for action in receipt.actions:
+                    if not action.applied:
+                        continue
+                    tx.execute(
+                        """
+                        INSERT OR IGNORE INTO maintenance_actions(
+                            action_digest, run_id, tenant_id, namespace, operation,
+                            applied, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            action.action_digest,
+                            str(receipt.run_id),
+                            receipt.tenant_id,
+                            receipt.namespace,
+                            action.operation.value,
+                            1,
+                            _dt(receipt.started_at),
+                        ),
+                    )
+        except sqlite3.Error as exc:
+            raise StoreError(f"maintenance run persistence failed: {exc}") from exc
+
+    def get_maintenance_watermark(
+        self, tenant_id: str, namespace: str
+    ) -> datetime | None:
+        row = (
+            self._connection()
+            .execute(
+                """
+                SELECT MAX(watermark) AS watermark FROM maintenance_runs
+                WHERE tenant_id = ? AND namespace = ? AND applied = 1
+                """,
+                (tenant_id, namespace),
+            )
+            .fetchone()
+        )
+        return _parse_dt(str(row["watermark"])) if row and row["watermark"] else None
+
+    def find_maintenance_action_digests(
+        self, tenant_id: str, namespace: str
+    ) -> frozenset[str]:
+        rows = (
+            self._connection()
+            .execute(
+                """
+                SELECT action_digest FROM maintenance_actions
+                WHERE tenant_id = ? AND namespace = ? AND applied = 1
+                """,
+                (tenant_id, namespace),
+            )
+            .fetchall()
+        )
+        return frozenset(str(row["action_digest"]) for row in rows)
+
+    def save_projection_retirement(
+        self, receipt: ProjectionRetirementReceipt
+    ) -> None:
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "projection_retirement",
+                        str(receipt.record_id),
+                        receipt.retirement_mode.value,
+                        _dt(receipt.retired_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+        except sqlite3.Error as exc:
+            raise StoreError(f"projection retirement receipt failed: {exc}") from exc
+
+    def list_unprojected_records(
+        self,
+        tenant_id: str,
+        namespace: str,
+        projection_name: str,
+        *,
+        limit: int = 1_000,
+    ) -> list[MemoryRecord]:
+        rows = (
+            self._connection()
+            .execute(
+                """
+                SELECT r.record_json FROM memory_records AS r
+                LEFT JOIN projection_links AS l
+                  ON l.record_id = r.record_id AND l.projection_name = ?
+                WHERE r.tenant_id = ? AND r.namespace = ? AND r.state = ?
+                  AND l.record_id IS NULL
+                ORDER BY r.recorded_at ASC LIMIT ?
+                """,
+                (
+                    projection_name,
+                    tenant_id,
+                    namespace,
+                    MemoryState.ACTIVE.value,
+                    limit,
+                ),
+            )
+            .fetchall()
+        )
+        return [self._row_to_record(row) for row in rows]
+
+    def commit_projection_rebuild(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ProjectionRebuildReceipt,
+        *,
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied rebuild receipt")
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "projection_rebuild",
+                        receipt.namespace,
+                        "applied",
+                        _dt(receipt.created_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for event in outbox_events:
+                    self._insert_outbox(tx, event)
+        except sqlite3.Error as exc:
+            raise StoreError(f"projection rebuild failed: {exc}") from exc
+
     def stats(self) -> dict[str, Any]:
         connection = self._connection()
         total = connection.execute(
@@ -801,6 +1047,7 @@ class SQLiteRecordStore:
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None:
         require_service_write_capability(capability)
         if not receipt.applied:
@@ -815,6 +1062,8 @@ class SQLiteRecordStore:
                 self._insert_archive_receipt(tx, receipt)
                 for event in status_events:
                     self._insert_status_event(tx, event)
+                for outbox_event in outbox_events:
+                    self._insert_outbox(tx, outbox_event)
         except sqlite3.IntegrityError as exc:
             raise StoreError(
                 f"atomic archive violated store constraints: {exc}"

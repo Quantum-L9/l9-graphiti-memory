@@ -15,6 +15,8 @@ from .enums import (
     ConfidenceMethod,
     DeletionStatus,
     EvidenceKind,
+    MaintenanceOperation,
+    MaintenanceStatus,
     MemoryClass,
     MemoryState,
     OperationStatus,
@@ -24,6 +26,12 @@ from .enums import (
 )
 from .evidence import Confidence, EvidenceRef, Provenance, SourceRange
 from .identity import MemoryPrincipal
+from .maintenance import (
+    ALL_MAINTENANCE_OPERATIONS,
+    MaintenanceAction,
+    MaintenanceRequest,
+    MaintenanceRunReceipt,
+)
 from .memory import MemoryAssertion, MemoryRecord, MemoryStatusEvent
 from .privacy import ConsentGrant
 from .profiles import (
@@ -34,7 +42,12 @@ from .profiles import (
     ProfileFact,
     SessionContext,
 )
-from .projection import ProjectionLink
+from .projection import (
+    ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
+    RetirementMode,
+)
 from .receipts import (
     AdmissionDecision,
     ArchiveReceipt,
@@ -66,6 +79,7 @@ from .requests import (
 from .temporal import TemporalCoordinates, utc_now
 
 __all__ = [
+    "ALL_MAINTENANCE_OPERATIONS",
     "AdmissionDecision",
     "ArchiveReceipt",
     "AuthorizationAction",
@@ -87,6 +101,11 @@ __all__ = [
     "HydrationRequest",
     "HydrationResult",
     "IdentityProfile",
+    "MaintenanceAction",
+    "MaintenanceOperation",
+    "MaintenanceRequest",
+    "MaintenanceRunReceipt",
+    "MaintenanceStatus",
     "MemoryAssertion",
     "MemoryClass",
     "MemoryPrincipal",
@@ -104,11 +123,14 @@ __all__ = [
     "PreferenceRecord",
     "ProfileFact",
     "ProjectionLink",
+    "ProjectionRebuildReceipt",
+    "ProjectionRetirementReceipt",
     "PromotionRequest",
     "Provenance",
     "QueryPattern",
     "RetentionDecision",
     "RetentionReceipt",
+    "RetirementMode",
     "ScoreFactors",
     "SearchHit",
     "SearchReceipt",

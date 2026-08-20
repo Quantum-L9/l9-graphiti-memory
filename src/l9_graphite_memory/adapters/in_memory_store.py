@@ -12,14 +12,15 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
     DeletionStatus,
+    MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
     MemoryState,
@@ -28,8 +29,11 @@ from l9_graphite_memory.contracts import (
     OutboxStatus,
     PhaseLockReceipt,
     ProjectionLink,
+    ProjectionRebuildReceipt,
+    ProjectionRetirementReceipt,
     WriteReceipt,
 )
+from l9_graphite_memory.errors import StoreError
 from l9_graphite_memory.ports.service_capability import (
     ServiceWriteCapability,
     require_service_write_capability,
@@ -49,6 +53,9 @@ class InMemoryRecordStore:
         self.outbox: dict[UUID, OutboxEvent] = {}
         self.phase_locks: dict[tuple[str, str, str], PhaseLockReceipt] = {}
         self.projection_links: dict[tuple[UUID, str], ProjectionLink] = {}
+        self.maintenance_runs: list[MaintenanceRunReceipt] = []
+        self.projection_retirements: list[ProjectionRetirementReceipt] = []
+        self.projection_rebuilds: list[ProjectionRebuildReceipt] = []
         self.initialized = False
 
     def initialize(self) -> None:
@@ -176,16 +183,36 @@ class InMemoryRecordStore:
     ) -> PhaseLockReceipt | None:
         return self.phase_locks.get((tenant_id, namespace, task_signature))
 
-    def claim_outbox(self, *, limit: int, now: datetime) -> list[OutboxEvent]:
+    @staticmethod
+    def _is_claimable(event: OutboxEvent, now: datetime) -> bool:
+        if event.status in {OutboxStatus.PENDING, OutboxStatus.RETRY}:
+            return event.next_attempt_at <= now
+        if event.status is OutboxStatus.PROCESSING:
+            # An expired lease means the previous owner is gone.
+            return event.lease_expires_at is None or event.lease_expires_at <= now
+        return False
+
+    def claim_outbox(
+        self,
+        *,
+        limit: int,
+        now: datetime,
+        lease_seconds: int = 300,
+        lease_owner: str = "outbox-worker",
+    ) -> list[OutboxEvent]:
         candidates = [
-            event
-            for event in self.outbox.values()
-            if event.status in {OutboxStatus.PENDING, OutboxStatus.RETRY}
-            and event.next_attempt_at <= now
+            event for event in self.outbox.values() if self._is_claimable(event, now)
         ]
         claimed: list[OutboxEvent] = []
         for event in sorted(candidates, key=lambda item: item.created_at)[:limit]:
-            updated = event.model_copy(update={"status": OutboxStatus.PROCESSING})
+            updated = event.model_copy(
+                update={
+                    "status": OutboxStatus.PROCESSING,
+                    "lease_id": uuid4(),
+                    "lease_owner": lease_owner,
+                    "lease_expires_at": now + timedelta(seconds=lease_seconds),
+                }
+            )
             self.outbox[event.event_id] = updated
             claimed.append(updated)
         return claimed
@@ -199,8 +226,16 @@ class InMemoryRecordStore:
         next_attempt_at: datetime,
         last_error: str | None,
         delivered_at: datetime | None = None,
+        lease_id: UUID | None = None,
     ) -> None:
-        event = self.outbox[event_id]
+        event = self.outbox.get(event_id)
+        if event is None:
+            raise StoreError(f"outbox event not found: {event_id}")
+        if lease_id is not None and event.lease_id != lease_id:
+            raise StoreError(
+                f"outbox lease is no longer held for {event_id}; "
+                "another worker owns this event"
+            )
         self.outbox[event_id] = event.model_copy(
             update={
                 "status": status,
@@ -208,6 +243,9 @@ class InMemoryRecordStore:
                 "next_attempt_at": next_attempt_at,
                 "last_error": last_error,
                 "delivered_at": delivered_at,
+                "lease_id": None,
+                "lease_owner": None,
+                "lease_expires_at": None,
             }
         )
 
@@ -247,6 +285,70 @@ class InMemoryRecordStore:
             "by_class": by_class,
         }
 
+    def save_projection_retirement(
+        self, receipt: ProjectionRetirementReceipt
+    ) -> None:
+        self.projection_retirements.append(receipt)
+
+    def list_unprojected_records(
+        self,
+        tenant_id: str,
+        namespace: str,
+        projection_name: str,
+        *,
+        limit: int = 1_000,
+    ) -> list[MemoryRecord]:
+        candidates = [
+            record
+            for record in self.records.values()
+            if record.tenant_id == tenant_id
+            and record.namespace == namespace
+            and record.state is MemoryState.ACTIVE
+            and (record.record_id, projection_name) not in self.projection_links
+        ]
+        candidates.sort(key=lambda item: item.temporal.recorded_at)
+        return candidates[:limit]
+
+    def commit_projection_rebuild(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ProjectionRebuildReceipt,
+        *,
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied rebuild receipt")
+        self.projection_rebuilds.append(receipt)
+        for event in outbox_events:
+            self.outbox[event.event_id] = event
+
+    def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
+        self.maintenance_runs.append(receipt)
+
+    def get_maintenance_watermark(
+        self, tenant_id: str, namespace: str
+    ) -> datetime | None:
+        applied = [
+            run.watermark
+            for run in self.maintenance_runs
+            if run.tenant_id == tenant_id
+            and run.namespace == namespace
+            and run.applied
+        ]
+        return max(applied) if applied else None
+
+    def find_maintenance_action_digests(
+        self, tenant_id: str, namespace: str
+    ) -> frozenset[str]:
+        return frozenset(
+            action.action_digest
+            for run in self.maintenance_runs
+            if run.tenant_id == tenant_id and run.namespace == namespace
+            for action in run.actions
+            if action.applied
+        )
+
     def list_expired(
         self,
         tenant_id: str,
@@ -274,6 +376,7 @@ class InMemoryRecordStore:
         receipt: ArchiveReceipt,
         *,
         status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None:
         require_service_write_capability(capability)
         if not receipt.applied:
@@ -303,6 +406,8 @@ class InMemoryRecordStore:
         self.records.update(updates)
         self.status_events.extend(status_events)
         self.archive_receipts[receipt.receipt_id] = receipt
+        for outbox_event in outbox_events:
+            self.outbox[outbox_event.event_id] = outbox_event
 
     def commit_deletion(
         self,

@@ -15,13 +15,16 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from l9_graphite_memory.contracts import MemoryRecord
+from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
 from l9_graphite_memory.ports import ProjectionHit
 
 
 class NullProjection:
     name = "none"
     capabilities: tuple[str, ...] = ()
+    # Nothing is ever projected, so there is nothing a retirement could fail
+    # to preserve.
+    retirement_mode = RetirementMode.NATIVE
 
     def health(self) -> dict[str, Any]:
         return {"name": self.name, "healthy": True, "enabled": False}
@@ -31,6 +34,23 @@ class NullProjection:
             "projected": False,
             "reason": "projection disabled",
             "record_id": str(record.record_id),
+        }
+
+    def retire(
+        self,
+        record_id: UUID,
+        namespace: str,
+        *,
+        locator: str | None = None,
+        reason: str = "",
+    ) -> dict[str, Any]:
+        return {
+            "retired": True,
+            "erased": False,
+            "reason": reason or "projection disabled; nothing to withdraw",
+            "record_id": str(record_id),
+            "namespace": namespace,
+            "locator": locator,
         }
 
     def erase(

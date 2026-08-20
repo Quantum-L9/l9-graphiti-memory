@@ -26,7 +26,11 @@ from .models import MemorySettings, TokenPrincipalConfig
 _ENV_TO_FIELD = {
     "L9_MEMORY_DATA_DIR": "data_dir",
     "L9_MEMORY_STATE_DIR": "state_dir",
+    "L9_MEMORY_STORE_BACKEND": "store_backend",
     "L9_MEMORY_DATABASE_PATH": "database_path",
+    "L9_MEMORY_POSTGRES_DSN": "postgres_dsn",
+    "L9_MEMORY_POSTGRES_STATEMENT_TIMEOUT_MS": "postgres_statement_timeout_ms",
+    "L9_MEMORY_ACKNOWLEDGE_BACKEND_TRANSITION": "acknowledge_backend_transition",
     "L9_MEMORY_REGISTRY_PATH": "registry_path",
     "L9_MEMORY_WORKSPACE_NAMESPACE": "workspace_namespace",
     "L9_MEMORY_ENABLED": "memory_enabled",
@@ -48,11 +52,13 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_LOCAL_READ_NAMESPACES": "local_read_namespaces",
     "L9_MEMORY_LOCAL_WRITE_NAMESPACES": "local_write_namespaces",
     "L9_MEMORY_LOCAL_PROMOTE_NAMESPACES": "local_promote_namespaces",
+    "L9_MEMORY_LOCAL_MAINTAIN_NAMESPACES": "local_maintain_namespaces",
     "L9_MEMORY_LOCAL_IS_ADMIN": "local_is_admin",
     "L9_MEMORY_LOCAL_IS_GLOBAL_ADMIN": "local_is_global_admin",
     "L9_MEMORY_OUTBOX_BATCH_SIZE": "outbox_batch_size",
     "L9_MEMORY_OUTBOX_MAX_ATTEMPTS": "outbox_max_attempts",
     "L9_MEMORY_OUTBOX_BASE_DELAY_SECONDS": "outbox_base_delay_seconds",
+    "L9_MEMORY_OUTBOX_LEASE_SECONDS": "outbox_lease_seconds",
     "L9_MEMORY_DEFAULT_SEARCH_LIMIT": "default_search_limit",
     "L9_MEMORY_DEFAULT_TOKEN_BUDGET": "default_token_budget",
     "L9_MEMORY_LOG_LEVEL": "log_level",
@@ -60,6 +66,7 @@ _ENV_TO_FIELD = {
 }
 
 _BOOL_FIELDS = {
+    "acknowledge_backend_transition",
     "memory_enabled",
     "write_gates_enabled",
     "projection_required",
@@ -72,14 +79,17 @@ _LIST_FIELDS = {
     "local_read_namespaces",
     "local_write_namespaces",
     "local_promote_namespaces",
+    "local_maintain_namespaces",
 }
 
 
 _INT_FIELDS = {
+    "postgres_statement_timeout_ms",
     "gate_ttl_minutes",
     "outbox_batch_size",
     "outbox_max_attempts",
     "outbox_base_delay_seconds",
+    "outbox_lease_seconds",
     "default_search_limit",
     "default_token_budget",
 }
