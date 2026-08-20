@@ -18,7 +18,7 @@ from .constellation import (
     PhaseLockMemoryIntent,
     SearchMemoryIntent,
 )
-from .session import ContextRestorer, SessionEvent, SessionIngestor, SessionIngestResult
+from .session import ContextRestorer, SessionEvent, SessionIngestor
 
 __all__ = [
     "ContextRestorer",
@@ -29,6 +29,5 @@ __all__ = [
     "PhaseLockMemoryIntent",
     "SearchMemoryIntent",
     "SessionEvent",
-    "SessionIngestResult",
     "SessionIngestor",
 ]

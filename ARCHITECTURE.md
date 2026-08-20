@@ -126,7 +126,7 @@ Projection writes must return or establish a stable episode locator. The locator
 
 - Authentication, authorization, admission law, canonical persistence, and audit receipts fail closed.
 - Optional projection and extraction failures produce explicit partial or failed receipts.
-- The ingress recovery queue stores accepted write requests only when the canonical service is unavailable, then replays through `MemoryService`.
+- A canonical write becomes durable during the operation or raises; there is no deferred, queued-but-successful outcome (ADR-070).
 - Outbox retries use bounded exponential backoff and terminal dead state.
 - No direct database emergency path exists.
 

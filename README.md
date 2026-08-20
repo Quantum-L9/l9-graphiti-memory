@@ -100,7 +100,7 @@ Sensitive profile writes require purpose-bound consent evidence. Verified deleti
 health, resolve, write, search, hydrate, get, stats, conflicts,
 phase-lock, verify-phase-lock, lineage, bootstrap, import, distill,
 inject, autoseed-check, prune, promote, delete,
-synthesize-procedures, outbox-run, recovery-replay
+synthesize-procedures, outbox-run, drain-legacy-write-queue
 ```
 
 Legacy MCP aliases `write`, `search`, `health`, `bootstrap`, `phase_lock`, and `conflicts` remain thin adapters to canonical `memory.*` handlers.

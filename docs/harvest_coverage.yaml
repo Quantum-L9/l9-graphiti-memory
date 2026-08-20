@@ -145,10 +145,21 @@ entries:
   - id: H-019
     concept: Ingress recovery queue for unavailable canonical service
     sources: [l9_ops_commit_pack, legacy_memory_pack]
+    status: rejected_boundary
+    rationale: >-
+      Deferred canonical ingestion created a second definition of a successful
+      write: a caller could be told the operation succeeded while no canonical
+      record, receipt, or admission decision existed. ADR-070 makes ingestion
+      immediate or an explicit failure. Legacy queue state is drained one way by
+      migration/legacy_write_queue.py, which has no enqueue path.
+    adr_paths: [docs/adr/ADR-070-immediate-canonical-ingestion.md, docs/adr/ADR-055-canonical-ingress-write-recovery-queue.md]
+  - id: H-019a
+    concept: One-way drain of retired deferred-ingestion queue state
+    sources: [l9_ops_commit_pack]
     status: implemented
-    implementation_paths: [src/l9_graphite_memory/recovery/write_queue.py]
-    test_paths: [tests/integration/test_write_recovery.py]
-    adr_paths: [docs/adr/ADR-055-canonical-ingress-write-recovery-queue.md]
+    implementation_paths: [src/l9_graphite_memory/migration/legacy_write_queue.py]
+    test_paths: [tests/integration/test_immediate_canonical_ingestion.py]
+    adr_paths: [docs/adr/ADR-070-immediate-canonical-ingestion.md]
   - id: H-020
     concept: Session ingestion and context restoration adapters
     sources: [l9_ops_commit_pack]

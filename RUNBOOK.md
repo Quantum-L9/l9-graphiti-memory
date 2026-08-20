@@ -24,7 +24,7 @@ l9-memory health
 
 Published package: `pip install l9-graphite-memory`.
 
-The default database is `~/.local/share/l9-memory/memory.sqlite3`. Gate and recovery state is under `~/.local/state/l9-memory`.
+The default database is `~/.local/share/l9-memory/memory.sqlite3`. Gate state is under `~/.local/state/l9-memory`.
 
 ## Local standalone mode
 
@@ -153,15 +153,20 @@ l9-memory-worker --once
 
 Zep health is `unverified` until a real operation succeeds. Configuration alone is not connectivity proof.
 
-## Ingress recovery
+## Canonical write failure
 
-When an adapter cannot reach the canonical service, enqueue the typed write request through the recovery API rather than writing provider or database state directly. Replay later:
+Canonical ingestion is immediate (ADR-070). When the canonical store is unreachable, the write call raises and the caller must surface that failure. Do not record a local success, and never write provider or database state directly as a fallback. Restore the canonical store, then have the caller retry with the same explicit `idempotency_key` so the retry is recognized as the same operation.
+
+### Draining a retired deferred-ingestion queue
+
+Releases before v2.3 kept an ingress recovery queue under `<state_dir>/write-recovery`. Drain it once, then remove the directory:
 
 ```bash
-l9-memory recovery-replay --limit 100
+l9-memory drain-legacy-write-queue --dry-run --limit 100
+l9-memory drain-legacy-write-queue --limit 100
 ```
 
-Replayed requests still pass authorization, consent, admission, idempotency, and canonical persistence.
+Drained requests still pass authorization, consent, admission, idempotency, and canonical persistence. The command exits non-zero while any item remains unreadable or undeliverable, and preserves those files rather than dropping them.
 
 ## Backup and restore
 
@@ -194,7 +199,8 @@ Never restore secrets into the repository.
 | phase lock denied | conflicts exist or retrieval is indeterminate | reconcile and request a new lock |
 | projection event retrying | provider unavailable or locator/tool missing | repair provider and rerun worker |
 | outbox dead event | retries exhausted | inspect event and replay deliberately after remediation |
-| recovery item pending | canonical service unavailable | restore service, then replay |
+| write raised StoreError | canonical store unavailable | restore the store, then retry with the same idempotency key |
+| legacy queue item retained | pre-v2.3 queued write could not be admitted | inspect the preserved file and the reported error |
 | prefetch hook error | hydration failed | leave gates off during diagnosis or restore service |
 
 ## Release validation

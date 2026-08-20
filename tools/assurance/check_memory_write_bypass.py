@@ -26,6 +26,13 @@ _ALLOWED_SQL_FILES = {
 _ALLOWED_COMMIT_CALLERS = {
     "src/l9_graphite_memory/services/memory_service.py",
 }
+# A canonical write becomes durable during the operation or fails. Only the
+# one-way drain for the retired deferred-ingestion release may still read a
+# serialized MemoryWriteRequest off disk, and it can never write one back.
+_ALLOWED_DEFERRED_INGESTION_READERS = {
+    "src/l9_graphite_memory/migration/legacy_write_queue.py",
+}
+_REQUEST_SERIALIZERS = {"model_dump", "model_dump_json"}
 _MUTATION_MARKERS = (
     "insert into memory_records",
     "update memory_records",
@@ -44,6 +51,46 @@ class Violation:
     excerpt: str
 
 
+def _request_local_names(tree: ast.AST) -> set[str]:
+    """Locals annotated as, or assigned from, a MemoryWriteRequest."""
+
+    names: set[str] = set()
+
+    def _is_request_annotation(annotation: ast.expr | None) -> bool:
+        if isinstance(annotation, ast.Name):
+            return annotation.id == "MemoryWriteRequest"
+        if isinstance(annotation, ast.Attribute):
+            return annotation.attr == "MemoryWriteRequest"
+        if isinstance(annotation, ast.Constant) and isinstance(annotation.value, str):
+            return "MemoryWriteRequest" in annotation.value
+        return False
+
+    def _is_request_construction(value: ast.expr | None) -> bool:
+        if not isinstance(value, ast.Call):
+            return False
+        func = value.func
+        if isinstance(func, ast.Name):
+            return func.id == "MemoryWriteRequest"
+        if isinstance(func, ast.Attribute):
+            return func.attr in {"MemoryWriteRequest", "request"} or (
+                isinstance(func.value, ast.Name)
+                and func.value.id == "MemoryWriteRequest"
+            )
+        return False
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.AnnAssign) and _is_request_annotation(node.annotation):
+            if isinstance(node.target, ast.Name):
+                names.add(node.target.id)
+        elif isinstance(node, ast.Assign) and _is_request_construction(node.value):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    names.add(target.id)
+        elif isinstance(node, ast.arg) and _is_request_annotation(node.annotation):
+            names.add(node.arg)
+    return names
+
+
 def scan_file(path: Path, root: Path) -> list[Violation]:
     relative = path.relative_to(root).as_posix()
     try:
@@ -53,7 +100,24 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
         return [Violation(relative, 1, "parse-error", str(exc))]
     violations: list[Violation] = []
     lines = source.splitlines()
+    request_names = _request_local_names(tree)
     for node in ast.walk(tree):
+        if (
+            relative not in _ALLOWED_DEFERRED_INGESTION_READERS
+            and isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in _REQUEST_SERIALIZERS
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id in request_names
+        ):
+            violations.append(
+                Violation(
+                    relative,
+                    node.lineno,
+                    "deferred-canonical-ingestion",
+                    lines[node.lineno - 1].strip()[:300],
+                )
+            )
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             lowered = node.value.casefold()
             if (
@@ -118,7 +182,9 @@ def main() -> int:
         for item in violations:
             sys.stdout.write(f"{item.path}:{item.line}: {item.rule}: {item.excerpt}\n")
     else:
-        sys.stdout.write("PASS: no canonical memory write bypasses detected\n")
+        sys.stdout.write(
+            "PASS: no canonical memory write bypasses or deferred-ingestion paths detected\n"
+        )
     return 1 if violations else 0
 
 

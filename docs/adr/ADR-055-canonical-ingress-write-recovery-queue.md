@@ -18,7 +18,7 @@ updated: 2026-07-22
 
 ## Status
 
-Accepted
+Superseded by ADR-070
 
 ## Context
 
@@ -75,4 +75,6 @@ Stop replay, preserve queue files, and process them with the previous validated 
 
 Completes ADR-018.
 
-No later ADR supersedes this decision as of 2026-07-22.
+Superseded by ADR-070 on 2026-08-20: deferred canonical ingestion is no longer an
+admitted write outcome. The queue described here is retired; legacy state is
+drained one way by `l9_graphite_memory.migration.LegacyWriteQueueDrain`.

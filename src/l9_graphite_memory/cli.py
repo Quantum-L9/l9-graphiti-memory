@@ -53,7 +53,7 @@ from l9_graphite_memory.extraction import SourceDistiller
 from l9_graphite_memory.group_resolver import GroupResolution, resolve_group
 from l9_graphite_memory.ingestion import DocumentIngestor, RepositoryBootstrapper
 from l9_graphite_memory.memory_guard import GuardEvidence
-from l9_graphite_memory.recovery import FileWriteRecoveryQueue
+from l9_graphite_memory.migration import LEGACY_QUEUE_DIRNAME, LegacyWriteQueueDrain
 from l9_graphite_memory.runtime import (
     MemoryRuntime,
     build_runtime,
@@ -691,16 +691,23 @@ def cmd_outbox_run(args: argparse.Namespace) -> int:
         runtime.close()
 
 
-def cmd_recovery_replay(args: argparse.Namespace) -> int:
+def cmd_drain_legacy_write_queue(args: argparse.Namespace) -> int:
+    """Drain a queue left behind by the retired deferred-ingestion release."""
+
     runtime = _runtime(args)
     try:
         resolution, principal = _context(runtime, args)
         if not resolution.group_id:
             raise L9MemoryError(resolution.error or "namespace is unresolved")
-        queue = FileWriteRecoveryQueue(runtime.settings.state_dir / "write-recovery")
-        report = queue.replay(runtime.service, principal, limit=args.limit)
+        drain = LegacyWriteQueueDrain(runtime.settings.state_dir / LEGACY_QUEUE_DIRNAME)
+        report = drain.drain(
+            runtime.service,
+            principal,
+            apply=not args.dry_run,
+            limit=args.limit,
+        )
         _print(report)
-        return 0 if report.retained == 0 else 2
+        return 0 if report.drained_cleanly else 2
     finally:
         runtime.close()
 
@@ -944,9 +951,10 @@ def build_parser() -> argparse.ArgumentParser:
     synthesize.add_argument("--dry-run", action="store_true")
 
     sub.add_parser("outbox-run")
-    recovery_replay = sub.add_parser("recovery-replay")
-    recovery_replay.add_argument("--group-id", default=None)
-    recovery_replay.add_argument("--limit", type=int, default=100)
+    drain_legacy = sub.add_parser("drain-legacy-write-queue")
+    drain_legacy.add_argument("--group-id", default=None)
+    drain_legacy.add_argument("--limit", type=int, default=100)
+    drain_legacy.add_argument("--dry-run", action="store_true")
 
     client = sub.add_parser("client")
     client_sub = client.add_subparsers(dest="client_target", required=True)
@@ -1006,7 +1014,7 @@ def main(argv: list[str] | None = None) -> int:
         "delete": cmd_delete,
         "synthesize-procedures": cmd_synthesize_procedures,
         "outbox-run": cmd_outbox_run,
-        "recovery-replay": cmd_recovery_replay,
+        "drain-legacy-write-queue": cmd_drain_legacy_write_queue,
         "client": cmd_client,
         "ingest-governed-candidate": cmd_ingest_governed_candidate,
         "record-reuse": cmd_record_reuse,

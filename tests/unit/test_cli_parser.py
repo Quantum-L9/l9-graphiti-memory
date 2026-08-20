@@ -13,7 +13,7 @@ from __future__ import annotations
 from l9_graphite_memory.cli import build_parser
 
 
-def test_cli_exposes_consent_deletion_and_recovery_surfaces() -> None:
+def test_cli_exposes_consent_deletion_and_legacy_drain_surfaces() -> None:
     parser = build_parser()
     write = parser.parse_args(
         [
@@ -32,8 +32,9 @@ def test_cli_exposes_consent_deletion_and_recovery_surfaces() -> None:
     deletion = parser.parse_args(
         ["delete", "00000000-0000-0000-0000-000000000001", "request", "ticket-1"]
     )
-    recovery = parser.parse_args(["recovery-replay"])
+    drain = parser.parse_args(["drain-legacy-write-queue"])
 
     assert write.consent_subject_id == "user-1"
     assert deletion.command == "delete"
-    assert recovery.command == "recovery-replay"
+    assert drain.command == "drain-legacy-write-queue"
+    assert drain.dry_run is False

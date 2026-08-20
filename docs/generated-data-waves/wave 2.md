@@ -1,3 +1,14 @@
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/generated-data-waves/wave 2.md
+layer: documentation
+owner: memory-control-plane
+status: active
+version: 2.2.0
+updated: 2026-07-22
+/L9_META -->
+
 Wave 2 installs only the requested test suite in **`Quantum-L9/l9-graphiti-memory`**. It treats the Wave 1 deployment files as the implementation under test and `Cursor-Governance` as the read-only producer-contract source. The repository’s documented local interface remains `l9-memory`, including canonical health, search, hydrate, and MCP server commands. ([GitHub][1])
 
 Feed this entire prompt to the Claude Code agent in the `l9-graphiti-memory` checkout.

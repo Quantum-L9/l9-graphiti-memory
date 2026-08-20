@@ -79,7 +79,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-052 | [Procedural Synthesis Worker and Approval Boundary](ADR-052-procedural-synthesis-worker-and-approval-boundary.md) | Accepted |
 | ADR-053 | [Checkpoint Integrity Utility Boundary](ADR-053-checkpoint-integrity-utility-boundary.md) | Accepted |
 | ADR-054 | [Strategy-Specific Hybrid Retrieval Receipts](ADR-054-strategy-specific-hybrid-retrieval-receipts.md) | Accepted |
-| ADR-055 | [Canonical Ingress Write Recovery Queue](ADR-055-canonical-ingress-write-recovery-queue.md) | Accepted |
+| ADR-055 | [Canonical Ingress Write Recovery Queue](ADR-055-canonical-ingress-write-recovery-queue.md) | Superseded by ADR-070 |
 | ADR-056 | [Recursive Harvest Convergence](ADR-056-recursive-harvest-convergence.md) | Accepted |
 | ADR-057 | [Verified Deletion and Projection Erasure](ADR-057-verified-deletion-and-projection-erasure.md) | Accepted |
 | ADR-058 | [Graphiti Repository Name and Graphite Package Compatibility](ADR-058-graphiti-repository-name-and-graphite-package-compatibility.md) | Accepted |
@@ -94,6 +94,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-067 | [Active-Memory Public SDK and External-Runtime Lifecycle](ADR-067-active-memory-public-sdk-and-lifecycle.md) | Accepted |
 | ADR-068 | [Redis ACL Capability Contract for Active Memory](ADR-068-redis-acl-capability-contract.md) | Accepted |
 | ADR-069 | [uv as Canonical Python Package Manager](ADR-069-uv-package-manager.md) | Accepted |
+| ADR-070 | [Immediate Canonical Ingestion](ADR-070-immediate-canonical-ingestion.md) | Accepted |
 
 ## Validation
 
@@ -103,4 +104,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-068 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-070 ledger and all mandatory sections.
