@@ -24,6 +24,7 @@ from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
     DeletionStatus,
+    MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
     MemoryState,
@@ -45,7 +46,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 else:  # pragma: no cover - runtime alias
     _Connection = Any
 
-_SCHEMA_VERSION = 5
+_SCHEMA_VERSION = 6
 
 
 def _json(value: Any) -> str:
@@ -239,6 +240,32 @@ class PostgresRecordStore:
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_projection_links_locator ON projection_links(projection_name, locator)",
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_runs (
+                run_id TEXT PRIMARY KEY,
+                tenant_id TEXT NOT NULL,
+                namespace TEXT NOT NULL,
+                status TEXT NOT NULL,
+                applied BOOLEAN NOT NULL,
+                watermark TIMESTAMPTZ NOT NULL,
+                started_at TIMESTAMPTZ NOT NULL,
+                completed_at TIMESTAMPTZ,
+                receipt_json TEXT NOT NULL
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_maintenance_runs_namespace ON maintenance_runs(tenant_id, namespace, applied, watermark)",
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_actions (
+                action_digest TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                tenant_id TEXT NOT NULL,
+                namespace TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                applied BOOLEAN NOT NULL,
+                created_at TIMESTAMPTZ NOT NULL,
+                PRIMARY KEY (tenant_id, namespace, action_digest)
+            )
+            """,
             """
             CREATE TABLE IF NOT EXISTS phase_locks (
                 lock_id TEXT PRIMARY KEY,
@@ -833,6 +860,84 @@ class PostgresRecordStore:
                 )
         except psycopg2.Error as exc:
             raise StoreError(f"projection link deletion failed: {exc}") from exc
+
+    # -- maintenance ledger ---------------------------------------------------
+
+    def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO maintenance_runs(
+                        run_id, tenant_id, namespace, status, applied, watermark,
+                        started_at, completed_at, receipt_json
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        str(receipt.run_id),
+                        receipt.tenant_id,
+                        receipt.namespace,
+                        receipt.status.value,
+                        receipt.applied,
+                        receipt.watermark,
+                        receipt.started_at,
+                        receipt.completed_at,
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for action in receipt.actions:
+                    if not action.applied:
+                        continue
+                    tx.execute(
+                        """
+                        INSERT INTO maintenance_actions(
+                            action_digest, run_id, tenant_id, namespace, operation,
+                            applied, created_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (tenant_id, namespace, action_digest) DO NOTHING
+                        """,
+                        (
+                            action.action_digest,
+                            str(receipt.run_id),
+                            receipt.tenant_id,
+                            receipt.namespace,
+                            action.operation.value,
+                            True,
+                            receipt.started_at,
+                        ),
+                    )
+        except psycopg2.Error as exc:
+            raise StoreError(f"maintenance run persistence failed: {exc}") from exc
+
+    def get_maintenance_watermark(
+        self, tenant_id: str, namespace: str
+    ) -> datetime | None:
+        with self._cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT MAX(watermark) AS watermark FROM maintenance_runs
+                WHERE tenant_id = %s AND namespace = %s AND applied = TRUE
+                """,
+                (tenant_id, namespace),
+            )
+            row = cursor.fetchone()
+        watermark = row["watermark"] if row else None
+        return watermark if isinstance(watermark, datetime) else None
+
+    def find_maintenance_action_digests(
+        self, tenant_id: str, namespace: str
+    ) -> frozenset[str]:
+        with self._cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT action_digest FROM maintenance_actions
+                WHERE tenant_id = %s AND namespace = %s AND applied = TRUE
+                """,
+                (tenant_id, namespace),
+            )
+            rows = cursor.fetchall()
+        return frozenset(str(row["action_digest"]) for row in rows)
 
     # -- statistics -----------------------------------------------------------
 

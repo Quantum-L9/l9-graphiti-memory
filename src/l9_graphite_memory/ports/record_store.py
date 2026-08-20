@@ -19,6 +19,7 @@ from uuid import UUID
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
+    MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
     MemoryState,
@@ -120,6 +121,22 @@ class RecordStore(Protocol):
     def delete_projection_link(self, record_id: UUID, projection_name: str) -> None: ...
 
     def stats(self) -> dict[str, Any]: ...
+
+    def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
+        """Append one maintenance run to the ledger."""
+        ...
+
+    def get_maintenance_watermark(
+        self, tenant_id: str, namespace: str
+    ) -> datetime | None:
+        """Watermark of the most recent applied run, or None if never run."""
+        ...
+
+    def find_maintenance_action_digests(
+        self, tenant_id: str, namespace: str
+    ) -> frozenset[str]:
+        """Digests of actions already applied, so a rerun does not repeat them."""
+        ...
 
     def list_expired(
         self,

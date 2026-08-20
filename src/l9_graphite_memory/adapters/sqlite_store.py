@@ -26,6 +26,7 @@ from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
     DeletionStatus,
+    MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
     MemoryState,
@@ -42,7 +43,7 @@ from l9_graphite_memory.schema import schema_registry
 # Register built-in migrations.
 from l9_graphite_memory.schema import upcasters as _upcasters  # noqa: F401
 
-_SCHEMA_VERSION = 5
+_SCHEMA_VERSION = 6
 
 
 def _json(value: Any) -> str:
@@ -193,6 +194,32 @@ class SQLiteRecordStore:
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_projection_links_locator ON projection_links(projection_name, locator)",
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_runs (
+                run_id TEXT PRIMARY KEY,
+                tenant_id TEXT NOT NULL,
+                namespace TEXT NOT NULL,
+                status TEXT NOT NULL,
+                applied INTEGER NOT NULL,
+                watermark TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                completed_at TEXT,
+                receipt_json TEXT NOT NULL
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_maintenance_runs_namespace ON maintenance_runs(tenant_id, namespace, applied, watermark)",
+            """
+            CREATE TABLE IF NOT EXISTS maintenance_actions (
+                action_digest TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                tenant_id TEXT NOT NULL,
+                namespace TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                applied INTEGER NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, namespace, action_digest)
+            )
+            """,
             """
             CREATE TABLE IF NOT EXISTS phase_locks (
                 lock_id TEXT PRIMARY KEY,
@@ -781,6 +808,83 @@ class SQLiteRecordStore:
                 )
         except sqlite3.Error as exc:
             raise StoreError(f"projection link deletion failed: {exc}") from exc
+
+    def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO maintenance_runs(
+                        run_id, tenant_id, namespace, status, applied, watermark,
+                        started_at, completed_at, receipt_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.run_id),
+                        receipt.tenant_id,
+                        receipt.namespace,
+                        receipt.status.value,
+                        int(receipt.applied),
+                        _dt(receipt.watermark),
+                        _dt(receipt.started_at),
+                        _dt(receipt.completed_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for action in receipt.actions:
+                    if not action.applied:
+                        continue
+                    tx.execute(
+                        """
+                        INSERT OR IGNORE INTO maintenance_actions(
+                            action_digest, run_id, tenant_id, namespace, operation,
+                            applied, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            action.action_digest,
+                            str(receipt.run_id),
+                            receipt.tenant_id,
+                            receipt.namespace,
+                            action.operation.value,
+                            1,
+                            _dt(receipt.started_at),
+                        ),
+                    )
+        except sqlite3.Error as exc:
+            raise StoreError(f"maintenance run persistence failed: {exc}") from exc
+
+    def get_maintenance_watermark(
+        self, tenant_id: str, namespace: str
+    ) -> datetime | None:
+        row = (
+            self._connection()
+            .execute(
+                """
+                SELECT MAX(watermark) AS watermark FROM maintenance_runs
+                WHERE tenant_id = ? AND namespace = ? AND applied = 1
+                """,
+                (tenant_id, namespace),
+            )
+            .fetchone()
+        )
+        return _parse_dt(str(row["watermark"])) if row and row["watermark"] else None
+
+    def find_maintenance_action_digests(
+        self, tenant_id: str, namespace: str
+    ) -> frozenset[str]:
+        rows = (
+            self._connection()
+            .execute(
+                """
+                SELECT action_digest FROM maintenance_actions
+                WHERE tenant_id = ? AND namespace = ? AND applied = 1
+                """,
+                (tenant_id, namespace),
+            )
+            .fetchall()
+        )
+        return frozenset(str(row["action_digest"]) for row in rows)
 
     def stats(self) -> dict[str, Any]:
         connection = self._connection()

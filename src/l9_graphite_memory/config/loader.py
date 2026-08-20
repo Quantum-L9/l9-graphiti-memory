@@ -51,6 +51,7 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_LOCAL_READ_NAMESPACES": "local_read_namespaces",
     "L9_MEMORY_LOCAL_WRITE_NAMESPACES": "local_write_namespaces",
     "L9_MEMORY_LOCAL_PROMOTE_NAMESPACES": "local_promote_namespaces",
+    "L9_MEMORY_LOCAL_MAINTAIN_NAMESPACES": "local_maintain_namespaces",
     "L9_MEMORY_LOCAL_IS_ADMIN": "local_is_admin",
     "L9_MEMORY_OUTBOX_BATCH_SIZE": "outbox_batch_size",
     "L9_MEMORY_OUTBOX_MAX_ATTEMPTS": "outbox_max_attempts",
@@ -74,6 +75,7 @@ _LIST_FIELDS = {
     "local_read_namespaces",
     "local_write_namespaces",
     "local_promote_namespaces",
+    "local_maintain_namespaces",
 }
 
 

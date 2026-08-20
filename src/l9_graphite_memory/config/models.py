@@ -33,6 +33,7 @@ class TokenPrincipalConfig(BaseModel):
     read_namespaces: tuple[str, ...] = ()
     write_namespaces: tuple[str, ...] = ()
     promote_namespaces: tuple[str, ...] = ()
+    maintain_namespaces: tuple[str, ...] = ()
     is_admin: bool = False
 
 
@@ -79,6 +80,7 @@ class MemorySettings(BaseModel):
     local_read_namespaces: tuple[str, ...] = ()
     local_write_namespaces: tuple[str, ...] = ()
     local_promote_namespaces: tuple[str, ...] = ()
+    local_maintain_namespaces: tuple[str, ...] = ()
     local_is_admin: bool = False
 
     outbox_batch_size: int = Field(default=50, ge=1, le=1_000)

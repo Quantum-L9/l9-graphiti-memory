@@ -20,6 +20,7 @@ from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
     DeletionStatus,
+    MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
     MemoryState,
@@ -46,6 +47,7 @@ class InMemoryRecordStore:
         self.outbox: dict[UUID, OutboxEvent] = {}
         self.phase_locks: dict[tuple[str, str], PhaseLockReceipt] = {}
         self.projection_links: dict[tuple[UUID, str], ProjectionLink] = {}
+        self.maintenance_runs: list[MaintenanceRunReceipt] = []
         self.initialized = False
 
     def initialize(self) -> None:
@@ -267,6 +269,32 @@ class InMemoryRecordStore:
             "by_state": by_state,
             "by_class": by_class,
         }
+
+    def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
+        self.maintenance_runs.append(receipt)
+
+    def get_maintenance_watermark(
+        self, tenant_id: str, namespace: str
+    ) -> datetime | None:
+        applied = [
+            run.watermark
+            for run in self.maintenance_runs
+            if run.tenant_id == tenant_id
+            and run.namespace == namespace
+            and run.applied
+        ]
+        return max(applied) if applied else None
+
+    def find_maintenance_action_digests(
+        self, tenant_id: str, namespace: str
+    ) -> frozenset[str]:
+        return frozenset(
+            action.action_digest
+            for run in self.maintenance_runs
+            if run.tenant_id == tenant_id and run.namespace == namespace
+            for action in run.actions
+            if action.applied
+        )
 
     def list_expired(
         self,
