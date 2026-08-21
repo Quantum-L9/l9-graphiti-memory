@@ -289,6 +289,9 @@ class HealthReport(BaseModel):
     schema_version: str
     store: dict[str, Any]
     projection: dict[str, Any]
+    gate: dict[str, Any] = Field(
+        default_factory=lambda: {"name": "gate", "configured": False}
+    )
     outbox_backlog: int = Field(ge=0)
     degraded_reasons: tuple[str, ...] = ()
     checked_at: datetime = Field(default_factory=utc_now)

@@ -18,9 +18,21 @@ from .constellation import (
     PhaseLockMemoryIntent,
     SearchMemoryIntent,
 )
+from .gate_client import CanonicalGateClient, attach_gate_health, receipt_from_response
 from .session import ContextRestorer, SessionEvent, SessionIngestor
+from .transport_packet import (
+    AUTHORITATIVE_PACKAGE,
+    AUTHORITATIVE_REPO,
+    SUPPORTED_VERSION_RANGE,
+    CanonicalTransportPacketFactory,
+)
 
 __all__ = [
+    "AUTHORITATIVE_PACKAGE",
+    "AUTHORITATIVE_REPO",
+    "SUPPORTED_VERSION_RANGE",
+    "CanonicalGateClient",
+    "CanonicalTransportPacketFactory",
     "ContextRestorer",
     "GateMemoryBridge",
     "HydrateMemoryIntent",
@@ -30,4 +42,6 @@ __all__ = [
     "SearchMemoryIntent",
     "SessionEvent",
     "SessionIngestor",
+    "attach_gate_health",
+    "receipt_from_response",
 ]
