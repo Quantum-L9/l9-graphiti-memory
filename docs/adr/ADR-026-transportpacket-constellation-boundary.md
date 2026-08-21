@@ -48,6 +48,14 @@ The alternatives above are rejected because they duplicate authority, hide failu
 
 Positive: behavior has one owner, failures are observable, and adapters can evolve without redefining memory law.
 
+Implementation binding (RP-001): the authoritative package is
+`constellation-node-sdk` published from `Quantum-L9/Gate_SDK`. This repository
+pins `v1.0.1` (`>=1.0.1,<1.1.0`) via the optional `constellation` extra.
+`CanonicalTransportPacketFactory` calls `create_transport_packet` for roots and
+`TransportPacket.derive` for follow-ups. Unsupported SDK versions fail closed
+with `UnsupportedTransportPacketVersion`. This repository still does not define
+TransportPacket.
+
 Negative: the design requires explicit contracts, receipts, and migration work instead of relying on provider defaults or convenient shortcuts.
 
 ## Security Impact

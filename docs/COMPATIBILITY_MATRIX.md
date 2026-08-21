@@ -34,3 +34,4 @@ updated: 2026-07-22
 | sensitive profile memory | generic fact | purpose-bound consent contract | intentional privacy hardening |
 | deletion | undefined or destructive | redacted tombstone plus verified projection erasure | intentional privacy hardening |
 | package wheel | registry could be missing | installed-wheel resource and entrypoint smoke | repaired |
+| TransportPacket | injected protocol only; shared package unknown | `constellation-node-sdk` from `Quantum-L9/Gate_SDK` `v1.0.1` (`>=1.0.1,<1.1.0`, Python `>=3.12` extra); upgrade by bumping the git tag and supported range together | RP-001 bound |

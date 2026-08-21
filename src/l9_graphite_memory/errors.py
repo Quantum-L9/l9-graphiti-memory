@@ -51,3 +51,7 @@ class ConflictDetected(L9MemoryError):
 
 class BoundaryAlignmentError(L9MemoryError):
     """An L9 constellation boundary violated transport or Gate invariants."""
+
+
+class UnsupportedTransportPacketVersion(BoundaryAlignmentError):
+    """The installed constellation-node-sdk version is missing or unsupported."""

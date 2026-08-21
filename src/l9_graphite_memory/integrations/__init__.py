@@ -19,8 +19,18 @@ from .constellation import (
     SearchMemoryIntent,
 )
 from .session import ContextRestorer, SessionEvent, SessionIngestor
+from .transport_packet import (
+    AUTHORITATIVE_PACKAGE,
+    AUTHORITATIVE_REPO,
+    SUPPORTED_VERSION_RANGE,
+    CanonicalTransportPacketFactory,
+)
 
 __all__ = [
+    "AUTHORITATIVE_PACKAGE",
+    "AUTHORITATIVE_REPO",
+    "SUPPORTED_VERSION_RANGE",
+    "CanonicalTransportPacketFactory",
     "ContextRestorer",
     "GateMemoryBridge",
     "HydrateMemoryIntent",

@@ -54,6 +54,9 @@ phase6 = [
   "PyJWT>=2.13,<3",
 ]
 infisical = ["infisical-python>=2.0,<3"]
+constellation = [
+  "constellation-node-sdk @ git+https://github.com/Quantum-L9/Gate_SDK.git@v1.0.1 ; python_full_version >= '3.12'",
+]
 all = [
   "fastapi>=0.115,<1",
   "uvicorn>=0.30,<1",
@@ -136,7 +139,7 @@ exclude = ["validation", "dist", "tests"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["yaml", "infisical_client.*", "zep_cloud.*", "fastapi.*", "uvicorn.*", "redis.*", "psycopg2.*"]
+module = ["yaml", "infisical_client.*", "zep_cloud.*", "fastapi.*", "uvicorn.*", "redis.*", "psycopg2.*", "constellation_node_sdk", "constellation_node_sdk.*"]
 ignore_missing_imports = true
 
 [tool.uv]
