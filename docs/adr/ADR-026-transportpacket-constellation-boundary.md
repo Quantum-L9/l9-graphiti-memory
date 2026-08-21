@@ -56,6 +56,14 @@ pins `v1.0.1` (`>=1.0.1,<1.1.0`) via the optional `constellation` extra.
 with `UnsupportedTransportPacketVersion`. This repository still does not define
 TransportPacket.
 
+Implementation binding (RP-002): `CanonicalGateClient` wraps
+`constellation_node_sdk.GateClient`. Callers pass only a packet. Destination
+stays at the SDK default (`gate`). Hosting runtime supplies `GATE_URL`,
+`L9_NODE_NAME`, and signing material. Dispatch receipts are the response
+`TransportPacket` validated against the dispatched packet id / trace id.
+Typed failures: denied, rejected, unavailable, timeout, malformed-receipt.
+`send_to_gate` has no retry or circuit-breaker; this adapter does not add them.
+
 Negative: the design requires explicit contracts, receipts, and migration work instead of relying on provider defaults or convenient shortcuts.
 
 ## Security Impact

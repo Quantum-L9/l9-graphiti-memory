@@ -168,10 +168,13 @@ class CanonicalTransportPacket:
 class CanonicalTransportPacketFactory:
     """Create root packets through constellation-node-sdk.create_transport_packet."""
 
-    def __init__(self, *, tenant: str) -> None:
+    def __init__(self, *, tenant: str, local_node: str | None = None) -> None:
         if not tenant or not tenant.strip():
             raise BoundaryAlignmentError("canonical packet factory requires a tenant")
         self._tenant = tenant.strip()
+        self._local_node = local_node.strip().lower() if local_node else None
+        if local_node is not None and not self._local_node:
+            raise BoundaryAlignmentError("canonical packet factory local_node must not be blank")
         packet_type, create, installed = load_authoritative_transport()
         self._packet_type = packet_type
         self._create = create
@@ -182,12 +185,16 @@ class CanonicalTransportPacketFactory:
         if not trace_id or not trace_id.strip():
             raise BoundaryAlignmentError("canonical packet factory requires a trace_id")
         intent = GateMemoryBridge.validate_intent(payload)
-        packet = self._create(
-            action=intent.operation,
-            payload=_intent_payload(intent),
-            tenant=self._tenant,
-            trace_id=trace_id.strip(),
-        )
+        create_kwargs: dict[str, Any] = {
+            "action": intent.operation,
+            "payload": _intent_payload(intent),
+            "tenant": self._tenant,
+            "trace_id": trace_id.strip(),
+        }
+        if self._local_node:
+            create_kwargs["source_node"] = self._local_node
+            create_kwargs["reply_to"] = self._local_node
+        packet = self._create(**create_kwargs)
         if not isinstance(packet, self._packet_type):
             raise BoundaryAlignmentError(
                 "canonical constructor did not return constellation_node_sdk.TransportPacket"

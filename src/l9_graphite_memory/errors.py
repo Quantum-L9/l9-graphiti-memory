@@ -55,3 +55,27 @@ class BoundaryAlignmentError(L9MemoryError):
 
 class UnsupportedTransportPacketVersion(BoundaryAlignmentError):
     """The installed constellation-node-sdk version is missing or unsupported."""
+
+
+class GateDispatchError(BoundaryAlignmentError):
+    """A production Gate dispatch failed with a typed, evidence-bearing outcome."""
+
+
+class GateDeniedError(GateDispatchError):
+    """Gate denied the packet (authorization or admission)."""
+
+
+class GateRejectedError(GateDispatchError):
+    """Gate rejected the packet as invalid or policy-violating."""
+
+
+class GateUnavailableError(GateDispatchError):
+    """Gate could not be reached or is not ready."""
+
+
+class GateTimeoutError(GateDispatchError):
+    """The Gate request exceeded the configured timeout."""
+
+
+class GateMalformedReceiptError(GateDispatchError):
+    """Gate returned a body that is not a valid dispatch receipt."""

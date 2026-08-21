@@ -291,6 +291,23 @@ Never restore secrets into the repository.
 | legacy queue item retained | pre-v2.3 queued write could not be admitted | inspect the preserved file and the reported error |
 | prefetch hook error | hydration failed | leave gates off during diagnosis or restore service |
 
+## Constellation Gate health
+
+Inter-node egress uses `constellation-node-sdk` `GateClient` (`CanonicalGateClient`).
+Configure identity and authentication on the hosting runtime, never in a request payload:
+
+```bash
+export GATE_URL="https://gate.example"
+export L9_NODE_NAME="memory-node"
+# optional signing: L9_SIGNING_KEY / L9_SIGNING_KEY_ID / L9_SIGNING_ALGORITHM / L9_REQUIRE_SIGNATURE
+```
+
+`l9-memory health` reports the canonical store and projection. Gate availability is a
+separate `HealthReport.gate` snapshot (`configured` / `healthy` / `status`). Gate
+unavailable is `PARTIAL` with reason `gate is unavailable`; it does not mark the
+memory core failed. There is no peer URL, destination argument, retry, or
+circuit-breaker on dispatch — `send_to_gate` does not authorize those.
+
 ## Release validation
 
 ```bash
