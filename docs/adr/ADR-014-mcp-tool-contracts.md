@@ -26,7 +26,7 @@ The old local server exposed search/write while its provider client assumed sear
 
 ## Decision
 
-mcp_tools.py is the single machine-readable local inventory. Canonical names use memory.*. Legacy aliases are generated from canonical definitions and route to the same MCPToolApplication handlers. Provider-native Graphiti tool discovery remains isolated in the projection transport and cannot redefine local memory law.
+mcp_tools.py is the single machine-readable local inventory. Canonical names use memory.*. Legacy aliases are generated from canonical definitions and route to the same MCPToolApplication handlers. The agent-facing contract is memory.search, memory.hydrate, memory.write_governed, memory.close, and memory.health. Compatibility aliases graphiti.query and graphiti.write_governed terminate at those handlers and must not call Graphiti directly. Provider-native Graphiti tool discovery remains isolated in the projection transport and cannot redefine local memory law.
 
 ## Alternatives Considered
 

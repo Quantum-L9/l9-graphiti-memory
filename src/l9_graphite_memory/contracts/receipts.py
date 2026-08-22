@@ -295,3 +295,16 @@ class HealthReport(BaseModel):
     outbox_backlog: int = Field(ge=0)
     degraded_reasons: tuple[str, ...] = ()
     checked_at: datetime = Field(default_factory=utc_now)
+
+
+class CloseReceipt(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    receipt_id: UUID = Field(default_factory=uuid4)
+    status: OperationStatus
+    namespace: str
+    write_receipt_id: UUID
+    record_id: UUID | None = None
+    graphiti_accepted: bool = False
+    authorization: AuthorizationReceipt
+    created_at: datetime = Field(default_factory=utc_now)

@@ -1,0 +1,63 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: campaigns/canonical-memory-lifecycle-convergence-v1/program-execution.intent.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+# Official PE compiler front door (ADR-0007).
+# Schema: program-execution.intent.v1 — goal + narrowing only.
+# This file is valid for:
+#   PYTHONPATH=$HOME/.cursor-governance/environment/program-execution \
+#     python3 -m compiler.cli intent --target Quantum-L9/l9-graphiti-memory
+# The seven-release task graph is NOT here (schema rejects tasks/files/waves).
+# Runnable campaign seed: ./intent.yaml
+
+schema: program-execution.intent.v1
+objective: >
+  Collapse every agent-facing memory lifecycle onto l9-graphiti-memory so
+  Cursor-Governance no longer owns a parallel Graphiti client lifecycle;
+  publish governance through that canonical plane; make exact hydrated
+  cognitive state an explicit session-readiness contract; and reduce Graphiti
+  to a rebuildable projection. After this program, Cursor, Claude, Codex,
+  Gemini, and Manus differ only in adapter rendering and runtime identity —
+  not in governance source, memory authority, continuation state, or
+  admission semantics.
+targets:
+  - Quantum-L9/l9-graphiti-memory
+  - Quantum-L9/Cursor-Governance
+policy_profile: quantum-l9.safe-autonomy.v1
+termination:
+  mode: program_handoff
+  convergence_owner: Igor Beylin
+constraints:
+  scope:
+    include:
+      - l9-graphiti-memory MemoryService, RecordStore, hydration, publication, and memory.* tools
+      - Cursor-Governance session composition, ResumeCapsule, readiness, and PE Gate 0
+      - stdlib-safe session boot / ensure_ready
+      - Infisical clone-safe desktop secret materialization
+      - compatibility aliases from graphiti.query / graphiti.write_governed onto memory.*
+      - l9-governance namespace publication and authz
+    exclude:
+      - executing session-runtime-hydration-convergence-v1 (superseded; do not run)
+      - implementing Graphiti MCP protocol inside the broker
+      - a second retrieval or budget engine in compile_session_packet.py
+      - injecting the full governance rule corpus into model context
+      - deleting legacy Graphiti lifecycle paths before replacement acceptance
+      - a second agent-memory SSOT beside MemoryService
+      - production Graphiti / VPS mutation
+  permission_ceiling:
+    inspect: true
+    local_write: true
+    commit: true
+    push: true
+    pull_request: true
+    merge: false
+    publish_or_release: false
+    deploy_or_migrate: false
+    destructive_change: false
+    external_message: false

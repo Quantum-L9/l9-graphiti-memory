@@ -21,6 +21,7 @@ from pydantic import ValidationError
 
 from l9_graphite_memory.contracts import (
     AuthorizationAction,
+    CloseRequest,
     Confidence,
     ConsentGrant,
     DeletionRequest,
@@ -112,6 +113,49 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
                 "dry_run": {"type": "boolean", "default": False},
             },
             ["namespace", "content"],
+        ),
+    },
+    {
+        "name": "memory.write_governed",
+        "description": "Admit one governed memory record only while a phase-lock is held.",
+        "inputSchema": _object_schema(
+            {
+                "namespace": {"type": "string"},
+                "content": {"type": "string"},
+                "task_signature": {"type": "string"},
+                "memory_class": {"type": "string", "default": "observation"},
+                "subject": {"type": "string"},
+                "predicate": {"type": "string"},
+                "object": {"type": "string"},
+                "source_id": {"type": "string"},
+                "idempotency_key": {"type": "string"},
+                "valid_from": {"type": "string", "format": "date-time"},
+                "valid_to": {"type": "string", "format": "date-time"},
+                "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "default": 1,
+                },
+                "source_trust": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "default": 1,
+                },
+                "consent": _consent_schema(),
+                "tags": {"type": "array", "items": {"type": "string"}},
+                "supersedes": {
+                    "type": "array",
+                    "items": {"type": "string", "format": "uuid"},
+                },
+                "references": {
+                    "type": "array",
+                    "items": {"type": "string", "format": "uuid"},
+                },
+                "dry_run": {"type": "boolean", "default": False},
+            },
+            ["namespace", "content", "task_signature"],
         ),
     },
     {
@@ -311,6 +355,20 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
         "inputSchema": _object_schema({}),
     },
     {
+        "name": "memory.close",
+        "description": "Commit session-close state through MemoryService before returning success.",
+        "inputSchema": _object_schema(
+            {
+                "namespace": {"type": "string"},
+                "summary": {"type": "string"},
+                "session_id": {"type": "string"},
+                "capsule_digest": {"type": "string"},
+                "dry_run": {"type": "boolean", "default": False},
+            },
+            ["namespace", "summary"],
+        ),
+    },
+    {
         "name": "memory.ingest_governed_candidate",
         "description": "Admit one Cursor-Governance governed memory candidate through MemoryService.write.",
         "inputSchema": _object_schema({"candidate": {"type": "object"}}, []),
@@ -340,6 +398,8 @@ ALIASES: dict[str, str] = {
     "phase_lock": "memory.phase_lock",
     "verify_phase_lock": "memory.verify_phase_lock",
     "conflicts": "memory.conflicts",
+    "graphiti.query": "memory.search",
+    "graphiti.write_governed": "memory.write_governed",
 }
 
 
@@ -406,6 +466,7 @@ class MCPToolApplication:
         canonical = ALIASES.get(name, name)
         handlers = {
             "memory.ingest": self._ingest,
+            "memory.write_governed": self._write_governed,
             "memory.search": self._search,
             "memory.hydrate": self._hydrate,
             "memory.get": self._get,
@@ -420,6 +481,7 @@ class MCPToolApplication:
             "memory.distill": self._distill,
             "memory.synthesize_procedures": self._synthesize_procedures,
             "memory.health": self._health,
+            "memory.close": self._close,
             "memory.ingest_governed_candidate": self._ingest_governed_candidate,
             "memory.record_reuse": self._record_reuse,
             "memory.invalidate_source": self._invalidate_source,
@@ -434,6 +496,17 @@ class MCPToolApplication:
             raise ValueError(f"invalid {canonical} arguments: {exc}") from exc
 
     def _ingest(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
+        return self.service.write(
+            principal, self._write_request(principal, args, tool="memory.ingest")
+        )
+
+    def _write_request(
+        self,
+        principal: MemoryPrincipal,
+        args: dict[str, Any],
+        *,
+        tool: str,
+    ) -> MemoryWriteRequest:
         subject = args.get("subject")
         predicate = args.get("predicate")
         object_value = args.get("object")
@@ -453,7 +526,7 @@ class MCPToolApplication:
             memory_class=memory_class,
             principal=principal,
         )
-        request = MemoryWriteRequest(
+        return MemoryWriteRequest(
             namespace=str(args["namespace"]),
             memory_class=memory_class,
             content=str(args["content"]),
@@ -462,7 +535,7 @@ class MCPToolApplication:
                 source="mcp",
                 source_id=str(args.get("source_id")) if args.get("source_id") else None,
                 source_agent_id=principal.agent_id,
-                tool="memory.ingest",
+                tool=tool,
                 extraction_method="direct-mcp/v1",
                 source_trust=float(args.get("source_trust", 1.0)),
             ),
@@ -487,7 +560,13 @@ class MCPToolApplication:
             consent=consent,
             dry_run=bool(args.get("dry_run", False)),
         )
-        return self.service.write(principal, request)
+
+    def _write_governed(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
+        return self.service.write_governed(
+            principal,
+            self._write_request(principal, args, tool="memory.write_governed"),
+            task_signature=str(args["task_signature"]),
+        )
 
     def _search(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         request = MemorySearchRequest(
@@ -654,6 +733,20 @@ class MCPToolApplication:
 
     def _health(self, _principal: MemoryPrincipal, _args: dict[str, Any]) -> Any:
         return self.service.health()
+
+    def _close(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
+        return self.service.close(
+            principal,
+            CloseRequest(
+                namespace=str(args["namespace"]),
+                summary=str(args["summary"]),
+                session_id=str(args["session_id"]) if args.get("session_id") else None,
+                capsule_digest=str(args["capsule_digest"])
+                if args.get("capsule_digest")
+                else None,
+                dry_run=bool(args.get("dry_run", False)),
+            ),
+        )
 
     def _ingest_governed_candidate(
         self, principal: MemoryPrincipal, args: dict[str, Any]

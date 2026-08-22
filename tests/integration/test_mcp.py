@@ -13,7 +13,16 @@ from l9_graphite_memory.mcp_tools import MCPToolApplication, tool_definitions
 
 def test_tool_inventory_contains_canonical_and_compatibility_names() -> None:
     names = {item["name"] for item in tool_definitions()}
-    assert {"memory.ingest", "memory.search", "write", "search", "phase_lock"} <= names
+    assert {
+        "memory.ingest",
+        "memory.search",
+        "memory.write_governed",
+        "memory.close",
+        "write",
+        "search",
+        "graphiti.query",
+        "phase_lock",
+    } <= names
 
 
 def test_compatibility_write_alias_uses_canonical_service(
