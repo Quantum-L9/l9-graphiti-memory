@@ -33,6 +33,7 @@ from .cursor import managed_server_entry
 
 REQUIRED_TOOL_NAMES: tuple[str, ...] = (
     "memory.ingest",
+    "memory.write_governed",
     "memory.search",
     "memory.hydrate",
     "memory.get",
@@ -47,8 +48,11 @@ REQUIRED_TOOL_NAMES: tuple[str, ...] = (
     "memory.distill",
     "memory.synthesize_procedures",
     "memory.health",
+    "memory.close",
     "write",
     "search",
+    "graphiti.query",
+    "graphiti.write_governed",
 )
 
 _STDERR_LIMIT = 2000

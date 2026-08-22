@@ -21,6 +21,8 @@ from l9_graphite_memory.authz import NamespacePolicy
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     AuthorizationAction,
+    CloseReceipt,
+    CloseRequest,
     Confidence,
     ConflictItem,
     ConflictReport,
@@ -32,6 +34,7 @@ from l9_graphite_memory.contracts import (
     HealthReport,
     HydrationRequest,
     HydrationResult,
+    MemoryClass,
     MemoryPrincipal,
     MemoryRecord,
     MemorySearchRequest,
@@ -371,6 +374,65 @@ class MemoryService:
                 status_events=tuple(status_events),
             )
         return receipt
+
+    def write_governed(
+        self,
+        principal: MemoryPrincipal,
+        request: MemoryWriteRequest,
+        *,
+        task_signature: str,
+    ) -> WriteReceipt:
+        verification = self.verify_phase_lock(
+            principal, request.namespace, task_signature
+        )
+        if not verification.valid:
+            raise AuthorizationError(
+                "memory.write_governed requires a held phase-lock: "
+                + "; ".join(verification.reasons)
+            )
+        return self.write(principal, request)
+
+    def close(self, principal: MemoryPrincipal, request: CloseRequest) -> CloseReceipt:
+        write_receipt = self.write(
+            principal,
+            MemoryWriteRequest(
+                namespace=request.namespace,
+                memory_class=MemoryClass.META,
+                content=request.summary,
+                provenance=Provenance(
+                    source="memory.close",
+                    source_agent_id=principal.agent_id,
+                    tool="memory.close",
+                    extraction_method="session-close/v1",
+                    source_trust=1.0,
+                ),
+                evidence=(
+                    EvidenceRef(
+                        kind=EvidenceKind.EXPLICIT,
+                        description="authenticated caller committed session close through MemoryService",
+                        source_id=principal.audit_subject,
+                    ),
+                ),
+                tags=("session-close", "async-work-obligation"),
+                metadata={
+                    "close": True,
+                    "session_id": request.session_id,
+                    "capsule_digest": request.capsule_digest,
+                    "graphiti_accepted": False,
+                },
+                dry_run=request.dry_run,
+            ),
+        )
+        return CloseReceipt(
+            status=OperationStatus.COMPLETE
+            if write_receipt.status is WriteStatus.ADMITTED
+            else OperationStatus.FAILED,
+            namespace=request.namespace,
+            write_receipt_id=write_receipt.receipt_id,
+            record_id=write_receipt.record_id,
+            graphiti_accepted=False,
+            authorization=write_receipt.authorization,
+        )
 
     def get(self, principal: MemoryPrincipal, record_id: UUID) -> MemoryRecord | None:
         record = self.store.get_record(record_id)

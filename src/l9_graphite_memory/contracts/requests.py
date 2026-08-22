@@ -130,3 +130,13 @@ class DeletionRequest(BaseModel):
     reason: str = Field(min_length=1, max_length=2_000)
     verification_reference: str = Field(min_length=1, max_length=500)
     dry_run: bool = False
+
+
+class CloseRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    namespace: str = Field(min_length=1, max_length=300)
+    summary: str = Field(min_length=1, max_length=8_000)
+    session_id: str | None = Field(default=None, max_length=200)
+    capsule_digest: str | None = Field(default=None, max_length=128)
+    dry_run: bool = False
