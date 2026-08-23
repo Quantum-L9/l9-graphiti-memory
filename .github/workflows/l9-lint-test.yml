@@ -86,9 +86,10 @@ jobs:
           #
           # Dependencies only, not the project: mypy analyses SOURCE_DIR from
           # the checkout, so an editable install is not needed. Resolved
-          # versions come from uv.lock and binaries only, which keeps this off
-          # both `--only-binary :all:` setup-script execution and unlocked
-          # resolution. No version literals here, per the note at the top.
+          # versions and their hashes come from uv.lock, and the install is
+          # binaries-only and hash-checked, so no sdist setup script runs and
+          # every artifact is verified against the lock. No version literals
+          # here, per the note at the top.
           #
           # Extras match ci.yml (dev + server + postgres), not dev alone.
           # server.py guards its starlette import and carries
@@ -97,10 +98,11 @@ jobs:
           # --ignore-missing-imports makes them dead, so mypy reports
           # `Unused "type: ignore" comment  [unused-ignore]` instead.
           if [ -f uv.lock ]; then
-            uv export --frozen --no-emit-project --no-hashes \
+            uv export --frozen --no-emit-project \
               --extra dev --extra server --extra postgres \
               -o "${RUNNER_TEMP}/lint-requirements.txt"
-            pip install --only-binary :all: -r "${RUNNER_TEMP}/lint-requirements.txt"
+            pip install --only-binary :all: --require-hashes \
+              -r "${RUNNER_TEMP}/lint-requirements.txt"
           else
             echo "::notice::no uv.lock; mypy runs against the toolchain only"
           fi
