@@ -64,7 +64,7 @@ updated: 2026-07-22
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1439 | `a0020911d065fb943ffd8c2eda19f2fb21060ea782ffdf1830fbb9d5dffbc72b` |
 | `.github/workflows/typescript-client-publish.yml` | `ci` | `ci` | 1549 | `6e9febe7a4d4c57a954dcb2065d11c200ed6b0419e92f3e69a5f3bf771cd9319` |
 | `.github/workflows/typescript-client.yml` | `ci` | `ci` | 1147 | `c89466f9930d3d4628bc2d8ed3df9c0248a7d2e692fd2a34b4f288fa1b26cc5e` |
-| `.gitignore` | `repository_root` | `repository_root` | 871 | `c8cfcb1de1b65ea83afd0e4c1586f7c2144a25aabffd0e225999783fe6e4dd5a` |
+| `.gitignore` | `repository_root` | `repository_root` | 1364 | `45c400a6c40a9cc74ab9949b52be1a9e0db3684cf4f65c6fd64512da5d655f6b` |
 | `.l9/generated-data-bind-receipt.yaml` | `repository_root` | `repository_root` | 1083 | `c4ac97061efd3f9fc76785cdc5dce3e10ee19d38518c7bc31a12271c0d57831f` |
 | `.l9/generated-data-deployment-wave1-preflight.json` | `repository_root` | `repository_root` | 1881 | `18edd9f12c5d758f0cf737ee9af0c9aa34588a48313021712ddc0035cf83e650` |
 | `.l9/generated-data-repository-binding-preflight.json` | `repository_root` | `repository_root` | 1981 | `a5566fe67ad128fc0e2357f8945d3eaa3a8ff551b7dc14d8bcd1755d50d08dd2` |

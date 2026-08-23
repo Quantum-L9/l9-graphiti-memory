@@ -142,8 +142,8 @@
         "version": "2.2.0"
       },
       "path": ".gitignore",
-      "sha256": "c8cfcb1de1b65ea83afd0e4c1586f7c2144a25aabffd0e225999783fe6e4dd5a",
-      "size_bytes": 871
+      "sha256": "45c400a6c40a9cc74ab9949b52be1a9e0db3684cf4f65c6fd64512da5d655f6b",
+      "size_bytes": 1364
     },
     {
       "category": "repository_root",
@@ -446,8 +446,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "3fb23c2001fecbddfe8e00a72f2c95c38ab85059a12d682e4c09921d811bd584",
-      "size_bytes": 109701
+      "sha256": "25a96d1f7a04cb5d7087ebc671e9b763a5127ea0bfe48655265fe542eb548650",
+      "size_bytes": 109702
     },
     {
       "category": "repository_root",
