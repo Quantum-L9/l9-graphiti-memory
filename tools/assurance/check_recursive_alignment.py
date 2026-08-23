@@ -53,6 +53,7 @@ ALLOWED_TOP_LEVEL = {
     "ALIGNMENT.md",
     "ARCHITECTURE.md",
     "CHANGE_SUMMARY.md",
+    "campaigns",
     "clients",
     "CONTRIBUTING.md",
     "CONVERGENCE_REPORT.yaml",

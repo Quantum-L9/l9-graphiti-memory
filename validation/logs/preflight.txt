@@ -10,15 +10,15 @@ PASS  MCP inventory
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr33/.venv/bin/python3",
+    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr35/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-23T15:45:12.120671Z",
+  "created_at": "2026-08-23T16:00:48.207918Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.GlgSAY9FCx/cursor/mcp.json",
+  "path": "/tmp/tmp.occFkOoejq/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,27 +26,27 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "8f87f8a5-0ffa-4e06-8e98-708d683ea249",
+  "receipt_id": "45d012a7-875b-4f44-ad2b-d545764673ba",
   "status": "dry_run",
   "warnings": []
 }
 PASS  cursor client dry-run
 {
   "command_argv": [
-    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr33/.venv/bin/python3",
+    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr35/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-23T15:45:13.353152Z",
+  "created_at": "2026-08-23T16:00:49.458187Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "093a4935-1598-426d-99a7-7ab915334549",
+  "receipt_id": "5b22ec20-fef8-4fc7-9df1-085be1fd1f58",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
@@ -75,7 +75,7 @@ PASS  cursor client dry-run
     }
   ],
   "timed_out": false,
-  "tool_count": 26
+  "tool_count": 30
 }
 PASS  cursor instantiation probe
 PASS  shell syntax graphiti-gate-edits.sh
@@ -97,7 +97,7 @@ PASS: core, adapter, service, and integration dependency directions are aligned
 PASS  layer boundary alignment
 PASS: recursive L9 alignment contract satisfied across all ten passes
 PASS  recursive L9 alignment
-PASS: 633 manifested files exist with matching size and SHA-256
+PASS: 653 manifested files exist with matching size and SHA-256
 PASS  release manifest
 PASS: no canonical memory write bypasses or deferred-ingestion paths detected
 PASS  write bypass assurance
@@ -123,25 +123,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.623,
-      "p50_ms": 0.5271,
-      "p95_ms": 0.623,
+      "max_ms": 0.8028,
+      "p50_ms": 0.6493,
+      "p95_ms": 0.8028,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.5225,
-      "p50_ms": 0.3968,
-      "p95_ms": 0.5158,
+      "max_ms": 0.5602,
+      "p50_ms": 0.4064,
+      "p95_ms": 0.5368,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.5817,
-      "p50_ms": 0.1073,
-      "p95_ms": 0.2133,
+      "max_ms": 0.5788,
+      "p50_ms": 0.1169,
+      "p95_ms": 0.2191,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

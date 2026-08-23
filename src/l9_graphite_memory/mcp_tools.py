@@ -72,46 +72,57 @@ def _consent_schema() -> dict[str, Any]:
     )
 
 
+def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
+    """Return the shared MemoryWriteRequest input properties.
+
+    memory.ingest and memory.write_governed admit the same record shape through
+    MemoryService.write; only the phase-lock requirement differs. Both derive
+    their schema from here so the two tools cannot drift apart.
+    """
+    return {
+        "namespace": {"type": "string"},
+        "content": {"type": "string"},
+        **extra,
+        "memory_class": {"type": "string", "default": "observation"},
+        "subject": {"type": "string"},
+        "predicate": {"type": "string"},
+        "object": {"type": "string"},
+        "source_id": {"type": "string"},
+        "idempotency_key": {"type": "string"},
+        "valid_from": {"type": "string", "format": "date-time"},
+        "valid_to": {"type": "string", "format": "date-time"},
+        "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 1,
+        },
+        "source_trust": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 1,
+        },
+        "consent": _consent_schema(),
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "supersedes": {
+            "type": "array",
+            "items": {"type": "string", "format": "uuid"},
+        },
+        "references": {
+            "type": "array",
+            "items": {"type": "string", "format": "uuid"},
+        },
+        "dry_run": {"type": "boolean", "default": False},
+    }
+
+
 CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     {
         "name": "memory.ingest",
         "description": "Admit one governed, evidence-bearing memory record.",
         "inputSchema": _object_schema(
-            {
-                "namespace": {"type": "string"},
-                "content": {"type": "string"},
-                "memory_class": {"type": "string", "default": "observation"},
-                "subject": {"type": "string"},
-                "predicate": {"type": "string"},
-                "object": {"type": "string"},
-                "source_id": {"type": "string"},
-                "idempotency_key": {"type": "string"},
-                "valid_from": {"type": "string", "format": "date-time"},
-                "valid_to": {"type": "string", "format": "date-time"},
-                "confidence": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1,
-                    "default": 1,
-                },
-                "source_trust": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1,
-                    "default": 1,
-                },
-                "consent": _consent_schema(),
-                "tags": {"type": "array", "items": {"type": "string"}},
-                "supersedes": {
-                    "type": "array",
-                    "items": {"type": "string", "format": "uuid"},
-                },
-                "references": {
-                    "type": "array",
-                    "items": {"type": "string", "format": "uuid"},
-                },
-                "dry_run": {"type": "boolean", "default": False},
-            },
+            _write_properties(),
             ["namespace", "content"],
         ),
     },
@@ -119,42 +130,7 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
         "name": "memory.write_governed",
         "description": "Admit one governed memory record only while a phase-lock is held.",
         "inputSchema": _object_schema(
-            {
-                "namespace": {"type": "string"},
-                "content": {"type": "string"},
-                "task_signature": {"type": "string"},
-                "memory_class": {"type": "string", "default": "observation"},
-                "subject": {"type": "string"},
-                "predicate": {"type": "string"},
-                "object": {"type": "string"},
-                "source_id": {"type": "string"},
-                "idempotency_key": {"type": "string"},
-                "valid_from": {"type": "string", "format": "date-time"},
-                "valid_to": {"type": "string", "format": "date-time"},
-                "confidence": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1,
-                    "default": 1,
-                },
-                "source_trust": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1,
-                    "default": 1,
-                },
-                "consent": _consent_schema(),
-                "tags": {"type": "array", "items": {"type": "string"}},
-                "supersedes": {
-                    "type": "array",
-                    "items": {"type": "string", "format": "uuid"},
-                },
-                "references": {
-                    "type": "array",
-                    "items": {"type": "string", "format": "uuid"},
-                },
-                "dry_run": {"type": "boolean", "default": False},
-            },
+            _write_properties(task_signature={"type": "string"}),
             ["namespace", "content", "task_signature"],
         ),
     },

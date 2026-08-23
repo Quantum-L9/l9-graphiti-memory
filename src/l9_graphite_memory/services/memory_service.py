@@ -423,13 +423,24 @@ class MemoryService:
                 dry_run=request.dry_run,
             ),
         )
+        if write_receipt.status is not WriteStatus.ADMITTED:
+            status = OperationStatus.FAILED
+            record_id = write_receipt.record_id
+        elif request.dry_run:
+            # A dry run passes admission but deliberately skips commit_write, so
+            # no record exists. Reporting COMPLETE with a record id would tell a
+            # close consumer that session state is canonically durable when it
+            # is not; PARTIAL with no record id is what actually happened.
+            status = OperationStatus.PARTIAL
+            record_id = None
+        else:
+            status = OperationStatus.COMPLETE
+            record_id = write_receipt.record_id
         return CloseReceipt(
-            status=OperationStatus.COMPLETE
-            if write_receipt.status is WriteStatus.ADMITTED
-            else OperationStatus.FAILED,
+            status=status,
             namespace=request.namespace,
             write_receipt_id=write_receipt.receipt_id,
-            record_id=write_receipt.record_id,
+            record_id=record_id,
             graphiti_accepted=False,
             authorization=write_receipt.authorization,
         )

@@ -98,6 +98,11 @@ def main() -> int:
             "ADR-065/ADR-068 Redis-backed ActiveStore/AwarenessBus adapter;"
             " selected by external consumers, not imported internally"
         ),
+        "l9_graphite_memory.trust_boundary": (
+            "Release B model-process trust-boundary proof; called by assurance"
+            " harnesses and external auditors, deliberately not imported by the"
+            " runtime it makes assertions about"
+        ),
     }
     foundational = {
         "l9_graphite_memory",
