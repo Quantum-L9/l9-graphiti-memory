@@ -25,4 +25,4 @@ SKIPPED [1] tests/unit/test_canonical_gate_client.py:255: could not import 'cons
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:76: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:110: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:129: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-598 passed, 14 skipped, 1 warning in 33.95s
+598 passed, 14 skipped, 1 warning in 33.63s

@@ -16,9 +16,9 @@ PASS  MCP inventory
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-23T23:55:28.070773Z",
+  "created_at": "2026-08-23T23:58:37.015645Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.e6fyteRiaW/cursor/mcp.json",
+  "path": "/tmp/tmp.5obt35Cyr9/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,7 +26,7 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "7497dec2-cfeb-4732-8fe3-169552e85106",
+  "receipt_id": "8cf7c369-6a7e-4a73-b1f0-566c832ea0a5",
   "status": "dry_run",
   "warnings": []
 }
@@ -39,14 +39,14 @@ PASS  cursor client dry-run
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-23T23:55:29.916055Z",
+  "created_at": "2026-08-23T23:58:38.877581Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "5b242bbe-f6df-4a02-9c7d-9ab49f53fc96",
+  "receipt_id": "3efa98c4-5f99-4381-97c7-3c6af90f7abf",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
@@ -97,7 +97,7 @@ PASS: core, adapter, service, and integration dependency directions are aligned
 PASS  layer boundary alignment
 PASS: recursive L9 alignment contract satisfied across all ten passes
 PASS  recursive L9 alignment
-PASS: 674 manifested files exist with matching size and SHA-256
+PASS: 694 manifested files exist with matching size and SHA-256
 PASS  release manifest
 PASS: no canonical memory write bypasses or deferred-ingestion paths detected
 PASS  write bypass assurance
@@ -123,25 +123,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.7172,
-      "p50_ms": 0.5672,
-      "p95_ms": 0.7172,
+      "max_ms": 0.8214,
+      "p50_ms": 0.6671,
+      "p95_ms": 0.8214,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.8207,
-      "p50_ms": 0.4019,
-      "p95_ms": 0.629,
+      "max_ms": 0.7278,
+      "p50_ms": 0.4765,
+      "p95_ms": 0.6543,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.666,
-      "p50_ms": 0.1354,
-      "p95_ms": 0.4349,
+      "max_ms": 0.7386,
+      "p50_ms": 0.1392,
+      "p95_ms": 0.3008,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0
