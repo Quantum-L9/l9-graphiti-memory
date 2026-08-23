@@ -31,6 +31,9 @@ class GateDispatchReceipt(BaseModel):
     trace_id: str = Field(min_length=1, max_length=300)
     route_reference: str | None = Field(default=None, max_length=500)
     warnings: tuple[str, ...] = ()
+    status: str = Field(default="accepted", min_length=1, max_length=80)
+    authorization: str | None = Field(default=None, max_length=200)
+    correlation_id: str | None = Field(default=None, max_length=300)
 
 
 @runtime_checkable

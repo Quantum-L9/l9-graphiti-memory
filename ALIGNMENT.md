@@ -12,7 +12,7 @@
 ## Binding boundaries
 
 1. Internal memory operations use typed memory contracts, never shared transport as a substitute for domain law.
-2. Inter-node memory intent uses the injected canonical packet model and `GateMemoryBridge`.
+2. Inter-node memory intent uses the injected canonical packet model and `GateMemoryBridge`. The authoritative implementation is `constellation-node-sdk` (`Quantum-L9/Gate_SDK` `v1.0.1`) via `CanonicalTransportPacketFactory` and `CanonicalGateClient`.
 3. Follow-up packets are derived immutably through `derive_or_with_hop` and preserve trace and lineage.
 4. Gate alone resolves destination. The bridge has no peer URL, destination field, or node registry.
 5. The local editor component is a receipt guard, not constellation Gate. It owns no routing or workflow.
@@ -29,4 +29,4 @@ pytest -q
 bash scripts/validate_release.sh
 ```
 
-Production alignment proof remains blocked on the external evidence defined in `docs/REMAINING_PRODUCTION_PROOF.md` and issue-pack IDs `RP-001` through `RP-009`. The injected Gate boundary remains intentionally generic until authoritative TransportPacket and Gate contracts are wired in staging.
+Production alignment proof remains blocked on the external evidence defined in `docs/REMAINING_PRODUCTION_PROOF.md` and issue-pack IDs `RP-003` through `RP-009`. RP-001 binds TransportPacket; RP-002 binds `GateClient` from the same package. A live Gate smoke is still required for release closure.

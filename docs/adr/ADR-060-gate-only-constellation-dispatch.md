@@ -50,6 +50,11 @@ All alternatives duplicate authority or bypass Gate routing and admission.
 
 Positive: inter-node alignment is executable and provider-neutral. Negative: consumers must inject the canonical packet factory and Gate client.
 
+Implementation binding (RP-002): inject `CanonicalGateClient` from
+`constellation-node-sdk` `v1.0.1`. `HealthReport.gate` is additive so Gate
+unavailable is `PARTIAL` + `gate is unavailable` and does not mark the
+canonical store failed.
+
 ## Security Impact
 
 The bridge removes caller-selected routing and makes trace and lineage drift fail closed.

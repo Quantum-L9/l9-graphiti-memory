@@ -34,3 +34,5 @@ updated: 2026-07-22
 | sensitive profile memory | generic fact | purpose-bound consent contract | intentional privacy hardening |
 | deletion | undefined or destructive | redacted tombstone plus verified projection erasure | intentional privacy hardening |
 | package wheel | registry could be missing | installed-wheel resource and entrypoint smoke | repaired |
+| TransportPacket | injected protocol only; shared package unknown | `constellation-node-sdk` from `Quantum-L9/Gate_SDK` `v1.0.1` (`>=1.0.1,<1.1.0`, Python `>=3.12` extra); upgrade by bumping the git tag and supported range together | RP-001 bound |
+| Gate client | injected protocol only; package unknown | same pin; `CanonicalGateClient` wraps `GateClient.send_to_gate` / `/v1/health`. Auth and node identity come from `GATE_URL` / `L9_NODE_NAME` / signing env. No peer URL, destination argument, retry, or circuit-breaker | RP-002 bound |

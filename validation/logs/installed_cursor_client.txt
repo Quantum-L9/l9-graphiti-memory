@@ -4,15 +4,15 @@
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/tmp/v31e/l9-graphiti-memory/.venv/bin/python3",
+    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr33/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-20T21:20:01.736716Z",
+  "created_at": "2026-08-23T15:45:24.903614Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.b3IeFDOy4x/installed-smoke/home/.cursor/mcp.json",
+  "path": "/tmp/tmp.EfgIe2d0ed/installed-smoke/home/.cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -20,7 +20,7 @@
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "5333fad6-8ee8-4f1e-a532-676193091087",
+  "receipt_id": "ea257381-16c2-45a3-9157-fd02f2f9d02b",
   "status": "dry_run",
   "warnings": []
 }
@@ -30,21 +30,21 @@
   "backup_sha256": null,
   "changed": true,
   "command_argv": [
-    "/tmp/v31e/l9-graphiti-memory/.venv/bin/python3",
+    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr33/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-20T21:20:02.371102Z",
+  "created_at": "2026-08-23T15:45:25.487127Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.b3IeFDOy4x/installed-smoke/home/.cursor/mcp.json",
+  "path": "/tmp/tmp.EfgIe2d0ed/installed-smoke/home/.cursor/mcp.json",
   "policy_version": "client-config/v1",
-  "post_sha256": "3be4c8d54621e95efdffd04103f580f8965e6d067d8a95498ea8b5a428610320",
+  "post_sha256": "1f472c08fe78306b0d5b311b0c65083baea8d81c497548ca71fcec81af9fc10c",
   "pre_sha256": null,
   "preserved_server_keys": [],
   "reasons": [],
-  "receipt_id": "ce3d1ef5-8f44-4584-acc4-5b83f6891a50",
+  "receipt_id": "c8d9115d-bc22-40b4-8296-629a5af32a3e",
   "status": "complete",
   "warnings": []
 }
