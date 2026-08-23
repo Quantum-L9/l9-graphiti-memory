@@ -2,13 +2,13 @@
 ........ssss............................................................ [ 28%]
 ........................................................................ [ 42%]
 ........................................................................ [ 56%]
-........................................................................ [ 71%]
-....sssssss.sss......................................................... [ 85%]
-........................................................................ [ 99%]
-..                                                                       [100%]
+........................................................................ [ 70%]
+....sssssss.sss......................................................... [ 84%]
+........................................................................ [ 98%]
+........                                                                 [100%]
 =============================== warnings summary ===============================
 tests/unit/test_http_mcp_request_injection.py::test_http_mcp_initialize_uses_request_body
-  /tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr33/.venv/lib/python3.10/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  /tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr35/.venv/lib/python3.10/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
@@ -24,4 +24,4 @@ SKIPPED [1] tests/unit/test_canonical_gate_client.py:255: could not import 'cons
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:76: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:110: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:129: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-492 passed, 14 skipped, 1 warning in 24.18s
+498 passed, 14 skipped, 1 warning in 25.28s

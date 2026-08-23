@@ -52,6 +52,7 @@ from .receipts import (
     AdmissionDecision,
     ArchiveReceipt,
     AuthorizationReceipt,
+    CloseReceipt,
     ConflictItem,
     ConflictReport,
     ContextSection,
@@ -69,6 +70,7 @@ from .receipts import (
     WriteReceipt,
 )
 from .requests import (
+    CloseRequest,
     DeletionRequest,
     HydrationRequest,
     MemorySearchRequest,
@@ -85,6 +87,8 @@ __all__ = [
     "AuthorizationAction",
     "AuthorizationReceipt",
     "BehaviorPolicy",
+    "CloseReceipt",
+    "CloseRequest",
     "Confidence",
     "ConfidenceMethod",
     "ConflictItem",

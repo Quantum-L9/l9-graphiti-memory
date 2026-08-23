@@ -46,14 +46,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        # 492 is the count CI produces: the postgres service is present so the
+        # 498 is the count CI produces: the postgres service is present so the
         # shared-backend matrix runs, while the four cross-repo contract tests
         # skip because CI checks out only this repository, and the constellation-SDK
         # contract tests skip because CI omits the constellation extra. A workspace with a
-        # sibling Cursor-Governance checkout reports 496 instead; point
+        # sibling Cursor-Governance checkout reports 502 instead; point
         # CURSOR_GOVERNANCE_ROOT at a nonexistent path to reproduce CI.
-        "492 tests pass",
-        r"492 passed",
+        "498 tests pass",
+        r"498 passed",
     ),
     CheckSpec(
         "V-002",
@@ -142,8 +142,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "production Python",
         "check_source_quality.py",
         "logs/source_quality.txt",
-        "117 production files pass",
-        r"PASS: 117 production Python files",
+        "118 production files pass",
+        r"PASS: 118 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -223,8 +223,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "installed MCP/resources/entrypoints",
         "installed smoke script",
         "logs/installed_mcp.txt",
-        "26 tools and required surfaces load",
-        r"26 tools loaded",
+        "30 tools and required surfaces load",
+        r"30 tools loaded",
     ),
     CheckSpec(
         "V-021",

@@ -1,0 +1,511 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: campaigns/canonical-memory-lifecycle-convergence-v1/intent.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.2.0
+#   updated: 2026-07-22
+
+# Campaign-activate seed for a structured PE campaign.
+# Feed to:
+#   python3 $HOME/.cursor-governance/skills/l9-pe-campaign-activate/scripts/compile_activation_files.py \
+#     --intent campaigns/canonical-memory-lifecycle-convergence-v1/intent.yaml \
+#     --repo-root $HOME/.cursor-governance
+# Official goal-level PE front door (no tasks): ./program-execution.intent.yaml
+# Do not drop this file into campaigns/<id>/ after compile — INTENT.yaml is forbidden there.
+
+campaign_id: canonical-memory-lifecycle-convergence-v1
+title: Canonical Memory Lifecycle Convergence
+owner: Igor Beylin
+objective: >
+  Collapse every agent-facing memory lifecycle onto l9-graphiti-memory,
+  publish governance through that canonical plane, make exact hydrated
+  cognitive state an explicit session-readiness contract, and reduce
+  Graphiti to the projection responsibility the memory architecture
+  already assigns it.
+
+target:
+  repository_id: Quantum-L9/Cursor-Governance
+  source_of_truth: environment/program-execution
+  adapter: git
+
+problem_statement: >
+  Cursor-Governance still contains a complete older memory lifecycle
+  (compile_session_packet.py and close_session.py import
+  graphiti_memory_client, search Graphiti, guess PICKUP, apply a
+  character budget, construct Authorization headers, and run inline
+  Phase-B LLM work; graphiti_env_loader can load the Keychain
+  graphiti-mcp-token into GRAPHITI_MCP_TOKEN). l9-graphiti-memory now
+  owns the canonical lifecycle (MemoryPrincipal → MemoryService →
+  RecordStore → outbox → Graphiti/Zep projection). The root defect is
+  duplicated responsibility, not an unwired broker. Governance
+  accessibility and governance enforcement must stay separate: memory
+  supplies what the agent needs to know; PE/capability gates enforce
+  what the agent may do.
+
+target_state: >
+  Agent memory calls terminate at l9-graphiti-memory. Model processes
+  hold no downstream provider secrets. Governance publication is
+  exact-SHA and manifest-driven into namespace l9-governance. Session
+  start composes a HydrationManifest from canonical hydrate plus an
+  exact ResumeCapsule. Session close commits the capsule through
+  MemoryService before returning success; distillation and projection
+  are asynchronous. PE Gate 0 admits READY_PE_AUTONOMOUS only from a
+  freshness-bound SessionReadinessReceipt. Eligible surfaces observe
+  the same HydrationManifest digest and exact continuation
+  Cursor→Claude→Codex. Session boot/ensure_ready is one stdlib-safe
+  core. Fresh desktop clones materialize only allowlisted secrets from
+  Infisical without .env.local. Graphiti remains a rebuildable
+  projection.
+
+related_campaigns:
+  - id: session-runtime-hydration-convergence-v1
+    relationship: superseded_do_not_execute
+    superseded_by: canonical-memory-lifecycle-convergence-v1
+    absorbed:
+      - typed hydration, ResumeCapsule, receipt/projection split
+      - deterministic close and async distillation
+      - PE Gate 0 and cross-surface readiness
+      - stdlib-safe session boot / ensure_ready (Release H)
+      - Infisical clone-safe runtime environment (Release I)
+      - fault-injection closeout obligations folded into Release G
+    immutable_seed_retained: true
+    reason: >
+      Running both campaigns would rebuild a second Graphiti-centric
+      hydration/close path beside the canonical MemoryService lifecycle.
+
+paired_targets:
+  - repository_id: Quantum-L9/l9-graphiti-memory
+    role: canonical_memory_control_plane
+    authority: Releases A–C mutate this repo; D–I consume it
+  - repository_id: Quantum-L9/Cursor-Governance
+    role: session_composition_and_pe_admission
+    authority: campaign host; Releases D–I, session boot, Infisical, and legacy retirement
+
+tasks:
+  - id: TASK-001
+    title: "Release A — Prove canonical memory and freeze legacy behavior"
+    objective: >
+      Bind exact SHAs for Quantum-L9/l9-graphiti-memory and
+      Quantum-L9/Cursor-Governance. Prove standalone canonical memory
+      with L9_MEMORY_PROJECTION_BACKEND=none (resolve, health, write,
+      search, validate_release.sh). Distinguish canonical success,
+      optional-strategy failure, and failed results — never treat a
+      partial/failed result as empty success. On Cursor-Governance run
+      make rules-stabilize, make pr-check, then make rules-stabilize
+      again with no new material diff. Exit only when both planes are
+      green. No product mutation.
+    paths: []
+    actions:
+      - bind_exact_git_shas_for_both_repositories
+      - prove_l9_graphiti_memory_standalone_canonical_operation
+      - prove_cursor_governance_rule_publication_inputs
+      - record_baseline_receipts_and_rollback_heads
+    acceptance:
+      - id: AC-001
+        statement: >
+          Exact SHAs are bound for both repositories, standalone canonical
+          memory is green with projection disabled, Cursor-Governance
+          rules-stabilize is idempotent, and partial/failed memory results
+          are not treated as empty success.
+        required_evidence_types: [inspection, test_result]
+
+  - id: TASK-002
+    title: "Release B — Establish one canonical agent-memory capability"
+    objective: >
+      Make memory.search, memory.hydrate, memory.write_governed,
+      memory.close, and memory.health the agent-facing contract,
+      terminating at l9-graphiti-memory. Do not implement upstream
+      Graphiti MCP in the broker. If graphiti.query and
+      graphiti.write_governed have high-fanout consumers, retain them
+      as compatibility aliases that terminate at MemoryService. Trust
+      boundary: model process has no downstream credential; broker
+      presents an authenticated MemoryPrincipal; provider credentials
+      stay downstream of l9-graphiti-memory. Accept only when
+      model_has_graphiti_bearer=false,
+      model_can_read_keychain_graphiti_token=false, and the five
+      memory.* operations pass. Remove model-side direct Graphiti
+      access only after that proof.
+    paths:
+      - src/l9_graphite_memory/mcp_tools.py
+      - src/l9_graphite_memory/services/memory_service.py
+      - ops/secrets/capabilities.yaml
+    actions:
+      - define_memory_star_capability_contract
+      - alias_graphiti_query_to_memory_search
+      - alias_graphiti_write_governed_to_memory_write_governed
+      - close_model_process_provider_secret_side_doors
+      - prove_memory_service_authentication_and_five_operations
+    acceptance:
+      - id: AC-002
+        statement: >
+          memory.search/hydrate/write_governed/close/health terminate at
+          MemoryService; model_has_graphiti_bearer and keychain token reads
+          are false; graphiti.* aliases do not call Graphiti directly.
+        required_evidence_types: [test_result]
+
+  - id: TASK-003
+    title: "Release C — Governance publication"
+    objective: >
+      Add GovernanceBootstrapper in l9-graphiti-memory. Input authority
+      is Cursor-Governance exact Git SHA, CANONICAL_LAW.md,
+      ORG_INVARIANTS if the current contract says applicable,
+      RULES-MANIFEST.json, and manifest-member rules only. Do not
+      define membership by scanning rules/*.mdc. Every manifest rule
+      follows path containment, frontmatter parse, manifest id == rule
+      id, and digest equality, then MemoryService.write() as a
+      source-preserving record into namespace l9-governance.
+      Permission matrix: governance-publisher read/write;
+      Cursor/Claude/Codex/Gemini/Manus read-only. Derived atoms may
+      reuse ProfileIngestor.behavior() / SourceDistiller with
+      derived_from set and authoritative=false; they cannot supersede
+      source. Canary CANONICAL_LAW + Graphiti/memory + memory-write +
+      git-mutation rules. Dry-run twice with equality; publish twice
+      with idempotent second receipts; only then permit full-corpus
+      publication (Release G).
+    paths:
+      - src/l9_graphite_memory/ingestion
+      - src/l9_graphite_memory/services/memory_service.py
+    actions:
+      - add_governance_bootstrapper
+      - bind_l9_governance_namespace_authz
+      - ingest_source_preserving_manifest_members
+      - canary_four_rule_publication_with_idempotent_receipts
+    acceptance:
+      - id: AC-003
+        statement: >
+          Governance publication is exact-SHA and manifest-driven into
+          l9-governance; ordinary agents cannot write that namespace; a
+          second publish is idempotent.
+        required_evidence_types: [test_result]
+
+  - id: TASK-004
+    title: "Release D — Replace Cursor-Governance hydration with canonical hydration"
+    objective: >
+      Move retrieval, classification, and budget work out of
+      compile_session_packet.py onto l9-graphiti-memory
+      (ContextBudgetAllocator already owns class-aware ordering, token
+      estimates, complete-record packing, and a deterministic result
+      digest). Cursor-Governance identifies agent/repo/program/campaign/
+      task/namespaces and composes ResumeCapsule, runtime-env receipt,
+      ContextManifest, and SessionReadinessReceipt.       Remove
+      gmc.load_env(), direct Graphiti call_tool(), fuzzy PICKUP,
+      readonly read suppression, character budget, and Graphiti-specific
+      parsing. Readonly becomes write policy only; memory reads remain
+      governed by namespace claims. Absorb the superseded campaign's
+      hydration obligations: do not treat a child checkout as the active
+      repo, keep empty vs failed distinct, and do not put a stdlib MCP
+      Graphiti client under compile_session_packet.py.
+    paths:
+      - ops/graphiti/hydration/compile_session_packet.py
+    actions:
+      - replace_direct_graphiti_hydration_with_memory_hydrate
+      - keep_session_composition_in_cursor_governance
+      - remove_fuzzy_pickup_and_character_budget
+      - treat_readonly_as_write_policy_only
+      - prohibit_child_checkout_from_implying_active_repo
+    acceptance:
+      - id: AC-004
+        statement: >
+          compile_session_packet.py no longer imports graphiti_memory_client
+          or applies a character budget; hydration uses MemoryService
+          retrieval/budget; readonly repos still hydrate authorized memory.
+        required_evidence_types: [test_result, diff]
+
+  - id: TASK-005
+    title: "Release E — Exact continuation and context/telemetry separation"
+    objective: >
+      Persist a Cursor-Governance-owned ResumeCapsule through
+      MemoryService. Capsule identity derives from repository identity,
+      session lineage, program/campaign identity, source-head/transcript
+      digest, and schema version. Contents are continuity essentials
+      only. SessionStart selects the latest valid capsule by exact typed
+      identity, not semantic retrieval. Semantic search is supplemental.
+      Split HydrationReceipt (operator/control-plane) from
+      ModelProjection (cognition). The model does not see packet IDs,
+      backend names, query counts, provider errors, budget internals,
+      receipt JSON, or duplicate stats unless explicitly debugging.
+      Canonical HydrationManifest digest is identical across agents;
+      surface model-projection digests may differ.
+    paths: []
+    actions:
+      - define_resumecapsule_deterministic_identity
+      - persist_capsule_through_memory_service
+      - select_latest_valid_capsule_by_typed_identity
+      - split_hydration_receipt_from_model_projection
+    acceptance:
+      - id: AC-005
+        statement: >
+          SessionStart selects the latest valid ResumeCapsule by typed
+          identity; HydrationManifest digest is deterministic; operator
+          telemetry is outside ordinary model projection.
+        required_evidence_types: [test_result]
+
+  - id: TASK-006
+    title: "Release F — Session readiness and deterministic close"
+    objective: >
+      Create one session-admission state machine that composes
+      ExecutablePeerReadiness, RuntimeEnvironmentReceipt,
+      HydrationReceipt, HydrationManifest, ResumeCapsule status, repo
+      identity, governance freshness, capability state, and autonomy
+      state into SessionReadinessReceipt with classes
+      READY_INTERACTIVE, READY_GOVERNED, READY_PE_AUTONOMOUS,
+      DEGRADED, BLOCKED. READY_PE_AUTONOMOUS requires exact repo
+      identity, current governance publication, fresh capsule or
+      explicit fresh-start, required namespaces readable, required
+      capabilities, valid context manifest, valid autonomy profile,
+      valid peer-execution binding, and receipt within TTL. Failed
+      projection does not block when canonical memory and the retrieval
+      plan succeed; failed canonical memory does. Plain hosted
+      Web/Mobile without broker identity cannot receive
+      READY_PE_AUTONOMOUS. Session close builds the capsule, commits
+      through MemoryService plus a durable async-work obligation, then
+      returns; workers handle distillation, promotion, enrichment, and
+      projection. Close success means the exact continuation state is
+      already canonical and replayable — not that Graphiti accepted
+      episodes. Close must not depend on an inline LLM call.
+    paths:
+      - ops/graphiti/hydration/close_session.py
+    actions:
+      - implement_typed_session_readiness_classes
+      - bind_pe_gate_0_to_ready_pe_autonomous
+      - replace_direct_add_memory_close_with_memory_service_commit
+      - move_phase_b_distillation_to_async_workers
+      - call_shared_ensure_ready_when_native_hook_absent_or_stale
+      - rehydrate_on_pe_dispatch_compaction_reconnect_and_lock_refresh
+    acceptance:
+      - id: AC-006
+        statement: >
+          Close commits the ResumeCapsule through MemoryService before
+          returning success, does not require Graphiti or an inline LLM,
+          and PE cannot autonomously dispatch without READY_PE_AUTONOMOUS.
+        required_evidence_types: [test_result]
+
+  - id: TASK-007
+    title: "Release G — Multi-agent acceptance, full publication, legacy retirement"
+    objective: >
+      After A–F pass, prove the cross-surface fixture (same repo G,
+      governance publication R, program P, resume capsule C,
+      HydrationManifest H digest) on every surface eligible for
+      governed autonomous execution. Run Cursor→C2, Claude consumes
+      exact C2, Codex consumes exact C3 — semantic PICKUP cannot
+      satisfy that gate. Then publish the complete validated governance
+      corpus and ingest consumer-repository policy to the repo
+      namespace; global policy stays in l9-governance. Only after
+      replacement acceptance retire active dependence on
+      graphiti_memory_client direct lifecycle, graphiti_env_loader
+      secret loading in the model process, credential-bearing MCP
+      templates, semantic PICKUP, character-budget SessionStart,
+      Graphiti-specific fact parsing, synchronous Graphiti close
+      writes, inline Phase-B LLM, and duplicated retrieval/ranking.
+      A compatibility wrapper may remain only if it delegates to
+      MemoryService and cannot retrieve raw provider credentials.
+    paths:
+      - ops/graphiti/graphiti_memory_client.py
+      - ops/graphiti/graphiti_env_loader.py
+      - ops/graphiti/hydration/compile_session_packet.py
+      - ops/graphiti/hydration/close_session.py
+    actions:
+      - prove_cross_surface_exact_continuation
+      - publish_full_governance_corpus_after_canary
+      - ingest_consumer_repo_policy_to_repo_namespace
+      - retire_legacy_direct_graphiti_lifecycle_after_green
+      - fault_inject_empty_vs_failed_projection_and_expired_receipt
+      - scan_receipts_and_model_projection_for_secret_material
+    acceptance:
+      - id: AC-007
+        statement: >
+          Cursor→Claude→Codex exact continuation passes on the same
+          HydrationManifest digest; full governance corpus publishes only
+          after canary; no legacy direct Graphiti lifecycle remains
+          reachable from model SessionStart/Stop.
+        required_evidence_types: [conformance_result, test_result]
+
+  - id: TASK-008
+    title: "Release H — Stdlib-safe session boot and ensure_ready"
+    objective: >
+      Absorb session-runtime TASK-002. Create one stdlib-safe session
+      boot/admission core that native SessionStart and PE both call.
+      It produces digest-bound RuntimeEnvironmentReceipt,
+      HydrationReceipt, ContextManifest, and SessionReadinessReceipt,
+      plus optional compact/verbose operator status rendered from
+      receipts only. Critical boot path must run when pydantic and
+      PyYAML are unavailable. Do not author readiness in a provider
+      adapter. Do not put diagnostic JSON in model context.
+    paths: []
+    actions:
+      - define_and_validate_session_boot_contract
+      - implement_shared_ensure_ready_entrypoint
+      - implement_receipt_digest_freshness_and_hydration_epoch_chain
+      - implement_compact_and_verbose_status_renderer_from_receipts_only
+      - make_critical_boot_path_stdlib_safe
+    acceptance:
+      - id: AC-008
+        statement: >
+          The same canonical boot core can be called by native SessionStart
+          and PE, produces schema-valid digest-bound receipts, and operates
+          when pydantic and PyYAML are unavailable.
+        required_evidence_types: [test_result, diff]
+
+  - id: TASK-009
+    title: "Release I — Infisical clone-safe runtime environment"
+    objective: >
+      Absorb session-runtime TASK-003. Fresh desktop clones resolve only
+      declared required credentials from approved providers and
+      materialize host-required private configuration without .env.local
+      or manual secret copying. Allowlist key names before retrieval.
+      Generate or merge Claude project-local settings atomically and
+      preserve unmanaged keys. Cursor desktop uses the same resolver.
+      Mobile/web keep explicit process-environment input. Receipts must
+      not contain secret values or fingerprints.
+    paths: []
+    actions:
+      - implement_canonical_runtime_secret_and_environment_policy
+      - resolve_desktop_agent_secret_values_from_authenticated_Infisical
+      - allowlist_key_names_before_secret_retrieval
+      - generate_or_merge_Claude_project_local_settings_atomically
+      - emit_runtime_environment_receipt_without_secret_values_or_fingerprints
+    acceptance:
+      - id: AC-009
+        statement: >
+          A fresh-clone desktop fixture with authenticated Infisical
+          identity self-materializes required Claude/Cursor runtime
+          capability, no .env.local is required, mobile process-env
+          input remains supported, and secret leak scans pass.
+        required_evidence_types: [test_result, diff]
+
+operator_spec:
+  architectural_objective: >
+    Not a better Graphiti integration. Collapse every agent-facing
+    memory lifecycle onto l9-graphiti-memory and keep Graphiti as
+    projection.
+  trust_boundary:
+    - model process: no downstream credential
+    - broker / trusted runtime: authenticated MemoryPrincipal
+    - l9-graphiti-memory: MemoryService
+    - Graphiti / Zep: rebuildable projection only
+  capability_contract:
+    canonical:
+      - memory.search
+      - memory.hydrate
+      - memory.write
+      - memory.write_governed
+      - memory.close
+      - memory.health
+    compatibility_aliases:
+      graphiti.query: memory.search
+      graphiti.write_governed: memory.write_governed
+    retire_aliases_when: active_consumers_zero
+  contracts:
+    - name: GovernancePublicationReceipt
+      owner: l9-graphiti-memory
+    - name: GovernanceSourceSet
+      owner: l9-graphiti-memory
+    - name: ResumeCapsule
+      owner: Cursor-Governance runtime
+    - name: HydrationManifest
+      owner: shared boundary
+    - name: HydrationReceipt
+      owner: l9-memory + runtime composition
+    - name: ModelProjection
+      owner: adapter renderer
+    - name: RuntimeEnvironmentReceipt
+      owner: Cursor-Governance
+    - name: SessionReadinessReceipt
+      owner: Cursor-Governance
+    - name: CloseReceipt
+      owner: runtime/memory boundary
+  contract_rule: adapters render shared contracts; no per-agent parallel variants
+  lanes:
+    - id: governance
+      source: l9-governance
+      required_for_autonomous_pe: true
+    - id: continuity
+      source: exact ResumeCapsule
+      required_for_autonomous_pe: unless-explicit-fresh-session
+    - id: repository
+      source: repo law / invariants / architecture
+      required_for_autonomous_pe: true
+    - id: episodic
+      source: repo memory
+      required_for_autonomous_pe: profile-dependent
+    - id: program
+      source: PE / program execution state
+      required_for_autonomous_pe: pe-only
+  lane_statuses:
+    - PASS
+    - EMPTY
+    - FALLBACK
+    - FAILED
+    - BLOCKED
+    - NOT_APPLICABLE
+  freshness:
+    independent_epochs:
+      - governance_epoch
+      - continuity_epoch
+      - runtime_epoch
+    hydration_epoch_inputs:
+      - governance publication
+      - resume capsule
+      - repo identity
+      - required namespaces
+      - program state
+      - capability state
+    rule: relevant input change after admission stale-marks autonomous readiness
+  model_context_policy:
+    assembly: by_value_not_document_completeness
+    weights:
+      governance_constraints: 30-40
+      continuity: 20-30
+      repo_program_facts: 20-30
+      episodic: remainder
+    note: policy weights, not fixed quotas; do not inject all 63 rules
+  governance_projection_authority:
+    - SOURCE
+    - STRUCTURED POLICY
+    - SEARCH DERIVATIVE
+  provider_health_lanes:
+    - canonical_store
+    - projection_outbox
+    - graphiti_projection
+    - zep_projection
+    - semantic_strategy
+  acceptance_properties:
+    - {id: A-01, statement: No model-controlled process possesses downstream provider secrets}
+    - {id: A-02, statement: Agent memory calls terminate at l9-graphiti-memory, not upstream Graphiti}
+    - {id: A-03, statement: All canonical writes pass through MemoryService}
+    - {id: A-04, statement: Governance publication is exact-SHA, manifest-driven and digest-verified}
+    - {id: A-05, statement: Ordinary agents cannot write l9-governance}
+    - {id: A-06, statement: Governance publisher is idempotent}
+    - {id: A-07, statement: Exact ResumeCapsule replaces semantic PICKUP as continuity authority}
+    - {id: A-08, statement: Readonly repos can still hydrate authorized memory}
+    - {id: A-09, statement: Hydration uses shared memory retrieval/budget machinery}
+    - {id: A-10, statement: Successful empty and backend failure remain distinguishable}
+    - {id: A-11, statement: Operator telemetry is outside ordinary model projection}
+    - {id: A-12, statement: HydrationManifest is deterministic}
+    - {id: A-13, statement: Governance, repo, program, continuity and episodic lanes are typed}
+    - {id: A-14, statement: Session readiness is freshness-bound}
+    - {id: A-15, statement: PE cannot autonomously dispatch without READY_PE_AUTONOMOUS}
+    - {id: A-16, statement: Session close is canonically durable before it returns success}
+    - {id: A-17, statement: Close succeeds when Graphiti projection is unavailable}
+    - {id: A-18, statement: Close does not depend on an inline LLM call}
+    - {id: A-19, statement: Distillation/projection retries are idempotent}
+    - {id: A-20, statement: Cursor→Claude→other-agent exact continuation passes}
+    - {id: A-21, statement: Same HydrationManifest is observed across eligible surfaces}
+    - {id: A-22, statement: Plain hosted Web/Mobile proves its expected degraded state without secrets}
+    - {id: A-23, statement: Full governance corpus publishes only after controlled-canary acceptance}
+    - {id: A-24, statement: No legacy direct Graphiti lifecycle remains reachable from model SessionStart/Stop}
+    - {id: A-25, statement: Session boot/ensure_ready is stdlib-safe and shared by SessionStart and PE}
+    - {id: A-26, statement: Fresh desktop clones materialize only allowlisted secrets without .env.local}
+  retirement_after_green:
+    - Cursor-Governance graphiti_memory_client direct lifecycle access
+    - graphiti_env_loader secret loading in the model process
+    - direct credential-bearing MCP templates
+    - semantic PICKUP selection
+    - character-budget SessionStart compiler
+    - Graphiti-specific fact parsing
+    - synchronous Graphiti session-close writes
+    - inline close-time Phase-B LLM
+    - duplicated retrieval/ranking logic
