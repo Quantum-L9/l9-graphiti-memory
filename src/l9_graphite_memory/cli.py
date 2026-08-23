@@ -54,7 +54,13 @@ from l9_graphite_memory.curation.procedural import (
 from l9_graphite_memory.errors import L9MemoryError
 from l9_graphite_memory.extraction import SourceDistiller
 from l9_graphite_memory.group_resolver import GroupResolution, resolve_group
-from l9_graphite_memory.ingestion import DocumentIngestor, RepositoryBootstrapper
+from l9_graphite_memory.ingestion import (
+    DocumentIngestor,
+    RepositoryBootstrapper,
+    execute_topology_publication,
+    load_publication_plan,
+    load_verified_bundle,
+)
 from l9_graphite_memory.maintenance import MaintenanceService
 from l9_graphite_memory.memory_guard import GuardEvidence
 from l9_graphite_memory.migration import LEGACY_QUEUE_DIRNAME, LegacyWriteQueueDrain
@@ -858,6 +864,43 @@ def cmd_generated_data_capabilities(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ingest_topology_plan(args: argparse.Namespace) -> int:
+    """Admit an l9-constellation-topology publication plan through MemoryService.
+
+    Preflight is the default: the whole plan and its topology binding are
+    validated and every eligible candidate runs through MemoryService with
+    ``dry_run=True``, committing nothing. ``--apply`` executes the eligible
+    candidates for real. The principal comes from this runtime's configured
+    settings — never from the plan payload.
+    """
+    plan_path = Path(args.plan)
+    plan_bundle_root = plan_path if plan_path.is_dir() else plan_path.parent
+    plan_bundle = load_verified_bundle(plan_bundle_root)
+    plan = load_publication_plan(plan_bundle)
+    topology_bundle = load_verified_bundle(Path(args.topology_bundle))
+    runtime = _runtime(args)
+    try:
+        _, principal = _context(runtime, args)
+        receipt = execute_topology_publication(
+            plan=plan,
+            topology_bundle=topology_bundle,
+            principal=principal,
+            memory_service=runtime.service,
+            mode="apply" if args.apply else "preflight",
+        )
+        sys.stdout.write(
+            json.dumps(
+                receipt.model_dump(mode="json", by_alias=True),
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n"
+        )
+        return 0
+    finally:
+        runtime.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="L9 contract-governed memory")
     parser.add_argument("--config", default=None, help="Optional YAML settings file")
@@ -1062,6 +1105,23 @@ def build_parser() -> argparse.ArgumentParser:
     cursor_uninstall.add_argument("--interpreter", default=None)
     cursor_uninstall.add_argument("--dry-run", action="store_true")
     cursor_uninstall.add_argument("--restore-backup", default=None)
+    ingest_topology = sub.add_parser("ingest-topology-plan")
+    ingest_topology.add_argument(
+        "--plan",
+        required=True,
+        help="Publication-plan bundle directory, or the publication-plan.json inside it",
+    )
+    ingest_topology.add_argument(
+        "--topology-bundle",
+        required=True,
+        help="Integrity-bound topology packet bundle the plan cites",
+    )
+    ingest_topology.add_argument(
+        "--apply",
+        action="store_true",
+        help="Execute eligible candidates; the default is a zero-write preflight",
+    )
+    ingest_topology.add_argument("--group-id", default=None)
     ingest_gd = sub.add_parser("ingest-governed-candidate")
     ingest_gd.add_argument("--file", default=None)
     reuse_gd = sub.add_parser("record-reuse")
@@ -1101,6 +1161,7 @@ def main(argv: list[str] | None = None) -> int:
         "outbox-run": cmd_outbox_run,
         "drain-legacy-write-queue": cmd_drain_legacy_write_queue,
         "client": cmd_client,
+        "ingest-topology-plan": cmd_ingest_topology_plan,
         "ingest-governed-candidate": cmd_ingest_governed_candidate,
         "record-reuse": cmd_record_reuse,
         "invalidate-source": cmd_invalidate_source,

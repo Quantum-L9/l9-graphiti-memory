@@ -101,7 +101,7 @@ health, resolve, write, search, hydrate, get, stats, conflicts,
 phase-lock, verify-phase-lock, lineage, bootstrap, import, distill,
 inject, autoseed-check, prune, promote, delete,
 synthesize-procedures, maintain, rebuild-projection, outbox-run,
-drain-legacy-write-queue
+drain-legacy-write-queue, ingest-topology-plan
 ```
 
 Legacy MCP aliases `write`, `search`, `health`, `bootstrap`, `phase_lock`, and `conflicts` remain thin adapters to canonical `memory.*` handlers.
@@ -146,6 +146,7 @@ bash scripts/validate_release.sh
 - [Harvest map](docs/HARVEST_MAP.md)
 - [Remediation and integration register](docs/REMEDIATION_AND_INTEGRATION_PLAN.md)
 - [Compatibility matrix](docs/COMPATIBILITY_MATRIX.md)
+- [Topology publication admission](docs/TOPOLOGY_PUBLICATION_ADMISSION.md)
 - [Full ADR ledger](docs/adr/README.md)
 - [Agent skill](skill/SKILL.md)
 - [Validation evidence](VALIDATION.md)

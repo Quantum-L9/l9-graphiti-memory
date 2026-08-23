@@ -13,10 +13,32 @@
 from .document import DocumentIngestor, IngestedChunk
 from .profiles import ProfileIngestor
 from .repository import RepositoryBootstrapper
+from .topology_publication import (
+    TopologyCandidateResult,
+    TopologyPlanError,
+    TopologyPublicationBatchReceipt,
+    TopologyPublicationPlanModel,
+    VerifiedBundle,
+    execute_topology_publication,
+    load_publication_plan,
+    load_verified_bundle,
+    validate_publication_inputs,
+    validate_topology_binding,
+)
 
 __all__ = [
     "DocumentIngestor",
     "IngestedChunk",
     "ProfileIngestor",
     "RepositoryBootstrapper",
+    "TopologyCandidateResult",
+    "TopologyPlanError",
+    "TopologyPublicationBatchReceipt",
+    "TopologyPublicationPlanModel",
+    "VerifiedBundle",
+    "execute_topology_publication",
+    "load_publication_plan",
+    "load_verified_bundle",
+    "validate_publication_inputs",
+    "validate_topology_binding",
 ]
