@@ -890,7 +890,7 @@ def cmd_ingest_topology_plan(args: argparse.Namespace) -> int:
         )
         sys.stdout.write(
             json.dumps(
-                receipt.model_dump(mode="json", by_alias=True),
+                receipt.model_dump(mode="json"),
                 indent=2,
                 sort_keys=True,
             )

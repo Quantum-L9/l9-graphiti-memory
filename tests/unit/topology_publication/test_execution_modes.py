@@ -141,8 +141,8 @@ def test_batch_receipt_counts_reconcile(tmp_path: Path, topology_principal) -> N
         + receipt.failed_count
     )
     assert len(receipt.candidate_results) == len(plan.candidates)
-    dumped = receipt.model_dump(mode="json", by_alias=True)
-    assert dumped["schema"] == "l9.topology-publication-batch-receipt/v1"
+    dumped = receipt.model_dump(mode="json")
+    assert dumped["schema_id"] == "l9.topology-publication-batch-receipt/v1"
     forbidden = ("content", "assertion", "provenance")
     for result in dumped["candidate_results"]:
         for key in forbidden:

@@ -224,9 +224,10 @@ class TopologyCandidateResult(_FrozenModel):
 
 
 class TopologyPublicationBatchReceipt(_FrozenModel):
-    schema_id: str = Field(
-        default=BATCH_RECEIPT_SCHEMA, serialization_alias="schema", alias="schema"
-    )
+    #: Carries the contract's ``schema`` identity as ``schema_id``: this
+    #: repository's schema-field law forbids pydantic aliases, and pydantic
+    #: itself reserves the ``schema`` attribute name on BaseModel.
+    schema_id: str = Field(default=BATCH_RECEIPT_SCHEMA)
     plan_id: str
     source_topology_packet_id: str
     source_topology_semantic_hash: str
@@ -243,8 +244,6 @@ class TopologyPublicationBatchReceipt(_FrozenModel):
     failed_count: int = Field(ge=0)
     candidate_results: tuple[TopologyCandidateResult, ...]
     created_at: datetime = Field(default_factory=utc_now)
-
-    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
 
 _PLAN_ADAPTER: TypeAdapter[TopologyPublicationPlanModel] = TypeAdapter(
