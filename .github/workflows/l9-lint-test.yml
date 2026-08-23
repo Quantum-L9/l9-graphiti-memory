@@ -68,28 +68,42 @@ jobs:
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up uv (resolved versions come from uv.lock)
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
       - name: Install consumer CI toolchain
         uses: Quantum-L9/l9-ci-core/.github/actions/install-consumer-ci@7148fc73dcbf41367f5c5401432dc997b1f4f869  # main
       - name: Install extra CI requirements
         run: |
           set -euo pipefail
           if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
-          # mypy needs the project importable, not just the toolchain. This
-          # repository's pyproject.toml sets `plugins = ["pydantic.mypy"]`, and
-          # mypy resolves a module-name plugin from its own environment, so
-          # without the package installed it exits 2 with
+          # mypy needs this project's dependencies in its own environment.
+          # install-consumer-ci brings the Core-pinned ruff/mypy/pytest and
+          # nothing else, and pyproject.toml sets `plugins = ["pydantic.mypy"]`
+          # — mypy resolves a module-name plugin from its environment, so
+          # without pydantic it exits 2 with
           # `Error importing plugin "pydantic.mypy": No module named 'pydantic'`
-          # before checking a single file. The test job below already installs
-          # the project; the template omitted it here.
+          # before checking a single file.
           #
-          # The extras must match ci.yml (dev + server + postgres), not dev
-          # alone. server.py guards its starlette import and carries
+          # Dependencies only, not the project: mypy analyses SOURCE_DIR from
+          # the checkout, so an editable install is not needed. Resolved
+          # versions come from uv.lock and binaries only, which keeps this off
+          # both `--only-binary :all:` setup-script execution and unlocked
+          # resolution. No version literals here, per the note at the top.
+          #
+          # Extras match ci.yml (dev + server + postgres), not dev alone.
+          # server.py guards its starlette import and carries
           # `type: ignore[assignment,misc]` in the fallback branch: with the
-          # server extra present those ignores are used, and without it
+          # server extra present those ignores are live, and without it
           # --ignore-missing-imports makes them dead, so mypy reports
           # `Unused "type: ignore" comment  [unused-ignore]` instead.
-          pip install -e ".[dev,server,postgres]" || pip install -e . || \
-            echo "::notice::no local editable package to install"
+          if [ -f uv.lock ]; then
+            uv export --frozen --no-emit-project --no-hashes \
+              --extra dev --extra server --extra postgres \
+              -o "${RUNNER_TEMP}/lint-requirements.txt"
+            pip install --only-binary :all: -r "${RUNNER_TEMP}/lint-requirements.txt"
+          else
+            echo "::notice::no uv.lock; mypy runs against the toolchain only"
+          fi
       - name: ruff check
         run: ruff check . --output-format=github
       # No `ruff format --check` step. This repository has never been
