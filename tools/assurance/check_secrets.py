@@ -84,9 +84,7 @@ def _files(repo_root: Path):
             if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
                 continue
             relative = path.relative_to(repo_root)
-            if str(relative) in SKIP_FILES or any(
-                part in SKIP_PARTS for part in relative.parts
-            ):
+            if str(relative) in SKIP_FILES or any(part in SKIP_PARTS for part in relative.parts):
                 continue
             yield path, relative
     for name in ("pyproject.toml", "README.md", "RUNBOOK.md", "SECURITY.md"):
@@ -105,17 +103,11 @@ def scan(repo_root: Path) -> list[Finding]:
         for line_number, line in enumerate(lines, start=1):
             stripped = line.strip()
             if PRIVATE_KEY.search(line):
-                findings.append(
-                    Finding(str(relative), line_number, "SECRET001", stripped[:240])
-                )
+                findings.append(Finding(str(relative), line_number, "SECRET001", stripped[:240]))
             if CREDENTIAL_URL.search(line) and not _placeholder(line):
-                findings.append(
-                    Finding(str(relative), line_number, "SECRET002", stripped[:240])
-                )
+                findings.append(Finding(str(relative), line_number, "SECRET002", stripped[:240]))
             if LIVE_TOKEN.search(line) and not _placeholder(line):
-                findings.append(
-                    Finding(str(relative), line_number, "SECRET003", stripped[:240])
-                )
+                findings.append(Finding(str(relative), line_number, "SECRET003", stripped[:240]))
             for match in SENSITIVE_ASSIGNMENT.finditer(line):
                 value = match.group(1)
                 if len(value) >= 8 and not _placeholder(value):
@@ -127,9 +119,7 @@ def scan(repo_root: Path) -> list[Finding]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
     findings = scan(args.repo_root.resolve())
     report = {

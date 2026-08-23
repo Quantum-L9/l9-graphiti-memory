@@ -53,9 +53,7 @@ def managed_server_entry(interpreter: str | None = None) -> ManagedServerEntry:
     command = interpreter or sys.executable
     if not command or not str(command).strip():
         raise ConfigurationError("interpreter for the managed entry is empty")
-    return ManagedServerEntry(
-        key=MANAGED_SERVER_KEY, command=str(command), args=_SERVER_ARGS
-    )
+    return ManagedServerEntry(key=MANAGED_SERVER_KEY, command=str(command), args=_SERVER_ARGS)
 
 
 def _sha256_bytes(payload: bytes) -> str:
@@ -72,9 +70,7 @@ def _sha256_file(path: Path) -> str | None:
 class CursorClientConfigurator:
     """Scoped lifecycle manager for the managed Cursor MCP server entry."""
 
-    def __init__(
-        self, path: Path | None = None, *, interpreter: str | None = None
-    ) -> None:
+    def __init__(self, path: Path | None = None, *, interpreter: str | None = None) -> None:
         self.path = path or default_cursor_config_path()
         self.entry = managed_server_entry(interpreter)
 
@@ -117,9 +113,7 @@ class CursorClientConfigurator:
             if parseable:
                 if isinstance(decoded, dict):
                     root_is_object = True
-                    unknown_top_level = tuple(
-                        sorted(key for key in decoded if key != "mcpServers")
-                    )
+                    unknown_top_level = tuple(sorted(key for key in decoded if key != "mcpServers"))
                     servers = decoded.get("mcpServers")
                     if servers is None:
                         servers_is_object = True
@@ -131,11 +125,7 @@ class CursorClientConfigurator:
                             managed_has_env = "env" in managed
                             managed_current = managed == self.entry.as_config()
                         unmanaged = tuple(
-                            sorted(
-                                key
-                                for key in servers
-                                if key != MANAGED_SERVER_KEY
-                            )
+                            sorted(key for key in servers if key != MANAGED_SERVER_KEY)
                         )
                     else:
                         blockers.append("mcpServers is not a JSON object")
@@ -173,17 +163,11 @@ class CursorClientConfigurator:
         if not isinstance(servers, dict):
             raise ConfigurationError("mcpServers is not a JSON object")
         already_current = servers.get(MANAGED_SERVER_KEY) == self.entry.as_config()
-        preserved = tuple(
-            sorted(key for key in servers if key != MANAGED_SERVER_KEY)
-        )
+        preserved = tuple(sorted(key for key in servers if key != MANAGED_SERVER_KEY))
         if already_current:
             return ClientConfigReceipt(
                 action=ClientConfigAction.INSTALL,
-                status=(
-                    ClientConfigStatus.DRY_RUN
-                    if dry_run
-                    else ClientConfigStatus.UNCHANGED
-                ),
+                status=(ClientConfigStatus.DRY_RUN if dry_run else ClientConfigStatus.UNCHANGED),
                 path=str(self.path),
                 changed=False,
                 managed_entry_present=True,
@@ -239,11 +223,7 @@ class CursorClientConfigurator:
         if not inspection.managed_entry_present:
             return ClientConfigReceipt(
                 action=ClientConfigAction.UNINSTALL,
-                status=(
-                    ClientConfigStatus.DRY_RUN
-                    if dry_run
-                    else ClientConfigStatus.UNCHANGED
-                ),
+                status=(ClientConfigStatus.DRY_RUN if dry_run else ClientConfigStatus.UNCHANGED),
                 path=str(self.path),
                 changed=False,
                 managed_entry_present=False,
@@ -342,15 +322,11 @@ class CursorClientConfigurator:
         """Re-read the file and fail closed on TOCTOU digest divergence."""
         if not self.path.is_file():
             if expected_sha is not None:
-                raise ConfigurationError(
-                    "config file disappeared between inspection and write"
-                )
+                raise ConfigurationError("config file disappeared between inspection and write")
             return {}
         raw = self.path.read_bytes()
         if expected_sha is None or _sha256_bytes(raw) != expected_sha:
-            raise ConfigurationError(
-                "config file changed between inspection and write; retry"
-            )
+            raise ConfigurationError("config file changed between inspection and write; retry")
         decoded = json.loads(raw.decode("utf-8"))
         if not isinstance(decoded, dict):
             raise ConfigurationError("config root is not a JSON object")
@@ -360,17 +336,11 @@ class CursorClientConfigurator:
         if pre_sha is None or not self.path.is_file():
             return None, None
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        backup = self.path.with_name(
-            f"{self.path.name}.backup.{stamp}.{pre_sha[:12]}"
-        )
+        backup = self.path.with_name(f"{self.path.name}.backup.{stamp}.{pre_sha[:12]}")
         payload = self.path.read_bytes()
         if _sha256_bytes(payload) != pre_sha:
-            raise ConfigurationError(
-                "config file changed while creating backup; retry"
-            )
-        fd = os.open(
-            str(backup), os.O_WRONLY | os.O_CREAT | os.O_EXCL, _MODE
-        )
+            raise ConfigurationError("config file changed while creating backup; retry")
+        fd = os.open(str(backup), os.O_WRONLY | os.O_CREAT | os.O_EXCL, _MODE)
         try:
             with os.fdopen(fd, "wb") as handle:
                 handle.write(payload)
@@ -381,15 +351,11 @@ class CursorClientConfigurator:
             raise
         return str(backup), pre_sha
 
-    def _atomic_write(
-        self, config: dict[str, object], *, expected_pre_sha: str | None
-    ) -> str:
+    def _atomic_write(self, config: dict[str, object], *, expected_pre_sha: str | None) -> str:
         """Serialize, fsync a sibling temp file, then atomically replace."""
         current = _sha256_file(self.path) if self.path.is_file() else None
         if current != expected_pre_sha:
-            raise ConfigurationError(
-                "config file changed between inspection and write; retry"
-            )
+            raise ConfigurationError("config file changed between inspection and write; retry")
         payload = (json.dumps(config, indent=2) + "\n").encode("utf-8")
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(
@@ -413,9 +379,7 @@ class CursorClientConfigurator:
             os.close(directory_fd)
         return _sha256_bytes(payload)
 
-    def _restore(
-        self, backup: Path, *, dry_run: bool
-    ) -> ClientConfigReceipt:
+    def _restore(self, backup: Path, *, dry_run: bool) -> ClientConfigReceipt:
         """Restore a backup only when its digest matches its embedded binding."""
         if not backup.is_file() or backup.is_symlink():
             raise ConfigurationError("backup path is not a regular file")

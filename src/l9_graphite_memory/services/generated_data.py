@@ -56,8 +56,7 @@ class GeneratedDataService:
             provenance=Provenance(
                 source="cursor-governance-generated-data",
                 source_id=candidate.candidate_id,
-                source_agent_id=candidate.provenance.source_agent_id
-                or principal.agent_id,
+                source_agent_id=candidate.provenance.source_agent_id or principal.agent_id,
                 tool="generated-data.ingest",
                 extraction_method="governed-candidate/v1",
             ),
@@ -68,9 +67,7 @@ class GeneratedDataService:
                     source_id=candidate.candidate_id,
                 ),
             ),
-            confidence=Confidence(
-                score=candidate.knowledge.confidence, evidence_count=1
-            ),
+            confidence=Confidence(score=candidate.knowledge.confidence, evidence_count=1),
             tags=("generated-data", candidate.knowledge.primary_class),
             metadata={
                 "generated_data_kind": candidate.kind,

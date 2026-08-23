@@ -45,8 +45,7 @@ class ContextVersionConflictError(ActiveMemoryError):
         self.expected_version = expected_version
         self.current_version = current_version
         super().__init__(
-            f"context version conflict: expected={expected_version!r} "
-            f"current={current_version!r}"
+            f"context version conflict: expected={expected_version!r} current={current_version!r}"
         )
 
 
@@ -74,12 +73,9 @@ class SchemaCompatibilityError(ActiveMemoryError):
     versions per the SDK compatibility policy.
     """
 
-    def __init__(
-        self, observed_version: int, supported_versions: tuple[int, ...]
-    ) -> None:
+    def __init__(self, observed_version: int, supported_versions: tuple[int, ...]) -> None:
         self.observed_version = observed_version
         self.supported_versions = supported_versions
         super().__init__(
-            f"unsupported schema_version={observed_version!r}; "
-            f"supported={supported_versions!r}"
+            f"unsupported schema_version={observed_version!r}; supported={supported_versions!r}"
         )

@@ -30,9 +30,7 @@ def _write_evidence(tmp_path, conversation_id: str = "x", **updates: object) -> 
         "phase_lock_granted": False,
     }
     state.update(updates)
-    (tmp_path / f"{conversation_id}.json").write_text(
-        json.dumps(state), encoding="utf-8"
-    )
+    (tmp_path / f"{conversation_id}.json").write_text(json.dumps(state), encoding="utf-8")
 
 
 def test_guard_off_allows(monkeypatch) -> None:
@@ -67,9 +65,7 @@ def test_phase_lock_requires_current_matching_receipt(tmp_path, monkeypatch) -> 
         tmp_path,
         phase_lock_granted=True,
         phase_lock_task_signature="task-a",
-        phase_lock_expires_at=(
-            datetime.now(timezone.utc) + timedelta(minutes=5)
-        ).isoformat(),
+        phase_lock_expires_at=(datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
     )
     assert guard.phase_lock_ok(guard.load_evidence("x"))
 
@@ -77,9 +73,7 @@ def test_phase_lock_requires_current_matching_receipt(tmp_path, monkeypatch) -> 
         tmp_path,
         phase_lock_granted=True,
         phase_lock_task_signature="task-b",
-        phase_lock_expires_at=(
-            datetime.now(timezone.utc) + timedelta(minutes=5)
-        ).isoformat(),
+        phase_lock_expires_at=(datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
     )
     assert not guard.phase_lock_ok(guard.load_evidence("x"))
 
@@ -96,15 +90,10 @@ def test_shell_guard_uses_read_only_allowlist(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("L9_MEMORY_WRITE_GATES", "1")
     monkeypatch.setenv("L9_MEMORY_STATE_DIR", str(tmp_path))
     assert (
-        guard.shell_guard('{"command":"git status","conversation_id":"x"}')[
-            "permission"
-        ]
-        == "allow"
+        guard.shell_guard('{"command":"git status","conversation_id":"x"}')["permission"] == "allow"
     )
     assert (
-        guard.shell_guard('{"command":"find . -delete","conversation_id":"x"}')[
-            "permission"
-        ]
+        guard.shell_guard('{"command":"find . -delete","conversation_id":"x"}')["permission"]
         == "deny"
     )
 

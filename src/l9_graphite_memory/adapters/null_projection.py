@@ -78,7 +78,5 @@ class NullProjection:
     ) -> list[ProjectionHit]:
         return []
 
-    def search(
-        self, query: str, namespaces: tuple[str, ...], *, limit: int
-    ) -> list[ProjectionHit]:
+    def search(self, query: str, namespaces: tuple[str, ...], *, limit: int) -> list[ProjectionHit]:
         return []

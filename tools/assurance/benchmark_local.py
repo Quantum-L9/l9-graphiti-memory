@@ -126,9 +126,7 @@ def run(iterations: int) -> dict[str, object]:
         "hydrate": _metric(hydrate_times, 500.0),
     }
     return {
-        "status": "PASS"
-        if all(metric.passed for metric in metrics.values())
-        else "FAIL",
+        "status": "PASS" if all(metric.passed for metric in metrics.values()) else "FAIL",
         "scope": "in-memory canonical path only; external provider latency is not measured",
         "iterations": iterations,
         "metrics": {name: asdict(metric) for name, metric in metrics.items()},

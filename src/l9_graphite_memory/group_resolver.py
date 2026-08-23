@@ -44,9 +44,7 @@ def registry_path(settings: MemorySettings | None = None) -> Path:
         return configured.expanduser()
     if env_path:
         return Path(env_path).expanduser()
-    return Path(
-        str(files("l9_graphite_memory.resources").joinpath("group_registry.yaml"))
-    )
+    return Path(str(files("l9_graphite_memory.resources").joinpath("group_registry.yaml")))
 
 
 def load_registry(settings: MemorySettings | None = None) -> dict[str, Any]:
@@ -88,9 +86,7 @@ def resolve_group(
     current = (cwd or Path.cwd()).resolve()
 
     selected = (
-        explicit
-        or os.environ.get("L9_MEMORY_NAMESPACE")
-        or os.environ.get("GRAPHITI_GROUP_ID")
+        explicit or os.environ.get("L9_MEMORY_NAMESPACE") or os.environ.get("GRAPHITI_GROUP_ID")
     )
     if selected:
         selected = selected.strip()
@@ -135,8 +131,7 @@ def resolve_group(
         )
 
     on_failure = str(
-        (registry.get("resolution") or {}).get("on_failure")
-        or "abort_write_allow_readonly"
+        (registry.get("resolution") or {}).get("on_failure") or "abort_write_allow_readonly"
     )
     if on_failure == "abort_write_allow_readonly":
         return GroupResolution(
@@ -157,6 +152,4 @@ def resolve_group_id(
 ) -> dict[str, Any]:
     """Compatibility wrapper returning the v1 dictionary shape."""
 
-    return resolve_group(cwd, explicit=explicit, settings=settings).model_dump(
-        mode="json"
-    )
+    return resolve_group(cwd, explicit=explicit, settings=settings).model_dump(mode="json")

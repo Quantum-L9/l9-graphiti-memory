@@ -167,9 +167,7 @@ def test_phase_locks_are_isolated_across_tenants(dual_tenant_stores) -> None:
         read_namespaces=("shared-ns",),
         write_namespaces=("shared-ns",),
     )
-    request = PhaseLockRequest(
-        namespace="shared-ns", task_signature="identical-task-signature"
-    )
+    request = PhaseLockRequest(namespace="shared-ns", task_signature="identical-task-signature")
 
     lock_a = service.phase_lock(principal_a, request)
     lock_b = service.phase_lock(principal_b, request)
@@ -180,12 +178,8 @@ def test_phase_locks_are_isolated_across_tenants(dual_tenant_stores) -> None:
     assert lock_a.lock_id != lock_b.lock_id
 
     # Tenant A still verifies against its own lock, unaffected by tenant B.
-    verification_a = service.verify_phase_lock(
-        principal_a, "shared-ns", "identical-task-signature"
-    )
-    verification_b = service.verify_phase_lock(
-        principal_b, "shared-ns", "identical-task-signature"
-    )
+    verification_a = service.verify_phase_lock(principal_a, "shared-ns", "identical-task-signature")
+    verification_b = service.verify_phase_lock(principal_b, "shared-ns", "identical-task-signature")
     assert verification_a.valid
     assert verification_b.valid
     assert verification_a.lock_id == lock_a.lock_id
@@ -212,9 +206,7 @@ def test_phase_lock_not_visible_to_other_tenant(dual_tenant_stores) -> None:
     )
 
     # Tenant B has issued no lock; it must not see tenant A's lock slot.
-    verification_b = service.verify_phase_lock(
-        principal_b, "shared-ns", "task-signature-x"
-    )
+    verification_b = service.verify_phase_lock(principal_b, "shared-ns", "task-signature-x")
     assert not verification_b.valid
     assert "does not exist" in " ".join(verification_b.reasons)
 

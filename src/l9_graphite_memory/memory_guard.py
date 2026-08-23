@@ -26,9 +26,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-_READ_ONLY_TOOLS = frozenset(
-    {"Read", "Grep", "Glob", "SemanticSearch", "ListDir", "TaskExplore"}
-)
+_READ_ONLY_TOOLS = frozenset({"Read", "Grep", "Glob", "SemanticSearch", "ListDir", "TaskExplore"})
 _READ_ONLY_SHELL = re.compile(
     r"^\s*(?:"
     r"pwd|whoami|id|uname(?:\s+-[a-z]+)?|"
@@ -39,9 +37,7 @@ _READ_ONLY_SHELL = re.compile(
     r")\s*$",
     re.IGNORECASE,
 )
-_GOVERNED_CHANGE = re.compile(
-    r"\b(?:GMP|phase\s*[0-9]+|modification\s+lock)\b", re.IGNORECASE
-)
+_GOVERNED_CHANGE = re.compile(r"\b(?:GMP|phase\s*[0-9]+|modification\s+lock)\b", re.IGNORECASE)
 
 
 class GuardEvidence(BaseModel):
@@ -135,9 +131,7 @@ def hydration_fresh(evidence: GuardEvidence) -> bool:
     return 0 <= age_minutes <= evidence.ttl_minutes
 
 
-def memory_ok(
-    evidence: GuardEvidence | None, task_signature: str | None = None
-) -> bool:
+def memory_ok(evidence: GuardEvidence | None, task_signature: str | None = None) -> bool:
     if evidence is None or not hydration_fresh(evidence):
         return False
     if task_signature is None:
@@ -148,10 +142,7 @@ def memory_ok(
 def phase_lock_ok(evidence: GuardEvidence | None) -> bool:
     if evidence is None or not evidence.phase_lock_granted:
         return False
-    if (
-        evidence.task_signature
-        and evidence.phase_lock_task_signature != evidence.task_signature
-    ):
+    if evidence.task_signature and evidence.phase_lock_task_signature != evidence.task_signature:
         return False
     expiry = evidence.phase_lock_expires_at
     if expiry is None:
@@ -198,9 +189,7 @@ def pre_tool_use(payload: str) -> dict[str, str]:
         )
     if memory_ok(evidence):
         return _allow()
-    return _deny(
-        "L9 memory guard: mutation blocked until current hydration evidence exists"
-    )
+    return _deny("L9 memory guard: mutation blocked until current hydration evidence exists")
 
 
 def shell_guard(payload: str) -> dict[str, str]:
@@ -216,9 +205,7 @@ def shell_guard(payload: str) -> dict[str, str]:
     return (
         _allow()
         if memory_ok(load_evidence(request.conversation_id))
-        else _deny(
-            "L9 memory guard: mutating shell command blocked until memory is hydrated"
-        )
+        else _deny("L9 memory guard: mutating shell command blocked until memory is hydrated")
     )
 
 
@@ -251,9 +238,7 @@ def main(argv: list[str] | None = None) -> int:
         result = handlers[values[0]](payload)
     except Exception as exc:  # noqa: BLE001
         result = (
-            _deny(f"L9 memory guard error: {type(exc).__name__}")
-            if guard_enabled()
-            else _allow()
+            _deny(f"L9 memory guard error: {type(exc).__name__}") if guard_enabled() else _allow()
         )
     sys.stdout.write(json.dumps(result, sort_keys=True) + "\n")
     return 0

@@ -41,9 +41,7 @@ class ContextBudgetAllocator:
         # Conservative language-neutral estimate; avoids a mandatory tokenizer dependency.
         return max(1, math.ceil(len(text.encode("utf-8")) / 3.5))
 
-    def allocate(
-        self, search: SearchReceipt, *, task: str, token_budget: int
-    ) -> HydrationResult:
+    def allocate(self, search: SearchReceipt, *, task: str, token_budget: int) -> HydrationResult:
         grouped: dict[str, list[tuple[str, SearchHit]]] = defaultdict(list)
         remaining = token_budget
         used = 0
@@ -72,9 +70,7 @@ class ContextBudgetAllocator:
                     memory_class=hits[0].record.memory_class,
                     content="\n\n".join(text_parts),
                     record_ids=tuple(hit.record.record_id for hit in hits),
-                    tokens_estimated=sum(
-                        self.estimate_tokens(part) for part in text_parts
-                    ),
+                    tokens_estimated=sum(self.estimate_tokens(part) for part in text_parts),
                     highest_score=max(hit.score for hit in hits),
                 )
             )
@@ -87,9 +83,7 @@ class ContextBudgetAllocator:
             canonical_json(
                 {
                     "task": task,
-                    "sections": [
-                        section.model_dump(mode="json") for section in sections
-                    ],
+                    "sections": [section.model_dump(mode="json") for section in sections],
                     "search_receipt_id": str(search.receipt_id),
                 }
             )

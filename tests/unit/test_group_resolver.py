@@ -69,9 +69,7 @@ def test_configured_local_namespaces_constrain_explicit_group_id(
         local_write_namespaces=("l9-graphiti-memory",),
         local_promote_namespaces=(),
     )
-    resolution = resolve_group(
-        tmp_path, explicit="some-disallowed-namespace", settings=settings
-    )
+    resolution = resolve_group(tmp_path, explicit="some-disallowed-namespace", settings=settings)
     principal = local_principal_for_resolution(settings, resolution)
 
     assert principal.is_admin is False
@@ -80,9 +78,7 @@ def test_configured_local_namespaces_constrain_explicit_group_id(
     assert "some-disallowed-namespace" not in principal.write_namespaces
 
     policy = NamespacePolicy()
-    denied = policy.evaluate(
-        principal, AuthorizationAction.WRITE, "some-disallowed-namespace"
-    )
+    denied = policy.evaluate(principal, AuthorizationAction.WRITE, "some-disallowed-namespace")
     assert denied.allowed is False
     assert "principal is administrator" not in denied.reasons
     assert any("did not match" in reason for reason in denied.reasons)
@@ -91,6 +87,4 @@ def test_configured_local_namespaces_constrain_explicit_group_id(
     assert allowed.allowed is True
 
     with pytest.raises(AuthorizationError):
-        policy.require(
-            principal, AuthorizationAction.WRITE, "some-disallowed-namespace"
-        )
+        policy.require(principal, AuthorizationAction.WRITE, "some-disallowed-namespace")

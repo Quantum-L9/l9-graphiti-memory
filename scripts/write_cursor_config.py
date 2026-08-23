@@ -56,15 +56,11 @@ def _projected_config(target: Path, entry_key: str) -> dict[str, object]:
     return config
 
 
-def write_config(
-    *, dry_run: bool = False, path: Path | None = None
-) -> dict[str, object]:
+def write_config(*, dry_run: bool = False, path: Path | None = None) -> dict[str, object]:
     configurator = CursorClientConfigurator(path)
     receipt = configurator.install(dry_run=dry_run)
     if receipt.status.value == "blocked":
-        raise ValueError(
-            "cursor config blocked: " + "; ".join(receipt.reasons)
-        )
+        raise ValueError("cursor config blocked: " + "; ".join(receipt.reasons))
     config = _projected_config(Path(receipt.path), configurator.entry.key)
     return {"path": receipt.path, "dry_run": dry_run, "config": config}
 

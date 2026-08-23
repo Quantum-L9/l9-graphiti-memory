@@ -104,9 +104,7 @@ class MemoryService:
         self.budget_allocator = budget_allocator or ContextBudgetAllocator()
         self.promotion_policy = promotion_policy or PromotionPolicy()
         self.retention_policy = retention_policy or RetentionPolicy()
-        self.retention_engine = retention_engine or RetentionEngine(
-            self.retention_policy
-        )
+        self.retention_engine = retention_engine or RetentionEngine(self.retention_policy)
         self.lineage_replayer = LineageReplayer(store)
 
     def initialize(self) -> None:
@@ -126,9 +124,7 @@ class MemoryService:
 
         return request.idempotency_key or f"operation:{request.namespace}:{uuid4()}"
 
-    def write(
-        self, principal: MemoryPrincipal, request: MemoryWriteRequest
-    ) -> WriteReceipt:
+    def write(self, principal: MemoryPrincipal, request: MemoryWriteRequest) -> WriteReceipt:
         """Admit a new memory under the caller's WRITE grant."""
 
         return self._admit(principal, request, action=AuthorizationAction.WRITE)
@@ -161,9 +157,7 @@ class MemoryService:
                 "assertion": request.assertion.model_dump(mode="json")
                 if request.assertion
                 else None,
-                "consent_id": str(request.consent.consent_id)
-                if request.consent
-                else None,
+                "consent_id": str(request.consent.consent_id) if request.consent else None,
             },
         )
         idempotency_key = self._operation_identity(request)
@@ -185,9 +179,7 @@ class MemoryService:
 
         if admission.status is WriteStatus.DUPLICATE:
             if existing is None:
-                raise StoreError(
-                    "admission reported duplicate but store returned no record"
-                )
+                raise StoreError("admission reported duplicate but store returned no record")
             receipt = WriteReceipt(
                 status=WriteStatus.DUPLICATE,
                 record_id=existing.record_id,
@@ -263,19 +255,14 @@ class MemoryService:
         warnings = list(admission.warnings)
         effective_supersedes = request.supersedes if state is MemoryState.ACTIVE else ()
         if request.supersedes and state is MemoryState.QUARANTINED:
-            warnings.append(
-                "supersession deferred until the quarantined candidate is approved"
-            )
+            warnings.append("supersession deferred until the quarantined candidate is approved")
 
         status_events: list[MemoryStatusEvent] = []
         for record_id in effective_supersedes:
             prior = self.store.get_record(record_id)
             if prior is None:
                 raise StoreError(f"superseded record does not exist: {record_id}")
-            if (
-                prior.tenant_id != principal.tenant_id
-                or prior.namespace != request.namespace
-            ):
+            if prior.tenant_id != principal.tenant_id or prior.namespace != request.namespace:
                 raise AuthorizationError(
                     "cannot supersede a record outside the authorized tenant and namespace"
                 )
@@ -382,9 +369,7 @@ class MemoryService:
         *,
         task_signature: str,
     ) -> WriteReceipt:
-        verification = self.verify_phase_lock(
-            principal, request.namespace, task_signature
-        )
+        verification = self.verify_phase_lock(principal, request.namespace, task_signature)
         if not verification.valid:
             raise AuthorizationError(
                 "memory.write_governed requires a held phase-lock: "
@@ -451,13 +436,9 @@ class MemoryService:
             return None
         if record.tenant_id != principal.tenant_id and not principal.can_cross_tenant:
             raise AuthorizationError("record belongs to a different tenant")
-        self.namespace_policy.require(
-            principal, AuthorizationAction.READ, record.namespace
-        )
+        self.namespace_policy.require(principal, AuthorizationAction.READ, record.namespace)
         if record.state is MemoryState.QUARANTINED and not principal.is_admin:
-            raise AuthorizationError(
-                "quarantined records require administrator authority"
-            )
+            raise AuthorizationError("quarantined records require administrator authority")
         if (
             record.state in {MemoryState.DELETION_PENDING, MemoryState.DELETED}
             and not principal.is_admin
@@ -468,9 +449,7 @@ class MemoryService:
     @staticmethod
     def _concrete_namespaces(patterns: tuple[str, ...]) -> tuple[str, ...]:
         return tuple(
-            pattern
-            for pattern in patterns
-            if not any(character in pattern for character in "*?[]")
+            pattern for pattern in patterns if not any(character in pattern for character in "*?[]")
         )
 
     def _authorized_search_namespaces(
@@ -484,14 +463,10 @@ class MemoryService:
                 "explicit namespace is required when read grants contain only wildcards"
             )
         for namespace in namespaces:
-            self.namespace_policy.require(
-                principal, AuthorizationAction.READ, namespace
-            )
+            self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
         return tuple(dict.fromkeys(namespaces))
 
-    def search(
-        self, principal: MemoryPrincipal, request: MemorySearchRequest
-    ) -> SearchReceipt:
+    def search(self, principal: MemoryPrincipal, request: MemorySearchRequest) -> SearchReceipt:
         namespaces = self._authorized_search_namespaces(principal, request.namespaces)
         now = self.clock.now()
         effective_request = (
@@ -506,9 +481,7 @@ class MemoryService:
             now=now,
         )
 
-    def hydrate(
-        self, principal: MemoryPrincipal, request: HydrationRequest
-    ) -> HydrationResult:
+    def hydrate(self, principal: MemoryPrincipal, request: HydrationRequest) -> HydrationResult:
         query_parts = [request.task, *request.entities, *request.topics]
         search_request = MemorySearchRequest(
             query=" ".join(part for part in query_parts if part),
@@ -557,9 +530,7 @@ class MemoryService:
             states=(MemoryState.ACTIVE,),
         )
         structured = [
-            record
-            for record in records
-            if record.assertion and record.assertion.is_structured
+            record for record in records if record.assertion and record.assertion.is_structured
         ]
         conflicts: list[ConflictItem] = []
         for index, left in enumerate(structured):
@@ -592,20 +563,15 @@ class MemoryService:
             checked_at=self.clock.now(),
         )
 
-    def phase_lock(
-        self, principal: MemoryPrincipal, request: PhaseLockRequest
-    ) -> PhaseLockReceipt:
-        self.namespace_policy.require(
-            principal, AuthorizationAction.WRITE, request.namespace
-        )
+    def phase_lock(self, principal: MemoryPrincipal, request: PhaseLockRequest) -> PhaseLockReceipt:
+        self.namespace_policy.require(principal, AuthorizationAction.WRITE, request.namespace)
         report = self.conflicts(principal, request.namespace)
         now = self.clock.now()
         receipt = PhaseLockReceipt(
             tenant_id=principal.tenant_id,
             namespace=request.namespace,
             task_signature=request.task_signature,
-            granted=report.status is OperationStatus.COMPLETE
-            and not report.has_conflicts,
+            granted=report.status is OperationStatus.COMPLETE and not report.has_conflicts,
             conflict_report=report,
             snapshot_digest=report.snapshot_digest,
             expires_at=now + timedelta(seconds=request.ttl_seconds),
@@ -660,20 +626,14 @@ class MemoryService:
         if record is None:
             raise StoreError(f"record not found: {record_id}")
         if record.tenant_id != principal.tenant_id or record.namespace != namespace:
-            raise AuthorizationError(
-                "record is outside the authorized tenant or namespace"
-            )
+            raise AuthorizationError("record is outside the authorized tenant or namespace")
         return self.lineage_replayer.replay(principal.tenant_id, namespace, record_id)
 
-    def promote(
-        self, principal: MemoryPrincipal, request: PromotionRequest
-    ) -> WriteReceipt:
+    def promote(self, principal: MemoryPrincipal, request: PromotionRequest) -> WriteReceipt:
         record = self.get(principal, request.record_id)
         if record is None:
             raise StoreError(f"record not found: {request.record_id}")
-        self.namespace_policy.require(
-            principal, AuthorizationAction.PROMOTE, record.namespace
-        )
+        self.namespace_policy.require(principal, AuthorizationAction.PROMOTE, record.namespace)
         for supporting_id in request.supporting_record_ids:
             supporting = self.store.get_record(supporting_id)
             if supporting is None:
@@ -682,14 +642,10 @@ class MemoryService:
                 supporting.tenant_id != principal.tenant_id
                 or supporting.namespace != record.namespace
             ):
-                raise AuthorizationError(
-                    "promotion support crosses tenant or namespace boundary"
-                )
+                raise AuthorizationError("promotion support crosses tenant or namespace boundary")
         conflict_report = self.conflicts(principal, record.namespace)
         if conflict_report.has_conflicts and not request.governance_approval:
-            raise AuthorizationError(
-                "promotion denied while unresolved conflicts exist"
-            )
+            raise AuthorizationError("promotion denied while unresolved conflicts exist")
         decision = self.promotion_policy.evaluate(record, request)
         if not decision.approved:
             raise AuthorizationError("promotion denied: " + "; ".join(decision.reasons))
@@ -728,9 +684,7 @@ class MemoryService:
             },
             idempotency_key=f"promotion:{record.record_id}:{request.target_class.value}",
             supersedes=(record.record_id,),
-            references=tuple(
-                dict.fromkeys((*request.supporting_record_ids, record.record_id))
-            ),
+            references=tuple(dict.fromkeys((*request.supporting_record_ids, record.record_id))),
             consent=request.consent or record.consent,
         )
         return self.write(principal, write_request)
@@ -819,9 +773,7 @@ class MemoryService:
             created_at=now,
         )
 
-    def delete(
-        self, principal: MemoryPrincipal, request: DeletionRequest
-    ) -> DeletionReceipt:
+    def delete(self, principal: MemoryPrincipal, request: DeletionRequest) -> DeletionReceipt:
         record = self.store.get_record(request.record_id)
         if record is None:
             raise StoreError(f"record not found: {request.record_id}")
@@ -840,9 +792,7 @@ class MemoryService:
                     "tenant_id": record.tenant_id,
                     "namespace": record.namespace,
                     "reason_digest": sha256_text(request.reason),
-                    "verification_reference_digest": sha256_text(
-                        request.verification_reference
-                    ),
+                    "verification_reference_digest": sha256_text(request.verification_reference),
                     "requested_by": principal.audit_subject,
                     "requested_at": now,
                 }
@@ -875,9 +825,7 @@ class MemoryService:
             else None
         )
         status = (
-            DeletionStatus.PENDING_PROJECTION
-            if projection_enabled
-            else DeletionStatus.COMPLETE
+            DeletionStatus.PENDING_PROJECTION if projection_enabled else DeletionStatus.COMPLETE
         )
         receipt = DeletionReceipt(
             record_id=record.record_id,
@@ -901,9 +849,7 @@ class MemoryService:
                     }
                 }
             )
-        redacted_state = (
-            MemoryState.DELETION_PENDING if projection_enabled else MemoryState.DELETED
-        )
+        redacted_state = MemoryState.DELETION_PENDING if projection_enabled else MemoryState.DELETED
         redacted_record = record.model_copy(
             update={
                 "content": f"[deleted:{receipt.tombstone_id}]",
@@ -936,9 +882,7 @@ class MemoryService:
         )
         return receipt
 
-    def prune(
-        self, principal: MemoryPrincipal, namespace: str, *, apply: bool
-    ) -> ArchiveReceipt:
+    def prune(self, principal: MemoryPrincipal, namespace: str, *, apply: bool) -> ArchiveReceipt:
         """Compatibility surface for archive-first retention."""
 
         return self.apply_retention(principal, namespace, apply=apply).archive_receipt
@@ -967,9 +911,7 @@ class MemoryService:
             namespace,
         )
         if self.projection.name == "none":
-            raise StoreError(
-                "projection backend is 'none'; there is nothing to rebuild"
-            )
+            raise StoreError("projection backend is 'none'; there is nothing to rebuild")
         now = self.clock.now()
         candidates = self.store.list_unprojected_records(
             principal.tenant_id,

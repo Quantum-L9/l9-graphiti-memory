@@ -103,11 +103,7 @@ def test_every_day_of_the_year_admits_exactly_one_run(gate) -> None:
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     for offset in range(365):
         day = start + timedelta(days=offset)
-        admitted = [
-            hour
-            for hour in (6, 7)
-            if gate.decide(day.replace(hour=hour))[0]
-        ]
+        admitted = [hour for hour in (6, 7) if gate.decide(day.replace(hour=hour))[0]]
         local_date = day.replace(hour=7).astimezone(TZ).date()
         assert len(admitted) == 1, f"{local_date}: admitted firings {admitted}"
 
@@ -214,9 +210,7 @@ def test_workflow_never_owns_or_synchronizes_a_database_file(workflow) -> None:
 
     steps = _job(workflow)["steps"]
     # The only artifact leaving the runner is the maintenance receipt.
-    uploads = [
-        step for step in steps if "upload-artifact" in str(step.get("uses", ""))
-    ]
+    uploads = [step for step in steps if "upload-artifact" in str(step.get("uses", ""))]
     assert len(uploads) == 1
     assert uploads[0]["with"]["path"] == "maintenance-*.json"
 
@@ -249,9 +243,7 @@ def test_no_workflow_expression_is_expanded_inside_a_run_body(workflow) -> None:
     for step in _job(workflow)["steps"]:
         body = step.get("run")
         if body and "${{" in body:
-            offenders.append(
-                (step.get("name", "<unnamed>"), re.findall(r"\$\{\{[^}]*\}\}", body))
-            )
+            offenders.append((step.get("name", "<unnamed>"), re.findall(r"\$\{\{[^}]*\}\}", body)))
 
     assert offenders == []
 

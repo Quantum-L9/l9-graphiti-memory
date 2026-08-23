@@ -119,15 +119,10 @@ class InMemoryActiveStore:
             return False
         if scope.role is not None and presence.identity.role != scope.role:
             return False
-        return (
-            scope.group_id is None
-            or scope.group_id in presence.identity.memory_group_ids
-        )
+        return scope.group_id is None or scope.group_id in presence.identity.memory_group_ids
 
     @staticmethod
-    def _cursor_start_index(
-        matches: list[AgentPresence], cursor: str | None
-    ) -> int:
+    def _cursor_start_index(matches: list[AgentPresence], cursor: str | None) -> int:
         if cursor is None:
             return 0
         for idx, presence in enumerate(matches):
@@ -136,9 +131,7 @@ class InMemoryActiveStore:
                 return idx + 1
         return 0
 
-    async def register(
-        self, identity: AgentIdentity, lease: AgentLease
-    ) -> AgentPresence:
+    async def register(self, identity: AgentIdentity, lease: AgentLease) -> AgentPresence:
         self._check_available()
         async with self._lock:
             key = (identity.agent_id, identity.instance_id)
@@ -291,7 +284,9 @@ class InMemoryActiveStore:
                 next_cursor = f"{last.identity.agent_id}:{last.identity.instance_id}"
             return _InMemoryAgentPage(items=page_items, next_cursor=next_cursor)
 
-    async def health(self) -> _InMemoryStoreHealth:  # NOSONAR(S7503) - ActiveStore port requires async
+    async def health(
+        self,
+    ) -> _InMemoryStoreHealth:  # NOSONAR(S7503) - ActiveStore port requires async
         if self._simulate_unavailable:
             return _InMemoryStoreHealth(connectivity="unavailable")
         return _InMemoryStoreHealth()
@@ -350,9 +345,7 @@ class InMemoryAwarenessBus:
                         continue
                     queue.put_nowait(event)
 
-    async def subscribe(
-        self, subscription: AgentSubscription
-    ) -> AsyncIterator[AgentEvent]:
+    async def subscribe(self, subscription: AgentSubscription) -> AsyncIterator[AgentEvent]:
         if self._simulate_unavailable:
             raise ActiveMemoryUnavailableError(
                 f"in-memory awareness bus for deployment "
@@ -371,7 +364,9 @@ class InMemoryAwarenessBus:
                 if entry in self._subscribers:
                     self._subscribers.remove(entry)
 
-    async def health(self) -> _InMemoryAwarenessHealth:  # NOSONAR(S7503) - AwarenessBus port requires async
+    async def health(
+        self,
+    ) -> _InMemoryAwarenessHealth:  # NOSONAR(S7503) - AwarenessBus port requires async
         if self._simulate_unavailable:
             return _InMemoryAwarenessHealth(connectivity="unavailable")
         return _InMemoryAwarenessHealth()

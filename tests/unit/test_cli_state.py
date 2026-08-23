@@ -23,9 +23,7 @@ def _runtime(tmp_path: Any) -> Any:
     return cast(Any, SimpleNamespace(settings=SimpleNamespace(state_dir=tmp_path)))
 
 
-def test_phase_lock_receipt_is_mirrored_and_denial_clears_marker(
-    monkeypatch, tmp_path
-) -> None:
+def test_phase_lock_receipt_is_mirrored_and_denial_clears_marker(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("L9_SESSION_ID", "phase-test")
     now = datetime.now(timezone.utc)
     runtime = _runtime(tmp_path)

@@ -32,9 +32,7 @@ _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
     ),
     (
         "phone",
-        re.compile(
-            r"(?<!\d)(?:\+?1[\s.\-]?)?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}(?!\d)"
-        ),
+        re.compile(r"(?<!\d)(?:\+?1[\s.\-]?)?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}(?!\d)"),
         "[PHONE_REDACTED]",
     ),
     ("ssn", re.compile(r"\b\d{3}[\-\s]?\d{2}[\-\s]?\d{4}\b"), "[SSN_REDACTED]"),
@@ -49,9 +47,7 @@ _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
 _INJECTION_MARKERS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "ignore_instructions",
-        re.compile(
-            r"(?i)ignore\s+(?:all\s+)?(?:(?:previous|prior)\s+)?(?:system\s+)?instructions"
-        ),
+        re.compile(r"(?i)ignore\s+(?:all\s+)?(?:(?:previous|prior)\s+)?(?:system\s+)?instructions"),
     ),
     (
         "reveal_prompt",
@@ -59,9 +55,7 @@ _INJECTION_MARKERS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ),
     (
         "credential_exfiltration",
-        re.compile(
-            r"(?i)(dump|exfiltrate|print)\s+.*(secret|token|credential|api[ _-]?key)"
-        ),
+        re.compile(r"(?i)(dump|exfiltrate|print)\s+.*(secret|token|credential|api[ _-]?key)"),
     ),
 )
 
@@ -80,9 +74,7 @@ class NormalizationResult(BaseModel):
 def canonical_json(value: Any) -> str:
     """Stable JSON for digests and receipts."""
 
-    return json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str
-    )
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
 
 
 def sha256_text(value: str) -> str:
@@ -90,13 +82,9 @@ def sha256_text(value: str) -> str:
 
 
 def normalize_text(value: str) -> str:
-    normalized = (
-        unicodedata.normalize("NFKC", value).replace("\r\n", "\n").replace("\r", "\n")
-    )
+    normalized = unicodedata.normalize("NFKC", value).replace("\r\n", "\n").replace("\r", "\n")
     normalized = _ZERO_WIDTH.sub("", normalized)
-    normalized = "\n".join(
-        _WHITESPACE.sub(" ", line).rstrip() for line in normalized.splitlines()
-    )
+    normalized = "\n".join(_WHITESPACE.sub(" ", line).rstrip() for line in normalized.splitlines())
     return _BLANK_LINES.sub("\n\n", normalized).strip()
 
 
@@ -110,9 +98,7 @@ def normalize_candidate(
         if pattern.search(redacted):
             pii_types.append(pii_type)
             redacted = pattern.sub(replacement, redacted)
-    signals = tuple(
-        name for name, pattern in _INJECTION_MARKERS if pattern.search(normalized)
-    )
+    signals = tuple(name for name, pattern in _INJECTION_MARKERS if pattern.search(normalized))
     digest_payload = {"content": redacted, "context": context or {}}
     return NormalizationResult(
         normalized_content=normalized,

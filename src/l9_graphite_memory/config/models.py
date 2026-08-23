@@ -43,12 +43,8 @@ class MemorySettings(BaseModel):
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
-    data_dir: Path = Field(
-        default_factory=lambda: Path("~/.local/share/l9-memory").expanduser()
-    )
-    state_dir: Path = Field(
-        default_factory=lambda: Path("~/.local/state/l9-memory").expanduser()
-    )
+    data_dir: Path = Field(default_factory=lambda: Path("~/.local/share/l9-memory").expanduser())
+    state_dir: Path = Field(default_factory=lambda: Path("~/.local/state/l9-memory").expanduser())
     # "sqlite" is a local/single-process ledger and is not a distributed
     # authority. Shared multi-agent deployments must select "postgres" so every
     # agent and worker reads and writes one canonical store (ADR-072).
@@ -104,9 +100,7 @@ class MemorySettings(BaseModel):
     config_source: str = "defaults"
     extra: dict[str, Any] = Field(default_factory=dict)
 
-    @field_validator(
-        "data_dir", "state_dir", "database_path", "registry_path", mode="before"
-    )
+    @field_validator("data_dir", "state_dir", "database_path", "registry_path", mode="before")
     @classmethod
     def expand_path(cls, value: object) -> object:
         if isinstance(value, str):
@@ -126,8 +120,7 @@ class MemorySettings(BaseModel):
     def validate_store_backend(self) -> MemorySettings:
         if self.store_backend == "postgres" and not (self.postgres_dsn or "").strip():
             raise ValueError(
-                "store_backend 'postgres' requires postgres_dsn "
-                "(set L9_MEMORY_POSTGRES_DSN)"
+                "store_backend 'postgres' requires postgres_dsn (set L9_MEMORY_POSTGRES_DSN)"
             )
         return self
 

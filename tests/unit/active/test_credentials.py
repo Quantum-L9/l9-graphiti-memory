@@ -59,9 +59,7 @@ def test_password_file_resolves_with_host(tmp_path: Path) -> None:
         tls=False,
     )
     resolved = resolve_redis_credential(settings)
-    assert (
-        resolved.redis_url == "redis://active-memory:s3cret-value@active-redis:6379/0"
-    )
+    assert resolved.redis_url == "redis://active-memory:s3cret-value@active-redis:6379/0"
     assert resolved.credential_source == "password_file"
 
 

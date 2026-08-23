@@ -108,9 +108,7 @@ class ResolvedRedisCredential:
 
 def _read_secret_file(path: Path, *, field_name: str) -> str:
     if not path.is_absolute():
-        raise CredentialResolutionError(
-            f"{field_name} must be an absolute path: {path}"
-        )
+        raise CredentialResolutionError(f"{field_name} must be an absolute path: {path}")
     if path.is_symlink():
         raise CredentialResolutionError(f"{field_name} must not be a symlink: {path}")
     if not path.exists():
@@ -124,9 +122,7 @@ def _read_secret_file(path: Path, *, field_name: str) -> str:
         )
     raw = path.read_bytes()
     if b"\x00" in raw:
-        raise CredentialResolutionError(
-            f"{field_name} must not contain NUL bytes: {path}"
-        )
+        raise CredentialResolutionError(f"{field_name} must not contain NUL bytes: {path}")
     text = raw.decode("utf-8")
     text = text.removesuffix("\n")
     if not text:
@@ -144,14 +140,10 @@ def _resolve_url_file(settings: RedisCredentialSettings) -> ResolvedRedisCredent
 def _resolve_password_file(settings: RedisCredentialSettings) -> ResolvedRedisCredential:
     assert settings.password_file is not None
     if not settings.host:
-        raise CredentialResolutionError(
-            "host is required when password_file is configured"
-        )
+        raise CredentialResolutionError("host is required when password_file is configured")
     password = _read_secret_file(settings.password_file, field_name="password_file")
     scheme = "rediss" if settings.tls else "redis"
-    userinfo = (
-        f"{settings.username}:{password}" if settings.username else f":{password}"
-    )
+    userinfo = f"{settings.username}:{password}" if settings.username else f":{password}"
     netloc = f"{userinfo}@{settings.host}:{settings.port}"
     url = urlunsplit((scheme, netloc, f"/{settings.database}", "", ""))
     return ResolvedRedisCredential(redis_url=url, credential_source="password_file")
@@ -163,18 +155,13 @@ def _resolve_secret_provider_reference(
     assert settings.secret_provider_reference is not None
     if secret_provider is None:
         raise CredentialResolutionError(
-            "secret_provider_reference is configured but no "
-            "secret_provider callback was supplied"
+            "secret_provider_reference is configured but no secret_provider callback was supplied"
         )
     url = secret_provider(settings.secret_provider_reference)
     if not url:
-        raise CredentialResolutionError(
-            "secret_provider callback returned an empty value"
-        )
+        raise CredentialResolutionError("secret_provider callback returned an empty value")
     _validate_redis_url(url)
-    return ResolvedRedisCredential(
-        redis_url=url, credential_source="secret_provider_reference"
-    )
+    return ResolvedRedisCredential(redis_url=url, credential_source="secret_provider_reference")
 
 
 def _resolve_url_env(

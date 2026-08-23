@@ -28,9 +28,7 @@ class PromotionDecision(BaseModel):
 class PromotionPolicy:
     """Promotions require explicit authority or repeated evidence."""
 
-    def evaluate(
-        self, record: MemoryRecord, request: PromotionRequest
-    ) -> PromotionDecision:
+    def evaluate(self, record: MemoryRecord, request: PromotionRequest) -> PromotionDecision:
         reasons: list[str] = []
         approved = False
         if request.target_class is record.memory_class:
@@ -46,10 +44,7 @@ class PromotionPolicy:
         }:
             approved = True
             reasons.append("explicit confirmation supplied for governed memory class")
-        elif (
-            request.test_success_count >= 3
-            and request.target_class is MemoryClass.PROCEDURAL
-        ):
+        elif request.test_success_count >= 3 and request.target_class is MemoryClass.PROCEDURAL:
             approved = True
             reasons.append("procedure has at least three test-backed successes")
         elif len(request.supporting_record_ids) >= 3 and request.target_class in {

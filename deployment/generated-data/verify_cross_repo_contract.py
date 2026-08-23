@@ -44,17 +44,10 @@ def locate_cursor_root(explicit: str | None) -> Path:
         root = Path(candidate).expanduser().resolve()
         if (
             root.is_dir()
-            and (
-                root
-                / GENERATED_DATA_AGENT_DIR
-                / "adapters"
-                / "graphiti_memory.py"
-            ).is_file()
+            and (root / GENERATED_DATA_AGENT_DIR / "adapters" / "graphiti_memory.py").is_file()
         ):
             return root
-    raise FileNotFoundError(
-        "Cursor-Governance checkout not found"
-    )
+    raise FileNotFoundError("Cursor-Governance checkout not found")
 
 
 def strings_in_python(path: Path) -> set[str]:
@@ -62,8 +55,7 @@ def strings_in_python(path: Path) -> set[str]:
     return {
         node.value
         for node in ast.walk(tree)
-        if isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
     }
 
 
@@ -86,62 +78,22 @@ def main() -> int:
     cursor = locate_cursor_root(args.cursor_root)
 
     producer_files = {
-        "candidate": (
-            cursor
-            / GENERATED_DATA_AGENT_DIR
-            / "adapters"
-            / "graphiti_memory.py"
-        ),
-        "query": (
-            cursor
-            / GENERATED_DATA_AGENT_DIR
-            / "retrieval"
-            / "context_query.py"
-        ),
-        "reuse": (
-            cursor
-            / GENERATED_DATA_AGENT_DIR
-            / "retrieval"
-            / "reuse_recorder.py"
-        ),
+        "candidate": (cursor / GENERATED_DATA_AGENT_DIR / "adapters" / "graphiti_memory.py"),
+        "query": (cursor / GENERATED_DATA_AGENT_DIR / "retrieval" / "context_query.py"),
+        "reuse": (cursor / GENERATED_DATA_AGENT_DIR / "retrieval" / "reuse_recorder.py"),
         "invalidation": (
-            cursor
-            / GENERATED_DATA_AGENT_DIR
-            / "invalidation"
-            / "repository_event_bridge.py"
+            cursor / GENERATED_DATA_AGENT_DIR / "invalidation" / "repository_event_bridge.py"
         ),
     }
 
-    manifest = yaml.safe_load(
-        (
-            DEPLOYMENT / CAPABILITY_MANIFEST
-        ).read_text(encoding="utf-8")
-    )
+    manifest = yaml.safe_load((DEPLOYMENT / CAPABILITY_MANIFEST).read_text(encoding="utf-8"))
 
-    supported_classes = set(
-        manifest["candidate_ingress"]["supported_classes"]
-    )
-    reuse_outcomes = set(
-        manifest["reuse"]["supported_outcomes"]
-    )
-    invalidation_events = set(
-        manifest["invalidation"][
-            "supported_event_types"
-        ]
-    )
+    supported_classes = set(manifest["candidate_ingress"]["supported_classes"])
+    reuse_outcomes = set(manifest["reuse"]["supported_outcomes"])
+    invalidation_events = set(manifest["invalidation"]["supported_event_types"])
 
-    classifier = (
-        cursor
-        / GENERATED_DATA_AGENT_DIR
-        / "runtime"
-        / "classifier.py"
-    )
-    unit_schema = (
-        cursor
-        / GENERATED_DATA_AGENT_DIR
-        / "schemas"
-        / "generated-data-unit.schema.json"
-    )
+    classifier = cursor / GENERATED_DATA_AGENT_DIR / "runtime" / "classifier.py"
+    unit_schema = cursor / GENERATED_DATA_AGENT_DIR / "schemas" / "generated-data-unit.schema.json"
     extra_class_strings: set[str] = set()
     if classifier.is_file():
         extra_class_strings |= strings_in_python(classifier)
@@ -152,24 +104,13 @@ def main() -> int:
             .get("primary_class", {})
             .get("enum", [])
         )
-    candidate_strings = strings_in_python(
-        producer_files["candidate"]
-    ) | extra_class_strings
-    reuse_strings = strings_in_python(
-        producer_files["reuse"]
-    )
-    invalidation_strings = strings_in_python(
-        producer_files["invalidation"]
-    )
+    candidate_strings = strings_in_python(producer_files["candidate"]) | extra_class_strings
+    reuse_strings = strings_in_python(producer_files["reuse"])
+    invalidation_strings = strings_in_python(producer_files["invalidation"])
 
     producer_supported = extract_known_values(
         candidate_strings,
-        supported_classes
-        | set(
-            manifest["candidate_ingress"][
-                "rejected_classes"
-            ]
-        ),
+        supported_classes | set(manifest["candidate_ingress"]["rejected_classes"]),
     )
     producer_reuse = extract_known_values(
         reuse_strings,
@@ -192,51 +133,30 @@ def main() -> int:
     missing_reuse = reuse_outcomes - producer_reuse
     if missing_reuse:
         differences.append(
-            "Producer reuse recorder does not expose outcomes: "
-            + ", ".join(sorted(missing_reuse))
+            "Producer reuse recorder does not expose outcomes: " + ", ".join(sorted(missing_reuse))
         )
 
     # The producer may generate only a subset directly. It must at least support
     # repository path changes for this activation pack.
     if "repository_path_changed" not in invalidation_strings:
-        differences.append(
-            "Producer invalidation bridge lacks "
-            "repository_path_changed"
-        )
+        differences.append("Producer invalidation bridge lacks repository_path_changed")
 
     fixture_candidate = json.loads(
-        (
-            DEPLOYMENT / "fixtures" / "governed-candidate.json"
-        ).read_text(encoding="utf-8")
+        (DEPLOYMENT / "fixtures" / "governed-candidate.json").read_text(encoding="utf-8")
     )
     fixture_reuse = json.loads(
-        (
-            DEPLOYMENT / "fixtures" / "reuse-event.json"
-        ).read_text(encoding="utf-8")
+        (DEPLOYMENT / "fixtures" / "reuse-event.json").read_text(encoding="utf-8")
     )
     fixture_invalidation = json.loads(
-        (
-            DEPLOYMENT
-            / "fixtures"
-            / "path-invalidation.json"
-        ).read_text(encoding="utf-8")
+        (DEPLOYMENT / "fixtures" / "path-invalidation.json").read_text(encoding="utf-8")
     )
 
     if fixture_candidate["knowledge"]["primary_class"] not in supported_classes:
-        differences.append(
-            "Candidate fixture class is not supported"
-        )
+        differences.append("Candidate fixture class is not supported")
     if fixture_reuse["outcome"] not in reuse_outcomes:
-        differences.append(
-            "Reuse fixture outcome is not supported"
-        )
-    if (
-        fixture_invalidation["event_type"]
-        not in invalidation_events
-    ):
-        differences.append(
-            "Invalidation fixture event is not supported"
-        )
+        differences.append("Reuse fixture outcome is not supported")
+    if fixture_invalidation["event_type"] not in invalidation_events:
+        differences.append("Invalidation fixture event is not supported")
 
     result = {
         "graphiti_sha": _git_sha(Path.cwd()),
@@ -250,24 +170,14 @@ def main() -> int:
         },
         "consumer_files": {
             "manifest": {
-                "path": str(
-                    DEPLOYMENT / CAPABILITY_MANIFEST
-                ),
-                "sha256": sha256(
-                    DEPLOYMENT / CAPABILITY_MANIFEST
-                ),
+                "path": str(DEPLOYMENT / CAPABILITY_MANIFEST),
+                "sha256": sha256(DEPLOYMENT / CAPABILITY_MANIFEST),
             }
         },
         "observed": {
-            "producer_supported_classes": sorted(
-                producer_supported
-            ),
-            "producer_reuse_outcomes": sorted(
-                producer_reuse
-            ),
-            "producer_invalidation_events": sorted(
-                producer_invalidation
-            ),
+            "producer_supported_classes": sorted(producer_supported),
+            "producer_reuse_outcomes": sorted(producer_reuse),
+            "producer_invalidation_events": sorted(producer_invalidation),
         },
         "compatible": not differences,
         "differences": differences,
@@ -285,11 +195,7 @@ def _git_sha(root: Path) -> str:
         text=True,
         check=False,
     )
-    return (
-        completed.stdout.strip()
-        if completed.returncode == 0
-        else "unknown"
-    )
+    return completed.stdout.strip() if completed.returncode == 0 else "unknown"
 
 
 if __name__ == "__main__":

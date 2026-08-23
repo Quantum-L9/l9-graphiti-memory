@@ -50,9 +50,7 @@ def test_lineage_replays_supersession_and_references(memory_service, principal) 
     assert (replacement.record_id, base.record_id, "references") in replay.edges
 
 
-def test_phase_lock_invalidates_when_namespace_changes(
-    memory_service, principal
-) -> None:
+def test_phase_lock_invalidates_when_namespace_changes(memory_service, principal) -> None:
     lock = memory_service.phase_lock(
         principal,
         PhaseLockRequest(namespace="repo-a", task_signature="task-signature-1"),
@@ -87,9 +85,7 @@ def test_reference_aware_retention_soft_expires_referenced_record(
     )
 
     receipt = memory_service.apply_retention(principal, "repo-a", apply=False)
-    decision = next(
-        item for item in receipt.decisions if item.record_id == expired.record_id
-    )
+    decision = next(item for item in receipt.decisions if item.record_id == expired.record_id)
 
     assert decision.action == "soft-expire"
     assert decision.reference_count == 1

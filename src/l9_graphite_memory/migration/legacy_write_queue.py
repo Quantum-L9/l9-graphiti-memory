@@ -112,9 +112,7 @@ class LegacyWriteQueueDrain:
         result: list[tuple[Path, LegacyQueuedWrite | None]] = []
         for path in self.pending_paths():
             try:
-                item = LegacyQueuedWrite.model_validate_json(
-                    path.read_text(encoding="utf-8")
-                )
+                item = LegacyQueuedWrite.model_validate_json(path.read_text(encoding="utf-8"))
             except (OSError, ValueError):
                 item = None
             result.append((path, item))
@@ -167,9 +165,7 @@ class LegacyWriteQueueDrain:
                 continue
             try:
                 request = MemoryWriteRequest.model_validate(queued.request)
-                current_digest = sha256_text(
-                    canonical_json(request.model_dump(mode="json"))
-                )
+                current_digest = sha256_text(canonical_json(request.model_dump(mode="json")))
                 if current_digest != queued.request_digest:
                     raise ValueError("queued request digest mismatch")
                 if not apply:

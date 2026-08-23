@@ -64,17 +64,11 @@ class PhaseLockMemoryIntent(BaseModel):
 
 
 MemoryGateIntent = Annotated[
-    IngestMemoryIntent
-    | SearchMemoryIntent
-    | HydrateMemoryIntent
-    | PhaseLockMemoryIntent,
+    IngestMemoryIntent | SearchMemoryIntent | HydrateMemoryIntent | PhaseLockMemoryIntent,
     Field(discriminator="operation"),
 ]
 _MEMORY_GATE_INTENT: TypeAdapter[
-    IngestMemoryIntent
-    | SearchMemoryIntent
-    | HydrateMemoryIntent
-    | PhaseLockMemoryIntent
+    IngestMemoryIntent | SearchMemoryIntent | HydrateMemoryIntent | PhaseLockMemoryIntent
 ] = TypeAdapter(MemoryGateIntent)
 
 
@@ -93,9 +87,7 @@ class GateMemoryBridge:
 
         return _MEMORY_GATE_INTENT.validate_python(value)
 
-    def dispatch_root(
-        self, *, intent: MemoryGateIntent, trace_id: str
-    ) -> GateDispatchReceipt:
+    def dispatch_root(self, *, intent: MemoryGateIntent, trace_id: str) -> GateDispatchReceipt:
         """Create a root packet and let Gate resolve its destination."""
 
         packet = self._packet_factory.create(payload=intent, trace_id=trace_id)
@@ -113,9 +105,7 @@ class GateMemoryBridge:
         before_lineage = tuple(parent.lineage)
         child = parent.derive_or_with_hop(payload=intent)
         if child is parent:
-            raise BoundaryAlignmentError(
-                "derive_or_with_hop mutated the parent packet in place"
-            )
+            raise BoundaryAlignmentError("derive_or_with_hop mutated the parent packet in place")
         if parent.trace_id != child.trace_id:
             raise BoundaryAlignmentError("derived packet did not preserve trace_id")
         if tuple(parent.lineage) != before_lineage:
@@ -129,9 +119,7 @@ class GateMemoryBridge:
         if not packet.packet_id:
             raise BoundaryAlignmentError("packet factory returned an empty packet_id")
         if packet.trace_id != expected_trace_id:
-            raise BoundaryAlignmentError(
-                "packet factory did not preserve the requested trace_id"
-            )
+            raise BoundaryAlignmentError("packet factory did not preserve the requested trace_id")
 
     def _dispatch(self, packet: TransportPacketPort) -> GateDispatchReceipt:
         receipt = self._gate_client.dispatch(packet)

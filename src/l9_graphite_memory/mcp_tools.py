@@ -47,9 +47,7 @@ from l9_graphite_memory.ingestion import RepositoryBootstrapper
 from l9_graphite_memory.services import GeneratedDataService, MemoryService
 
 
-def _object_schema(
-    properties: dict[str, Any], required: list[str] | None = None
-) -> dict[str, Any]:
+def _object_schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
     return {
         "type": "object",
         "properties": properties,
@@ -417,8 +415,7 @@ def _consent_from_payload(
         subject_id=str(value["subject_id"]),
         namespace=namespace,
         allowed_classes=tuple(
-            MemoryClass(str(item))
-            for item in value.get("allowed_classes", [memory_class.value])
+            MemoryClass(str(item)) for item in value.get("allowed_classes", [memory_class.value])
         ),
         purpose=str(value["purpose"]),
         evidence=EvidenceRef(
@@ -436,9 +433,7 @@ class MCPToolApplication:
     def __init__(self, service: MemoryService) -> None:
         self.service = service
 
-    def call(
-        self, principal: MemoryPrincipal, name: str, arguments: dict[str, Any]
-    ) -> Any:
+    def call(self, principal: MemoryPrincipal, name: str, arguments: dict[str, Any]) -> Any:
         canonical = ALIASES.get(name, name)
         handlers = {
             "memory.ingest": self._ingest,
@@ -489,9 +484,7 @@ class MCPToolApplication:
         assertion = None
         if any((subject, predicate, object_value)):
             if not all((subject, predicate, object_value)):
-                raise ValueError(
-                    "subject, predicate, and object must be supplied together"
-                )
+                raise ValueError("subject, predicate, and object must be supplied together")
             assertion = MemoryAssertion(
                 subject=str(subject), predicate=str(predicate), object=str(object_value)
             )
@@ -522,9 +515,7 @@ class MCPToolApplication:
                     source_id=principal.audit_subject,
                 ),
             ),
-            confidence=Confidence(
-                score=float(args.get("confidence", 1.0)), evidence_count=1
-            ),
+            confidence=Confidence(score=float(args.get("confidence", 1.0)), evidence_count=1),
             valid_from=_dt(args.get("valid_from")) or datetime.now(timezone.utc),
             valid_to=_dt(args.get("valid_to")),
             tags=tuple(str(value) for value in args.get("tags", [])),
@@ -596,9 +587,7 @@ class MCPToolApplication:
             ),
         )
 
-    def _verify_phase_lock(
-        self, principal: MemoryPrincipal, args: dict[str, Any]
-    ) -> Any:
+    def _verify_phase_lock(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         return self.service.verify_phase_lock(
             principal,
             str(args["namespace"]),
@@ -651,9 +640,7 @@ class MCPToolApplication:
                 ),
                 consent=_consent_from_payload(
                     args.get("consent"),
-                    namespace=self._record_namespace(
-                        principal, UUID(str(args["record_id"]))
-                    ),
+                    namespace=self._record_namespace(principal, UUID(str(args["record_id"]))),
                     memory_class=MemoryClass(str(args["target_class"])),
                     principal=principal,
                 ),
@@ -662,9 +649,7 @@ class MCPToolApplication:
 
     def _bootstrap(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         if not principal.is_admin:
-            raise AuthorizationError(
-                "memory.bootstrap requires administrator authority"
-            )
+            raise AuthorizationError("memory.bootstrap requires administrator authority")
         receipts = RepositoryBootstrapper(self.service).bootstrap(
             principal,
             Path(str(args.get("repo_path", "."))),
@@ -687,13 +672,9 @@ class MCPToolApplication:
             dry_run=bool(args.get("dry_run", False)),
         )
 
-    def _synthesize_procedures(
-        self, principal: MemoryPrincipal, args: dict[str, Any]
-    ) -> Any:
+    def _synthesize_procedures(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         namespace = str(args["namespace"])
-        self.service.namespace_policy.require(
-            principal, AuthorizationAction.PROMOTE, namespace
-        )
+        self.service.namespace_policy.require(principal, AuthorizationAction.PROMOTE, namespace)
         synthesizer = PatternProceduralSynthesizer(
             self.service.store,
             minimum_support=int(args.get("minimum_support", 3)),
@@ -701,9 +682,7 @@ class MCPToolApplication:
         return ProceduralSynthesisWorker(self.service, synthesizer).run(
             principal,
             namespace=namespace,
-            source_record_ids=tuple(
-                UUID(str(value)) for value in args["source_record_ids"]
-            ),
+            source_record_ids=tuple(UUID(str(value)) for value in args["source_record_ids"]),
             dry_run=bool(args.get("dry_run", False)),
         )
 
@@ -717,22 +696,16 @@ class MCPToolApplication:
                 namespace=str(args["namespace"]),
                 summary=str(args["summary"]),
                 session_id=str(args["session_id"]) if args.get("session_id") else None,
-                capsule_digest=str(args["capsule_digest"])
-                if args.get("capsule_digest")
-                else None,
+                capsule_digest=str(args["capsule_digest"]) if args.get("capsule_digest") else None,
                 dry_run=bool(args.get("dry_run", False)),
             ),
         )
 
-    def _ingest_governed_candidate(
-        self, principal: MemoryPrincipal, args: dict[str, Any]
-    ) -> Any:
+    def _ingest_governed_candidate(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         payload = args.get("candidate") if "candidate" in args else args
         if not isinstance(payload, dict):
             raise TypeError("candidate payload must be an object")
-        return GeneratedDataService(self.service).ingest_governed_candidate(
-            principal, payload
-        )
+        return GeneratedDataService(self.service).ingest_governed_candidate(principal, payload)
 
     def _record_reuse(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         payload = args.get("event") if "event" in args else args
@@ -740,15 +713,11 @@ class MCPToolApplication:
             raise TypeError("reuse event payload must be an object")
         return GeneratedDataService(self.service).record_reuse(principal, payload)
 
-    def _invalidate_source(
-        self, principal: MemoryPrincipal, args: dict[str, Any]
-    ) -> Any:
+    def _invalidate_source(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         payload = args.get("request") if "request" in args else args
         if not isinstance(payload, dict):
             raise TypeError("invalidation request payload must be an object")
-        return GeneratedDataService(self.service).invalidate_by_source(
-            principal, payload
-        )
+        return GeneratedDataService(self.service).invalidate_by_source(principal, payload)
 
     def _generated_data_capabilities(
         self, _principal: MemoryPrincipal, _args: dict[str, Any]

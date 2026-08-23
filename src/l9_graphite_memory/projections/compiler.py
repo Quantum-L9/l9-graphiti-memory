@@ -75,13 +75,8 @@ def compile_projection(manifest: ProjectionManifest) -> CompiledProjection:
         "version": manifest.metadata.version,
         "status": manifest.metadata.status,
         "source_event_types": list(manifest.spec.source.event_types),
-        "minimum_schema_version": (
-            manifest.spec.source.minimum_schema_version
-        ),
-        "targets": [
-            target.model_dump(mode="json", by_alias=True)
-            for target in targets
-        ],
+        "minimum_schema_version": (manifest.spec.source.minimum_schema_version),
+        "targets": [target.model_dump(mode="json", by_alias=True) for target in targets],
         "render": render_data,
         "embedding": _dump_for_digest(manifest.spec.embedding),
         "scope": _dump_for_digest(manifest.spec.scope),
@@ -91,17 +86,13 @@ def compile_projection(manifest: ProjectionManifest) -> CompiledProjection:
         "manifest_digest": manifest_digest,
         "render_contract_digest": render_contract_digest,
     }
-    compiled_artifact_digest = sha256_text(
-        canonical_json(artifact_without_digest)
-    )
+    compiled_artifact_digest = sha256_text(canonical_json(artifact_without_digest))
     return CompiledProjection(
         name=manifest.metadata.name,
         version=manifest.metadata.version,
         status=manifest.metadata.status,
         source_event_types=manifest.spec.source.event_types,
-        minimum_schema_version=(
-            manifest.spec.source.minimum_schema_version
-        ),
+        minimum_schema_version=(manifest.spec.source.minimum_schema_version),
         targets=targets,
         render=manifest.spec.render,
         embedding=manifest.spec.embedding,

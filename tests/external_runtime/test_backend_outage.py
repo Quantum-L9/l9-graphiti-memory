@@ -65,7 +65,5 @@ async def test_writes_rejected_while_degraded(client, active_store) -> None:
         assert session.state is ActiveAgentSessionState.DEGRADED
 
         with pytest.raises(ActiveMemoryUnavailableError):
-            await session.replace_context(
-                objective="attempt", status=AgentStatus.ACTIVE
-            )
+            await session.replace_context(objective="attempt", status=AgentStatus.ACTIVE)
         active_store.set_unavailable(False)

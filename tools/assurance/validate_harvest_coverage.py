@@ -31,18 +31,13 @@ def _paths(value: Any) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
     root = args.repo_root.resolve()
     path = root / "docs" / "harvest_coverage.yaml"
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     failures: list[str] = []
-    if (
-        not isinstance(raw, dict)
-        or raw.get("schema") != "l9.memory.harvest-coverage/v1"
-    ):
+    if not isinstance(raw, dict) or raw.get("schema") != "l9.memory.harvest-coverage/v1":
         failures.append("invalid or missing harvest coverage schema")
         entries: list[dict[str, Any]] = []
     else:
@@ -73,9 +68,7 @@ def main() -> int:
             implementation_paths = _paths(entry.get("implementation_paths"))
             test_paths = _paths(entry.get("test_paths"))
             if not implementation_paths:
-                failures.append(
-                    f"{entry_id}: implemented concept has no implementation paths"
-                )
+                failures.append(f"{entry_id}: implemented concept has no implementation paths")
             if not test_paths:
                 failures.append(f"{entry_id}: implemented concept has no test paths")
             for label, paths in (
@@ -92,9 +85,7 @@ def main() -> int:
             if not str(entry.get("blocker") or "").strip():
                 failures.append(f"{entry_id}: external blocker is not named")
     if len(entries) < 40:
-        failures.append(
-            f"harvest coverage is unexpectedly shallow: {len(entries)} entries"
-        )
+        failures.append(f"harvest coverage is unexpectedly shallow: {len(entries)} entries")
     text = path.read_text(encoding="utf-8").lower()
     for forbidden in ("status: partial", "status: deferred", "status: unknown"):
         if forbidden in text:

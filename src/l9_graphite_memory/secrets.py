@@ -53,9 +53,7 @@ def load_secrets_sync(
     client_id = os.environ.get("INFISICAL_CLIENT_ID", "").strip()
     client_secret = os.environ.get("INFISICAL_CLIENT_SECRET", "").strip()
     project_id = os.environ.get("INFISICAL_PROJECT_ID", "").strip()
-    is_required = (
-        env_flag(os.environ.get("INFISICAL_REQUIRED")) if required is None else required
-    )
+    is_required = env_flag(os.environ.get("INFISICAL_REQUIRED")) if required is None else required
     configured = [bool(client_id), bool(client_secret), bool(project_id)]
     if not all(configured):
         if any(configured):
@@ -80,17 +78,13 @@ def load_secrets_sync(
             raise RuntimeError(
                 "infisical-python is required; install l9-graphite-memory[infisical]"
             ) from exc
-        active_log.warning(
-            "infisical-python is unavailable; using existing environment"
-        )
+        active_log.warning("infisical-python is unavailable; using existing environment")
         return LoadSecretsResult(loaded=False, injected=0, source="environment")
 
     try:
         settings_kwargs: dict[str, Any] = {
             "auth": AuthenticationOptions(
-                universal_auth=UniversalAuthMethod(
-                    client_id=client_id, client_secret=client_secret
-                )
+                universal_auth=UniversalAuthMethod(client_id=client_id, client_secret=client_secret)
             )
         }
         site_url = os.environ.get("INFISICAL_SITE_URL", "").strip()
@@ -113,11 +107,7 @@ def load_secrets_sync(
             value = secret.to_dict()
             key = value.get("secretKey") or value.get("secret_key")
             secret_value = value.get("secretValue") or value.get("secret_value")
-            if (
-                key
-                and secret_value is not None
-                and (overwrite or key not in os.environ)
-            ):
+            if key and secret_value is not None and (overwrite or key not in os.environ):
                 os.environ[str(key)] = str(secret_value)
                 injected += 1
         active_log.info("loaded %d secrets from Infisical", injected)
@@ -125,9 +115,7 @@ def load_secrets_sync(
     except Exception as exc:
         if is_required:
             raise RuntimeError(f"Infisical secret load failed: {exc}") from exc
-        active_log.warning(
-            "Infisical secret load failed; using existing environment: %s", exc
-        )
+        active_log.warning("Infisical secret load failed; using existing environment: %s", exc)
         return LoadSecretsResult(loaded=False, injected=0, source="environment")
 
 

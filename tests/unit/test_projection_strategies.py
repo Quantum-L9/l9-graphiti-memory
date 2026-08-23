@@ -38,42 +38,26 @@ class StrategyTransport:
     def call_tool(self, name, arguments=None):
         self.calls.append(name)
         if name == "search_facts":
-            return {
-                "facts": [
-                    {"record_id": str(self.record_id), "fact": "semantic", "score": 0.8}
-                ]
-            }
+            return {"facts": [{"record_id": str(self.record_id), "fact": "semantic", "score": 0.8}]}
         if name == "search_nodes":
-            return {
-                "nodes": [
-                    {"record_id": str(self.record_id), "content": "graph", "score": 0.9}
-                ]
-            }
+            return {"nodes": [{"record_id": str(self.record_id), "content": "graph", "score": 0.9}]}
         if name == "delete_episode":
             return {"message": "deleted", "uuid": arguments["uuid"]}
         return {}
 
     def search(self, query, group_id, limit=10):
-        raise AssertionError(
-            "combined transport search must not replace strategy-specific calls"
-        )
+        raise AssertionError("combined transport search must not replace strategy-specific calls")
 
     def write(self, body, group_id, kind="observation", **kwargs):
         return {"projected": True, "uuid": kwargs.get("uuid")}
 
 
-def test_graphiti_projection_executes_graph_and_semantic_strategies_independently() -> (
-    None
-):
+def test_graphiti_projection_executes_graph_and_semantic_strategies_independently() -> None:
     transport = StrategyTransport()
     projection = GraphitiProjection(transport)
 
-    graph_hits = projection.search_strategy(
-        "graph-search", "memory", ("repo-a",), limit=10
-    )
-    semantic_hits = projection.search_strategy(
-        "semantic-search", "memory", ("repo-a",), limit=10
-    )
+    graph_hits = projection.search_strategy("graph-search", "memory", ("repo-a",), limit=10)
+    semantic_hits = projection.search_strategy("semantic-search", "memory", ("repo-a",), limit=10)
 
     assert transport.calls == ["search_nodes", "search_facts"]
     assert graph_hits[0].metadata["strategy"] == "graph-search"
@@ -104,9 +88,7 @@ def test_retrieval_receipt_reports_only_executed_projection_strategies() -> None
 
     receipt = service.search(
         principal,
-        MemorySearchRequest(
-            query="identity preference context", namespaces=("repo-a",)
-        ),
+        MemorySearchRequest(query="identity preference context", namespaces=("repo-a",)),
     )
 
     assert "graph-search" in receipt.strategies_succeeded
@@ -118,9 +100,7 @@ def test_retrieval_receipt_reports_only_executed_projection_strategies() -> None
 def test_graphiti_projection_erases_using_persisted_locator() -> None:
     transport = StrategyTransport()
     projection = GraphitiProjection(transport)
-    result = projection.erase(
-        transport.record_id, "repo-a", locator=str(transport.record_id)
-    )
+    result = projection.erase(transport.record_id, "repo-a", locator=str(transport.record_id))
     assert result["erased"] is True
     assert result["locator"] == str(transport.record_id)
     assert transport.calls == ["delete_episode"]
@@ -140,17 +120,9 @@ class OfficialStrategyTransport(StrategyTransport):
         self.calls.append(name)
         self.arguments.append(arguments or {})
         if name == "search_memory_facts":
-            return {
-                "facts": [
-                    {"record_id": str(self.record_id), "fact": "semantic", "score": 0.8}
-                ]
-            }
+            return {"facts": [{"record_id": str(self.record_id), "fact": "semantic", "score": 0.8}]}
         if name == "search_nodes":
-            return {
-                "nodes": [
-                    {"record_id": str(self.record_id), "content": "graph", "score": 0.9}
-                ]
-            }
+            return {"nodes": [{"record_id": str(self.record_id), "content": "graph", "score": 0.9}]}
         if name == "delete_episode":
             return {"message": "deleted"}
         return {"message": "queued"}

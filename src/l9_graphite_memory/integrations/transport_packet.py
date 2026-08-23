@@ -63,11 +63,7 @@ def assert_supported_sdk_version(installed: str) -> str:
     """Fail closed when the shared package is outside the supported 1.0.x range."""
 
     major, minor, patch = _parse_version(installed)
-    if (
-        major != _SUPPORTED_MAJOR
-        or minor != _SUPPORTED_MINOR
-        or patch < _SUPPORTED_MIN_PATCH
-    ):
+    if major != _SUPPORTED_MAJOR or minor != _SUPPORTED_MINOR or patch < _SUPPORTED_MIN_PATCH:
         raise UnsupportedTransportPacketVersion(
             f"{AUTHORITATIVE_PACKAGE} {installed} is outside {SUPPORTED_VERSION_RANGE}"
         )
@@ -157,9 +153,7 @@ class CanonicalTransportPacket:
         )
         if child is self._packet:
             raise BoundaryAlignmentError("canonical derive mutated the parent packet")
-        adapted = CanonicalTransportPacket(
-            child, lineage=(*self._lineage, parent_id)
-        )
+        adapted = CanonicalTransportPacket(child, lineage=(*self._lineage, parent_id))
         if adapted.trace_id != parent_trace:
             raise BoundaryAlignmentError("canonical derive did not preserve trace_id")
         return adapted

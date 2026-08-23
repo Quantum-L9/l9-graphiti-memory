@@ -117,8 +117,10 @@ class RetrievalPlanner:
                 if strategy not in {"graph-search", "semantic-search"}
             ]
 
-        if self.store.name in stores_failed or self.projection_required and any(
-            key.startswith(f"{self.projection.name}:") for key in stores_failed
+        if (
+            self.store.name in stores_failed
+            or self.projection_required
+            and any(key.startswith(f"{self.projection.name}:") for key in stores_failed)
         ):
             status = OperationStatus.FAILED
         elif stores_failed or strategies_failed:

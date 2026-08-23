@@ -111,9 +111,7 @@ class GovernedMemoryCandidate(BaseModel):
     source: GovernedCandidateSource
     knowledge: GovernedCandidateKnowledge
     governance: GovernedCandidateGovernance
-    provenance: GovernedCandidateProvenance = Field(
-        default_factory=GovernedCandidateProvenance
-    )
+    provenance: GovernedCandidateProvenance = Field(default_factory=GovernedCandidateProvenance)
 
     @model_validator(mode="after")
     def validate_ingress(self) -> GovernedMemoryCandidate:
@@ -123,9 +121,7 @@ class GovernedMemoryCandidate(BaseModel):
         if self.kind != "MemoryCandidate":
             raise ValueError("kind must be MemoryCandidate")
         if self.knowledge.primary_class not in SUPPORTED_CLASSES:
-            raise ValueError(
-                f"unsupported generated-data class: {self.knowledge.primary_class}"
-            )
+            raise ValueError(f"unsupported generated-data class: {self.knowledge.primary_class}")
         if self.governance.authority_class != "advisory":
             raise ValueError("authority_class must be advisory")
         if self.governance.route != "memory":

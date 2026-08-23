@@ -132,12 +132,9 @@ def _load_auth_tokens() -> dict[str, TokenPrincipalConfig]:
     except json.JSONDecodeError as exc:
         raise ConfigurationError(f"invalid token configuration JSON: {exc}") from exc
     if not isinstance(decoded, dict):
-        raise ConfigurationError(
-            "auth token configuration must be a token-to-principal mapping"
-        )
+        raise ConfigurationError("auth token configuration must be a token-to-principal mapping")
     return {
-        str(token): TokenPrincipalConfig.model_validate(claims)
-        for token, claims in decoded.items()
+        str(token): TokenPrincipalConfig.model_validate(claims) for token, claims in decoded.items()
     }
 
 

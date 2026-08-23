@@ -150,9 +150,7 @@ def test_retirement_is_recorded_in_canonical_state(
 
     original = _write(service, maintainer, "first truth")
     _drain(worker)
-    replacement = _write(
-        service, maintainer, "revised truth", supersedes=(original.record_id,)
-    )
+    replacement = _write(service, maintainer, "revised truth", supersedes=(original.record_id,))
     _drain(worker)
 
     assert projection.retired == [original.record_id]
@@ -212,14 +210,15 @@ def _retirement_receipts(store) -> list[dict]:
     import json
 
     if hasattr(store, "projection_retirements"):
-        return [
-            receipt.model_dump(mode="json")
-            for receipt in store.projection_retirements
-        ]
+        return [receipt.model_dump(mode="json") for receipt in store.projection_retirements]
     if store.name == "sqlite":
-        rows = store._connection().execute(
-            "SELECT receipt_json FROM operation_receipts WHERE kind = 'projection_retirement'"
-        ).fetchall()
+        rows = (
+            store._connection()
+            .execute(
+                "SELECT receipt_json FROM operation_receipts WHERE kind = 'projection_retirement'"
+            )
+            .fetchall()
+        )
         return [json.loads(str(row["receipt_json"])) for row in rows]
     with store._cursor() as cursor:
         cursor.execute(
@@ -248,9 +247,7 @@ def test_rebuild_reprojects_records_whose_projection_was_withdrawn(
     assert store.get_projection_link(written.record_id, "withdraw-only") is not None
 
     # Archive retires the projection.
-    service.apply_retention(
-        maintainer.model_copy(update={"is_admin": True}), "repo-a", apply=True
-    )
+    service.apply_retention(maintainer.model_copy(update={"is_admin": True}), "repo-a", apply=True)
     _drain(worker)
     assert projection.retired == [written.record_id]
     assert store.get_projection_link(written.record_id, "withdraw-only") is None
@@ -277,9 +274,7 @@ def test_rebuild_reprojects_records_whose_projection_was_withdrawn(
     assert store.get_projection_link(written.record_id, "withdraw-only") is not None
 
 
-def test_rebuild_dry_run_queues_nothing(
-    service, store, projection, worker, maintainer
-) -> None:
+def test_rebuild_dry_run_queues_nothing(service, store, projection, worker, maintainer) -> None:
     """A dry run reports what it would do without enqueueing anything."""
 
     written = _write(service, maintainer, "projected then withdrawn")

@@ -8,6 +8,24 @@
 #   version: 2.2.0
 #   updated: 2026-07-22
 
+# ruff.toml takes precedence over pyproject.toml's [tool.ruff], so anything
+# declared there never reached ruff. line-length is the one that mattered
+# here: pyproject declares 100, ruff was formatting and measuring at the
+# default 88. Restated at the authoritative layer so the declared width is
+# the width actually applied.
+line-length = 100
+target-version = "py310"
+
+# The vendored l9-deploy Phase 6 operator pack is sealed by its own
+# MANIFEST.sha256, and tests/regression/test_phase6_operator.py verifies
+# those digests. per-file-ignores below already exempts it from lint rules
+# as "style rules not enforced", but that only binds the linter -- the
+# formatter still rewrote it and broke the pack's checksums. exclude binds
+# both. force-exclude makes it hold when ruff is handed explicit paths,
+# which is how pre-commit invokes it.
+exclude = ["tools/phase6"]
+force-exclude = true
+
 [lint]
 ignore = ["S603", "S607", "S608", "S310", "E402"]
 

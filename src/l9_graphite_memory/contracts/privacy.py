@@ -52,10 +52,6 @@ class ConsentGrant(BaseModel):
             return False
         if subject_id is not None and self.subject_id != subject_id:
             return False
-        if (
-            self.granted_at > at
-            or self.revoked_at is not None
-            and self.revoked_at <= at
-        ):
+        if self.granted_at > at or self.revoked_at is not None and self.revoked_at <= at:
             return False
         return self.expires_at is None or self.expires_at > at

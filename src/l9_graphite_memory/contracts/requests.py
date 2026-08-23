@@ -68,9 +68,7 @@ class MemoryWriteRequest(BaseModel):
                 }
                 for item in self.evidence
             ):
-                raise ValueError(
-                    "inferred or aggregated memory requires matching evidence kind"
-                )
+                raise ValueError("inferred or aggregated memory requires matching evidence kind")
         return self
 
 

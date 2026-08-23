@@ -44,14 +44,10 @@ class RetentionPolicy:
     policy_version: str = RETENTION_POLICY_VERSION
 
     def half_life_days(self, memory_class: MemoryClass) -> float:
-        return dict(self.class_half_life_days).get(
-            memory_class, self.default_half_life_days
-        )
+        return dict(self.class_half_life_days).get(memory_class, self.default_half_life_days)
 
     def decay_score(self, record: MemoryRecord, *, now: datetime) -> float:
-        age_days = max(
-            0.0, (now - record.temporal.recorded_at).total_seconds() / 86_400
-        )
+        age_days = max(0.0, (now - record.temporal.recorded_at).total_seconds() / 86_400)
         half_life = self.half_life_days(record.memory_class)
         return math.exp(-math.log(2) * age_days / half_life)
 
@@ -86,9 +82,7 @@ class RetentionEngine:
         for record in records:
             decay = self.policy.decay_score(record, now=now)
             reference_count = counts.get(record.record_id, 0)
-            expired = (
-                record.temporal.valid_to is not None and record.temporal.valid_to <= now
-            )
+            expired = record.temporal.valid_to is not None and record.temporal.valid_to <= now
             if record.memory_class in self.policy.never_archive_classes:
                 action = "retain"
                 reason = "class is protected from automatic archive"
@@ -97,7 +91,9 @@ class RetentionEngine:
                 reason = "record has not reached archive eligibility"
             elif reference_count:
                 action = "soft-expire"
-                reason = "record remains referenced; exclude from active retrieval but preserve linkage"
+                reason = (
+                    "record remains referenced; exclude from active retrieval but preserve linkage"
+                )
             else:
                 action = "archive"
                 reason = "record expired and has no incoming references"

@@ -65,11 +65,9 @@ class ProviderTarget(StrictFrozenModel):
 
 class ProjectionSource(StrictFrozenModel):
     event_types: tuple[str, ...] = Field(
-        
         min_length=1,
     )
     minimum_schema_version: str = Field(
-        
         pattern=r"^\d+\.\d+\.\d+$",
     )
 
@@ -100,7 +98,6 @@ class RenderContract(StrictFrozenModel):
     fields: tuple[str, ...] = Field(min_length=1)
     normalization: str = Field(pattern=r"^unicode-nfc$")
     chunk_policy: str = Field(
-        
         pattern=r"^atomic-record-v1$",
     )
 
@@ -116,8 +113,7 @@ class RenderContract(StrictFrozenModel):
         missing = required - set(cleaned)
         if missing:
             raise ValueError(
-                "render fields are missing required canonical fields: "
-                + ", ".join(sorted(missing))
+                "render fields are missing required canonical fields: " + ", ".join(sorted(missing))
             )
         return cleaned
 
@@ -128,11 +124,9 @@ class EmbeddingContract(StrictFrozenModel):
     dimensions: int = Field(ge=1, le=65536)
     distance: DistanceMetric
     similarity_space: str = Field(
-        
         pattern=r"^[a-z][a-z0-9-]{1,126}$",
     )
     cache_policy: str = Field(
-        
         pattern=r"^(none|content-addressed-v1)$",
     )
 
@@ -142,8 +136,7 @@ class EmbeddingContract(StrictFrozenModel):
         model_name, separator, revision = value.partition("@")
         if not separator or not model_name.strip() or not revision.strip():
             raise ValueError(
-                "embedding model must include a non-empty pinned revision "
-                "using model@revision"
+                "embedding model must include a non-empty pinned revision using model@revision"
             )
         return value
 
@@ -159,9 +152,7 @@ class ScopeContract(StrictFrozenModel):
         required = set(self.required)
         missing = {"tenant_id", "namespace"} - required
         if missing:
-            raise ValueError(
-                "projection scope is missing: " + ", ".join(sorted(missing))
-            )
+            raise ValueError("projection scope is missing: " + ", ".join(sorted(missing)))
         if len(required) != len(self.required):
             raise ValueError("projection scope fields must be unique")
         return self
@@ -171,11 +162,9 @@ class ReplayContract(StrictFrozenModel):
     ordering: str = Field(pattern=r"^tenant-subject-stream-sequence$")
     strategy: str = Field(pattern=r"^(full|incremental|partitioned)$")
     partition_key: str = Field(
-        
         pattern=r"^tenant_id$",
     )
     side_effects: str = Field(
-        
         pattern=r"^prohibited$",
     )
 
@@ -184,11 +173,9 @@ class DeterminismContract(StrictFrozenModel):
     structural: str = Field(pattern=r"^exact$")
     render: str = Field(pattern=r"^exact$")
     embedding_mode: str = Field(
-        
         pattern=r"^provider-managed$",
     )
     retrieval_mode: str = Field(
-        
         pattern=r"^bounded-equivalence$",
     )
 
@@ -203,9 +190,7 @@ class DeletionContract(StrictFrozenModel):
         actual = set(self.propagation)
         missing = required - actual
         if missing:
-            raise ValueError(
-                "deletion propagation is missing: " + ", ".join(sorted(missing))
-            )
+            raise ValueError("deletion propagation is missing: " + ", ".join(sorted(missing)))
         if len(actual) != len(self.propagation):
             raise ValueError("deletion propagation entries must be unique")
         if not self.attestation_required:
@@ -215,43 +200,31 @@ class DeletionContract(StrictFrozenModel):
 
 class ProjectionSlo(StrictFrozenModel):
     incremental_lag_warning_seconds: int = Field(
-        
         ge=0,
     )
     incremental_lag_critical_seconds: int = Field(
-        
         ge=1,
     )
     query_p95_milliseconds: int = Field(
-        
         ge=1,
     )
     query_p99_milliseconds: int = Field(
-        
         ge=1,
     )
     rebuild_maximum_seconds: int = Field(
-        
         ge=1,
     )
     deletion_attestation_deadline_seconds: int = Field(
-        
         ge=1,
     )
     dead_letter_maximum_count: int = Field(
-        
         ge=0,
     )
 
     @model_validator(mode="after")
     def validate_thresholds(self) -> ProjectionSlo:
-        if (
-            self.incremental_lag_critical_seconds
-            <= self.incremental_lag_warning_seconds
-        ):
-            raise ValueError(
-                "critical projection lag must exceed warning projection lag"
-            )
+        if self.incremental_lag_critical_seconds <= self.incremental_lag_warning_seconds:
+            raise ValueError("critical projection lag must exceed warning projection lag")
         if self.query_p99_milliseconds < self.query_p95_milliseconds:
             raise ValueError("query p99 must be greater than or equal to p95")
         return self
@@ -280,15 +253,12 @@ class ProjectionSpec(StrictFrozenModel):
         if len(set(ids)) != len(ids):
             raise ValueError("provider ids must be unique")
         if len(set(identities)) != len(identities):
-            raise ValueError(
-                "provider type and target identities must be unique"
-            )
+            raise ValueError("provider type and target identities must be unique")
         return value
 
 
 class ProjectionManifest(StrictFrozenModel):
     api_version: str = Field(
-        
         pattern=r"^memory\.quantum-l9\.dev/v1$",
     )
     kind: str = Field(pattern=r"^Projection$")

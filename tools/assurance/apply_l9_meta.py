@@ -120,19 +120,13 @@ def _insert_markdown(text: str, relative: Path) -> str:
         "",
     ]
     lines = text.splitlines()
-    if (
-        relative.parts[:2] == ("docs", "adr")
-        and lines
-        and lines[0].startswith("# ADR-")
-    ):
+    if relative.parts[:2] == ("docs", "adr") and lines and lines[0].startswith("# ADR-"):
         lines[1:1] = ["", *block]
         return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
     if lines and lines[0].strip() == "---":
         try:
             closing = next(
-                index
-                for index, line in enumerate(lines[1:], start=1)
-                if line.strip() == "---"
+                index for index, line in enumerate(lines[1:], start=1) if line.strip() == "---"
             )
         except StopIteration:
             closing = -1
@@ -192,9 +186,7 @@ def apply(root: Path) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     return apply(parser.parse_args().repo_root.resolve())
 
 

@@ -152,8 +152,7 @@ def _consent_from_args(
         evidence=EvidenceRef(
             kind=EvidenceKind.EXPLICIT,
             description=str(description),
-            source_id=getattr(args, "consent_source_id", None)
-            or principal.audit_subject,
+            source_id=getattr(args, "consent_source_id", None) or principal.audit_subject,
         ),
         expires_at=_parse_datetime(getattr(args, "consent_expires_at", None)),
     )
@@ -192,9 +191,7 @@ def cmd_write(args: argparse.Namespace) -> int:
         assertion = None
         if any((args.subject, args.predicate, args.object)):
             if not all((args.subject, args.predicate, args.object)):
-                raise L9MemoryError(
-                    "subject, predicate, and object must be provided together"
-                )
+                raise L9MemoryError("subject, predicate, and object must be provided together")
             assertion = MemoryAssertion(
                 subject=args.subject, predicate=args.predicate, object=args.object
             )
@@ -248,10 +245,7 @@ def cmd_search(args: argparse.Namespace) -> int:
         if not resolution.group_id:
             raise L9MemoryError(resolution.error or "namespace is unresolved")
         namespaces = tuple(args.namespace) if args.namespace else (resolution.group_id,)
-        if (
-            args.include_workspace
-            and runtime.settings.workspace_namespace not in namespaces
-        ):
+        if args.include_workspace and runtime.settings.workspace_namespace not in namespaces:
             namespaces = (*namespaces, runtime.settings.workspace_namespace)
         request = MemorySearchRequest(
             query=args.query,
@@ -342,8 +336,7 @@ def cmd_phase_lock(args: argparse.Namespace) -> int:
         if not namespace:
             raise L9MemoryError(resolution.error or "namespace is unresolved")
         signature = (
-            args.task_signature
-            or hashlib.sha256(args.task.encode("utf-8")).hexdigest()[:32]
+            args.task_signature or hashlib.sha256(args.task.encode("utf-8")).hexdigest()[:32]
         )
         receipt = runtime.service.phase_lock(
             principal,
@@ -477,9 +470,7 @@ def cmd_distill(args: argparse.Namespace) -> int:
 
 def _state_path(runtime: MemoryRuntime) -> Path:
     conversation = (
-        os.environ.get("CURSOR_CONVERSATION_ID")
-        or os.environ.get("L9_SESSION_ID")
-        or "default"
+        os.environ.get("CURSOR_CONVERSATION_ID") or os.environ.get("L9_SESSION_ID") or "default"
     )
     return runtime.settings.state_dir / f"{conversation}.json"
 
@@ -548,9 +539,7 @@ def cmd_inject(args: argparse.Namespace) -> int:
             hydration_digest=result.result_digest,
             hydration_status=result.status.value,
             task_signature=task_signature,
-            verified_task_signatures=(task_signature,)
-            if result.status.value != "failed"
-            else (),
+            verified_task_signatures=(task_signature,) if result.status.value != "failed" else (),
             ttl_minutes=runtime.settings.gate_ttl_minutes,
         )
         _write_state(path, state)
@@ -595,9 +584,7 @@ def cmd_prune(args: argparse.Namespace) -> int:
         namespace = args.group_id or resolution.group_id
         if not namespace:
             raise L9MemoryError(resolution.error or "namespace is unresolved")
-        receipt = runtime.service.apply_retention(
-            principal, namespace, apply=args.apply
-        )
+        receipt = runtime.service.apply_retention(principal, namespace, apply=args.apply)
         _print(receipt)
         return 0
     finally:
@@ -697,9 +684,7 @@ def cmd_promote(args: argparse.Namespace) -> int:
                 explicit_confirmation=args.explicit_confirmation,
                 governance_approval=args.governance_approval,
                 test_success_count=args.test_success_count,
-                supporting_record_ids=tuple(
-                    UUID(value) for value in args.supporting_record_id
-                ),
+                supporting_record_ids=tuple(UUID(value) for value in args.supporting_record_id),
                 consent=_consent_from_args(
                     args,
                     namespace=record.namespace,
@@ -737,9 +722,7 @@ def cmd_delete(args: argparse.Namespace) -> int:
 def cmd_outbox_run(args: argparse.Namespace) -> int:
     runtime = _runtime(args)
     try:
-        worker = OutboxWorker(
-            runtime.service.store, runtime.service.projection, runtime.settings
-        )
+        worker = OutboxWorker(runtime.service.store, runtime.service.projection, runtime.settings)
         _print(worker.run_once())
         return 0
     finally:
@@ -782,9 +765,7 @@ def cmd_client(args: argparse.Namespace) -> int:
         return 0 if receipt.status != ClientConfigStatus.BLOCKED else 1
     if action == "uninstall":
         restore = Path(args.restore_backup) if args.restore_backup else None
-        receipt = configurator.uninstall(
-            dry_run=args.dry_run, restore_backup=restore
-        )
+        receipt = configurator.uninstall(dry_run=args.dry_run, restore_backup=restore)
         _print(receipt)
         return 0 if receipt.status != ClientConfigStatus.BLOCKED else 1
     if action == "status":
@@ -792,9 +773,7 @@ def cmd_client(args: argparse.Namespace) -> int:
         _print(receipt)
         return 0 if receipt.status != ClientConfigStatus.BLOCKED else 1
     if action == "verify":
-        probe = probe_generated_server(
-            interpreter=args.interpreter, timeout_seconds=args.timeout
-        )
+        probe = probe_generated_server(interpreter=args.interpreter, timeout_seconds=args.timeout)
         _print(probe)
         return 0 if probe.status == ClientConfigStatus.COMPLETE else 1
     raise ValueError(f"unsupported cursor action: {action}")
@@ -895,9 +874,7 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument("query")
     search.add_argument("--group-id", default=None)
     search.add_argument("--namespace", action="append", default=[])
-    search.add_argument(
-        "--memory-class", type=_memory_class, action="append", default=[]
-    )
+    search.add_argument("--memory-class", type=_memory_class, action="append", default=[])
     search.add_argument("--limit", type=int, default=20)
     search.add_argument("--token-budget", type=int, default=None)
     search.add_argument("--valid-at", default=None)
@@ -913,9 +890,7 @@ def build_parser() -> argparse.ArgumentParser:
     hydrate.add_argument("--namespace", action="append", default=[])
     hydrate.add_argument("--entity", action="append", default=[])
     hydrate.add_argument("--topic", action="append", default=[])
-    hydrate.add_argument(
-        "--memory-class", type=_memory_class, action="append", default=[]
-    )
+    hydrate.add_argument("--memory-class", type=_memory_class, action="append", default=[])
     hydrate.add_argument("--token-budget", type=int, default=1_200)
     hydrate.add_argument("--max-records", type=int, default=40)
 
@@ -1109,9 +1084,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return handlers[args.command](args)
     except (L9MemoryError, ValueError, OSError) as exc:
-        sys.stderr.write(
-            _json({"error": type(exc).__name__, "message": str(exc)}) + "\n"
-        )
+        sys.stderr.write(_json({"error": type(exc).__name__, "message": str(exc)}) + "\n")
         return 1
 
 

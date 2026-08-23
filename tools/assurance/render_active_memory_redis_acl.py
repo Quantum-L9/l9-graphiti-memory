@@ -67,12 +67,8 @@ def render(args, manifest):
         )
         for x in manifest["channel_patterns"]
     ]
-    commands = sorted(
-        {c.lower() for group in manifest["commands"].values() for c in group}
-    )
-    overlap = {c.upper() for c in commands} & {
-        c.upper() for c in manifest["prohibited_commands"]
-    }
+    commands = sorted({c.lower() for group in manifest["commands"].values() for c in group})
+    overlap = {c.upper() for c in commands} & {c.upper() for c in manifest["prohibited_commands"]}
     if overlap:
         raise ValueError("allowed/prohibited overlap: " + str(sorted(overlap)))
     rules = (
@@ -103,20 +99,14 @@ def main(argv=None):
     p.add_argument(
         "--manifest",
         type=Path,
-        default=Path(
-            "src/l9_graphite_memory/resources/active_memory_redis_capabilities.yaml"
-        ),
+        default=Path("src/l9_graphite_memory/resources/active_memory_redis_capabilities.yaml"),
     )
     p.add_argument("--output", type=Path)
     p.add_argument("--check", action="store_true")
     a = p.parse_args(argv)
     try:
         line = render(a, load(a.manifest))
-        text = (
-            ("user default off\n" + line + "\n")
-            if a.format == "acl-file"
-            else line + "\n"
-        )
+        text = ("user default off\n" + line + "\n") if a.format == "acl-file" else line + "\n"
     except (OSError, ValueError, yaml.YAMLError) as e:
         sys.stderr.write("ERROR: " + str(e) + "\n")
         return 1

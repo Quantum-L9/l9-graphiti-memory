@@ -36,9 +36,7 @@ REQUIRED = (
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
     adr_dir = args.repo_root / "docs" / "adr"
     index = (adr_dir / "README.md").read_text(encoding="utf-8")
@@ -57,9 +55,7 @@ def main() -> int:
         text = path.read_text(encoding="utf-8")
         expected_title = f"# ADR-{number:03d}:"
         if not text.startswith(expected_title):
-            failures.append(
-                f"{path.name}: title must start at column zero with {expected_title}"
-            )
+            failures.append(f"{path.name}: title must start at column zero with {expected_title}")
         for heading in REQUIRED:
             if not re.search(rf"(?m)^{re.escape(heading)}$", text):
                 failures.append(f"{path.name}: missing renderable heading {heading}")

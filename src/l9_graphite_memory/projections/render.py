@@ -84,24 +84,13 @@ def render_projection(
 ) -> RenderedProjection:
     """Render declared canonical fields with no ambient dependencies."""
     record_data = _record_mapping(record)
-    missing = [
-        field
-        for field in projection.render.fields
-        if field not in record_data
-    ]
+    missing = [field for field in projection.render.fields if field not in record_data]
     if missing:
         raise ProjectionError(
-            "record is missing declared projection fields: "
-            + ", ".join(sorted(missing))
+            "record is missing declared projection fields: " + ", ".join(sorted(missing))
         )
-    metadata = {
-        field: _normalize(record_data[field])
-        for field in projection.render.fields
-    }
-    lines = [
-        f"{field}={_canonical_json(metadata[field])}"
-        for field in projection.render.fields
-    ]
+    metadata = {field: _normalize(record_data[field]) for field in projection.render.fields}
+    lines = [f"{field}={_canonical_json(metadata[field])}" for field in projection.render.fields]
     normalized_text = unicodedata.normalize("NFC", "\n".join(lines))
     content_digest = _digest(normalized_text)
     embedding_cache_key: str | None = None

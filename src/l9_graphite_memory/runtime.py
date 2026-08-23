@@ -38,9 +38,7 @@ def build_runtime(config_path: str | Path | None = None) -> MemoryRuntime:
     configure_logging(settings.log_level, json_output=settings.json_logs)
     store = build_store(settings)
     projection = build_projection(settings)
-    service = MemoryService(
-        store, projection, projection_required=settings.projection_required
-    )
+    service = MemoryService(store, projection, projection_required=settings.projection_required)
     service.initialize()
     return MemoryRuntime(settings=settings, service=service)
 

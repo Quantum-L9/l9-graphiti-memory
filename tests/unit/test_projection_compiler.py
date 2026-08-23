@@ -158,11 +158,7 @@ def test_manifest_rejects_missing_required_scope(
     assert isinstance(spec, dict)
     scope = spec["scope"]
     assert isinstance(scope, dict)
-    scope["required"] = [
-        item
-        for item in scope["required"]
-        if item != missing_scope
-    ]
+    scope["required"] = [item for item in scope["required"] if item != missing_scope]
     with pytest.raises(ConfigurationError, match="scope is missing"):
         parse_projection_manifest_data(value)
 

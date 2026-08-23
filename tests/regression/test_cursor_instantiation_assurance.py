@@ -45,9 +45,7 @@ def test_client_config_never_imports_store_or_projection_layers() -> None:
     for path in sorted(CLIENT_CONFIG_DIR.glob("*.py")):
         for name in _imports_of(path):
             for marker in FORBIDDEN_IMPORT_MARKERS:
-                assert not name.startswith(marker), (
-                    f"{path.name} imports forbidden layer {name}"
-                )
+                assert not name.startswith(marker), f"{path.name} imports forbidden layer {name}"
 
 
 def test_legacy_writer_interface_is_preserved() -> None:
@@ -94,9 +92,7 @@ def test_legacy_writer_output_shape_unchanged(tmp_path: Path) -> None:
 def test_example_config_matches_canonical_generator() -> None:
     from l9_graphite_memory.client_config import managed_server_entry
 
-    example = json.loads(
-        (REPO_ROOT / "config" / "mcp.json.example").read_text(encoding="utf-8")
-    )
+    example = json.loads((REPO_ROOT / "config" / "mcp.json.example").read_text(encoding="utf-8"))
     entry = example["mcpServers"]["l9-graphite-memory"]
     canonical = managed_server_entry().as_config()
     canonical["command"] = "python3"
@@ -104,9 +100,7 @@ def test_example_config_matches_canonical_generator() -> None:
 
 
 def test_manifest_covers_client_config_package() -> None:
-    manifest = json.loads(
-        (REPO_ROOT / "manifest.json").read_text(encoding="utf-8")
-    )
+    manifest = json.loads((REPO_ROOT / "manifest.json").read_text(encoding="utf-8"))
     listed = {item["path"] for item in manifest["files"]}
     expected = {
         "src/l9_graphite_memory/client_config/__init__.py",
@@ -130,9 +124,7 @@ def test_cli_exposes_client_command_group() -> None:
     from l9_graphite_memory.cli import build_parser
 
     parser = build_parser()
-    result = parser.parse_args(
-        ["client", "cursor", "install", "--dry-run", "--path", "x.json"]
-    )
+    result = parser.parse_args(["client", "cursor", "install", "--dry-run", "--path", "x.json"])
     assert result.command == "client"
     assert result.client_target == "cursor"
     assert result.cursor_action == "install"

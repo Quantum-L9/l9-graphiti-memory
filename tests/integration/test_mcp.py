@@ -25,9 +25,7 @@ def test_tool_inventory_contains_canonical_and_compatibility_names() -> None:
     } <= names
 
 
-def test_compatibility_write_alias_uses_canonical_service(
-    memory_service, principal
-) -> None:
+def test_compatibility_write_alias_uses_canonical_service(memory_service, principal) -> None:
     app = MCPToolApplication(memory_service)
     receipt = app.call(
         principal,

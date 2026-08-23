@@ -57,9 +57,7 @@ def imported_modules(root: Path, path: Path) -> set[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     root = args.repo_root.resolve()
@@ -109,9 +107,7 @@ def main() -> int:
         "l9_graphite_memory.version",
         "l9_graphite_memory.errors",
     }
-    orphans = sorted(
-        set(modules) - consumed - entrypoints - foundational - set(compatibility)
-    )
+    orphans = sorted(set(modules) - consumed - entrypoints - foundational - set(compatibility))
     payload = {
         "modules": len(modules),
         "consumed": len(consumed),

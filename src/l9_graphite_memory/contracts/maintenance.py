@@ -29,9 +29,7 @@ from .enums import MaintenanceOperation, MaintenanceStatus, OperationStatus
 from .receipts import AuthorizationReceipt
 from .temporal import utc_now
 
-ALL_MAINTENANCE_OPERATIONS: tuple[MaintenanceOperation, ...] = tuple(
-    MaintenanceOperation
-)
+ALL_MAINTENANCE_OPERATIONS: tuple[MaintenanceOperation, ...] = tuple(MaintenanceOperation)
 
 
 class MaintenanceRequest(BaseModel):

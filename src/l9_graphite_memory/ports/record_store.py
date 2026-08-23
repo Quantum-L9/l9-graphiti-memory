@@ -127,9 +127,7 @@ class RecordStore(Protocol):
 
     def delete_projection_link(self, record_id: UUID, projection_name: str) -> None: ...
 
-    def save_projection_retirement(
-        self, receipt: ProjectionRetirementReceipt
-    ) -> None:
+    def save_projection_retirement(self, receipt: ProjectionRetirementReceipt) -> None:
         """Record that a projection was withdrawn, and why, in canonical state."""
         ...
 
@@ -164,15 +162,11 @@ class RecordStore(Protocol):
         """Append one maintenance run to the ledger."""
         ...
 
-    def get_maintenance_watermark(
-        self, tenant_id: str, namespace: str
-    ) -> datetime | None:
+    def get_maintenance_watermark(self, tenant_id: str, namespace: str) -> datetime | None:
         """Watermark of the most recent applied run, or None if never run."""
         ...
 
-    def find_maintenance_action_digests(
-        self, tenant_id: str, namespace: str
-    ) -> frozenset[str]:
+    def find_maintenance_action_digests(self, tenant_id: str, namespace: str) -> frozenset[str]:
         """Digests of actions already applied, so a rerun does not repeat them."""
         ...
 

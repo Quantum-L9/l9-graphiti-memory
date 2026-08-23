@@ -91,9 +91,7 @@ def main() -> int:
     if args.force:
         should_run, reason = True, "gate bypassed by manual dispatch"
     else:
-        should_run, reason = decide(
-            now_utc, timezone_name=args.timezone, hour=args.hour
-        )
+        should_run, reason = decide(now_utc, timezone_name=args.timezone, hour=args.hour)
 
     sys.stdout.write(
         json.dumps(

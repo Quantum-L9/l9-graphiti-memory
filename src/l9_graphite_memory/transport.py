@@ -30,9 +30,7 @@ class MemoryTransport(Protocol):
 
     def health(self) -> dict[str, Any]: ...
 
-    def search(
-        self, query: str, group_id: str, limit: int = 10
-    ) -> list[dict[str, Any]]: ...
+    def search(self, query: str, group_id: str, limit: int = 10) -> list[dict[str, Any]]: ...
 
     def write(
         self, body: str, group_id: str, kind: str = "observation", **kwargs: Any
@@ -222,18 +220,12 @@ class HttpMcpTransport:
             return self._parse_body(headers.get("Content-Type", ""), raw)
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:1_000]
-            if (
-                retry_on_session_error
-                and exc.code in (400, 404)
-                and "session" in detail.lower()
-            ):
+            if retry_on_session_error and exc.code in (400, 404) and "session" in detail.lower():
                 # The server-side session expired or the process restarted;
                 # re-handshake once and retry this exact call.
                 self._session_id = None
                 self._ensure_session(timeout=timeout)
-                return self._rpc_once(
-                    payload, timeout=timeout, retry_on_session_error=False
-                )
+                return self._rpc_once(payload, timeout=timeout, retry_on_session_error=False)
             self.circuit.record_failure()
             raise ProjectionError(f"Graphiti MCP HTTP {exc.code}: {detail}") from exc
         except urllib.error.URLError as exc:
@@ -280,9 +272,7 @@ class HttpMcpTransport:
         result["circuit"] = self.circuit.status()
         return result
 
-    def search(
-        self, query: str, group_id: str, limit: int = 10
-    ) -> list[dict[str, Any]]:
+    def search(self, query: str, group_id: str, limit: int = 10) -> list[dict[str, Any]]:
         tools = set(self.list_tools())
         official_dialect = "search_memory_facts" in tools or "add_memory" in tools
         candidates = [
@@ -308,10 +298,7 @@ class HttpMcpTransport:
                     if result.get("error"):
                         raise ProjectionError(str(result["error"]))
                     values = (
-                        result.get("facts")
-                        or result.get("nodes")
-                        or result.get("results")
-                        or []
+                        result.get("facts") or result.get("nodes") or result.get("results") or []
                     )
                 else:
                     values = result
@@ -341,16 +328,12 @@ class HttpMcpTransport:
             else ""
         )
         if not tool:
-            raise ProjectionError(
-                "Graphiti MCP exposes neither add_memory nor add_episode"
-            )
+            raise ProjectionError("Graphiti MCP exposes neither add_memory nor add_episode")
         arguments: dict[str, Any] = {
             "name": str(kwargs.pop("name", f"{kind}:{body[:80]}")),
             "episode_body": body,
             "source": str(kwargs.pop("source", "json")),
-            "source_description": str(
-                kwargs.pop("source_description", f"l9-memory/{kind}")
-            ),
+            "source_description": str(kwargs.pop("source_description", f"l9-memory/{kind}")),
             "group_id": group_id,
             **kwargs,
         }

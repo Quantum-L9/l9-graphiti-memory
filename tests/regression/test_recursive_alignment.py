@@ -39,9 +39,7 @@ def test_recursive_alignment_has_no_violations() -> None:
 
 
 def test_layer_boundaries_have_no_violations() -> None:
-    module = _load(
-        "layer_boundary_check", ROOT / "tools/assurance/check_layer_boundaries.py"
-    )
+    module = _load("layer_boundary_check", ROOT / "tools/assurance/check_layer_boundaries.py")
     assert module.scan(ROOT) == ()
 
 
@@ -50,8 +48,7 @@ def test_deprecated_inter_node_envelope_name_is_absent() -> None:
     findings: list[str] = []
     for path in ROOT.rglob("*"):
         if not path.is_file() or any(
-            part in {"validation", "dist", "build", "__pycache__"}
-            for part in path.parts
+            part in {"validation", "dist", "build", "__pycache__"} for part in path.parts
         ):
             continue
         try:

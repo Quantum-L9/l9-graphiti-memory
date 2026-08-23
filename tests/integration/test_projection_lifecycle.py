@@ -133,9 +133,7 @@ def test_supersession_atomically_emits_canonical_transition_and_retirement(
     assert store.records[original.record_id].state is MemoryState.SUPERSEDED
 
     retire_events = [
-        event
-        for event in store.outbox.values()
-        if event.event_type == "memory.record.retire"
+        event for event in store.outbox.values() if event.event_type == "memory.record.retire"
     ]
     assert len(retire_events) == 1
     assert retire_events[0].aggregate_id == original.record_id
@@ -175,9 +173,7 @@ def test_worker_retires_the_superseded_projection(
     assert projection.projected == [original.record_id]
     assert store.get_projection_link(original.record_id, "lifecycle") is not None
 
-    replacement = _write(
-        service, principal, "revised truth", supersedes=(original.record_id,)
-    )
+    replacement = _write(service, principal, "revised truth", supersedes=(original.record_id,))
     _drain(worker)
 
     retired_ids = [record_id for record_id, _ in projection.retired]
@@ -260,17 +256,12 @@ def test_retirement_of_an_unprojected_record_is_satisfied(
     """
 
     original = _write(service, principal, "never projected")
-    replacement = _write(
-        service, principal, "replacement", supersedes=(original.record_id,)
-    )
+    replacement = _write(service, principal, "replacement", supersedes=(original.record_id,))
 
     # Drop the project event so the original is never projected, leaving the
     # retire event to run against a record that has no link.
     for event_id, event in list(store.outbox.items()):
-        if (
-            event.event_type == "memory.record.project"
-            and event.aggregate_id == original.record_id
-        ):
+        if event.event_type == "memory.record.project" and event.aggregate_id == original.record_id:
             del store.outbox[event_id]
 
     _drain(worker)

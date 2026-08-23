@@ -31,9 +31,7 @@ class SchemaRegistry:
         self._upcasters: dict[tuple[str, str], Upcaster] = {}
         self._edges: dict[str, list[str]] = {}
 
-    def register(
-        self, from_version: str, to_version: str
-    ) -> Callable[[Upcaster], Upcaster]:
+    def register(self, from_version: str, to_version: str) -> Callable[[Upcaster], Upcaster]:
         def decorator(function: Upcaster) -> Upcaster:
             key = (from_version, to_version)
             if key in self._upcasters:
@@ -50,23 +48,17 @@ class SchemaRegistry:
         if isinstance(version, str) and version:
             return version
         metadata = raw.get("metadata")
-        if isinstance(metadata, dict) and isinstance(
-            metadata.get("schema_version"), str
-        ):
+        if isinstance(metadata, dict) and isinstance(metadata.get("schema_version"), str):
             return str(metadata["schema_version"])
         if "episode_body" in raw:
             return "0.2.0-episode"
         return "1.0.0"
 
-    def migration_path(
-        self, from_version: str, to_version: str | None = None
-    ) -> tuple[str, ...]:
+    def migration_path(self, from_version: str, to_version: str | None = None) -> tuple[str, ...]:
         target = to_version or self.current_version
         if from_version == target:
             return (from_version,)
-        queue: deque[tuple[str, tuple[str, ...]]] = deque(
-            [(from_version, (from_version,))]
-        )
+        queue: deque[tuple[str, tuple[str, ...]]] = deque([(from_version, (from_version,))])
         visited = {from_version}
         while queue:
             current, path = queue.popleft()
@@ -76,13 +68,9 @@ class SchemaRegistry:
                 if next_version not in visited:
                     visited.add(next_version)
                     queue.append((next_version, (*path, next_version)))
-        raise UnsupportedSchemaVersion(
-            f"no migration path from {from_version} to {target}"
-        )
+        raise UnsupportedSchemaVersion(f"no migration path from {from_version} to {target}")
 
-    def upcast(
-        self, raw: dict[str, Any], target_version: str | None = None
-    ) -> dict[str, Any]:
+    def upcast(self, raw: dict[str, Any], target_version: str | None = None) -> dict[str, Any]:
         source = self.detect_version(raw)
         target = target_version or self.current_version
         if source == target:

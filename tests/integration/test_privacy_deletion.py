@@ -72,13 +72,9 @@ def _preference_request(consent: ConsentGrant | None) -> MemoryWriteRequest:
     )
 
 
-def test_sensitive_memory_requires_current_purpose_bound_consent(
-    memory_service, principal
-) -> None:
+def test_sensitive_memory_requires_current_purpose_bound_consent(memory_service, principal) -> None:
     missing = memory_service.write(principal, _preference_request(None))
-    revoked = memory_service.write(
-        principal, _preference_request(_consent(revoked=True))
-    )
+    revoked = memory_service.write(principal, _preference_request(_consent(revoked=True)))
     admitted = memory_service.write(principal, _preference_request(_consent()))
 
     assert missing.status.value == "rejected"
@@ -153,9 +149,7 @@ class ErasingProjection:
         return []
 
 
-def test_projection_deletion_completes_through_outbox(
-    tmp_path, principal, admin_principal
-) -> None:
+def test_projection_deletion_completes_through_outbox(tmp_path, principal, admin_principal) -> None:
     store = InMemoryRecordStore()
     projection = ErasingProjection()
     service = MemoryService(store, projection, namespace_policy=NamespacePolicy())

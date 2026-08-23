@@ -23,9 +23,7 @@ DEPLOYMENT = ROOT / "deployment" / "generated-data"
 
 
 def load_yaml(name: str) -> Mapping[str, Any]:
-    value = yaml.safe_load(
-        (DEPLOYMENT / name).read_text(encoding="utf-8")
-    )
+    value = yaml.safe_load((DEPLOYMENT / name).read_text(encoding="utf-8"))
     if not isinstance(value, Mapping):
         raise TypeError(f"{name} root must be a mapping")
     return value
@@ -58,11 +56,7 @@ class CapabilityManifestTests(unittest.TestCase):
             "context_requirement",
             "artifact_lineage",
         }
-        actual = set(
-            self.manifest["candidate_ingress"][
-                "supported_classes"
-            ]
-        )
+        actual = set(self.manifest["candidate_ingress"]["supported_classes"])
         self.assertEqual(actual, expected)
 
     def test_supported_and_rejected_classes_do_not_overlap(
@@ -90,72 +84,32 @@ class CapabilityManifestTests(unittest.TestCase):
             ingress["required_promotion_decision"],
             "promote",
         )
-        self.assertFalse(
-            ingress[
-                "may_override_repository_state"
-            ]
-        )
-        self.assertFalse(
-            ingress[
-                "may_override_canonical_authority"
-            ]
-        )
+        self.assertFalse(ingress["may_override_repository_state"])
+        self.assertFalse(ingress["may_override_canonical_authority"])
 
     def test_invalidation_never_deletes(self) -> None:
         invalidation = self.manifest["invalidation"]
-        self.assertFalse(
-            invalidation["deletes_memory"]
-        )
-        self.assertFalse(
-            invalidation[
-                "creates_replacement_record"
-            ]
-        )
-        self.assertTrue(
-            invalidation[
-                "requires_structured_selectors"
-            ]
-        )
-        self.assertTrue(
-            invalidation[
-                "natural_language_matching_forbidden"
-            ]
-        )
+        self.assertFalse(invalidation["deletes_memory"])
+        self.assertFalse(invalidation["creates_replacement_record"])
+        self.assertTrue(invalidation["requires_structured_selectors"])
+        self.assertTrue(invalidation["natural_language_matching_forbidden"])
 
     def test_reuse_requires_finalized_outcome(self) -> None:
         reuse = self.manifest["reuse"]
-        self.assertFalse(
-            reuse["selection_is_proven_reuse"]
-        )
-        self.assertFalse(
-            reuse["injection_is_proven_reuse"]
-        )
-        self.assertTrue(
-            reuse[
-                "finalized_outcome_is_proven_reuse"
-            ]
-        )
+        self.assertFalse(reuse["selection_is_proven_reuse"])
+        self.assertFalse(reuse["injection_is_proven_reuse"])
+        self.assertTrue(reuse["finalized_outcome_is_proven_reuse"])
 
     def test_projection_is_not_canonical_requirement(self) -> None:
         storage = self.manifest["canonical_storage"]
-        self.assertFalse(
-            storage["projection_required"]
-        )
-        self.assertTrue(
-            storage[
-                "direct_adapter_store_writes_forbidden"
-            ]
-        )
+        self.assertFalse(storage["projection_required"])
+        self.assertTrue(storage["direct_adapter_store_writes_forbidden"])
 
     def test_fixture_capability_response_agrees(
         self,
     ) -> None:
         response = json.loads(
-            (
-                DEPLOYMENT
-                / "fixtures"
-                / "capability-response.json"
-            ).read_text(encoding="utf-8")
+            (DEPLOYMENT / "fixtures" / "capability-response.json").read_text(encoding="utf-8")
         )
 
         contracts = response["contracts"]
@@ -163,52 +117,24 @@ class CapabilityManifestTests(unittest.TestCase):
 
         self.assertEqual(
             set(contracts["supported_classes"]),
-            set(
-                manifest["candidate_ingress"][
-                    "supported_classes"
-                ]
-            ),
+            set(manifest["candidate_ingress"]["supported_classes"]),
         )
         self.assertEqual(
-            set(
-                contracts[
-                    "supported_reuse_outcomes"
-                ]
-            ),
-            set(
-                manifest["reuse"][
-                    "supported_outcomes"
-                ]
-            ),
+            set(contracts["supported_reuse_outcomes"]),
+            set(manifest["reuse"]["supported_outcomes"]),
         )
         self.assertEqual(
-            set(
-                contracts[
-                    "supported_invalidation_events"
-                ]
-            ),
-            set(
-                manifest["invalidation"][
-                    "supported_event_types"
-                ]
-            ),
+            set(contracts["supported_invalidation_events"]),
+            set(manifest["invalidation"]["supported_event_types"]),
         )
 
     def test_runtime_fixture_does_not_claim_mcp_readiness(
         self,
     ) -> None:
         response = json.loads(
-            (
-                DEPLOYMENT
-                / "fixtures"
-                / "capability-response.json"
-            ).read_text(encoding="utf-8")
+            (DEPLOYMENT / "fixtures" / "capability-response.json").read_text(encoding="utf-8")
         )
-        self.assertFalse(
-            response["runtime"][
-                "mcp_tool_plane_ready"
-            ]
-        )
+        self.assertFalse(response["runtime"]["mcp_tool_plane_ready"])
 
 
 if __name__ == "__main__":

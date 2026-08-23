@@ -27,9 +27,7 @@ from typing import Any
 try:
     from starlette.requests import Request
     from starlette.responses import JSONResponse
-except (
-    ModuleNotFoundError
-):  # [server] extra not installed; create_http_app() will error
+except ModuleNotFoundError:  # [server] extra not installed; create_http_app() will error
     Request = None  # type: ignore[assignment,misc]
     JSONResponse = None  # type: ignore[assignment,misc]
 
@@ -81,9 +79,7 @@ class MCPServer:
             error["data"] = data
         return {"jsonrpc": JSONRPC_VERSION, "id": request_id, "error": error}
 
-    def handle(
-        self, request: dict[str, Any], principal: MemoryPrincipal
-    ) -> dict[str, Any] | None:
+    def handle(self, request: dict[str, Any], principal: MemoryPrincipal) -> dict[str, Any] | None:
         request_id = request.get("id")
         method = request.get("method", "")
         params = request.get("params", {})
@@ -108,9 +104,7 @@ class MCPServer:
             if not isinstance(name, str) or not name:
                 return self.error(request_id, -32602, "tool name is required")
             if not isinstance(arguments, dict):
-                return self.error(
-                    request_id, -32602, "tool arguments must be an object"
-                )
+                return self.error(request_id, -32602, "tool arguments must be an object")
             try:
                 result = self.tools.call(principal, name, arguments)
             except KeyError as exc:
@@ -118,9 +112,7 @@ class MCPServer:
             except AuthenticationError as exc:
                 return self.error(request_id, -32001, str(exc))
             except L9MemoryError as exc:
-                return self.error(
-                    request_id, -32010, str(exc), data={"type": type(exc).__name__}
-                )
+                return self.error(request_id, -32010, str(exc), data={"type": type(exc).__name__})
             except (ValueError, TypeError) as exc:
                 return self.error(request_id, -32602, str(exc))
             except Exception as exc:
@@ -179,9 +171,7 @@ def run_stdio(runtime: MemoryRuntime) -> int:
             _write_json_line(server.error(None, -32700, f"parse error: {exc}"))
             continue
         if not isinstance(decoded, dict):
-            _write_json_line(
-                server.error(None, -32600, "batch requests are not supported")
-            )
+            _write_json_line(server.error(None, -32600, "batch requests are not supported"))
             continue
         response = server.handle(decoded, principal)
         if response is not None:
@@ -205,9 +195,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
     def principal_for(request: Request) -> MemoryPrincipal:
         if settings.http_auth_required:
             return authenticator.authenticate(request.headers.get("Authorization"))
-        return _stdio_principal(settings).model_copy(
-            update={"auth_method": "http-auth-disabled"}
-        )
+        return _stdio_principal(settings).model_copy(update={"auth_method": "http-auth-disabled"})
 
     @app.post("/mcp")
     @app.post("/mcp/")
@@ -215,9 +203,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         try:
             principal = principal_for(request)
         except AuthenticationError as exc:
-            return JSONResponse(
-                status_code=401, content=server.error(None, -32001, str(exc))
-            )
+            return JSONResponse(status_code=401, content=server.error(None, -32001, str(exc)))
         try:
             body = await request.json()
         except Exception as exc:  # noqa: BLE001
@@ -258,15 +244,11 @@ def run_http(runtime: MemoryRuntime, *, host: str, port: int) -> int:
         "localhost",
         "::1",
     }:
-        raise ConfigurationError(
-            "authentication may only be disabled on a loopback bind address"
-        )
+        raise ConfigurationError("authentication may only be disabled on a loopback bind address")
     try:
         import uvicorn
     except ImportError as exc:
-        raise RuntimeError(
-            "uvicorn is missing; install l9-graphite-memory[server]"
-        ) from exc
+        raise RuntimeError("uvicorn is missing; install l9-graphite-memory[server]") from exc
     uvicorn.run(
         create_http_app(runtime),
         host=host,
@@ -278,9 +260,7 @@ def run_http(runtime: MemoryRuntime, *, host: str, port: int) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="L9 Graphite Memory MCP server")
-    parser.add_argument(
-        "--transport", choices=["stdio", "http", "sse"], default="stdio"
-    )
+    parser.add_argument("--transport", choices=["stdio", "http", "sse"], default="stdio")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8200)
     parser.add_argument("--config", default=None)
@@ -288,9 +268,7 @@ def main(argv: list[str] | None = None) -> int:
 
     load_secrets_sync()
     runtime = build_runtime(args.config)
-    configure_logging(
-        runtime.settings.log_level, json_output=runtime.settings.json_logs
-    )
+    configure_logging(runtime.settings.log_level, json_output=runtime.settings.json_logs)
     try:
         if args.transport == "stdio":
             return run_stdio(runtime)

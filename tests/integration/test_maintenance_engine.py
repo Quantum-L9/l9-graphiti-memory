@@ -130,9 +130,7 @@ def write(
 
 
 def run(maintenance, maintainer, **kwargs):
-    return maintenance.run(
-        maintainer, MaintenanceRequest(namespace="repo-a", **kwargs)
-    )
+    return maintenance.run(maintainer, MaintenanceRequest(namespace="repo-a", **kwargs))
 
 
 # -- SP-12: consolidation with lineage ---------------------------------------
@@ -249,9 +247,7 @@ def test_temporal_evolution_supersedes_rather_than_deduping(
         writer,
         "the service runs in us-east-1",
         source_id="a",
-        assertion=MemoryAssertion(
-            subject="service", predicate="region", object="us-east-1"
-        ),
+        assertion=MemoryAssertion(subject="service", predicate="region", object="us-east-1"),
         valid_from=BASE,
     )
     new = write(
@@ -259,9 +255,7 @@ def test_temporal_evolution_supersedes_rather_than_deduping(
         writer,
         "the service runs in eu-west-1",
         source_id="b",
-        assertion=MemoryAssertion(
-            subject="service", predicate="region", object="eu-west-1"
-        ),
+        assertion=MemoryAssertion(subject="service", predicate="region", object="eu-west-1"),
         valid_from=BASE + timedelta(days=5),
     )
 
@@ -289,9 +283,7 @@ def test_contradiction_is_reported_not_resolved(
         writer,
         "the owner is team-alpha",
         source_id="a",
-        assertion=MemoryAssertion(
-            subject="service", predicate="owner", object="team-alpha"
-        ),
+        assertion=MemoryAssertion(subject="service", predicate="owner", object="team-alpha"),
         valid_from=BASE,
     )
     right = write(
@@ -299,9 +291,7 @@ def test_contradiction_is_reported_not_resolved(
         writer,
         "the owner is team-beta",
         source_id="b",
-        assertion=MemoryAssertion(
-            subject="service", predicate="owner", object="team-beta"
-        ),
+        assertion=MemoryAssertion(subject="service", predicate="owner", object="team-beta"),
         valid_from=BASE,
     )
 
@@ -336,9 +326,7 @@ def test_an_unresolved_contradiction_is_reported_on_every_run(
             writer,
             f"the owner is {owner}",
             source_id=source_id,
-            assertion=MemoryAssertion(
-                subject="service", predicate="owner", object=owner
-            ),
+            assertion=MemoryAssertion(subject="service", predicate="owner", object=owner),
             valid_from=BASE,
         )
 
@@ -361,18 +349,14 @@ def test_corroborating_assertions_refine_with_combined_evidence(
         writer,
         "The build targets Python 3.13.",
         source_id="a",
-        assertion=MemoryAssertion(
-            subject="build", predicate="targets", object="python-3.13"
-        ),
+        assertion=MemoryAssertion(subject="build", predicate="targets", object="python-3.13"),
     )
     second = write(
         service,
         writer,
         "Builds are pinned to Python 3.13 across CI.",
         source_id="b",
-        assertion=MemoryAssertion(
-            subject="build", predicate="targets", object="python-3.13"
-        ),
+        assertion=MemoryAssertion(subject="build", predicate="targets", object="python-3.13"),
     )
 
     receipt = run(maintenance, maintainer, operations=(MaintenanceOperation.REFINE,))
@@ -390,9 +374,7 @@ def test_records_are_consumed_by_only_one_operation_per_run(
 ) -> None:
     """A record deduped in a run is not also superseded in the same run."""
 
-    assertion = MemoryAssertion(
-        subject="service", predicate="region", object="us-east-1"
-    )
+    assertion = MemoryAssertion(subject="service", predicate="region", object="us-east-1")
     first = write(service, writer, "same content", source_id="a", assertion=assertion)
     second = write(service, writer, "same content", source_id="b", assertion=assertion)
 
@@ -509,9 +491,7 @@ def test_dry_run_changes_nothing_and_does_not_advance_the_watermark(
     assert store.get_maintenance_watermark("tenant-a", "repo-a") is None
 
 
-def test_max_actions_bounds_the_run(
-    service, store, maintenance, writer, maintainer
-) -> None:
+def test_max_actions_bounds_the_run(service, store, maintenance, writer, maintainer) -> None:
     for index in range(6):
         write(service, writer, f"pair-{index // 2}", source_id=f"s{index}")
 

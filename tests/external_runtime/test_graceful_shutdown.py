@@ -44,9 +44,7 @@ async def test_close_is_idempotent(client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_client_close_releases_store_and_bus(
-    client, active_store, awareness_bus
-) -> None:
+async def test_client_close_releases_store_and_bus(client, active_store, awareness_bus) -> None:
     async with client.open_session(
         agent_id="agent-primary",
         role="personal_assistant",

@@ -76,14 +76,9 @@ class DeterministicAtomicExtractor:
     @staticmethod
     def _classify(sentence: str) -> MemoryClass:
         lowered = sentence.casefold()
-        if any(
-            token in lowered
-            for token in (" prefer ", " prefers ", " preference ", " likes ")
-        ):
+        if any(token in lowered for token in (" prefer ", " prefers ", " preference ", " likes ")):
             return MemoryClass.PREFERENCE
-        if any(
-            token in lowered for token in (" must ", " shall ", " never ", " required ")
-        ):
+        if any(token in lowered for token in (" must ", " shall ", " never ", " required ")):
             return MemoryClass.CONSTRAINT
         if any(token in lowered for token in (" decided ", " decision ", " approved ")):
             return MemoryClass.DECISION
@@ -91,9 +86,7 @@ class DeterministicAtomicExtractor:
             token in lowered for token in (" then ", ", do ", " should ")
         ):
             return MemoryClass.PROCEDURAL
-        if any(
-            token in lowered for token in (" observed ", " happened ", " occurred ")
-        ):
+        if any(token in lowered for token in (" observed ", " happened ", " occurred ")):
             return MemoryClass.EPISODIC
         return MemoryClass.SEMANTIC
 
@@ -123,9 +116,7 @@ class DeterministicAtomicExtractor:
             line_cursor = end_line + 1
             if len(sentence) < 8:
                 if sentence:
-                    rejected.append(
-                        f"source lines {start_line}-{end_line}: below minimum length"
-                    )
+                    rejected.append(f"source lines {start_line}-{end_line}: below minimum length")
                 continue
             source_range = SourceRange(start_line=start_line, end_line=end_line)
             evidence = EvidenceRef(
@@ -177,11 +168,7 @@ class EvidenceBoundProviderExtractor:
             try:
                 start_line = int(item["start_line"])
                 end_line = int(item["end_line"])
-                if (
-                    start_line < 1
-                    or end_line < start_line
-                    or end_line > max(1, len(lines))
-                ):
+                if start_line < 1 or end_line < start_line or end_line > max(1, len(lines)):
                     raise ValueError("source range is outside the input")
                 content = str(item["content"]).strip()
                 excerpt = "\n".join(lines[start_line - 1 : end_line]).strip()
@@ -193,9 +180,7 @@ class EvidenceBoundProviderExtractor:
                 source_range = SourceRange(start_line=start_line, end_line=end_line)
                 assertion_data = item.get("assertion")
                 assertion = (
-                    MemoryAssertion.model_validate(assertion_data)
-                    if assertion_data
-                    else None
+                    MemoryAssertion.model_validate(assertion_data) if assertion_data else None
                 )
                 confidence_score = float(item.get("confidence", 0.7))
                 candidates.append(

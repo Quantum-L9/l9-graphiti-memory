@@ -248,24 +248,21 @@ class SQLiteRecordStore:
             # below is created cleanly. Outstanding legacy locks are invalidated
             # rather than assigned an invented tenant owner.
             phase_lock_columns = {
-                str(row[1])
-                for row in tx.execute("PRAGMA table_info(phase_locks)").fetchall()
+                str(row[1]) for row in tx.execute("PRAGMA table_info(phase_locks)").fetchall()
             }
             if phase_lock_columns and "tenant_id" not in phase_lock_columns:
                 tx.execute("DROP TABLE phase_locks")
             for statement in statements:
                 tx.execute(statement)
             columns = {
-                str(row[1])
-                for row in tx.execute("PRAGMA table_info(memory_records)").fetchall()
+                str(row[1]) for row in tx.execute("PRAGMA table_info(memory_records)").fetchall()
             }
             if "references_json" not in columns:
                 tx.execute(
                     "ALTER TABLE memory_records ADD COLUMN references_json TEXT NOT NULL DEFAULT '[]'"
                 )
             outbox_columns = {
-                str(row[1])
-                for row in tx.execute("PRAGMA table_info(outbox_events)").fetchall()
+                str(row[1]) for row in tx.execute("PRAGMA table_info(outbox_events)").fetchall()
             }
             for column in ("lease_id", "lease_owner", "lease_expires_at"):
                 if column not in outbox_columns:
@@ -315,9 +312,7 @@ class SQLiteRecordStore:
             record.namespace,
             record.memory_class.value,
             record.content,
-            _json(record.assertion.model_dump(mode="json"))
-            if record.assertion
-            else None,
+            _json(record.assertion.model_dump(mode="json")) if record.assertion else None,
             _dt(record.temporal.valid_from),
             _dt(record.temporal.valid_to),
             _dt(record.temporal.recorded_at),
@@ -372,9 +367,7 @@ class SQLiteRecordStore:
             ),
         )
 
-    def _insert_archive_receipt(
-        self, tx: sqlite3.Connection, receipt: ArchiveReceipt
-    ) -> None:
+    def _insert_archive_receipt(self, tx: sqlite3.Connection, receipt: ArchiveReceipt) -> None:
         tx.execute(
             """
             INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
@@ -390,9 +383,7 @@ class SQLiteRecordStore:
             ),
         )
 
-    def _insert_deletion_receipt(
-        self, tx: sqlite3.Connection, receipt: DeletionReceipt
-    ) -> None:
+    def _insert_deletion_receipt(self, tx: sqlite3.Connection, receipt: DeletionReceipt) -> None:
         tx.execute(
             """
             INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
@@ -408,9 +399,7 @@ class SQLiteRecordStore:
             ),
         )
 
-    def _insert_status_event(
-        self, tx: sqlite3.Connection, event: MemoryStatusEvent
-    ) -> None:
+    def _insert_status_event(self, tx: sqlite3.Connection, event: MemoryStatusEvent) -> None:
         record = tx.execute(
             "SELECT record_json FROM memory_records WHERE record_id = ?",
             (str(event.record_id),),
@@ -419,18 +408,13 @@ class SQLiteRecordStore:
             raise StoreError(f"status transition target not found: {event.record_id}")
         record_payload = json.loads(str(record["record_json"]))
         current_state = MemoryState(str(record_payload["state"]))
-        if (
-            event.previous_state is not None
-            and current_state is not event.previous_state
-        ):
+        if event.previous_state is not None and current_state is not event.previous_state:
             raise StoreError(
                 f"status transition expected {event.previous_state.value} but found {current_state.value}: {event.record_id}"
             )
         record_payload["state"] = event.new_state.value
         if event.new_state is MemoryState.SUPERSEDED:
-            record_payload.setdefault("temporal", {})["superseded_at"] = _dt(
-                event.occurred_at
-            )
+            record_payload.setdefault("temporal", {})["superseded_at"] = _dt(event.occurred_at)
         tx.execute(
             """
             UPDATE memory_records
@@ -513,9 +497,7 @@ class SQLiteRecordStore:
                 for outbox_event in outbox_events:
                     self._insert_outbox(tx, outbox_event)
         except sqlite3.IntegrityError as exc:
-            raise StoreError(
-                f"atomic memory write violated store constraints: {exc}"
-            ) from exc
+            raise StoreError(f"atomic memory write violated store constraints: {exc}") from exc
         except sqlite3.Error as exc:
             raise StoreError(f"atomic memory write failed: {exc}") from exc
 
@@ -655,11 +637,7 @@ class SQLiteRecordStore:
             )
             .fetchone()
         )
-        return (
-            PhaseLockReceipt.model_validate_json(str(row["receipt_json"]))
-            if row
-            else None
-        )
+        return PhaseLockReceipt.model_validate_json(str(row["receipt_json"])) if row else None
 
     def claim_outbox(
         self,
@@ -737,8 +715,7 @@ class SQLiteRecordStore:
             event = OutboxEvent.model_validate_json(str(row["event_json"]))
             if lease_id is not None and event.lease_id != lease_id:
                 raise StoreError(
-                    f"outbox lease is no longer held for {event_id}; "
-                    "another worker owns this event"
+                    f"outbox lease is no longer held for {event_id}; another worker owns this event"
                 )
             updated = event.model_copy(
                 update={
@@ -879,9 +856,7 @@ class SQLiteRecordStore:
         except sqlite3.Error as exc:
             raise StoreError(f"maintenance run persistence failed: {exc}") from exc
 
-    def get_maintenance_watermark(
-        self, tenant_id: str, namespace: str
-    ) -> datetime | None:
+    def get_maintenance_watermark(self, tenant_id: str, namespace: str) -> datetime | None:
         row = (
             self._connection()
             .execute(
@@ -895,9 +870,7 @@ class SQLiteRecordStore:
         )
         return _parse_dt(str(row["watermark"])) if row and row["watermark"] else None
 
-    def find_maintenance_action_digests(
-        self, tenant_id: str, namespace: str
-    ) -> frozenset[str]:
+    def find_maintenance_action_digests(self, tenant_id: str, namespace: str) -> frozenset[str]:
         rows = (
             self._connection()
             .execute(
@@ -911,9 +884,7 @@ class SQLiteRecordStore:
         )
         return frozenset(str(row["action_digest"]) for row in rows)
 
-    def save_projection_retirement(
-        self, receipt: ProjectionRetirementReceipt
-    ) -> None:
+    def save_projection_retirement(self, receipt: ProjectionRetirementReceipt) -> None:
         try:
             with self._transaction() as tx:
                 tx.execute(
@@ -997,12 +968,8 @@ class SQLiteRecordStore:
 
     def stats(self) -> dict[str, Any]:
         connection = self._connection()
-        total = connection.execute(
-            "SELECT COUNT(*) AS count FROM memory_records"
-        ).fetchone()
-        receipts = connection.execute(
-            "SELECT COUNT(*) AS count FROM operation_receipts"
-        ).fetchone()
+        total = connection.execute("SELECT COUNT(*) AS count FROM memory_records").fetchone()
+        receipts = connection.execute("SELECT COUNT(*) AS count FROM operation_receipts").fetchone()
         state_rows = connection.execute(
             "SELECT state, COUNT(*) AS count FROM memory_records GROUP BY state"
         ).fetchall()
@@ -1014,9 +981,7 @@ class SQLiteRecordStore:
             "receipts": int(receipts["count"]) if receipts else 0,
             "outbox_backlog": self.outbox_backlog(),
             "by_state": {str(row["state"]): int(row["count"]) for row in state_rows},
-            "by_class": {
-                str(row["memory_class"]): int(row["count"]) for row in class_rows
-            },
+            "by_class": {str(row["memory_class"]): int(row["count"]) for row in class_rows},
         }
 
     def list_expired(
@@ -1054,9 +1019,7 @@ class SQLiteRecordStore:
             raise StoreError("cannot persist a non-applied archive receipt")
         event_ids = {event.record_id for event in status_events}
         if event_ids != set(receipt.archived_record_ids):
-            raise StoreError(
-                "archive receipt and status events target different records"
-            )
+            raise StoreError("archive receipt and status events target different records")
         try:
             with self._transaction() as tx:
                 self._insert_archive_receipt(tx, receipt)
@@ -1065,9 +1028,7 @@ class SQLiteRecordStore:
                 for outbox_event in outbox_events:
                     self._insert_outbox(tx, outbox_event)
         except sqlite3.IntegrityError as exc:
-            raise StoreError(
-                f"atomic archive violated store constraints: {exc}"
-            ) from exc
+            raise StoreError(f"atomic archive violated store constraints: {exc}") from exc
         except sqlite3.Error as exc:
             raise StoreError(f"atomic archive failed: {exc}") from exc
 
@@ -1123,9 +1084,7 @@ class SQLiteRecordStore:
                 if outbox_event is not None:
                     self._insert_outbox(tx, outbox_event)
         except sqlite3.IntegrityError as exc:
-            raise StoreError(
-                f"atomic deletion request violated store constraints: {exc}"
-            ) from exc
+            raise StoreError(f"atomic deletion request violated store constraints: {exc}") from exc
         except sqlite3.Error as exc:
             raise StoreError(f"atomic deletion request failed: {exc}") from exc
 
@@ -1148,15 +1107,9 @@ class SQLiteRecordStore:
                 ).fetchone()
                 if record_row is None or receipt_row is None:
                     raise StoreError("deletion record or receipt not found")
-                record = schema_registry.read_record(
-                    json.loads(str(record_row["record_json"]))
-                )
-                receipt = DeletionReceipt.model_validate_json(
-                    str(receipt_row["receipt_json"])
-                )
-                updated_record = record.model_copy(
-                    update={"state": MemoryState.DELETED}
-                )
+                record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
+                receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
+                updated_record = record.model_copy(update={"state": MemoryState.DELETED})
                 updated_receipt = receipt.model_copy(
                     update={
                         "status": DeletionStatus.COMPLETE,

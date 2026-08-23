@@ -104,9 +104,7 @@ def test_install_preserves_unmanaged_servers_and_unknown_keys(
     assert receipt.preserved_server_keys == ("other-server",)
     config = _read(target)
     assert config["customTopLevel"] == {"keep": True}
-    assert config["mcpServers"]["other-server"] == original["mcpServers"][
-        "other-server"
-    ]
+    assert config["mcpServers"]["other-server"] == original["mcpServers"]["other-server"]
     assert MANAGED_SERVER_KEY in config["mcpServers"]
 
 
@@ -209,9 +207,7 @@ def test_uninstall_restore_verified_backup(tmp_path: Path) -> None:
     target.write_text(json.dumps(original, indent=2) + "\n", encoding="utf-8")
     install_receipt = configurator.install()
     assert install_receipt.backup_path is not None
-    restore_receipt = configurator.uninstall(
-        restore_backup=Path(install_receipt.backup_path)
-    )
+    restore_receipt = configurator.uninstall(restore_backup=Path(install_receipt.backup_path))
     assert restore_receipt.status == ClientConfigStatus.COMPLETE
     assert _read(target) == original
 
@@ -243,9 +239,7 @@ def test_status_flags_env_block_as_warning(tmp_path: Path) -> None:
     target = tmp_path / "mcp.json"
     entry = managed_server_entry().as_config()
     entry["env"] = {"SHOULD_NOT": "exist"}
-    target.write_text(
-        json.dumps({"mcpServers": {MANAGED_SERVER_KEY: entry}}), encoding="utf-8"
-    )
+    target.write_text(json.dumps({"mcpServers": {MANAGED_SERVER_KEY: entry}}), encoding="utf-8")
     receipt = CursorClientConfigurator(target).status()
     assert receipt.status == ClientConfigStatus.BLOCKED
     assert receipt.warnings
@@ -271,9 +265,7 @@ def test_receipts_never_contain_secret_env_values(tmp_path: Path) -> None:
     try:
         configurator = _configurator(tmp_path)
         receipt = configurator.install()
-        encoded = receipt.model_dump_json() + json.dumps(
-            _read(configurator.path)
-        )
+        encoded = receipt.model_dump_json() + json.dumps(_read(configurator.path))
         assert secret not in encoded
     finally:
         if previous is None:

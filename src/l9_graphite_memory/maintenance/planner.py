@@ -121,14 +121,12 @@ class MaintenancePlanner:
 
         groups: dict[tuple[str, str], list[MemoryRecord]] = {}
         for record in records:
-            groups.setdefault(
-                (record.memory_class.value, record.normalized_digest), []
-            ).append(record)
+            groups.setdefault((record.memory_class.value, record.normalized_digest), []).append(
+                record
+            )
 
         actions: list[MaintenanceAction] = []
-        for (_class_value, _digest), group in sorted(
-            groups.items(), key=lambda item: item[0]
-        ):
+        for (_class_value, _digest), group in sorted(groups.items(), key=lambda item: item[0]):
             if len(group) < 2:
                 continue
             for cluster in self._overlapping_clusters(group):
@@ -327,16 +325,12 @@ class MaintenancePlanner:
         consumed: set[UUID],
         now: datetime,
     ) -> list[MaintenanceAction]:
-        candidates = tuple(
-            record for record in records if record.record_id not in consumed
-        )
+        candidates = tuple(record for record in records if record.record_id not in consumed)
         if not candidates:
             return []
         decisions = self.retention_engine.evaluate(candidates, now=now)
         archived_ids = tuple(
-            decision.record_id
-            for decision in decisions
-            if decision.action == "archive"
+            decision.record_id for decision in decisions if decision.action == "archive"
         )
         if not archived_ids:
             return []
@@ -446,8 +440,7 @@ class MaintenancePlanner:
         eligible = [
             record
             for record in records
-            if record.state is MemoryState.ACTIVE
-            and record.temporal.recorded_at <= watermark
+            if record.state is MemoryState.ACTIVE and record.temporal.recorded_at <= watermark
         ]
         eligible.sort(key=lambda item: (item.temporal.recorded_at, str(item.record_id)))
 
@@ -464,9 +457,7 @@ class MaintenancePlanner:
                 consumed.update(action.archived_record_ids)
 
         if MaintenanceOperation.DEDUPE in selected:
-            absorb(
-                self._plan_dedupe(eligible, tenant_id=tenant_id, namespace=namespace)
-            )
+            absorb(self._plan_dedupe(eligible, tenant_id=tenant_id, namespace=namespace))
         if MaintenanceOperation.REFINE in selected:
             absorb(
                 self._plan_refine(
@@ -507,13 +498,9 @@ class MaintenancePlanner:
             )
 
         skipped = tuple(
-            action.action_digest
-            for action in planned
-            if action.action_digest in applied_digests
+            action.action_digest for action in planned if action.action_digest in applied_digests
         )
-        fresh = [
-            action for action in planned if action.action_digest not in applied_digests
-        ]
+        fresh = [action for action in planned if action.action_digest not in applied_digests]
         return MaintenancePlan(
             actions=tuple(fresh[:max_actions]),
             considered_record_count=len(eligible),

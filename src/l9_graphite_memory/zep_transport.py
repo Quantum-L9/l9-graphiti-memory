@@ -91,12 +91,7 @@ class ZepCloudTransport:
         args = arguments or {}
         if name in {"add_episode", "graph.add"}:
             return self.write(
-                str(
-                    args.get("episode_body")
-                    or args.get("body")
-                    or args.get("data")
-                    or ""
-                ),
+                str(args.get("episode_body") or args.get("body") or args.get("data") or ""),
                 str(args.get("group_id") or args.get("graph_id") or ""),
                 kind=str(args.get("kind") or "observation"),
                 **{
@@ -118,22 +113,12 @@ class ZepCloudTransport:
                 "results": self.search(
                     str(args.get("query") or ""),
                     str(args.get("group_id") or args.get("graph_id") or ""),
-                    int(
-                        args.get("limit")
-                        or args.get("max_facts")
-                        or args.get("max_nodes")
-                        or 10
-                    ),
+                    int(args.get("limit") or args.get("max_facts") or args.get("max_nodes") or 10),
                 )
             }
         if name in {"delete_episode", "graph.episode.delete"}:
             return self.delete(
-                str(
-                    args.get("uuid")
-                    or args.get("episode_uuid")
-                    or args.get("locator")
-                    or ""
-                )
+                str(args.get("uuid") or args.get("episode_uuid") or args.get("locator") or "")
             )
         raise ProjectionError(f"unsupported Zep transport operation: {name}")
 
@@ -158,9 +143,7 @@ class ZepCloudTransport:
                 group_id=group_id,
                 data=body[:10_000],
                 type="json" if body.lstrip().startswith(("{", "[")) else "text",
-                source_description=str(
-                    kwargs.pop("source_description", f"l9-memory/{kind}")
-                )[:500],
+                source_description=str(kwargs.pop("source_description", f"l9-memory/{kind}"))[:500],
                 metadata=metadata,
             )
             self._record_success()
@@ -203,9 +186,7 @@ class ZepCloudTransport:
             return response
         return []
 
-    def search(
-        self, query: str, group_id: str, limit: int = 10
-    ) -> list[dict[str, Any]]:
+    def search(self, query: str, group_id: str, limit: int = 10) -> list[dict[str, Any]]:
         if not group_id:
             raise ProjectionError("group_id is required for Zep graph search")
         if not self.circuit.can_execute():

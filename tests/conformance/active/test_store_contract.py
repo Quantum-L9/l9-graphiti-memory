@@ -32,9 +32,7 @@ from l9_graphite_memory.active.models import (
 from tests.conformance.active.conftest import FakeClock
 
 
-def _make_identity(
-    agent_id: str = "agent-a", role: str = "researcher"
-) -> AgentIdentity:
+def _make_identity(agent_id: str = "agent-a", role: str = "researcher") -> AgentIdentity:
     return AgentIdentity(
         agent_id=agent_id,
         instance_id="instance-1",
@@ -97,9 +95,7 @@ async def test_unregister_is_idempotent(store, clock) -> None:
 
 
 @pytest.mark.asyncio
-async def test_put_context_first_write_requires_no_expected_version(
-    store, clock
-) -> None:
+async def test_put_context_first_write_requires_no_expected_version(store, clock) -> None:
     identity = _make_identity()
     lease = _make_lease(clock, identity)
     await store.register(identity, lease)
@@ -127,9 +123,7 @@ async def test_put_context_correct_expected_version_succeeds(store, clock) -> No
     draft_v1 = ActiveContextDraft(objective="v1", status=AgentStatus.ACTIVE)
     context_v1 = await store.put_context(lease, expected_version=None, draft=draft_v1)
     draft_v2 = ActiveContextDraft(objective="v2", status=AgentStatus.ACTIVE)
-    context_v2 = await store.put_context(
-        lease, expected_version=context_v1.version, draft=draft_v2
-    )
+    context_v2 = await store.put_context(lease, expected_version=context_v1.version, draft=draft_v2)
     assert context_v2.version == context_v1.version + 1
 
 

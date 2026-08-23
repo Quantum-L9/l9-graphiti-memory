@@ -48,9 +48,7 @@ def request(
         content=content,
         assertion=assertion,
         provenance=Provenance(source="test"),
-        evidence=(
-            EvidenceRef(kind=EvidenceKind.EXPLICIT, description="test evidence"),
-        ),
+        evidence=(EvidenceRef(kind=EvidenceKind.EXPLICIT, description="test evidence"),),
         confidence=Confidence(score=0.9, evidence_count=1),
         idempotency_key=idempotency_key,
         supersedes=supersedes,
@@ -96,9 +94,7 @@ def test_safety_signal_quarantines(memory_service, principal) -> None:
 
 def test_supersession_preserves_old_record(memory_service, principal) -> None:
     first = memory_service.write(principal, request("Old value"))
-    second = memory_service.write(
-        principal, request("New value", supersedes=(first.record_id,))
-    )
+    second = memory_service.write(principal, request("New value", supersedes=(first.record_id,)))
     assert second.status is WriteStatus.SUPERSEDED
     prior = memory_service.get(principal, first.record_id)
     assert prior is not None and prior.state is MemoryState.SUPERSEDED
@@ -108,12 +104,8 @@ def test_conflicts_deny_phase_lock(memory_service, principal) -> None:
     now = datetime.now(timezone.utc)
     assertion_a = MemoryAssertion(subject="service", predicate="endpoint", object="one")
     assertion_b = MemoryAssertion(subject="service", predicate="endpoint", object="two")
-    memory_service.write(
-        principal, request("one", assertion=assertion_a, valid_from=now)
-    )
-    memory_service.write(
-        principal, request("two", assertion=assertion_b, valid_from=now)
-    )
+    memory_service.write(principal, request("one", assertion=assertion_a, valid_from=now))
+    memory_service.write(principal, request("two", assertion=assertion_b, valid_from=now))
     report = memory_service.conflicts(principal, "repo-a")
     assert report.has_conflicts
     lock = memory_service.phase_lock(
@@ -123,9 +115,7 @@ def test_conflicts_deny_phase_lock(memory_service, principal) -> None:
     assert not lock.granted
 
 
-def test_temporal_search_uses_valid_and_recorded_time(
-    sqlite_service, principal
-) -> None:
+def test_temporal_search_uses_valid_and_recorded_time(sqlite_service, principal) -> None:
     now = datetime.now(timezone.utc)
     sqlite_service.write(
         principal,
@@ -198,9 +188,7 @@ def test_quarantined_record_requires_admin_to_get(memory_service, principal) -> 
     assert record is not None and record.state is MemoryState.QUARANTINED
 
 
-def test_quarantined_supersession_does_not_hide_active_memory(
-    memory_service, principal
-) -> None:
+def test_quarantined_supersession_does_not_hide_active_memory(memory_service, principal) -> None:
     first = memory_service.write(principal, request("trusted active value"))
     quarantined = memory_service.write(
         principal,
@@ -250,10 +238,5 @@ def test_archive_emits_durable_receipt_and_status_event(
         event.record_id == expired.record_id and event.receipt_id == applied.receipt_id
         for event in memory_service.store.status_events
     )
-    assert (
-        memory_service.get(admin_principal, expired.record_id).state
-        is MemoryState.ARCHIVED
-    )
-    assert (
-        memory_service.get(principal, protected.record_id).state is MemoryState.ACTIVE
-    )
+    assert memory_service.get(admin_principal, expired.record_id).state is MemoryState.ARCHIVED
+    assert memory_service.get(principal, protected.record_id).state is MemoryState.ACTIVE

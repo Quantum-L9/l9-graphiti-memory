@@ -18,22 +18,13 @@ from typing import Any
 import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
-POLICY_PATH = (
-    ROOT
-    / "deployment"
-    / "generated-data"
-    / "principal-policy.yaml"
-)
+POLICY_PATH = ROOT / "deployment" / "generated-data" / "principal-policy.yaml"
 
 
 def load_policy() -> Mapping[str, Any]:
-    value = yaml.safe_load(
-        POLICY_PATH.read_text(encoding="utf-8")
-    )
+    value = yaml.safe_load(POLICY_PATH.read_text(encoding="utf-8"))
     if not isinstance(value, Mapping):
-        raise TypeError(
-            "principal-policy root must be a mapping"
-        )
+        raise TypeError("principal-policy root must be a mapping")
     return value
 
 
@@ -74,9 +65,7 @@ class PrincipalPolicyTests(unittest.TestCase):
             producer["authenticated_caller"],
             "cursor-governance-generated-data",
         )
-        fields = set(
-            producer["stored_as_provenance"]
-        )
+        fields = set(producer["stored_as_provenance"])
         self.assertLessEqual(
             {
                 "campaign_id",
@@ -92,30 +81,12 @@ class PrincipalPolicyTests(unittest.TestCase):
 
     def test_dangerous_authority_is_denied(self) -> None:
         constraints = self.policy["constraints"]
-        self.assertFalse(
-            constraints[
-                "direct_subagent_canonical_write"
-            ]
-        )
-        self.assertFalse(
-            constraints[
-                "may_override_repository_state"
-            ]
-        )
-        self.assertFalse(
-            constraints[
-                "may_override_canonical_authority"
-            ]
-        )
-        self.assertFalse(
-            constraints["may_promote_memory"]
-        )
-        self.assertFalse(
-            constraints["may_delete_memory"]
-        )
-        self.assertFalse(
-            constraints["may_widen_visibility"]
-        )
+        self.assertFalse(constraints["direct_subagent_canonical_write"])
+        self.assertFalse(constraints["may_override_repository_state"])
+        self.assertFalse(constraints["may_override_canonical_authority"])
+        self.assertFalse(constraints["may_promote_memory"])
+        self.assertFalse(constraints["may_delete_memory"])
+        self.assertFalse(constraints["may_widen_visibility"])
 
     def test_denied_operations_are_explicit(self) -> None:
         denied = set(self.policy["denied_operations"])
@@ -132,11 +103,7 @@ class PrincipalPolicyTests(unittest.TestCase):
     def test_invalidation_requires_namespace_authority(
         self,
     ) -> None:
-        self.assertTrue(
-            self.policy["constraints"][
-                "invalidation_requires_namespace_authority"
-            ]
-        )
+        self.assertTrue(self.policy["constraints"]["invalidation_requires_namespace_authority"])
 
 
 if __name__ == "__main__":

@@ -258,9 +258,7 @@ class ActiveObservation:
         if not self.summary:
             raise DeploymentIdentityError("summary must not be empty")
         if len(self.summary.encode("utf-8")) > MAX_OBSERVATION_BYTES:
-            raise DeploymentIdentityError(
-                f"summary exceeds {MAX_OBSERVATION_BYTES} bytes"
-            )
+            raise DeploymentIdentityError(f"summary exceeds {MAX_OBSERVATION_BYTES} bytes")
         for name, val in (
             ("confidence", self.confidence),
             ("relevance", self.relevance),
@@ -288,8 +286,7 @@ class ActiveContextDraft:
     def __post_init__(self) -> None:
         if len(self.observations) > MAX_OBSERVATIONS:
             raise DeploymentIdentityError(
-                f"observations count {len(self.observations)} exceeds "
-                f"limit of {MAX_OBSERVATIONS}"
+                f"observations count {len(self.observations)} exceeds limit of {MAX_OBSERVATIONS}"
             )
 
 

@@ -93,9 +93,7 @@ def scan(root: Path) -> tuple[Finding, ...]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     findings = scan(parser.parse_args().repo_root.resolve())
     if findings:
         for finding in findings:

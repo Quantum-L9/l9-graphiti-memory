@@ -35,9 +35,7 @@ def test_token_authenticator_uses_server_claims() -> None:
         tenant_id="tenant",
         read_namespaces=("repo-a",),
     )
-    principal = TokenAuthenticator({"secret-token": config}).authenticate(
-        "Bearer secret-token"
-    )
+    principal = TokenAuthenticator({"secret-token": config}).authenticate("Bearer secret-token")
     assert principal.principal_id == "agent"
     assert principal.auth_method == "bearer"
 

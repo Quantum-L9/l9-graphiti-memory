@@ -126,8 +126,7 @@ class ActiveDeployment:
         validate_identifier(self.trust_domain, field_name="trust_domain")
         if not isinstance(self.environment, DeploymentEnvironment):
             raise DeploymentIdentityError(
-                f"environment must be a DeploymentEnvironment, got "
-                f"{type(self.environment)!r}"
+                f"environment must be a DeploymentEnvironment, got {type(self.environment)!r}"
             )
         if self.environment is DeploymentEnvironment.PRODUCTION:
             lowered_id = self.deployment_id.lower()

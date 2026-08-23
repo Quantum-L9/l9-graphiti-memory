@@ -34,14 +34,10 @@ def write_command(
 ) -> Path:
     path = directory / name
     path.write_text(
-        "#!/usr/bin/env python3\n"
-        + textwrap.dedent(body),
+        "#!/usr/bin/env python3\n" + textwrap.dedent(body),
         encoding="utf-8",
     )
-    path.chmod(
-        path.stat().st_mode
-        | stat.S_IXUSR
-    )
+    path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
 
 
@@ -121,9 +117,7 @@ class CommandProtocolTests(unittest.TestCase):
             0,
         )
         result = json.loads(completed.stdout)
-        self.assertFalse(
-            result["full_loop_proven"]
-        )
+        self.assertFalse(result["full_loop_proven"])
         self.assertTrue(result["failures"])
 
     def test_nonzero_exit_is_reported_as_failure(
@@ -151,9 +145,7 @@ class CommandProtocolTests(unittest.TestCase):
             )
 
             env = dict(os.environ)
-            env[
-                "L9_SGD_GRAPHITI_CAPABILITIES_COMMAND"
-            ] = str(failing)
+            env["L9_SGD_GRAPHITI_CAPABILITIES_COMMAND"] = str(failing)
             for name in (
                 "L9_SGD_GRAPHITI_INGEST_COMMAND",
                 "L9_SGD_GRAPHITI_SEARCH_COMMAND",
@@ -178,20 +170,12 @@ class CommandProtocolTests(unittest.TestCase):
             0,
         )
         result = json.loads(completed.stdout)
-        self.assertTrue(
-            any(
-                "synthetic diagnostic" in failure
-                for failure in result["failures"]
-            )
-        )
+        self.assertTrue(any("synthetic diagnostic" in failure for failure in result["failures"]))
 
     def test_example_environment_has_no_secret_values(
         self,
     ) -> None:
-        content = (
-            DEPLOYMENT
-            / "cursor-command-env.example"
-        ).read_text(encoding="utf-8")
+        content = (DEPLOYMENT / "cursor-command-env.example").read_text(encoding="utf-8")
 
         lowered = content.lower()
         self.assertNotIn(
@@ -214,10 +198,7 @@ class CommandProtocolTests(unittest.TestCase):
     def test_all_expected_commands_are_declared(
         self,
     ) -> None:
-        content = (
-            DEPLOYMENT
-            / "cursor-command-env.example"
-        ).read_text(encoding="utf-8")
+        content = (DEPLOYMENT / "cursor-command-env.example").read_text(encoding="utf-8")
 
         expected = {
             "L9_SGD_GRAPHITI_INGEST_COMMAND",
@@ -229,9 +210,7 @@ class CommandProtocolTests(unittest.TestCase):
         }
 
         declared = {
-            line.split("=", 1)[0]
-            for line in content.splitlines()
-            if line.startswith("L9_SGD_")
+            line.split("=", 1)[0] for line in content.splitlines() if line.startswith("L9_SGD_")
         }
 
         self.assertEqual(declared, expected)

@@ -41,9 +41,7 @@ class EpisodeContract(BaseModel):
     def validate_time(cls, value: datetime) -> datetime:
         aware = value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
         if aware > datetime.now(timezone.utc) + timedelta(hours=1):
-            raise ValueError(
-                "reference_time cannot be more than one hour in the future"
-            )
+            raise ValueError("reference_time cannot be more than one hour in the future")
         return aware
 
     @field_validator("group_id")

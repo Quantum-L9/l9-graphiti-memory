@@ -73,9 +73,7 @@ def _function_findings(
     defaults = [*node.args.defaults, *node.args.kw_defaults]
     for default in defaults:
         if isinstance(default, (ast.List, ast.Dict, ast.Set)):
-            findings.append(
-                Finding(relative, node.lineno, "B006", "mutable default argument")
-            )
+            findings.append(Finding(relative, node.lineno, "B006", "mutable default argument"))
     return findings
 
 
@@ -90,9 +88,7 @@ def inspect_file(root: Path, path: Path) -> list[Finding]:
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             findings.extend(_function_findings(relative, node))
-        elif isinstance(node, ast.ImportFrom) and any(
-            alias.name == "*" for alias in node.names
-        ):
+        elif isinstance(node, ast.ImportFrom) and any(alias.name == "*" for alias in node.names):
             findings.append(Finding(relative, node.lineno, "F403", "wildcard import"))
         elif isinstance(node, ast.ExceptHandler) and node.type is None:
             findings.append(Finding(relative, node.lineno, "E722", "bare except"))
@@ -127,9 +123,7 @@ def inspect_file(root: Path, path: Path) -> list[Finding]:
                     for keyword in node.keywords
                 )
             ):
-                findings.append(
-                    Finding(relative, node.lineno, "S602", "subprocess shell=True")
-                )
+                findings.append(Finding(relative, node.lineno, "S602", "subprocess shell=True"))
             if (
                 isinstance(node.func, ast.Attribute)
                 and node.func.attr == "now"
@@ -148,9 +142,7 @@ def inspect_file(root: Path, path: Path) -> list[Finding]:
                 )
     for line_number, line in enumerate(text.splitlines(), start=1):
         upper = line.upper()
-        if ("TODO" in upper or "FIXME" in upper) and not relative.startswith(
-            "tools/assurance/"
-        ):
+        if ("TODO" in upper or "FIXME" in upper) and not relative.startswith("tools/assurance/"):
             findings.append(
                 Finding(relative, line_number, "TD001", "TODO/FIXME in approved source")
             )
@@ -159,18 +151,14 @@ def inspect_file(root: Path, path: Path) -> list[Finding]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
     root = args.repo_root.resolve()
     paths = sorted((root / "src").rglob("*.py"))
     findings = [finding for path in paths for finding in inspect_file(root, path)]
     if findings:
         for finding in findings:
-            sys.stdout.write(
-                f"{finding.path}:{finding.line}: {finding.rule} {finding.message}\n"
-            )
+            sys.stdout.write(f"{finding.path}:{finding.line}: {finding.rule} {finding.message}\n")
         return 1
     sys.stdout.write(
         f"PASS: {len(paths)} production Python files meet deterministic quality rules\n"

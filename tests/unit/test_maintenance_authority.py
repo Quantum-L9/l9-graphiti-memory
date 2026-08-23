@@ -99,10 +99,7 @@ def test_maintain_does_not_confer_write_delete_or_admin(maintainer) -> None:
 def test_maintain_is_scoped_to_granted_namespaces(maintainer) -> None:
     policy = NamespacePolicy()
 
-    assert (
-        policy.evaluate(maintainer, AuthorizationAction.MAINTAIN, "repo-b").allowed
-        is False
-    )
+    assert policy.evaluate(maintainer, AuthorizationAction.MAINTAIN, "repo-b").allowed is False
 
 
 def test_write_grant_does_not_confer_maintain() -> None:
@@ -117,9 +114,7 @@ def test_write_grant_does_not_confer_maintain() -> None:
     policy = NamespacePolicy()
 
     assert policy.evaluate(writer, AuthorizationAction.WRITE, "repo-a").allowed is True
-    assert (
-        policy.evaluate(writer, AuthorizationAction.MAINTAIN, "repo-a").allowed is False
-    )
+    assert policy.evaluate(writer, AuthorizationAction.MAINTAIN, "repo-a").allowed is False
 
 
 @pytest.mark.parametrize("field", INGESTION_SHAPED_FIELDS)

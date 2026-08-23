@@ -59,9 +59,7 @@ def main() -> int:
     try:
         import l9_graphite_memory.active as active_pkg
     except ImportError as exc:
-        sys.stderr.write(
-            f"ERROR: failed to import l9_graphite_memory.active: {exc}\n"
-        )
+        sys.stderr.write(f"ERROR: failed to import l9_graphite_memory.active: {exc}\n")
         return 1
 
     exported = set(getattr(active_pkg, "__all__", []))
@@ -71,9 +69,7 @@ def main() -> int:
 
     ok = True
     if missing:
-        sys.stderr.write(
-            f"ERROR: missing required public symbols: {sorted(missing)}\n"
-        )
+        sys.stderr.write(f"ERROR: missing required public symbols: {sorted(missing)}\n")
         ok = False
     if leaked:
         sys.stderr.write(
@@ -84,9 +80,7 @@ def main() -> int:
     if not ok:
         return 1
 
-    sys.stdout.write(
-        f"OK: public API surface check passed ({len(exported)} exported symbols)\n"
-    )
+    sys.stdout.write(f"OK: public API surface check passed ({len(exported)} exported symbols)\n")
     return 0
 
 

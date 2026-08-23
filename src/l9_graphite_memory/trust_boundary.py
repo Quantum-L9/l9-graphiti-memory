@@ -43,9 +43,7 @@ _KEYCHAIN_MARKERS = (
 
 def _assert_surface_intact() -> None:
     missing = [
-        relative
-        for relative in _MODEL_SURFACE_FILES
-        if not (_PACKAGE_ROOT / relative).is_file()
+        relative for relative in _MODEL_SURFACE_FILES if not (_PACKAGE_ROOT / relative).is_file()
     ]
     if missing:
         msg = (

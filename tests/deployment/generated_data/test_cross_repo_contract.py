@@ -36,10 +36,7 @@ def locate_cursor() -> Path | None:
             continue
         path = Path(candidate).resolve()
         if (
-            path
-            / "environment/agents/generated-data"
-            / "adapters"
-            / "graphiti_memory.py"
+            path / "environment/agents/generated-data" / "adapters" / "graphiti_memory.py"
         ).is_file():
             return path
     return None
@@ -50,9 +47,7 @@ class CrossRepositoryContractTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.cursor = locate_cursor()
         if cls.cursor is None:
-            raise unittest.SkipTest(
-                "Cursor-Governance checkout unavailable"
-            )
+            raise unittest.SkipTest("Cursor-Governance checkout unavailable")
 
     def test_actual_producer_contract_is_compatible(
         self,
@@ -126,37 +121,21 @@ class CrossRepositoryContractTests(unittest.TestCase):
 
     def test_fixtures_use_supported_values(self) -> None:
         manifest = __import__("yaml").safe_load(
-            (
-                DEPLOYMENT / "capability-manifest.yaml"
-            ).read_text(encoding="utf-8")
+            (DEPLOYMENT / "capability-manifest.yaml").read_text(encoding="utf-8")
         )
         candidate = json.loads(
-            (
-                DEPLOYMENT
-                / "fixtures"
-                / "governed-candidate.json"
-            ).read_text(encoding="utf-8")
+            (DEPLOYMENT / "fixtures" / "governed-candidate.json").read_text(encoding="utf-8")
         )
         reuse = json.loads(
-            (
-                DEPLOYMENT
-                / "fixtures"
-                / "reuse-event.json"
-            ).read_text(encoding="utf-8")
+            (DEPLOYMENT / "fixtures" / "reuse-event.json").read_text(encoding="utf-8")
         )
         invalidation = json.loads(
-            (
-                DEPLOYMENT
-                / "fixtures"
-                / "path-invalidation.json"
-            ).read_text(encoding="utf-8")
+            (DEPLOYMENT / "fixtures" / "path-invalidation.json").read_text(encoding="utf-8")
         )
 
         self.assertIn(
             candidate["knowledge"]["primary_class"],
-            manifest["candidate_ingress"][
-                "supported_classes"
-            ],
+            manifest["candidate_ingress"]["supported_classes"],
         )
         self.assertIn(
             reuse["outcome"],
@@ -164,20 +143,14 @@ class CrossRepositoryContractTests(unittest.TestCase):
         )
         self.assertIn(
             invalidation["event_type"],
-            manifest["invalidation"][
-                "supported_event_types"
-            ],
+            manifest["invalidation"]["supported_event_types"],
         )
 
     def test_candidate_preserves_advisory_boundary(
         self,
     ) -> None:
         candidate = json.loads(
-            (
-                DEPLOYMENT
-                / "fixtures"
-                / "governed-candidate.json"
-            ).read_text(encoding="utf-8")
+            (DEPLOYMENT / "fixtures" / "governed-candidate.json").read_text(encoding="utf-8")
         )
         governance = candidate["governance"]
         self.assertEqual(
@@ -192,16 +165,8 @@ class CrossRepositoryContractTests(unittest.TestCase):
             governance["promotion_decision"],
             "promote",
         )
-        self.assertFalse(
-            governance[
-                "may_override_repository_state"
-            ]
-        )
-        self.assertFalse(
-            governance[
-                "may_override_canonical_authority"
-            ]
-        )
+        self.assertFalse(governance["may_override_repository_state"])
+        self.assertFalse(governance["may_override_canonical_authority"])
 
 
 if __name__ == "__main__":
