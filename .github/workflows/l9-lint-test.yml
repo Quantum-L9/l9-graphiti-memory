@@ -74,6 +74,22 @@ jobs:
         run: |
           set -euo pipefail
           if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
+          # mypy needs the project importable, not just the toolchain. This
+          # repository's pyproject.toml sets `plugins = ["pydantic.mypy"]`, and
+          # mypy resolves a module-name plugin from its own environment, so
+          # without the package installed it exits 2 with
+          # `Error importing plugin "pydantic.mypy": No module named 'pydantic'`
+          # before checking a single file. The test job below already installs
+          # the project; the template omitted it here.
+          #
+          # The extras must match ci.yml (dev + server + postgres), not dev
+          # alone. server.py guards its starlette import and carries
+          # `type: ignore[assignment,misc]` in the fallback branch: with the
+          # server extra present those ignores are used, and without it
+          # --ignore-missing-imports makes them dead, so mypy reports
+          # `Unused "type: ignore" comment  [unused-ignore]` instead.
+          pip install -e ".[dev,server,postgres]" || pip install -e . || \
+            echo "::notice::no local editable package to install"
       - name: ruff check
         run: ruff check . --output-format=github
       # No `ruff format --check` step. This repository has never been
