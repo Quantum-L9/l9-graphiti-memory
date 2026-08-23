@@ -555,12 +555,11 @@ class MemoryService:
             assert left.assertion is not None
             for right in structured[index + 1 :]:
                 assert right.assertion is not None
-                same_key = (
-                    (left.assertion.subject or "").casefold()
-                    == (right.assertion.subject or "").casefold()
-                    and (left.assertion.predicate or "").casefold()
-                    == (right.assertion.predicate or "").casefold()
-                )
+                same_key = (left.assertion.subject or "").casefold() == (
+                    right.assertion.subject or ""
+                ).casefold() and (left.assertion.predicate or "").casefold() == (
+                    right.assertion.predicate or ""
+                ).casefold()
                 different_value = (left.assertion.object or "").casefold() != (
                     right.assertion.object or ""
                 ).casefold()
@@ -613,9 +612,7 @@ class MemoryService:
     ) -> PhaseLockVerification:
         self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
         now = self.clock.now()
-        lock = self.store.get_phase_lock(
-            principal.tenant_id, namespace, task_signature
-        )
+        lock = self.store.get_phase_lock(principal.tenant_id, namespace, task_signature)
         report = self.conflicts(principal, namespace)
         reasons: list[str] = []
         if lock is None:

@@ -175,9 +175,7 @@ def probe_generated_server(
     session: _StdioSession | None = None
     try:
         session = _StdioSession(argv, run_env, deadline)
-        response = _call(
-            session, 1, "initialize", {"protocolVersion": "2024-11-05"}
-        )
+        response = _call(session, 1, "initialize", {"protocolVersion": "2024-11-05"})
         result = _result_of(response, "initialize", steps)
         info = result.get("serverInfo", {}) if isinstance(result, dict) else {}
         protocol_version = (
@@ -223,9 +221,7 @@ def probe_generated_server(
         steps.append(ProbeStep(method="timeout", ok=False, detail="deadline exceeded"))
     except (BrokenPipeError, OSError, ValueError, json.JSONDecodeError) as exc:
         reasons.append(f"probe transport failure: {exc}")
-        steps.append(
-            ProbeStep(method="transport", ok=False, detail=type(exc).__name__)
-        )
+        steps.append(ProbeStep(method="transport", ok=False, detail=type(exc).__name__))
     finally:
         if session is not None:
             exit_code, stderr_text = session.close()
