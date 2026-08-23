@@ -139,7 +139,8 @@ class GeneratedDataService:
     def _context_candidate(hit: Any, *, repository: str) -> dict[str, Any]:
         record = hit.record
         metadata = dict(record.metadata or {})
-        scope = metadata.get("scope") if isinstance(metadata.get("scope"), dict) else {}
+        raw_scope = metadata.get("scope")
+        scope: dict[str, Any] = raw_scope if isinstance(raw_scope, dict) else {}
         confidence = getattr(record.confidence, "score", record.confidence)
         state = getattr(record.state, "value", str(record.state))
         return {
