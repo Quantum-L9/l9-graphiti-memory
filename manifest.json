@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "742affa3548f42ccf23444022f4ac6975bfbd05d66996477e5925d29d655bac8",
+      "sha256": "a25a028e63623edefdcbf8fa5ece0112b09cd22fa8df21f5e34c6ca6477e31e6",
       "size_bytes": 109536
     },
     {
@@ -2062,8 +2062,8 @@
         "version": "2.2.0"
       },
       "path": "docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/transform.py",
-      "sha256": "017fe4d89cffbe9c1c54ae12fe77da35f450c1edfb47947b406275282678b202",
-      "size_bytes": 2848
+      "sha256": "ac4f4366b3c95d0e718e56aac1d55e220852ad5eb17e5c66e8467a71447d925a",
+      "size_bytes": 2847
     },
     {
       "category": "documentation",
@@ -2478,7 +2478,7 @@
         "version": "2.2.0"
       },
       "path": "docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/transform.py",
-      "sha256": "e951deb30d24ad8060a723d767c6ad852cd4b091a2712a403926892525694150",
+      "sha256": "87086c5b7bee85580a8a966a1c4514ca8ab04e2f7dc6dc9c7a888cd618aaa1be",
       "size_bytes": 653
     },
     {
@@ -2734,8 +2734,8 @@
         "version": "2.2.0"
       },
       "path": "docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/tools/assurance/check_recursive_alignment.py",
-      "sha256": "0d1d48fda5af250ca96cd503fcd7cda4a3e7aea061706454d2310f82dfe87f05",
-      "size_bytes": 12328
+      "sha256": "8841e220172ae81a632ec901ee875741b4879bea418ce88fdb62b3dce3fe178e",
+      "size_bytes": 12546
     },
     {
       "category": "documentation",
@@ -2862,8 +2862,8 @@
         "version": "2.2.0"
       },
       "path": "docs/WIP/l9-bot-memory-integration-pr-pack/scripts/regenerate-manifest.py",
-      "sha256": "b2264f0e38e881ab17619f34fece34b700086ee98a5d359d1a13448b39757196",
-      "size_bytes": 2754
+      "sha256": "f73e0d267edbdf346fd5b178cc16ba818be7aa27d89ede77cdd1a176d81437ea",
+      "size_bytes": 2766
     },
     {
       "category": "documentation",
@@ -4798,8 +4798,8 @@
         "version": "2.2.0"
       },
       "path": "ruff.toml",
-      "sha256": "2a08b299e2a8cfa87a95bb0d176172eed509d8ef05456881170b3b8398b0c05b",
-      "size_bytes": 1361
+      "sha256": "1b40048db2345b5cd0722c2190dffb6e4b65a206ae40113a263c89290e76fca0",
+      "size_bytes": 1690
     },
     {
       "category": "configuration",

@@ -70,7 +70,8 @@ def main() -> int:
         "schema": "l9.pack-manifest/v1",
         "file_count": len(json_rows),
         "files": [
-            {"path": rel, "bytes": size, "sha256": digest} for rel, size, digest in json_rows
+            {"path": rel, "bytes": size, "sha256": digest}
+            for rel, size, digest in json_rows
         ],
     }
     (ROOT / "manifest.json").write_text(json.dumps(manifest_json, indent=2) + "\n")

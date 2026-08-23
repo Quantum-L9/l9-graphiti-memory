@@ -183,7 +183,7 @@ updated: 2026-07-22
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/files/tests/api/register-enriched.e2e.test.ts` | `documentation` | `documentation` | 5993 | `2f60996bcec68e7a6cfcd3b9fc7c6b0635ed49557e0572640cdf0eee586d69ec` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/pr-body.md` | `documentation` | `documentation` | 3529 | `acb228435ffa76ea50dda1c5dddadf647865a644970afb55cdada8a673c02a3f` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/pr-title.txt` | `documentation` | `documentation` | 66 | `37d0af3a4dbf4ebb33931dff792b486062a20b56a4093f315efd2eaa64d18b8c` |
-| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/transform.py` | `documentation` | `documentation` | 2848 | `017fe4d89cffbe9c1c54ae12fe77da35f450c1edfb47947b406275282678b202` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/SEO-Bot/transform.py` | `documentation` | `documentation` | 2847 | `ac4f4366b3c95d0e718e56aac1d55e220852ad5eb17e5c66e8467a71447d925a` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/PR_METADATA.json` | `documentation` | `documentation` | 608 | `1dc3f24c5a677a4dfbc9717ad51798fe8209ff1587216a8496135f4915468c76` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/apply.sh` | `documentation` | `documentation` | 2221 | `1e05fe7fa5d75b754bbeabc6d600599bdb1dd828299379ab3702b54668acf73b` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/base-branch.txt` | `documentation` | `documentation` | 5 | `6403203dd5a0867eb14d104ee8a73730bd72dd9ad92e78d996a6dba0a5dcfc01` |
@@ -209,7 +209,7 @@ updated: 2026-07-22
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/files/src/stages/HandoffEmitterStage.ts` | `documentation` | `documentation` | 7437 | `91c46306b27c1b7d621af7b400e2eb0357424cb5ee47db501515008de08a4b58` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/pr-body.md` | `documentation` | `documentation` | 3215 | `0128f562f082b3504f0cfd98efb16d686732017dc1c8fe1504c06d85f0c30320` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/pr-title.txt` | `documentation` | `documentation` | 80 | `dcb31374240eb26d26905d494d724e0693826e087b0a61eb648c3703fc04c1f9` |
-| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/transform.py` | `documentation` | `documentation` | 653 | `e951deb30d24ad8060a723d767c6ad852cd4b091a2712a403926892525694150` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/Website-Bot/transform.py` | `documentation` | `documentation` | 653 | `87086c5b7bee85580a8a966a1c4514ca8ab04e2f7dc6dc9c7a888cd618aaa1be` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/PR_METADATA.json` | `documentation` | `documentation` | 543 | `eaba58d85f9cd82f384f1d2a60887bcff8c6cb869e977dfcfce965d801b1619d` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/apply.sh` | `documentation` | `documentation` | 2532 | `f1bc22358485145c324e54314b190d03e5e79b8c72420f315e633015e8a11e11` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/base-branch.txt` | `documentation` | `documentation` | 5 | `6403203dd5a0867eb14d104ee8a73730bd72dd9ad92e78d996a6dba0a5dcfc01` |
@@ -225,7 +225,7 @@ updated: 2026-07-22
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/src/index.ts` | `documentation` | `documentation` | 13953 | `0c1292ead967df7bfd9783358f108ec313988b9b5bebe5d12bf4d4f2088ffcee` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/tests/client.test.ts` | `documentation` | `documentation` | 4021 | `18db7b02461f9c4d3850734545331952e562bc22ef81d7d41b2b6268ca037d06` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/tsconfig.json` | `documentation` | `documentation` | 344 | `a5823ee2983312fb94e7148e3d01aa2d9dafb19d3a49f018f7b4621b7d9a1910` |
-| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/tools/assurance/check_recursive_alignment.py` | `documentation` | `documentation` | 12328 | `0d1d48fda5af250ca96cd503fcd7cda4a3e7aea061706454d2310f82dfe87f05` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/tools/assurance/check_recursive_alignment.py` | `documentation` | `documentation` | 12546 | `8841e220172ae81a632ec901ee875741b4879bea418ce88fdb62b3dce3fe178e` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/pr-body.md` | `documentation` | `documentation` | 2965 | `39cfc3cae73cb59157035f0b69820f283db6cbd089d5c8f2afc824e4bb130756` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/pr-title.txt` | `documentation` | `documentation` | 61 | `123479961d468096e55d25facc3c57cb270373a009d96002938483ba24f95536` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/apply-all-source-only.sh` | `documentation` | `documentation` | 876 | `7a22503b494984893f06cd6ef930904f671e46f8b50d8741c4a7ce8fb1177352` |
@@ -233,7 +233,7 @@ updated: 2026-07-22
 | `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/prepare-stack.sh` | `documentation` | `documentation` | 1447 | `0e387f3bf6d22db47e7683b574d3aefbc1ad67202c9898227fb6b747bf90b280` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/provision-bot-principals.sh` | `documentation` | `documentation` | 3331 | `e4113a4993dcc9d4a53f967697e6d2eacf9152b18bbac695da7d7f3a81c09f00` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/push-stack.sh` | `documentation` | `documentation` | 2150 | `60c731c398c55b3f09182248071737e886a2853f3021602a03789511111e1058` |
-| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/regenerate-manifest.py` | `documentation` | `documentation` | 2754 | `b2264f0e38e881ab17619f34fece34b700086ee98a5d359d1a13448b39757196` |
+| `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/regenerate-manifest.py` | `documentation` | `documentation` | 2766 | `f73e0d267edbdf346fd5b178cc16ba818be7aa27d89ede77cdd1a176d81437ea` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/test-apply-safety.sh` | `documentation` | `documentation` | 3274 | `755994ed18ea2ef250c37c8497e893b59d64581e69939c85e939d141b1628ff5` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/test-isolated-contracts.sh` | `documentation` | `documentation` | 1695 | `ca2d2e4f0aa530b4e0090125d184e5f0d13bdd171f9eedbe7fe61efd05c0f812` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/scripts/validate-pack.sh` | `documentation` | `documentation` | 7386 | `841ff1dbebbc16db5ce2ce3d30544490b01552b6c9dc847079735c2f295db5cc` |
@@ -354,7 +354,7 @@ updated: 2026-07-22
 | `release-work/repository-review/source-citations.json` | `repository_root` | `repository_root` | 11593 | `063b6e1a19f4d5ad38af515438b86efb04f657943e4b43117c6093381f8da414` |
 | `release-work/repository-review/supersession-map.md` | `repository_root` | `repository_root` | 6234 | `dfbbff339dec837a4a2f4d70e1721b26963d3c1c86c131325c8ecfaa00c2abee` |
 | `release-work/repository-review/validation-map.md` | `repository_root` | `repository_root` | 5817 | `1ac32caa1b8e54a248e2f087380ae60da993cb178ec5205ce6ef2ed8254a4ff9` |
-| `ruff.toml` | `repository_root` | `repository_root` | 1361 | `2a08b299e2a8cfa87a95bb0d176172eed509d8ef05456881170b3b8398b0c05b` |
+| `ruff.toml` | `repository_root` | `repository_root` | 1690 | `1b40048db2345b5cd0722c2190dffb6e4b65a206ae40113a263c89290e76fca0` |
 | `rules/03-graphiti-memory.mdc` | `configuration` | `configuration` | 603 | `20e03434589675053d739e5fa182eb650aaf821acf0cf757a913e60df7c879a6` |
 | `rules/97-graph-engine-architecture.mdc` | `configuration` | `configuration` | 508 | `54defdb3c1813f10a6d102a94cf13b2979059db3ddfcc33d717bfc512ba72be8` |
 | `rules/97-graph-layer-boundary.mdc` | `configuration` | `configuration` | 517 | `4ed80a718c926d7a87dad490e339c845a2efc2fa66af2ecdad7cf0c9dd5ffd24` |

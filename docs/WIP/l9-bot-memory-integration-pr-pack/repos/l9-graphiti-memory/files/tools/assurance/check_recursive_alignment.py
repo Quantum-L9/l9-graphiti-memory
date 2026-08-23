@@ -110,7 +110,10 @@ def _text_files(root: Path) -> tuple[Path, ...]:
         if not path.is_file():
             continue
         relative = path.relative_to(root)
-        if any(part in EXCLUDED_PARTS or part.endswith(".egg-info") for part in relative.parts):
+        if any(
+            part in EXCLUDED_PARTS or part.endswith(".egg-info")
+            for part in relative.parts
+        ):
             continue
         if relative.as_posix().startswith(VENDORED_PREFIXES):
             continue
@@ -146,7 +149,9 @@ def _python_calls(path: Path) -> tuple[tuple[int, str], ...]:
             continue
         if isinstance(node.func, ast.Name):
             calls.append((node.lineno, node.func.id))
-        elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+        elif isinstance(node.func, ast.Attribute) and isinstance(
+            node.func.value, ast.Name
+        ):
             calls.append((node.lineno, f"{node.func.value.id}.{node.func.attr}"))
     return tuple(calls)
 
@@ -166,7 +171,9 @@ def scan(root: Path) -> tuple[Violation, ...]:
             )
 
     for relative_posix in tracked:
-        if relative_posix.endswith(".pyc") or "__pycache__" in relative_posix.split("/"):
+        if relative_posix.endswith(".pyc") or "__pycache__" in relative_posix.split(
+            "/"
+        ):
             violations.append(
                 Violation(
                     "file_structure",
@@ -249,7 +256,8 @@ def scan(root: Path) -> tuple[Violation, ...]:
                     (
                         candidate
                         for candidate in ast.walk(tree)
-                        if isinstance(candidate, ast.Call) and node in ast.walk(candidate)
+                        if isinstance(candidate, ast.Call)
+                        and node in ast.walk(candidate)
                     ),
                     None,
                 )
@@ -317,7 +325,9 @@ def scan(root: Path) -> tuple[Violation, ...]:
         relative = path.relative_to(root).as_posix()
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         parents = {
-            child: parent for parent in ast.walk(tree) for child in ast.iter_child_nodes(parent)
+            child: parent
+            for parent in ast.walk(tree)
+            for child in ast.iter_child_nodes(parent)
         }
         for node in ast.walk(tree):
             candidate: str | None = None
@@ -329,7 +339,11 @@ def scan(root: Path) -> tuple[Violation, ...]:
                 and isinstance(parents.get(node), ast.ClassDef)
             ):
                 candidate = node.target.id
-            if candidate and not candidate.startswith("__") and not SNAKE_NAME.fullmatch(candidate):
+            if (
+                candidate
+                and not candidate.startswith("__")
+                and not SNAKE_NAME.fullmatch(candidate)
+            ):
                 violations.append(
                     Violation(
                         "schema_field",
@@ -360,13 +374,17 @@ def scan(root: Path) -> tuple[Violation, ...]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
+    parser.add_argument(
+        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
+    )
     violations = scan(parser.parse_args().repo_root.resolve())
     if violations:
         for item in violations:
             sys.stdout.write(f"{item.path}:{item.line}: {item.rule}: {item.evidence}\n")
         return 1
-    sys.stdout.write("PASS: recursive L9 alignment contract satisfied across all ten passes\n")
+    sys.stdout.write(
+        "PASS: recursive L9 alignment contract satisfied across all ten passes\n"
+    )
     return 0
 
 

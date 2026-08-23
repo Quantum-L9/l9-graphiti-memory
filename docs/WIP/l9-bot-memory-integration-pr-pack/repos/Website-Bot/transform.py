@@ -10,7 +10,7 @@
 
 from pathlib import Path
 
-p = Path(".env.example")
+p = Path('.env.example')
 if p.exists():
     text = p.read_text()
     block = """
@@ -22,5 +22,5 @@ L9_MEMORY_TOKEN=
 L9_MEMORY_TOKEN_BUDGET=1200
 L9_MEMORY_MAX_RECORDS=40
 """
-    if "L9_MEMORY_MODE=" not in text:
-        p.write_text(text.rstrip() + block + "\n")
+    if 'L9_MEMORY_MODE=' not in text:
+        p.write_text(text.rstrip() + block + '\n')

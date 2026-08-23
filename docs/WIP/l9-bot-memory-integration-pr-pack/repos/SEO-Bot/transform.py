@@ -18,10 +18,9 @@ def replace_once(path: str, old: str, new: str) -> None:
         raise SystemExit(f"Expected anchor not found in {path}: {old[:80]!r}")
     p.write_text(text.replace(old, new, 1))
 
-
 # Add governed-memory configuration to the existing fail-fast env schema.
 replace_once(
-    "src/core/config.ts",
+    'src/core/config.ts',
     "  PERPLEXITY_API_KEY: z.string().min(1),\n",
     "  PERPLEXITY_API_KEY: z.string().min(1),\n\n"
     "  // Governed cross-agent memory (l9-graphiti-memory HTTP MCP)\n"
@@ -34,7 +33,7 @@ replace_once(
 
 # Add operational receipt pointers only; canonical memory remains in l9-graphiti-memory.
 replace_once(
-    "src/core/database/schema.ts",
+    'src/core/database/schema.ts',
     "  learnings: text('learnings'),\n});",
     "  learnings: text('learnings'),\n"
     "  memoryRecordId: uuid('memory_record_id'),\n"
@@ -44,7 +43,7 @@ replace_once(
 
 # Allow modules to register their own job definitions before Scheduler.start().
 replace_once(
-    "src/core/scheduler.ts",
+    'src/core/scheduler.ts',
     "  registerHandler(jobName: string, handler: (job: Job) => Promise<void>): void {\n",
     "  registerDefinition(definition: JobDefinition): void {\n"
     "    const existing = JOB_DEFINITIONS.find(item => item.name === definition.name);\n"
@@ -59,7 +58,7 @@ replace_once(
 )
 
 # Document runtime configuration without requiring it in optional mode.
-env = Path(".env.example")
+env = Path('.env.example')
 if env.exists():
     text = env.read_text()
     block = """
@@ -71,5 +70,5 @@ L9_MEMORY_TOKEN=
 L9_MEMORY_TOKEN_BUDGET=1200
 L9_MEMORY_MAX_RECORDS=40
 """
-    if "L9_MEMORY_MODE=" not in text:
-        env.write_text(text.rstrip() + block + "\n")
+    if 'L9_MEMORY_MODE=' not in text:
+        env.write_text(text.rstrip() + block + '\n')

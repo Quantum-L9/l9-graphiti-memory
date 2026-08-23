@@ -23,7 +23,12 @@ target-version = "py310"
 # formatter still rewrote it and broke the pack's checksums. exclude binds
 # both. force-exclude makes it hold when ruff is handed explicit paths,
 # which is how pre-commit invokes it.
-exclude = ["tools/phase6"]
+# docs/WIP/l9-bot-memory-integration-pr-pack is the same shape: a vendored
+# pack carrying its own MANIFEST.sha256 and PACK_CONTRACT.yaml. Formatting
+# its four Python files broke that seal too, and dragged the pack's
+# pre-existing findings into SonarCloud's New Code window as if this repo
+# had just written them.
+exclude = ["tools/phase6", "docs/WIP"]
 force-exclude = true
 
 [lint]
