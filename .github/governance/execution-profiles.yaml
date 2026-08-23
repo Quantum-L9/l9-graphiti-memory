@@ -40,6 +40,22 @@
       "providers": ["semgrep"],
       "policy": "",
       "allowed_events": ["schedule", "workflow_dispatch"]
+    },
+    "agent": {
+      "sdk_profile": "ci_fast",
+      "strict": false,
+      "default_mode": "advisory",
+      "providers": ["semgrep"],
+      "policy": "",
+      "allowed_events": ["workflow_dispatch", "pull_request"]
+    },
+    "l4_local": {
+      "sdk_profile": "ci_fast",
+      "strict": false,
+      "default_mode": "advisory",
+      "providers": ["semgrep"],
+      "policy": "",
+      "allowed_events": ["workflow_dispatch"]
     }
   }
 }

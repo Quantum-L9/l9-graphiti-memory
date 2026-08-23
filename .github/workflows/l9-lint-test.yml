@@ -1,19 +1,17 @@
-# L9 consumer lint + test workflow — ACTIVATED for Quantum-L9/l9-graphiti-memory.
+# L9 consumer lint + test workflow (TEMPLATE — copy into your repo)
 #
-# Seeded from the l9-ci-pack Core hub and activated here (SOURCE_DIR, lint
-# policy, toolchain pin). It is not executed from l9-ci-core.
+# This file is NOT executed from l9-ci-core. Copy it into the CONSUMER
+# repository at `.github/workflows/l9-lint-test.yml`. It replaces the
+# lint / type-check / test half of the retired v1 `pr-pipeline.yml`.
 #
-# It deliberately lives consumer-side: l9-ci-core v2 is a thin control plane
-# whose workflow set is fixed by `tests/workflows/test_phase_scope.py`. Generic
-# ruff / mypy / pytest *config* is owned by the consuming repository; *versions*
-# come from the install-consumer-ci action. Do not write version literals here.
-#
-# Toolchain pin: the template shipped `install-consumer-ci@v2`, which does not
-# resolve — l9-ci-core has no v2 tag (v1, v1.0.0, v0.1.0 only), and the action
-# is absent from v1, so @v1 fails too. Both jobs died in `Set up job` with
-# "Unable to resolve action ... unable to find version `v2`" and never started.
-# Pinned to the l9-ci-core main commit that carries the action, which also
-# satisfies the SHA-pinning convention below. Repoint when a real tag exists.
+# Org-seed safety (mirrors Node #58):
+#   - Lint / test run only when `pyproject.toml` or `requirements.txt` exists.
+#   - The test job is named `Python Test Suite`, not `Test Suite`, so it
+#     cannot collide with a required Node check context.
+#   - Toolchain versions come only from install-consumer-ci: no unpinned
+#     pytest plugin fallbacks. The consumer's own package and dependencies
+#     are still installed from pyproject.toml / requirements.txt, or pytest
+#     fails on import before running a test.
 #
 # v2 conventions preserved here:
 #   - immutable event-revision checkout (no floating action ref)
@@ -32,6 +30,8 @@ on:
 env:
   PYTHON_VERSION: "3.12"
   SOURCE_DIR: "src/l9_graphite_memory"
+  # Activated for this repo. `.` makes mypy abort on the vendored
+  # docs/WIP duplicate-module tree, so the gate is scoped to the package.
   TEST_DIR: "tests/"
   # Fail the build below this line coverage percentage. 0 = advisory (no gate).
   COVERAGE_THRESHOLD: "0"
@@ -44,8 +44,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  detect-python:
+    name: Detect Python package
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      has_python: ${{ steps.detect.outputs.has_python }}
+    steps:
+      - name: Checkout immutable event revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+          TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://github.com/${REPOSITORY}.git"
+          auth_header="Authorization: Basic $(printf 'x-access-token:%s' "${TOKEN}" | base64 | tr -d '\n')"
+          git -c protocol.version=2 \
+            -c "http.https://github.com/.extraheader=${auth_header}" \
+            fetch --depth=1 origin "${REVISION}"
+          git checkout --detach FETCH_HEAD
+      - id: detect
+        name: Detect pyproject.toml or requirements.txt
+        run: |
+          set -euo pipefail
+          if [ -f pyproject.toml ] || [ -f requirements.txt ]; then
+            echo "has_python=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_python=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::no Python manifest; skipping lint and Python Test Suite"
+          fi
+
   lint:
     name: Lint and Type Check
+    needs: detect-python
+    if: needs.detect-python.outputs.has_python == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -68,53 +104,16 @@ jobs:
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Set up uv (resolved versions come from uv.lock)
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
       - name: Install consumer CI toolchain
         uses: Quantum-L9/l9-ci-core/.github/actions/install-consumer-ci@7148fc73dcbf41367f5c5401432dc997b1f4f869  # main
       - name: Install extra CI requirements
         run: |
           set -euo pipefail
           if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
-          # mypy needs this project's dependencies in its own environment.
-          # install-consumer-ci brings the Core-pinned ruff/mypy/pytest and
-          # nothing else, and pyproject.toml sets `plugins = ["pydantic.mypy"]`
-          # — mypy resolves a module-name plugin from its environment, so
-          # without pydantic it exits 2 with
-          # `Error importing plugin "pydantic.mypy": No module named 'pydantic'`
-          # before checking a single file.
-          #
-          # Dependencies only, not the project: mypy analyses SOURCE_DIR from
-          # the checkout, so an editable install is not needed. Resolved
-          # versions and their hashes come from uv.lock, and the install is
-          # binaries-only and hash-checked, so no sdist setup script runs and
-          # every artifact is verified against the lock. No version literals
-          # here, per the note at the top.
-          #
-          # Extras match ci.yml (dev + server + postgres), not dev alone.
-          # server.py guards its starlette import and carries
-          # `type: ignore[assignment,misc]` in the fallback branch: with the
-          # server extra present those ignores are live, and without it
-          # --ignore-missing-imports makes them dead, so mypy reports
-          # `Unused "type: ignore" comment  [unused-ignore]` instead.
-          if [ -f uv.lock ]; then
-            uv export --frozen --no-emit-project \
-              --extra dev --extra server --extra postgres \
-              -o "${RUNNER_TEMP}/lint-requirements.txt"
-            pip install --only-binary :all: --require-hashes \
-              -r "${RUNNER_TEMP}/lint-requirements.txt"
-          else
-            echo "::notice::no uv.lock; mypy runs against the toolchain only"
-          fi
       - name: ruff check
         run: ruff check . --output-format=github
-      # No `ruff format --check` step. This repository has never been
-      # ruff-format clean (118 files would be reformatted, 26 of them under
-      # SOURCE_DIR) and its owned gate, .github/workflows/ci.yml, deliberately
-      # runs `ruff check` only. This template states that generic ruff / mypy /
-      # pytest *config* is owned by the consuming repository, so activation
-      # matches the repo's lint policy rather than adding a second, red one.
-      # Adopting format enforcement is a separate decision with a 118-file diff.
+      - name: ruff format --check
+        run: ruff format --check .
       - name: mypy
         run: |
           mypy "${SOURCE_DIR}" \
@@ -122,7 +121,9 @@ jobs:
             --install-types --non-interactive --ignore-missing-imports
 
   test:
-    name: Test Suite
+    name: Python Test Suite
+    needs: detect-python
+    if: needs.detect-python.outputs.has_python == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -147,15 +148,22 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install consumer CI toolchain
         uses: Quantum-L9/l9-ci-core/.github/actions/install-consumer-ci@7148fc73dcbf41367f5c5401432dc997b1f4f869  # main
-      - name: Install test tools
+      - name: Install extra CI requirements
         run: |
           set -euo pipefail
           if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
-          pip install -e ".[dev]" || pip install -e . || \
-            echo "::notice::no local editable package to install"
-          python -c "import pytest_cov" 2>/dev/null || pip install pytest-cov
-          python -c "import xdist" 2>/dev/null || pip install pytest-xdist
-          python -c "import pytest_timeout" 2>/dev/null || pip install pytest-timeout
+      # Toolchain versions come from install-consumer-ci. The consumer's own
+      # runtime dependencies still have to be installed from the manifest that
+      # triggered this job, or pytest fails on import before it runs a test.
+      - name: Install consumer package and dependencies
+        run: |
+          set -euo pipefail
+          if [ -f pyproject.toml ]; then
+            pip install -e ".[dev]" || pip install -e . || \
+              echo "::notice::pyproject.toml is not pip-installable; relying on PYTHONPATH"
+          elif [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
       - name: pytest with coverage
         env:
           TESTING: "true"

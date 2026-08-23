@@ -1,8 +1,11 @@
 # L9 analysis caller (TEMPLATE — copy into your repo at .github/workflows/l9-analysis.yml)
 #
-# Works for Python AND Node.js repos: semgrep is the single, language-agnostic
-# provider the pinned SDK normalizes. The ONLY per-language difference is the
-# semgrep --config rulesets in the "Run semgrep" step below.
+# Preferred hop when Core pins match: Quantum-L9/l9-ci-core
+# `.github/workflows/analyze-semgrep.yml@v2` (docs/templates/l9-analysis.yml).
+# This pack file stays on the SHA-pinned inline + publish topology so
+# `make sync-core` cannot silently change callee inputs. Stack-selects
+# `--config` (p/python vs p/javascript+p/typescript). If `.github/governance/`
+# is missing, job `governance-pack-missing` is the one blocking check.
 #
 # Topology (this is the wiring that actually works):
 #   job analyze  -> generates the semgrep report and runs the SDK pipeline in ONE
@@ -41,8 +44,70 @@ env:
   L9_MATRIX_ID: "pr-semgrep"
 
 jobs:
+  preflight:
+    name: Detect stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      has_governance: ${{ steps.detect.outputs.has_governance }}
+      semgrep_configs: ${{ steps.detect.outputs.semgrep_configs }}
+    steps:
+      - name: Checkout immutable event revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+          TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://github.com/${REPOSITORY}.git"
+          auth_header="Authorization: Basic $(printf 'x-access-token:%s' "${TOKEN}" | base64 | tr -d '\n')"
+          git -c protocol.version=2 \
+            -c "http.https://github.com/.extraheader=${auth_header}" \
+            fetch --depth=1 origin "${REVISION}"
+          git checkout --detach FETCH_HEAD
+      - id: detect
+        name: Detect governance pack and stack
+        run: |
+          set -euo pipefail
+          if [ -d .github/governance ]; then
+            echo "has_governance=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_governance=false" >> "$GITHUB_OUTPUT"
+          fi
+          configs=()
+          if [ -f pyproject.toml ] || [ -f requirements.txt ]; then
+            configs+=(--config p/python)
+          fi
+          if [ -f package.json ]; then
+            configs+=(--config p/javascript --config p/typescript)
+          fi
+          if [ ${#configs[@]} -eq 0 ]; then
+            configs=(--config p/python --config p/javascript --config p/typescript)
+          fi
+          echo "semgrep_configs=${configs[*]}" >> "$GITHUB_OUTPUT"
+
+  governance-pack-missing:
+    name: L9 Analysis
+    needs: preflight
+    if: needs.preflight.outputs.has_governance != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Publish remediable signal
+        run: |
+          set -euo pipefail
+          echo "::error::governance-pack-missing — .github/governance/ is absent. Seed l9-ci-pack (categories=l9-ci-pack) or copy l9-ci-pack/governance/*.yaml, then re-run."
+          exit 1
+
   analyze:
     name: Analyze (semgrep -> SDK)
+    needs: preflight
+    if: needs.preflight.outputs.has_governance == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -90,22 +155,20 @@ jobs:
         if: steps.gov.outputs.enabled == 'true'
         run: |
           set -euo pipefail
-          python -m pip install --upgrade pip semgrep
+          # AGENTS.md pins the supported Semgrep range; installing bare
+          # `semgrep` would float onto a future major and silently change
+          # findings/normalization between runs of the same commit.
+          python -m pip install --upgrade pip 'semgrep>=1.100.0,<2.0.0'
           mkdir -p "artifacts/raw/semgrep/${L9_MATRIX_ID}"
-          # ── PER-LANGUAGE RULESETS ──────────────────────────────────────────
-          # Python repo:   --config p/python
-          # Node.js repo:  --config p/javascript --config p/typescript
-          # Polyglot / either: keep all three (semgrep skips rules that do not
-          # match any files) or use --config auto.
-          semgrep scan \
-            --config p/python \
-            --config p/javascript \
-            --config p/typescript \
+          # Stack-selected by job preflight. Word-split is intentional.
+          # shellcheck disable=SC2086
+          semgrep scan ${SEMGREP_CONFIGS} \
             --json \
             --output "artifacts/raw/semgrep/${L9_MATRIX_ID}/report.json" \
             --error --quiet || true
         env:
           L9_MATRIX_ID: ${{ env.L9_MATRIX_ID }}
+          SEMGREP_CONFIGS: ${{ needs.preflight.outputs.semgrep_configs }}
 
       - id: sdk
         name: Provision immutable SDK
@@ -182,8 +245,8 @@ jobs:
 
   publish:
     name: Publish analysis (Core)
-    needs: analyze
-    if: needs.analyze.outputs.enabled == 'true'
+    needs: [preflight, analyze]
+    if: needs.preflight.outputs.has_governance == 'true' && needs.analyze.outputs.enabled == 'true'
     uses: Quantum-L9/l9-ci-core/.github/workflows/publish-analysis.yml@f88116503430aa18992b70d8d31063e34ff97ef1
     permissions:
       actions: read

@@ -4,14 +4,22 @@
 # Quantum-L9/.github/.github/workflows/governance-*.yml; shipping a change means
 # force-moving the v1 tag there, not touching this file.
 #
-# SECRETS: a called workflow does NOT inherit caller secrets automatically. Today
-# both callees use only the automatic GITHUB_TOKEN, so nothing is passed. If a
-# governance job later needs a real secret, add `secrets:` to the job below —
-# `inherit` for all, or named entries (preferred, least privilege).
-# See docs/DISTRIBUTION.md Appendix A.
+# Pin record (ops/governance-v1-pin.txt):
+#   Quantum-L9/.github/.github/workflows/governance-pr.yml@v1
+#   Quantum-L9/.github/.github/workflows/governance-issue.yml@v1
+#   tag SHA 7ed3ab8650583f6659a6caf061eae77dbd3ed1be
+# Preflight: `git ls-remote https://github.com/Quantum-L9/.github.git refs/tags/v1`
+# must match that SHA before re-seeding this caller.
+#
+# SECRETS: a called workflow does NOT inherit caller secrets automatically.
+# Both callees use only GITHUB_TOKEN. Do not add blank `secrets: inherit`.
+# If a callee later needs a real secret, add a named `secrets:` entry.
+#
+# Permission validation runs BEFORE `if:` skip. Both jobs must declare
+# job-level permissions or a partial grant startup_fails on the unused job.
 #
 # ACCESS: if this caller fails before any step runs, check the Actions policy on
-# THIS repo — see Appendix B. `gh api repos/OWNER/REPO/actions/permissions`
+# THIS repo. `gh api repos/OWNER/REPO/actions/permissions`
 
 name: Governance
 
@@ -24,10 +32,14 @@ on:
 jobs:
   pr:
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
     uses: Quantum-L9/.github/.github/workflows/governance-pr.yml@v1
-    # secrets: inherit
 
   issue:
     if: github.event_name == 'issues'
+    permissions:
+      contents: read
+      issues: write
     uses: Quantum-L9/.github/.github/workflows/governance-issue.yml@v1
-    # secrets: inherit

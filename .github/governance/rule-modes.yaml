@@ -5,7 +5,9 @@
     "merge": "blocking",
     "nightly": "advisory",
     "release": "blocking",
-    "supply_chain": "blocking"
+    "supply_chain": "blocking",
+    "agent": "advisory",
+    "l4_local": "advisory"
   },
   "provider_overrides": {
     "semgrep": {}

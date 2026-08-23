@@ -12,6 +12,7 @@ We pledge to act and interact in ways that contribute to an open, welcoming, div
 ## Our Standards
 
 Examples of behavior that contributes to a positive environment:
+
 - Demonstrating empathy and kindness toward other people
 - Being respectful of differing opinions, viewpoints, and experiences
 - Giving and gracefully accepting constructive feedback
@@ -19,6 +20,7 @@ Examples of behavior that contributes to a positive environment:
 - Focusing on what is best not just for us as individuals, but for the overall community
 
 Examples of unacceptable behavior:
+
 - The use of sexualized language or imagery, and sexual attention or advances of any kind
 - Trolling, insulting or derogatory comments, and personal or political attacks
 - Public or private harassment
@@ -37,8 +39,12 @@ representing the community in public spaces.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the platform team
-via GitHub Security Advisories (for confidential reports) or by contacting `@Quantum-L9/platform` directly.
+Instances of abusive, harassing, or otherwise unacceptable behavior:
+
+- Open [`gov-violation.yml`](.github/ISSUE_TEMPLATE/gov-violation.yml) for a public, routable report.
+- Use this repository's Security Advisory form for a confidential / reporter-privacy path (see SECURITY.md).
+
+Do not "mention @platform" in markdown as the enforcement action. The resolvable owner is the CODEOWNERS team `@Quantum-L9/platform` on `.github/`, `SECURITY.md`, and `CODEOWNERS` only.
 
 All complaints will be reviewed and investigated promptly and fairly.
 

@@ -11,6 +11,7 @@
     "minimum_observation_days": 7,
     "maximum_contract_failures": 0,
     "maximum_artifact_validation_failures": 0,
-    "approval_required": true
+    "approval_required": true,
+    "approval_team": "@Quantum-L9/platform"
   }
 }

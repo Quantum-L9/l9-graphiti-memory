@@ -1,11 +1,14 @@
 # Quantum-L9 org-wide issue template chooser config.
 # https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+#
+# Advisory URL is rewritten per consumer by ops/build-seed-payload.js
+# (same SSOT as SECURITY.md). Do not add a fourth security URL.
 
 blank_issues_enabled: false
 
 contact_links:
   - name: Security Vulnerability Report
-    url: https://github.com/Quantum-L9/.github/security/policy
+    url: https://github.com/Quantum-L9/l9-graphiti-memory/security/advisories/new
     about: Do not open a public issue for security vulnerabilities. Follow SECURITY.md instead.
   - name: Governance / CANONICAL_LAW Question
     url: https://github.com/Quantum-L9/Cursor-Governance/blob/main/CANONICAL_LAW.md
