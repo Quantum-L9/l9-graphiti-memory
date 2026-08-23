@@ -62,7 +62,9 @@ FORBIDDEN_CALL_ATTRIBUTES = {
 }
 
 
-def test_eligible_intents_conform_to_the_gate_contract(tmp_path: Path, topology_principal) -> None:
+def test_eligible_intents_conform_to_the_gate_contract(
+    tmp_path: Path, topology_principal
+) -> None:
     plan_root = make_plan_bundle(
         tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")]
     )
@@ -116,9 +118,12 @@ def test_adapter_module_never_calls_guarded_store_or_dispatch_methods() -> None:
     tree = ast.parse(ADAPTER_PATH.read_text(encoding="utf-8"))
     violations: list[str] = []
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            if node.func.attr in FORBIDDEN_CALL_ATTRIBUTES:
-                violations.append(node.func.attr)
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in FORBIDDEN_CALL_ATTRIBUTES
+        ):
+            violations.append(node.func.attr)
     assert violations == []
 
 

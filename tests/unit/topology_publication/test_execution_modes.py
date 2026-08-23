@@ -71,7 +71,9 @@ def test_preflight_validates_everything_and_writes_nothing(
     assert all(r.memory_record_id is None for r in receipt.candidate_results)
 
 
-def test_preflight_does_not_mutate_identity_fields(tmp_path: Path, topology_principal) -> None:
+def test_preflight_does_not_mutate_identity_fields(
+    tmp_path: Path, topology_principal
+) -> None:
     plan, topo = _inputs(tmp_path, count=1)
 
     captured = {}
@@ -232,7 +234,9 @@ def test_crash_mid_batch_recovers_by_rerunning_the_same_plan(
     store.close()
 
 
-def test_replayed_records_keep_their_record_ids(tmp_path: Path, topology_principal) -> None:
+def test_replayed_records_keep_their_record_ids(
+    tmp_path: Path, topology_principal
+) -> None:
     plan, topo = _inputs(tmp_path, count=3)
     service = _sqlite_service(tmp_path)
     first = execute_topology_publication(

@@ -32,12 +32,18 @@ def _load(root: Path):
     return load_publication_plan(load_verified_bundle(root))
 
 
-def test_well_formed_plan_parses_with_canonical_intent_validation(tmp_path: Path) -> None:
-    root = make_plan_bundle(tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")])
+def test_well_formed_plan_parses_with_canonical_intent_validation(
+    tmp_path: Path,
+) -> None:
+    root = make_plan_bundle(
+        tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")]
+    )
     plan = _load(root)
     assert plan.plan_version == "1.0.0"
     assert plan.candidates[0].memory_intent.operation == "memory.ingest"
-    assert plan.candidates[0].memory_intent.request.namespace.startswith("l9.constellation/")
+    assert plan.candidates[0].memory_intent.request.namespace.startswith(
+        "l9.constellation/"
+    )
 
 
 def test_unsupported_plan_version_is_rejected(tmp_path: Path) -> None:
@@ -73,7 +79,9 @@ def test_duplicate_candidate_ids_reject_the_plan(tmp_path: Path) -> None:
 
 
 def test_unknown_plan_fields_are_rejected(tmp_path: Path) -> None:
-    root = make_plan_bundle(tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")])
+    root = make_plan_bundle(
+        tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")]
+    )
     plan_path = root / "publication-plan.json"
     document = json.loads(plan_path.read_text(encoding="utf-8"))
     document["surprise_field"] = True
@@ -82,7 +90,9 @@ def test_unknown_plan_fields_are_rejected(tmp_path: Path) -> None:
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     import hashlib
 
-    manifest["files"][0]["content_hash"] = "sha256:" + hashlib.sha256(content).hexdigest()
+    manifest["files"][0]["content_hash"] = (
+        "sha256:" + hashlib.sha256(content).hexdigest()
+    )
     manifest["files"][0]["size_bytes"] = len(content)
     (root / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     with pytest.raises(TopologyPlanError, match="publication plan is invalid"):
@@ -106,7 +116,9 @@ def test_unbundled_plan_file_is_not_accepted(tmp_path: Path) -> None:
 
 
 def test_manifest_plan_id_mismatch_is_rejected(tmp_path: Path) -> None:
-    root = make_plan_bundle(tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")])
+    root = make_plan_bundle(
+        tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")]
+    )
     manifest_path = root / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["packet_id"] = "publication-plan:" + "9" * 64
@@ -116,7 +128,9 @@ def test_manifest_plan_id_mismatch_is_rejected(tmp_path: Path) -> None:
 
 
 def test_manifest_semantic_hash_mismatch_is_rejected(tmp_path: Path) -> None:
-    root = make_plan_bundle(tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")])
+    root = make_plan_bundle(
+        tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")]
+    )
     manifest_path = root / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["semantic_hash"] = "sha256:" + "9" * 64

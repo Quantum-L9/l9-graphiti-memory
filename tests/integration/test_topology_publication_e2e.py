@@ -91,7 +91,9 @@ def test_stage_1_exact_producer_plan_validates(plan) -> None:
     assert "conflict.unresolved_material" in held_reasons
 
 
-def test_stage_2_preflight_commits_nothing(plan, topology_bundle, principal, service) -> None:
+def test_stage_2_preflight_commits_nothing(
+    plan, topology_bundle, principal, service
+) -> None:
     receipt = execute_topology_publication(
         plan=plan,
         topology_bundle=topology_bundle,
@@ -142,9 +144,7 @@ def test_stages_3_to_5_apply_replay_and_canonical_readback(
     }
     assert first_ids == replay_ids
 
-    keys_by_candidate = {
-        c.candidate_id: c.idempotency_key for c in plan.candidates
-    }
+    keys_by_candidate = {c.candidate_id: c.idempotency_key for c in plan.candidates}
     for result in applied.candidate_results:
         if not result.attempted:
             continue
@@ -153,9 +153,7 @@ def test_stages_3_to_5_apply_replay_and_canonical_readback(
         assert record.idempotency_key == keys_by_candidate[result.candidate_id]
         metadata = record.metadata
         assert metadata["topology_packet_id"] == plan.source_topology_packet.packet_id
-        assert (
-            metadata["topology_semantic_hash"] == plan.source_topology_semantic_hash
-        )
+        assert metadata["topology_semantic_hash"] == plan.source_topology_semantic_hash
         assert metadata["publication_candidate_id"] == result.candidate_id
 
 
@@ -170,9 +168,7 @@ def test_canonical_records_come_only_from_eligible_candidates(
         mode="apply",
     )
     held_or_rejected_keys = {
-        c.idempotency_key
-        for c in plan.candidates
-        if c.eligibility.status != "eligible"
+        c.idempotency_key for c in plan.candidates if c.eligibility.status != "eligible"
     }
     for namespace in NAMESPACES:
         for record in service.store.list_records(principal.tenant_id, namespace):

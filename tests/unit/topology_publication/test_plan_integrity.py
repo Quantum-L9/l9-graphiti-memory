@@ -26,7 +26,6 @@ from l9_graphite_memory.ingestion import (
 )
 from tests.unit.topology_publication.conftest import (
     EVIDENCE_IDS,
-    PACKET_ID,
     make_candidate,
     make_plan_bundle,
     make_topology_bundle,

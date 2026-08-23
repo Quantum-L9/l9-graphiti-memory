@@ -43,7 +43,11 @@ FUTURE_LOCATORS: dict[str, dict[str, Any]] = {
     "pdf": {"kind": "pdf", "page_number": 14, "block_index": 2},
     "docx": {"kind": "docx", "block_index": 31, "block_kind": "heading"},
     "pptx": {"kind": "pptx", "slide_number": 5, "shape_index": 0},
-    "spreadsheet": {"kind": "spreadsheet", "sheet": "Inventory", "cell_or_range": "A2:C40"},
+    "spreadsheet": {
+        "kind": "spreadsheet",
+        "sheet": "Inventory",
+        "cell_or_range": "A2:C40",
+    },
     "notebook": {"kind": "notebook", "cell_index": 12, "cell_type": "code"},
 }
 
@@ -90,7 +94,9 @@ def test_locator_bearing_topology_intent_roundtrips_canonically(
         mode="apply",
     )
     assert receipt.admitted_count == 1
-    record = service.get(topology_principal, receipt.candidate_results[0].memory_record_id)
+    record = service.get(
+        topology_principal, receipt.candidate_results[0].memory_record_id
+    )
     stored_provenance = record.provenance.source_locator
     stored_evidence = record.evidence[0].source_locator
     assert stored_provenance is not None

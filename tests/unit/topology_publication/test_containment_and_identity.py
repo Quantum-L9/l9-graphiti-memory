@@ -63,9 +63,15 @@ def test_adversarial_mix_calls_memory_service_exactly_for_eligible(
     tmp_path: Path, topology_principal
 ) -> None:
     candidates = (
-        [make_candidate(candidate_id=f"eligible-{i}", status="eligible") for i in range(3)]
+        [
+            make_candidate(candidate_id=f"eligible-{i}", status="eligible")
+            for i in range(3)
+        ]
         + [make_candidate(candidate_id=f"held-{i}", status="held") for i in range(2)]
-        + [make_candidate(candidate_id=f"rejected-{i}", status="rejected") for i in range(4)]
+        + [
+            make_candidate(candidate_id=f"rejected-{i}", status="rejected")
+            for i in range(4)
+        ]
     )
     plan, topo = _load_inputs(tmp_path, candidates, skipped=5)
     service = CountingMemoryService()
@@ -149,7 +155,9 @@ def test_unauthorized_namespace_is_refused_by_memory_policy(
             status="eligible",
         )
     ]
-    candidates[0]["memory_intent"]["request"]["namespace"] = "l9.constellation/other-repo"
+    candidates[0]["memory_intent"]["request"]["namespace"] = (
+        "l9.constellation/other-repo"
+    )
     plan, topo = _load_inputs(tmp_path, candidates)
     service = CountingMemoryService()
     receipt = execute_topology_publication(

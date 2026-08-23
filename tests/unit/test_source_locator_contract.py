@@ -210,7 +210,9 @@ def test_locator_only_requests_are_accepted() -> None:
             EvidenceRef(
                 kind=EvidenceKind.EXPLICIT,
                 description="cell evidence",
-                source_locator=NotebookSourceLocator(cell_index=2, cell_type="markdown"),
+                source_locator=NotebookSourceLocator(
+                    cell_index=2, cell_type="markdown"
+                ),
             ),
         ),
     )

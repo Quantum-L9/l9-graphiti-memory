@@ -1,19 +1,19 @@
 {
   "command_argv": [
-    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr35/.venv/bin/python3",
+    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/valclone/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-23T16:01:03.308497Z",
+  "created_at": "2026-08-23T23:55:46.865262Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "50b26e3a-485c-4b4c-bbf1-1d4e70e833c7",
+  "receipt_id": "985970ed-af30-406d-a5b4-f6935b122d4a",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
