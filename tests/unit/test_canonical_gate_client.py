@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 import inspect
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
@@ -121,7 +121,7 @@ def test_attach_gate_health_keeps_core_and_gate_distinct() -> None:
         store={"name": "sqlite", "healthy": True},
         projection={"name": "none", "healthy": True},
         outbox_backlog=0,
-        checked_at=datetime.now(UTC),
+        checked_at=datetime.now(timezone.utc),
     )
     assert core.gate == {"name": "gate", "configured": False}
     degraded = attach_gate_health(
