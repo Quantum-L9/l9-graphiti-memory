@@ -38,3 +38,29 @@ def test_cli_exposes_consent_deletion_and_legacy_drain_surfaces() -> None:
     assert deletion.command == "delete"
     assert drain.command == "drain-legacy-write-queue"
     assert drain.dry_run is False
+
+
+def test_cli_exposes_topology_plan_ingestion_with_preflight_default() -> None:
+    parser = build_parser()
+    preflight = parser.parse_args(
+        [
+            "ingest-topology-plan",
+            "--plan",
+            "/bundles/plan",
+            "--topology-bundle",
+            "/bundles/topology",
+        ]
+    )
+    applied = parser.parse_args(
+        [
+            "ingest-topology-plan",
+            "--plan",
+            "/bundles/plan",
+            "--topology-bundle",
+            "/bundles/topology",
+            "--apply",
+        ]
+    )
+    assert preflight.command == "ingest-topology-plan"
+    assert preflight.apply is False
+    assert applied.apply is True

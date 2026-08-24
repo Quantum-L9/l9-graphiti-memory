@@ -41,6 +41,13 @@ l9-memory distill source.md --group-id target-namespace --dry-run
 l9-memory bootstrap --root /path/to/repo --group-id target-namespace --dry-run
 ```
 
+## Memory schema 2.2.0
+
+Records persisted at schema 2.1.0 upcast through a pure version restamp: 2.2.0
+only adds the optional structured `source_locator` to provenance and evidence
+(ADR-078). Absent stays absent and reads back as `None`; no backfill or store
+rewrite occurs.
+
 ## Projection migration
 
 Canonical v2.2 writes store provider locators in `projection_links`. Legacy provider data may not have stable locators. Inventory legacy episodes before enabling verified deletion. Reproject canonical records through the outbox so every new provider copy receives a tracked locator.

@@ -100,6 +100,8 @@ Semantic consolidation happens after admission, not during it (ADR-071). A sched
 
 Atomic extraction converts source material into independently governed assertions with exact source ranges and source digests. Offline distillation can ingest documents, repositories, or session material through the same write path. Provider-backed extraction is optional and must return typed evidence, status, model metadata, and token-budget information.
 
+Topology publication plans enter through the same law (ADR-078): `ingestion/topology_publication.py` validates the versioned `l9.topology-publication-plan` contract against integrity-bound bundles, admits only Topology-eligible candidates, preserves Topology's explicit idempotency keys exactly, and submits every attempted write through `MemoryService.write`. Topology eligibility is a request to Memory admission, never a replacement for it; held, rejected, and skipped candidates produce zero write calls, and local plan ingestion is not cross-node routing — Gate still owns transport, and every eligible intent must pass `GateMemoryBridge.validate_intent` with zero dispatches. Evidence coordinates may arrive as structured `SourceLocator` values (PDF/DOCX/PPTX/spreadsheet/notebook/CSV/HTML) beside the line-based `SourceRange`, never fabricated from one another.
+
 ## Read and hydration
 
 1. Requested namespaces are intersected with principal claims.

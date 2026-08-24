@@ -115,6 +115,19 @@ l9-memory bootstrap --group-id repo-a --root /path/to/repository --dry-run
 
 Review source ranges, source digests, candidate classes, and idempotency keys before committing large imports.
 
+## Topology publication plans
+
+```bash
+l9-memory ingest-topology-plan --plan /bundles/plan --topology-bundle /bundles/topology
+l9-memory ingest-topology-plan --plan /bundles/plan --topology-bundle /bundles/topology --apply
+```
+
+Preflight is the default and commits nothing. Both inputs are integrity-bound
+bundles; validation fails closed on hash, binding, or idempotency-key errors
+before any write. Rerunning the same plan after an interruption is the
+recovery path — committed operations come back as duplicates. See
+`docs/TOPOLOGY_PUBLICATION_ADMISSION.md` and ADR-078.
+
 ## Verified deletion
 
 Only an administrator may request deletion.

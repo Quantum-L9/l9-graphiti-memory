@@ -153,12 +153,12 @@ def v1_to_v2(raw: dict[str, Any]) -> dict[str, Any]:
     return raw
 
 
-@schema_registry.register("2.0.0", MEMORY_SCHEMA_VERSION)
+@schema_registry.register("2.0.0", "2.1.0")
 def v2_0_to_v2_1(raw: dict[str, Any]) -> dict[str, Any]:
     """Add source trust and explicit record references without mutating history."""
 
     raw = dict(raw)
-    raw["schema_version"] = MEMORY_SCHEMA_VERSION
+    raw["schema_version"] = "2.1.0"
     provenance = dict(raw.get("provenance") or {})
     provenance.setdefault("source_trust", 1.0)
     raw["provenance"] = provenance
@@ -167,4 +167,18 @@ def v2_0_to_v2_1(raw: dict[str, Any]) -> dict[str, Any]:
     metadata = dict(raw.get("metadata") or {})
     metadata.setdefault("upcasted_from", "2.0.0")
     raw["metadata"] = metadata
+    return raw
+
+
+@schema_registry.register("2.1.0", MEMORY_SCHEMA_VERSION)
+def v2_1_to_v2_2(raw: dict[str, Any]) -> dict[str, Any]:
+    """Adopt the structured source_locator contract (ADR-078).
+
+    2.2.0 only adds the optional ``source_locator`` field to provenance and
+    evidence entries. A 2.1.0 record never carried one, so the upcast is a pure
+    version restamp: absent stays absent and reads back as ``None``.
+    """
+
+    raw = dict(raw)
+    raw["schema_version"] = MEMORY_SCHEMA_VERSION
     return raw

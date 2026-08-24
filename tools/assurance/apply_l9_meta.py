@@ -48,6 +48,14 @@ EXCLUDED_RELATIVE_PATHS = {
     "docs/WIP/l9-bot-memory-integration-pr-pack/CONVERGENCE_REPORT.yaml",
     "docs/WIP/l9-bot-memory-integration-pr-pack/PR_STACK.yaml",
 }
+# Whole subtrees of strict-JSON documents. check_l9_meta.py exempts
+# .github/governance/* from the inline-header requirement because
+# resolve-governance parses those files with json.loads, which rejects the
+# comment this writer would prepend. Expressing it as a prefix rather than
+# named paths keeps the writer aligned with the validator when the org seeder
+# adds a governance file this list has never heard of -- the divergence that
+# let an org-seeded .github/governance/ tree be written into invalid JSON.
+EXCLUDED_PATH_PREFIXES = (".github/governance/",)
 
 
 def _layer(path: Path) -> str:
@@ -156,6 +164,7 @@ def tracked_comment_safe_files(root: Path) -> tuple[Path, ...]:
             any(part in EXCLUDED_PARTS for part in relative.parts)
             or relative.as_posix() in EXCLUDED_FILES
             or relative.as_posix() in EXCLUDED_RELATIVE_PATHS
+            or relative.as_posix().startswith(EXCLUDED_PATH_PREFIXES)
         ):
             continue
         if (

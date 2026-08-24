@@ -2,9 +2,9 @@
 # Commands consume one JSON object from stdin and emit one JSON object to stdout.
 # Do not place tokens or credentials in this file.
 
-L9_SGD_GRAPHITI_INGEST_COMMAND='l9-memory ingest-governed-candidate --stdin'
-L9_SGD_GRAPHITI_SEARCH_COMMAND='l9-memory search-context --stdin'
-L9_SGD_GRAPHITI_HYDRATE_COMMAND='l9-memory hydrate-context --stdin'
-L9_SGD_GRAPHITI_REUSE_COMMAND='l9-memory record-reuse --stdin'
-L9_SGD_GRAPHITI_INVALIDATE_COMMAND='l9-memory invalidate-source --stdin'
+L9_SGD_GRAPHITI_INGEST_COMMAND='l9-memory ingest-governed-candidate'
+L9_SGD_GRAPHITI_SEARCH_COMMAND='l9-memory search-context'
+L9_SGD_GRAPHITI_HYDRATE_COMMAND='l9-memory hydrate-context'
+L9_SGD_GRAPHITI_REUSE_COMMAND='l9-memory record-reuse'
+L9_SGD_GRAPHITI_INVALIDATE_COMMAND='l9-memory invalidate-source'
 L9_SGD_GRAPHITI_CAPABILITIES_COMMAND='l9-memory generated-data-capabilities'
