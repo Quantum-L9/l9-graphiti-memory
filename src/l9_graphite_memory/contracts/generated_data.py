@@ -5,10 +5,10 @@
 #   layer: contract
 #   owner: memory-control-plane
 #   status: active
-#   version: 1.0.0
-#   updated: 2026-08-14
+#   version: 1.1.0
+#   updated: 2026-08-23
 
-"""Governed generated-data ingress contracts. Cursor-Governance remains the control plane."""
+"""Governed generated-data ingress contracts. Cursor-Governance remains control plane."""
 
 from __future__ import annotations
 
@@ -35,11 +35,19 @@ VISIBILITY_TEMPLATES = {
     "constellation_internal": "constellation/internal",
     "restricted": "restricted/{policy_id}",
 }
+VISIBILITY_REQUIRED_FIELDS = {
+    "campaign_local": ("campaign_id",),
+    "repository_local": ("repository",),
+    "project_group": ("project_group",),
+    "constellation_internal": (),
+    "restricted": ("policy_id",),
+}
 
 
 class MemoryCandidateIngestionStatus(str, Enum):
     ADMITTED = "admitted"
     DUPLICATE = "duplicate"
+    QUARANTINED = "quarantined"
     REJECTED = "rejected"
 
 
@@ -137,9 +145,10 @@ class GovernedMemoryCandidate(BaseModel):
         if self.governance.may_override_canonical_authority:
             raise ValueError("may_override_canonical_authority must be false")
         source_sha = self.source.resolved_sha()
+        knowledge = self.knowledge.model_dump()
         freshness = (
             self.source.freshness_sha
-            or (self.knowledge.model_dump().get("freshness") or {}).get("base_sha")
+            or (knowledge.get("freshness") or {}).get("base_sha")
             or source_sha
         )
         if source_sha != freshness:
@@ -164,17 +173,26 @@ class GovernedMemoryCandidate(BaseModel):
             "project_group": self.source.project_group,
             "policy_id": self.source.policy_id,
         }
-        try:
-            return template.format(**{k: v or "" for k, v in fields.items()})
-        except KeyError as exc:
-            raise ValueError(f"visibility {visibility} missing {exc}") from exc
+        missing = [
+            field
+            for field in VISIBILITY_REQUIRED_FIELDS[visibility]
+            if not fields.get(field)
+        ]
+        if missing:
+            raise ValueError(
+                f"visibility {visibility} missing required fields: {', '.join(missing)}"
+            )
+        return template.format(**{key: value or "" for key, value in fields.items()})
 
 
 class MemoryCandidateIngestionResult(BaseModel):
     status: MemoryCandidateIngestionStatus
     candidate_id: str
     namespace: str
+    record_id: UUID | None = None
     write_receipt_id: str | None = None
+    storage_committed: bool = False
+    memory_state: str | None = None
     reason: str | None = None
 
 
