@@ -39,9 +39,7 @@ class MigrationCheck:
 def sqlite_integrity(path: Path) -> tuple[bool, str]:
     connection = sqlite3.connect(path)
     try:
-        value = connection.execute(
-            "PRAGMA integrity_check"
-        ).fetchone()[0]
+        value = connection.execute("PRAGMA integrity_check").fetchone()[0]
         return value == "ok", str(value)
     finally:
         connection.close()
@@ -103,13 +101,9 @@ def run_existing_migration(
     commands: list[list[str]] = []
 
     if shutil.which("l9-memory"):
-        commands.append(
-            ["l9-memory", "resolve"]
-        )
+        commands.append(["l9-memory", "resolve"])
 
-    migration_scripts = sorted(
-        Path("scripts").glob("*migrat*")
-    ) if Path("scripts").is_dir() else []
+    migration_scripts = sorted(Path("scripts").glob("*migrat*")) if Path("scripts").is_dir() else []
 
     for script in migration_scripts:
         if script.is_file() and script.suffix in {
@@ -117,13 +111,9 @@ def run_existing_migration(
             ".sh",
         }:
             if script.suffix == ".py":
-                commands.append(
-                    ["python", str(script), "--help"]
-                )
+                commands.append(["python", str(script), "--help"])
             else:
-                commands.append(
-                    ["bash", str(script), "--help"]
-                )
+                commands.append(["bash", str(script), "--help"])
 
     evidence: list[str] = [
         json.dumps(
@@ -169,11 +159,7 @@ def main() -> int:
     parser.add_argument("--backup")
     args = parser.parse_args()
 
-    source = (
-        Path(args.database).resolve()
-        if args.database
-        else discover_database()
-    )
+    source = Path(args.database).resolve() if args.database else discover_database()
 
     checks: list[MigrationCheck] = []
 
@@ -182,11 +168,7 @@ def main() -> int:
             MigrationCheck(
                 "database_discovery",
                 False,
-                {
-                    "message": (
-                        "No database discovered; provide --database"
-                    )
-                },
+                {"message": ("No database discovered; provide --database")},
             )
         )
         result = {
@@ -201,9 +183,7 @@ def main() -> int:
         raise SystemExit(f"Database does not exist: {source}")
 
     if args.operation == "apply" and not args.backup:
-        raise SystemExit(
-            "--backup is required before --apply"
-        )
+        raise SystemExit("--backup is required before --apply")
 
     integrity_before, detail_before = sqlite_integrity(source)
     checks.append(

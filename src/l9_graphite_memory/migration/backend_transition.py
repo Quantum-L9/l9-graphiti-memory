@@ -72,8 +72,7 @@ class BackendTransitionReport(BaseModel):
         ]
         for ledger in self.prior_ledgers:
             lines.append(
-                f"  - {ledger.backend} at {ledger.location} "
-                f"({ledger.record_count} records)"
+                f"  - {ledger.backend} at {ledger.location} ({ledger.record_count} records)"
             )
         lines.extend(
             [
@@ -164,9 +163,7 @@ def detect_backend_transition(settings: object, store: object) -> BackendTransit
             continue
         count = _sqlite_record_count(path)
         if count:
-            prior.append(
-                PriorLedger(backend="sqlite", location=str(path), record_count=count)
-            )
+            prior.append(PriorLedger(backend="sqlite", location=str(path), record_count=count))
 
     return BackendTransitionReport(
         configured_backend=backend,

@@ -145,9 +145,7 @@ def test_line_locator_with_equal_range_is_accepted(carrier: str) -> None:
     source_range = SourceRange(start_line=4, end_line=9, start_offset=0, end_offset=55)
     locator = LineSourceLocator(start_line=4, end_line=9, start_offset=0, end_offset=55)
     if carrier == "provenance":
-        model = Provenance(
-            source="test", source_range=source_range, source_locator=locator
-        )
+        model = Provenance(source="test", source_range=source_range, source_locator=locator)
         assert model.source_locator == locator
     else:
         model = EvidenceRef(
@@ -210,9 +208,7 @@ def test_locator_only_requests_are_accepted() -> None:
             EvidenceRef(
                 kind=EvidenceKind.EXPLICIT,
                 description="cell evidence",
-                source_locator=NotebookSourceLocator(
-                    cell_index=2, cell_type="markdown"
-                ),
+                source_locator=NotebookSourceLocator(cell_index=2, cell_type="markdown"),
             ),
         ),
     )

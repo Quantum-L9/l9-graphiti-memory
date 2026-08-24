@@ -54,9 +54,7 @@ def canonical_record() -> dict[str, object]:
 
 
 def test_render_is_deterministic_and_unicode_normalized() -> None:
-    projection = compile_projection(
-        load_projection_manifest(MANIFEST_PATH)
-    )
+    projection = compile_projection(load_projection_manifest(MANIFEST_PATH))
     record = canonical_record()
     first = render_projection(projection, record)
     second = render_projection(projection, record)
@@ -68,9 +66,7 @@ def test_render_is_deterministic_and_unicode_normalized() -> None:
 
 
 def test_render_changes_when_declared_content_changes() -> None:
-    projection = compile_projection(
-        load_projection_manifest(MANIFEST_PATH)
-    )
+    projection = compile_projection(load_projection_manifest(MANIFEST_PATH))
     first_record = canonical_record()
     second_record = canonical_record()
     second_record["content"] = "Different canonical content."
@@ -81,9 +77,7 @@ def test_render_changes_when_declared_content_changes() -> None:
 
 
 def test_render_rejects_missing_declared_field() -> None:
-    projection = compile_projection(
-        load_projection_manifest(MANIFEST_PATH)
-    )
+    projection = compile_projection(load_projection_manifest(MANIFEST_PATH))
     record = canonical_record()
     del record["namespace"]
     with pytest.raises(ProjectionError, match="namespace"):

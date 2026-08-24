@@ -123,14 +123,8 @@ class ProfileIngestor:
     def session(context: SessionContext) -> tuple[MemoryWriteRequest, ...]:
         values: list[tuple[MemoryClass, str, str]] = [
             (MemoryClass.EPISODIC, "objective", context.objective),
-            *(
-                (MemoryClass.CONSTRAINT, "constraint", item)
-                for item in context.active_constraints
-            ),
-            *(
-                (MemoryClass.DECISION, "decision", item)
-                for item in context.active_decisions
-            ),
+            *((MemoryClass.CONSTRAINT, "constraint", item) for item in context.active_constraints),
+            *((MemoryClass.DECISION, "decision", item) for item in context.active_decisions),
         ]
         requests: list[MemoryWriteRequest] = []
         for index, (memory_class, predicate, value) in enumerate(values):

@@ -72,9 +72,7 @@ _LIST_RECORDS_PREDICATES = (
     "SELECT record_json FROM memory_records WHERE tenant_id = %s AND namespace = %s"
 )
 _LIST_RECORDS_SQL = _LIST_RECORDS_PREDICATES + _SEARCH_RECORDS_ORDER
-_LIST_RECORDS_BY_STATE_SQL = (
-    _LIST_RECORDS_PREDICATES + " AND state IN %s" + _SEARCH_RECORDS_ORDER
-)
+_LIST_RECORDS_BY_STATE_SQL = _LIST_RECORDS_PREDICATES + " AND state IN %s" + _SEARCH_RECORDS_ORDER
 
 
 def _json(value: Any) -> str:
@@ -127,9 +125,7 @@ class PostgresRecordStore:
                 raise StoreError(f"postgres connection failed: {exc}") from exc
             connection.autocommit = False
             with connection.cursor() as cursor:
-                cursor.execute(
-                    "SET statement_timeout = %s", (self.statement_timeout_ms,)
-                )
+                cursor.execute("SET statement_timeout = %s", (self.statement_timeout_ms,))
             connection.commit()
             self._local.connection = connection
         return connection
@@ -141,9 +137,7 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         connection = self._connection()
         try:
-            with connection.cursor(
-                cursor_factory=psycopg2.extras.RealDictCursor
-            ) as cursor:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 yield cursor
             connection.commit()
         except psycopg2.Error as exc:
@@ -155,9 +149,7 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         connection = self._connection()
         try:
-            with connection.cursor(
-                cursor_factory=psycopg2.extras.RealDictCursor
-            ) as cursor:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 yield cursor
             connection.commit()
         except Exception:
@@ -355,9 +347,7 @@ class PostgresRecordStore:
             record.namespace,
             record.memory_class.value,
             record.content,
-            _json(record.assertion.model_dump(mode="json"))
-            if record.assertion
-            else None,
+            _json(record.assertion.model_dump(mode="json")) if record.assertion else None,
             record.temporal.valid_from,
             record.temporal.valid_to,
             record.temporal.recorded_at,
@@ -436,10 +426,7 @@ class PostgresRecordStore:
             raise StoreError(f"status transition target not found: {event.record_id}")
         record_payload = json.loads(str(row["record_json"]))
         current_state = MemoryState(str(record_payload["state"]))
-        if (
-            event.previous_state is not None
-            and current_state is not event.previous_state
-        ):
+        if event.previous_state is not None and current_state is not event.previous_state:
             raise StoreError(
                 f"status transition expected {event.previous_state.value} "
                 f"but found {current_state.value}: {event.record_id}"
@@ -546,9 +533,7 @@ class PostgresRecordStore:
                 for outbox_event in outbox_events:
                     self._insert_outbox(tx, outbox_event)
         except psycopg2.IntegrityError as exc:
-            raise StoreError(
-                f"atomic memory write violated store constraints: {exc}"
-            ) from exc
+            raise StoreError(f"atomic memory write violated store constraints: {exc}") from exc
         except psycopg2.Error as exc:
             raise StoreError(f"atomic memory write failed: {exc}") from exc
 
@@ -697,11 +682,7 @@ class PostgresRecordStore:
                 (tenant_id, namespace, task_signature),
             )
             row = cursor.fetchone()
-        return (
-            PhaseLockReceipt.model_validate_json(str(row["receipt_json"]))
-            if row
-            else None
-        )
+        return PhaseLockReceipt.model_validate_json(str(row["receipt_json"])) if row else None
 
     # -- outbox ---------------------------------------------------------------
 
@@ -788,8 +769,7 @@ class PostgresRecordStore:
             event = OutboxEvent.model_validate_json(str(row["event_json"]))
             if lease_id is not None and event.lease_id != lease_id:
                 raise StoreError(
-                    f"outbox lease is no longer held for {event_id}; "
-                    "another worker owns this event"
+                    f"outbox lease is no longer held for {event_id}; another worker owns this event"
                 )
             updated = event.model_copy(
                 update={
@@ -886,9 +866,7 @@ class PostgresRecordStore:
         except psycopg2.Error as exc:
             raise StoreError(f"projection link deletion failed: {exc}") from exc
 
-    def save_projection_retirement(
-        self, receipt: ProjectionRetirementReceipt
-    ) -> None:
+    def save_projection_retirement(self, receipt: ProjectionRetirementReceipt) -> None:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
@@ -1009,9 +987,7 @@ class PostgresRecordStore:
         except psycopg2.Error as exc:
             raise StoreError(f"maintenance run persistence failed: {exc}") from exc
 
-    def get_maintenance_watermark(
-        self, tenant_id: str, namespace: str
-    ) -> datetime | None:
+    def get_maintenance_watermark(self, tenant_id: str, namespace: str) -> datetime | None:
         with self._cursor() as cursor:
             cursor.execute(
                 """
@@ -1024,9 +1000,7 @@ class PostgresRecordStore:
         watermark = row["watermark"] if row else None
         return watermark if isinstance(watermark, datetime) else None
 
-    def find_maintenance_action_digests(
-        self, tenant_id: str, namespace: str
-    ) -> frozenset[str]:
+    def find_maintenance_action_digests(self, tenant_id: str, namespace: str) -> frozenset[str]:
         with self._cursor() as cursor:
             cursor.execute(
                 """
@@ -1046,9 +1020,7 @@ class PostgresRecordStore:
             total = cursor.fetchone()
             cursor.execute("SELECT COUNT(*) AS count FROM operation_receipts")
             receipts = cursor.fetchone()
-            cursor.execute(
-                "SELECT state, COUNT(*) AS count FROM memory_records GROUP BY state"
-            )
+            cursor.execute("SELECT state, COUNT(*) AS count FROM memory_records GROUP BY state")
             state_rows = cursor.fetchall()
             cursor.execute(
                 "SELECT memory_class, COUNT(*) AS count FROM memory_records GROUP BY memory_class"
@@ -1059,9 +1031,7 @@ class PostgresRecordStore:
             "receipts": int(receipts["count"]) if receipts else 0,
             "outbox_backlog": self.outbox_backlog(),
             "by_state": {str(row["state"]): int(row["count"]) for row in state_rows},
-            "by_class": {
-                str(row["memory_class"]): int(row["count"]) for row in class_rows
-            },
+            "by_class": {str(row["memory_class"]): int(row["count"]) for row in class_rows},
         }
 
     # -- retention and privacy ------------------------------------------------
@@ -1079,9 +1049,7 @@ class PostgresRecordStore:
             raise StoreError("cannot persist a non-applied archive receipt")
         event_ids = {event.record_id for event in status_events}
         if event_ids != set(receipt.archived_record_ids):
-            raise StoreError(
-                "archive receipt and status events target different records"
-            )
+            raise StoreError("archive receipt and status events target different records")
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
@@ -1099,9 +1067,7 @@ class PostgresRecordStore:
                 for outbox_event in outbox_events:
                     self._insert_outbox(tx, outbox_event)
         except psycopg2.IntegrityError as exc:
-            raise StoreError(
-                f"atomic archive violated store constraints: {exc}"
-            ) from exc
+            raise StoreError(f"atomic archive violated store constraints: {exc}") from exc
         except psycopg2.Error as exc:
             raise StoreError(f"atomic archive failed: {exc}") from exc
 
@@ -1166,9 +1132,7 @@ class PostgresRecordStore:
                 if outbox_event is not None:
                     self._insert_outbox(tx, outbox_event)
         except psycopg2.IntegrityError as exc:
-            raise StoreError(
-                f"atomic deletion request violated store constraints: {exc}"
-            ) from exc
+            raise StoreError(f"atomic deletion request violated store constraints: {exc}") from exc
         except psycopg2.Error as exc:
             raise StoreError(f"atomic deletion request failed: {exc}") from exc
 
@@ -1195,15 +1159,9 @@ class PostgresRecordStore:
                 receipt_row = tx.fetchone()
                 if record_row is None or receipt_row is None:
                     raise StoreError("deletion record or receipt not found")
-                record = schema_registry.read_record(
-                    json.loads(str(record_row["record_json"]))
-                )
-                receipt = DeletionReceipt.model_validate_json(
-                    str(receipt_row["receipt_json"])
-                )
-                updated_record = record.model_copy(
-                    update={"state": MemoryState.DELETED}
-                )
+                record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
+                receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
+                updated_record = record.model_copy(update={"state": MemoryState.DELETED})
                 updated_receipt = receipt.model_copy(
                     update={
                         "status": DeletionStatus.COMPLETE,

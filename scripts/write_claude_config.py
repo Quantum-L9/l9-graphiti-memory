@@ -31,13 +31,7 @@ def default_path() -> Path:
             / "claude_desktop_config.json"
         )
     if system == "Windows":
-        return (
-            Path.home()
-            / "AppData"
-            / "Roaming"
-            / "Claude"
-            / "claude_desktop_config.json"
-        )
+        return Path.home() / "AppData" / "Roaming" / "Claude" / "claude_desktop_config.json"
     return Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
 
 
@@ -48,9 +42,7 @@ def server_entry() -> dict[str, object]:
     }
 
 
-def write_config(
-    *, dry_run: bool = False, path: Path | None = None
-) -> dict[str, object]:
+def write_config(*, dry_run: bool = False, path: Path | None = None) -> dict[str, object]:
     target = path or default_path()
     existing: dict[str, object] = {}
     if target.is_file():

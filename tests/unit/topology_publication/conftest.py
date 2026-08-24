@@ -42,9 +42,7 @@ def sha256_of(content: bytes) -> str:
     return "sha256:" + hashlib.sha256(content).hexdigest()
 
 
-def write_bundle(
-    root: Path, documents: dict[str, Any], manifest_extra: dict[str, Any]
-) -> Path:
+def write_bundle(root: Path, documents: dict[str, Any], manifest_extra: dict[str, Any]) -> Path:
     """Write documents plus a manifest whose hashes match their exact bytes."""
     root.mkdir(parents=True, exist_ok=True)
     entries = []

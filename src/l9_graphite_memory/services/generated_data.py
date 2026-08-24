@@ -59,8 +59,7 @@ class GeneratedDataService:
             provenance=Provenance(
                 source="cursor-governance-generated-data",
                 source_id=candidate.candidate_id,
-                source_agent_id=candidate.provenance.source_agent_id
-                or principal.agent_id,
+                source_agent_id=candidate.provenance.source_agent_id or principal.agent_id,
                 tool="generated-data.ingest",
                 extraction_method="governed-candidate/v1",
             ),
@@ -93,8 +92,7 @@ class GeneratedDataService:
                 "scope": knowledge.get("scope") or {},
                 "epistemic_status": knowledge.get("epistemic_status", "observed"),
                 "invalidation_conditions": candidate.knowledge.invalidation_conditions,
-                "visibility": candidate.source.visibility
-                or candidate.governance.visibility,
+                "visibility": candidate.source.visibility or candidate.governance.visibility,
                 "authority_class": candidate.governance.authority_class,
                 "source": source,
             },
@@ -157,7 +155,8 @@ class GeneratedDataService:
             "task_types": list(scope.get("task_types") or []),
             "roles": list(scope.get("roles") or []),
             "epistemic_status": str(metadata.get("epistemic_status", "observed")),
-            "invalidated": str(state) in {
+            "invalidated": str(state)
+            in {
                 "archived",
                 "deleted",
                 "deletion_pending",
@@ -167,9 +166,7 @@ class GeneratedDataService:
             "metadata": metadata,
         }
 
-    def search_context(
-        self, principal: MemoryPrincipal, payload: dict[str, Any]
-    ) -> dict[str, Any]:
+    def search_context(self, principal: MemoryPrincipal, payload: dict[str, Any]) -> dict[str, Any]:
         repository = str(payload.get("repository") or "").strip()
         namespace = str(payload.get("namespace") or "").strip()
         if not namespace:
@@ -192,10 +189,7 @@ class GeneratedDataService:
                 include_archived=bool(payload.get("include_invalidated", False)),
             ),
         )
-        candidates = [
-            self._context_candidate(hit, repository=repository)
-            for hit in receipt.hits
-        ]
+        candidates = [self._context_candidate(hit, repository=repository) for hit in receipt.hits]
         return {
             "schema_version": "1.0.0",
             "available": receipt.status.value != "failed",

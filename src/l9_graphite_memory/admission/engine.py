@@ -75,12 +75,8 @@ class AdmissionEngine:
                     "consent does not authorize this subject, namespace, class, or validity time"
                 )
                 status = WriteStatus.REJECTED
-            elif not any(
-                item.kind is EvidenceKind.EXPLICIT for item in request.evidence
-            ):
-                reasons.append(
-                    f"{request.memory_class.value} memory requires explicit evidence"
-                )
+            elif not any(item.kind is EvidenceKind.EXPLICIT for item in request.evidence):
+                reasons.append(f"{request.memory_class.value} memory requires explicit evidence")
                 status = WriteStatus.REJECTED
             else:
                 status = WriteStatus.ADMITTED
@@ -111,13 +107,8 @@ class AdmissionEngine:
                 reasons.append("PII requires review")
                 status = WriteStatus.QUARANTINED
         if normalization.safety_signals:
-            warnings.append(
-                f"safety signals: {', '.join(normalization.safety_signals)}"
-            )
-            if (
-                self.policy.quarantine_on_safety_signal
-                and status is WriteStatus.ADMITTED
-            ):
+            warnings.append(f"safety signals: {', '.join(normalization.safety_signals)}")
+            if self.policy.quarantine_on_safety_signal and status is WriteStatus.ADMITTED:
                 reasons.append("safety signal requires review")
                 status = WriteStatus.QUARANTINED
 

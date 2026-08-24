@@ -117,14 +117,10 @@ class RuntimeStatusProtocolTests(unittest.TestCase):
         if not cursor_value:
             self.skipTest("CURSOR_GOVERNANCE_ROOT is not configured")
         cursor = Path(cursor_value).expanduser().resolve()
-        adapter_path = (
-            cursor / "environment/agents/generated-data/adapters/graphiti_memory.py"
-        )
+        adapter_path = cursor / "environment/agents/generated-data/adapters/graphiti_memory.py"
         if not adapter_path.is_file():
             self.fail(f"Cursor adapter missing: {adapter_path}")
-        spec = importlib.util.spec_from_file_location(
-            "cross_repo_graphiti_adapter", adapter_path
-        )
+        spec = importlib.util.spec_from_file_location("cross_repo_graphiti_adapter", adapter_path)
         if spec is None or spec.loader is None:
             self.fail(f"cannot load {adapter_path}")
         module = importlib.util.module_from_spec(spec)
@@ -148,9 +144,9 @@ class RuntimeStatusProtocolTests(unittest.TestCase):
         )
 
     def test_deployment_commands_match_current_stdin_contract(self) -> None:
-        content = (
-            ROOT / "deployment/generated-data/cursor-command-env.example"
-        ).read_text(encoding="utf-8")
+        content = (ROOT / "deployment/generated-data/cursor-command-env.example").read_text(
+            encoding="utf-8"
+        )
         self.assertNotIn("--stdin", content)
         for command in (
             "ingest-governed-candidate",

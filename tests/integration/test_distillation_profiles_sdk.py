@@ -38,15 +38,11 @@ def test_source_distillation_writes_atomic_records(memory_service, principal) ->
     assert receipt.written_count == 2
     assert receipt.status.value == "complete"
     records = memory_service.store.list_records("tenant-a", "repo-a")
-    assert all(
-        record.provenance.source_digest == receipt.source_digest for record in records
-    )
+    assert all(record.provenance.source_digest == receipt.source_digest for record in records)
     assert all(record.evidence[0].source_range is not None for record in records)
 
 
-def test_sdk_and_session_integrations_share_canonical_service(
-    memory_service, principal
-) -> None:
+def test_sdk_and_session_integrations_share_canonical_service(memory_service, principal) -> None:
     sdk = MemorySDK(memory_service, principal)
     receipt = sdk.write(
         MemoryWriteRequest(

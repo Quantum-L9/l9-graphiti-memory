@@ -26,11 +26,7 @@ def sha256(path: Path) -> str:
 def integrity(path: Path) -> str:
     connection = sqlite3.connect(path)
     try:
-        return str(
-            connection.execute(
-                "PRAGMA integrity_check"
-            ).fetchone()[0]
-        )
+        return str(connection.execute("PRAGMA integrity_check").fetchone()[0])
     finally:
         connection.close()
 
@@ -48,9 +44,7 @@ def main() -> int:
         raise SystemExit(f"Database not found: {source}")
 
     if source == output or output in source.parents:
-        raise SystemExit(
-            "Output directory must not be the source database"
-        )
+        raise SystemExit("Output directory must not be the source database")
 
     output.mkdir(parents=True, exist_ok=True)
 

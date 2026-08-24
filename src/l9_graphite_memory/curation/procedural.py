@@ -59,12 +59,7 @@ class PatternProceduralSynthesizer:
     def _pattern(content: str, metadata: dict[str, object]) -> tuple[str, str] | None:
         condition = metadata.get("procedure_condition")
         action = metadata.get("procedure_action")
-        if (
-            isinstance(condition, str)
-            and isinstance(action, str)
-            and condition
-            and action
-        ):
+        if isinstance(condition, str) and isinstance(action, str) and condition and action:
             return condition.strip(), action.strip()
         match = _WHEN.match(content.strip().rstrip(".!"))
         if match:
@@ -78,9 +73,7 @@ class PatternProceduralSynthesizer:
             {"success", "passed", "test-backed"} & set(record_tags)
         )
 
-    def synthesize(
-        self, source_record_ids: tuple[UUID, ...]
-    ) -> tuple[SynthesizedProcedure, ...]:
+    def synthesize(self, source_record_ids: tuple[UUID, ...]) -> tuple[SynthesizedProcedure, ...]:
         grouped: dict[tuple[str, str], list[UUID]] = defaultdict(list)
         for record_id in source_record_ids:
             record = self.store.get_record(record_id)
@@ -88,9 +81,7 @@ class PatternProceduralSynthesizer:
                 continue
             pattern = self._pattern(record.content, record.metadata)
             if pattern is not None:
-                grouped[(pattern[0].casefold(), pattern[1].casefold())].append(
-                    record_id
-                )
+                grouped[(pattern[0].casefold(), pattern[1].casefold())].append(record_id)
         candidates: list[SynthesizedProcedure] = []
         for (condition, action), ids in grouped.items():
             unique_ids = tuple(dict.fromkeys(ids))
@@ -112,9 +103,7 @@ class PatternProceduralSynthesizer:
 class ProceduralSynthesisWorker:
     """Persist reviewable META candidates; never auto-promote them to PROCEDURAL."""
 
-    def __init__(
-        self, service: MemoryService, synthesizer: PatternProceduralSynthesizer
-    ) -> None:
+    def __init__(self, service: MemoryService, synthesizer: PatternProceduralSynthesizer) -> None:
         self.service = service
         self.synthesizer = synthesizer
 

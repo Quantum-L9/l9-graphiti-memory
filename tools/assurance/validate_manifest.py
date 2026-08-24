@@ -30,9 +30,7 @@ def _sha256(path: Path) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
     root = args.repo_root.resolve()
     manifest_path = root / "manifest.json"

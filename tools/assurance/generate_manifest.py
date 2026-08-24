@@ -76,9 +76,7 @@ def _layer(relative: Path) -> str:
     return category
 
 
-def _iter_files(
-    root: Path, *, exclude_manifest_markdown: bool = False
-) -> tuple[Path, ...]:
+def _iter_files(root: Path, *, exclude_manifest_markdown: bool = False) -> tuple[Path, ...]:
     result: list[Path] = []
     for path in root.rglob("*"):
         if not path.is_file():
@@ -117,9 +115,7 @@ def _entry(root: Path, path: Path) -> dict[str, object]:
 
 
 def _write_markdown(root: Path) -> None:
-    entries = [
-        _entry(root, path) for path in _iter_files(root, exclude_manifest_markdown=True)
-    ]
+    entries = [_entry(root, path) for path in _iter_files(root, exclude_manifest_markdown=True)]
     counts = Counter(str(entry["category"]) for entry in entries)
     lines = [
         "<!-- L9_META",
@@ -159,9 +155,7 @@ def _write_markdown(root: Path) -> None:
         "| Category | Files |",
         "|---|---:|",
     ]
-    lines.extend(
-        f"| `{category}` | {counts[category]} |" for category in sorted(counts)
-    )
+    lines.extend(f"| `{category}` | {counts[category]} |" for category in sorted(counts))
     lines.extend(
         [
             "",
@@ -216,9 +210,7 @@ def generate(root: Path) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     return generate(parser.parse_args().repo_root.resolve())
 
 

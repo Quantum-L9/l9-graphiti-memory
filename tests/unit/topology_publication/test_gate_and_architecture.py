@@ -62,9 +62,7 @@ FORBIDDEN_CALL_ATTRIBUTES = {
 }
 
 
-def test_eligible_intents_conform_to_the_gate_contract(
-    tmp_path: Path, topology_principal
-) -> None:
+def test_eligible_intents_conform_to_the_gate_contract(tmp_path: Path, topology_principal) -> None:
     plan_root = make_plan_bundle(
         tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")]
     )
@@ -92,9 +90,7 @@ def test_gate_conformance_is_enforced_not_assumed(
     def refuse(value: object) -> object:
         raise ValueError("gate boundary refused this intent")
 
-    monkeypatch.setattr(
-        adapter_module.GateMemoryBridge, "validate_intent", staticmethod(refuse)
-    )
+    monkeypatch.setattr(adapter_module.GateMemoryBridge, "validate_intent", staticmethod(refuse))
     with pytest.raises(TopologyPlanError, match="Gate intent conformance"):
         validate_publication_inputs(plan, topo)
 

@@ -14,6 +14,7 @@ pack stays functional, not decorative: the exact-state pack validator,
 the internal checksum manifest, and the 19-test adversarial hardening
 suite all run in every CI push.
 """
+
 from __future__ import annotations
 
 import hashlib

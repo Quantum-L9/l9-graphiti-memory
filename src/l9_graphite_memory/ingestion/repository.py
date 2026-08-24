@@ -31,9 +31,7 @@ class RepositoryBootstrapper:
         "CHANGE_SUMMARY.md",
     )
 
-    def __init__(
-        self, service: MemoryService, ingestor: DocumentIngestor | None = None
-    ) -> None:
+    def __init__(self, service: MemoryService, ingestor: DocumentIngestor | None = None) -> None:
         self.service = service
         self.ingestor = ingestor or DocumentIngestor()
 
@@ -74,9 +72,7 @@ class RepositoryBootstrapper:
         repository = self.repository_name(root)
         receipts: list[WriteReceipt] = []
         for source in self.sources(root):
-            memory_class = (
-                MemoryClass.DECISION if "adr" in source.parts else MemoryClass.META
-            )
+            memory_class = MemoryClass.DECISION if "adr" in source.parts else MemoryClass.META
             for request in self.ingestor.requests(
                 source,
                 namespace=namespace,

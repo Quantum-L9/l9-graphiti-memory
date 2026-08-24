@@ -41,9 +41,7 @@ class Projection:
         self.projected.append(str(record.record_id))
         return {"projected": True, "locator": f"episode-{record.record_id}"}
 
-    def search(
-        self, query: str, namespaces: tuple[str, ...], *, limit: int
-    ) -> list[ProjectionHit]:
+    def search(self, query: str, namespaces: tuple[str, ...], *, limit: int) -> list[ProjectionHit]:
         if self.fail:
             raise RuntimeError("projection down")
         return []
@@ -77,8 +75,6 @@ def test_projection_failure_retries_without_losing_record(principal) -> None:
     service = MemoryService(store, projection)
     service.initialize()
     receipt = service.write(principal, write_request())
-    result = OutboxWorker(
-        store, projection, MemorySettings(outbox_max_attempts=2)
-    ).run_once()
+    result = OutboxWorker(store, projection, MemorySettings(outbox_max_attempts=2)).run_once()
     assert result["retried"] == 1
     assert store.get_record(receipt.record_id) is not None

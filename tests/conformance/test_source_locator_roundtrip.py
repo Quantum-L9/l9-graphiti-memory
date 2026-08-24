@@ -82,9 +82,7 @@ def test_locators_roundtrip_through_every_canonical_backend(
         record = service.get(principal, receipt.record_id)
         assert record.schema_version == MEMORY_SCHEMA_VERSION
         assert record.provenance.source_locator == request.provenance.source_locator
-        assert tuple(item.source_locator for item in record.evidence) == (
-            EVIDENCE_LOCATORS
-        )
+        assert tuple(item.source_locator for item in record.evidence) == (EVIDENCE_LOCATORS)
         assert all(item.source_range is None for item in record.evidence)
     finally:
         store.close()

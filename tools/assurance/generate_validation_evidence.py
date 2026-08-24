@@ -307,11 +307,7 @@ def _evaluate(root: Path, spec: CheckSpec) -> dict[str, object]:
             else spec.allow_empty_log or bool(content.strip())
         )
         status = "PASS" if matched else "FAIL"
-        actual = (
-            "expected evidence present"
-            if matched
-            else "expected evidence pattern absent"
-        )
+        actual = "expected evidence present" if matched else "expected evidence pattern absent"
         digest = _sha256(evidence_path)
     return {
         "actual_result": actual,
@@ -330,9 +326,7 @@ def _evaluate(root: Path, spec: CheckSpec) -> dict[str, object]:
     }
 
 
-def _write_jsonl(
-    path: Path, rows: tuple[dict[str, object], ...] | list[dict[str, object]]
-) -> None:
+def _write_jsonl(path: Path, rows: tuple[dict[str, object], ...] | list[dict[str, object]]) -> None:
     path.write_text(
         "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows),
         encoding="utf-8",
@@ -386,9 +380,7 @@ def generate(root: Path) -> int:
     _write_jsonl(validation / "validation_findings.jsonl", findings)
 
     if failed or unknown:
-        sys.stdout.write(
-            f"FAIL: checks_failed={len(failed)} checks_unknown={len(unknown)}\n"
-        )
+        sys.stdout.write(f"FAIL: checks_failed={len(failed)} checks_unknown={len(unknown)}\n")
         return 1
     sys.stdout.write(
         f"PASS: {len(checks)} local checks evidenced; {len(findings)} external blockers recorded\n"
@@ -398,9 +390,7 @@ def generate(root: Path) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     return generate(parser.parse_args().repo_root.resolve())
 
 

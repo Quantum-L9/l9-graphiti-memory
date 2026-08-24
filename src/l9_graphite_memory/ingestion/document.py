@@ -68,9 +68,7 @@ class DocumentIngestor:
             content = "\n".join(buffer).strip()
             if content:
                 chunks.append(
-                    IngestedChunk(
-                        content=content, start_line=start_line, end_line=end_line
-                    )
+                    IngestedChunk(content=content, start_line=start_line, end_line=end_line)
                 )
             buffer = []
 
@@ -107,9 +105,7 @@ class DocumentIngestor:
         digest = self._digest(raw)
         requests: list[MemoryWriteRequest] = []
         for chunk in self.chunks(text):
-            source_range = SourceRange(
-                start_line=chunk.start_line, end_line=chunk.end_line
-            )
+            source_range = SourceRange(start_line=chunk.start_line, end_line=chunk.end_line)
             requests.append(
                 MemoryWriteRequest(
                     namespace=namespace,

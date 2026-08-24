@@ -69,9 +69,7 @@ def validate(root: Path) -> tuple[str, ...]:
     failures: list[str] = []
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     entries = manifest.get("files") if isinstance(manifest, dict) else None
-    if manifest.get("schema") != "l9.release-manifest/v2" or not isinstance(
-        entries, list
-    ):
+    if manifest.get("schema") != "l9.release-manifest/v2" or not isinstance(entries, list):
         failures.append("manifest must use l9.release-manifest/v2")
         entries = []
     manifest_by_path = {
@@ -108,9 +106,7 @@ def validate(root: Path) -> tuple[str, ...]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     failures = validate(parser.parse_args().repo_root.resolve())
     if failures:
         sys.stdout.write("\n".join(failures) + "\n")

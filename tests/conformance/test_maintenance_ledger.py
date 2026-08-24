@@ -111,13 +111,9 @@ def test_watermark_is_scoped_per_tenant_and_namespace(store) -> None:
 
 def test_applied_action_digests_are_recorded(store) -> None:
     digest = "a" * 64
-    store.save_maintenance_run(
-        _run(watermark=NOW, applied=True, actions=(_action(digest),))
-    )
+    store.save_maintenance_run(_run(watermark=NOW, applied=True, actions=(_action(digest),)))
 
-    assert store.find_maintenance_action_digests("tenant-a", "repo-a") == frozenset(
-        {digest}
-    )
+    assert store.find_maintenance_action_digests("tenant-a", "repo-a") == frozenset({digest})
 
 
 def test_unapplied_action_digests_are_not_recorded(store) -> None:
@@ -133,9 +129,7 @@ def test_unapplied_action_digests_are_not_recorded(store) -> None:
 
 def test_repeating_an_action_digest_across_runs_is_idempotent(store) -> None:
     digest = "c" * 64
-    store.save_maintenance_run(
-        _run(watermark=NOW, applied=True, actions=(_action(digest),))
-    )
+    store.save_maintenance_run(_run(watermark=NOW, applied=True, actions=(_action(digest),)))
     store.save_maintenance_run(
         _run(
             watermark=NOW + timedelta(days=1),
@@ -144,6 +138,4 @@ def test_repeating_an_action_digest_across_runs_is_idempotent(store) -> None:
         )
     )
 
-    assert store.find_maintenance_action_digests("tenant-a", "repo-a") == frozenset(
-        {digest}
-    )
+    assert store.find_maintenance_action_digests("tenant-a", "repo-a") == frozenset({digest})

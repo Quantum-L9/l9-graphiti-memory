@@ -27,15 +27,11 @@ def _now_iso() -> str:
 
 @schema_registry.register("0.2.0-episode", MEMORY_SCHEMA_VERSION)
 def episode_to_v2(raw: dict[str, Any]) -> dict[str, Any]:
-    content = str(
-        raw.get("episode_body") or raw.get("body") or raw.get("content") or ""
-    )
+    content = str(raw.get("episode_body") or raw.get("body") or raw.get("content") or "")
     normalization = normalize_candidate(content)
     reference_time = raw.get("reference_time") or raw.get("timestamp") or _now_iso()
     source = str(raw.get("source") or "legacy-episode")
-    source_description = str(
-        raw.get("source_description") or "legacy episode migration"
-    )
+    source_description = str(raw.get("source_description") or "legacy episode migration")
     group_id = str(raw.get("group_id") or "legacy")
     name = str(raw.get("name") or f"legacy-{uuid4()}")
     return {
@@ -77,11 +73,7 @@ def episode_to_v2(raw: dict[str, Any]) -> dict[str, Any]:
         },
         "state": "active",
         "tags": ["legacy"],
-        "metadata": {
-            "legacy_payload": {
-                k: v for k, v in raw.items() if k not in {"episode_body"}
-            }
-        },
+        "metadata": {"legacy_payload": {k: v for k, v in raw.items() if k not in {"episode_body"}}},
         "normalized_digest": normalization.normalized_digest,
         "original_digest": normalization.original_digest,
         "idempotency_key": f"legacy:{group_id}:{normalization.normalized_digest}",
@@ -110,9 +102,7 @@ def v1_to_v2(raw: dict[str, Any]) -> dict[str, Any]:
         {
             "valid_from": raw.get("valid_from") or _now_iso(),
             "valid_to": raw.get("valid_to"),
-            "recorded_at": raw.get("recorded_at")
-            or raw.get("created_at")
-            or _now_iso(),
+            "recorded_at": raw.get("recorded_at") or raw.get("created_at") or _now_iso(),
             "source_observed_at": raw.get("source_observed_at"),
             "superseded_at": raw.get("superseded_at"),
         },

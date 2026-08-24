@@ -48,9 +48,7 @@ def test_settings_expose_a_shared_backend_selector() -> None:
     assert local.store_backend == "sqlite"
     assert local.is_shared_store is False
 
-    shared = MemorySettings(
-        store_backend="postgres", postgres_dsn="postgresql:///example"
-    )
+    shared = MemorySettings(store_backend="postgres", postgres_dsn="postgresql:///example")
     assert shared.is_shared_store is True
 
 
@@ -62,9 +60,7 @@ def test_shared_backend_requires_an_explicit_dsn() -> None:
 
 
 def test_factory_rejects_a_shared_backend_without_a_dsn() -> None:
-    settings = MemorySettings.model_construct(
-        store_backend="postgres", postgres_dsn=None
-    )
+    settings = MemorySettings.model_construct(store_backend="postgres", postgres_dsn=None)
     with pytest.raises(ConfigurationError, match="POSTGRES_DSN"):
         build_store(settings)
 
@@ -72,9 +68,7 @@ def test_factory_rejects_a_shared_backend_without_a_dsn() -> None:
 def test_sqlite_remains_supported_for_local_operation(tmp_path: Path, principal) -> None:
     """SP-06: SQLite still works locally and is still not shared."""
 
-    settings = MemorySettings(
-        store_backend="sqlite", database_path=tmp_path / "local.sqlite3"
-    )
+    settings = MemorySettings(store_backend="sqlite", database_path=tmp_path / "local.sqlite3")
     store = build_store(settings)
     try:
         assert isinstance(store, SQLiteRecordStore)

@@ -64,9 +64,7 @@ def principal() -> MemoryPrincipal:
 
 @pytest.fixture
 def service(tmp_path: Path) -> MemoryService:
-    built = MemoryService(
-        SQLiteRecordStore(tmp_path / "canonical.sqlite3"), NullProjection()
-    )
+    built = MemoryService(SQLiteRecordStore(tmp_path / "canonical.sqlite3"), NullProjection())
     built.initialize()
     return built
 
@@ -91,9 +89,7 @@ def test_stage_1_exact_producer_plan_validates(plan) -> None:
     assert "conflict.unresolved_material" in held_reasons
 
 
-def test_stage_2_preflight_commits_nothing(
-    plan, topology_bundle, principal, service
-) -> None:
+def test_stage_2_preflight_commits_nothing(plan, topology_bundle, principal, service) -> None:
     receipt = execute_topology_publication(
         plan=plan,
         topology_bundle=topology_bundle,
@@ -133,14 +129,10 @@ def test_stages_3_to_5_apply_replay_and_canonical_readback(
     assert replayed.duplicate_count == 73
     assert service.store.stats()["records"] == 73
     first_ids = {
-        r.candidate_id: r.memory_record_id
-        for r in applied.candidate_results
-        if r.memory_record_id
+        r.candidate_id: r.memory_record_id for r in applied.candidate_results if r.memory_record_id
     }
     replay_ids = {
-        r.candidate_id: r.memory_record_id
-        for r in replayed.candidate_results
-        if r.memory_record_id
+        r.candidate_id: r.memory_record_id for r in replayed.candidate_results if r.memory_record_id
     }
     assert first_ids == replay_ids
 

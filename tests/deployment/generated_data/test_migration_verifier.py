@@ -19,12 +19,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-VERIFIER = (
-    ROOT
-    / "deployment"
-    / "generated-data"
-    / "verify_migration.py"
-)
+VERIFIER = ROOT / "deployment" / "generated-data" / "verify_migration.py"
 
 
 def create_database(path: Path) -> None:
@@ -168,12 +163,7 @@ class MigrationVerifierTests(unittest.TestCase):
 
             connection = sqlite3.connect(database)
             try:
-                states = {
-                    row[0]
-                    for row in connection.execute(
-                        "SELECT state FROM memory_records"
-                    )
-                }
+                states = {row[0] for row in connection.execute("SELECT state FROM memory_records")}
             finally:
                 connection.close()
 

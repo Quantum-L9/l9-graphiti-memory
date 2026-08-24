@@ -65,9 +65,7 @@ def test_retry_of_the_same_operation_dedupes(service, principal) -> None:
     assert first.idempotency_key_supplied is True
 
 
-def test_identical_content_under_distinct_operations_is_admitted_twice(
-    service, principal
-) -> None:
+def test_identical_content_under_distinct_operations_is_admitted_twice(service, principal) -> None:
     """Same content, different operations: both are admitted independently."""
 
     first = service.write(principal, _request(idempotency_key="op-a", source_id="a"))
@@ -79,9 +77,7 @@ def test_identical_content_under_distinct_operations_is_admitted_twice(
     assert first.normalized_digest == second.normalized_digest
 
 
-def test_identical_content_without_operation_identity_is_admitted_twice(
-    service, principal
-) -> None:
+def test_identical_content_without_operation_identity_is_admitted_twice(service, principal) -> None:
     """Omitting the key means 'new operation', not 'dedupe me by content'."""
 
     first = service.write(principal, _request(source_id="a"))
@@ -94,9 +90,7 @@ def test_identical_content_without_operation_identity_is_admitted_twice(
     assert first.idempotency_key_supplied is False
 
 
-def test_default_operation_identity_is_not_derived_from_content(
-    service, principal
-) -> None:
+def test_default_operation_identity_is_not_derived_from_content(service, principal) -> None:
     """The semantic digest must not appear in the admission identity."""
 
     receipt = service.write(principal, _request(source_id="a"))
@@ -106,9 +100,7 @@ def test_default_operation_identity_is_not_derived_from_content(
     assert receipt.idempotency_key.startswith("operation:repo-a:")
 
 
-def test_semantic_digest_survives_as_a_maintenance_candidate_signal(
-    service, principal
-) -> None:
+def test_semantic_digest_survives_as_a_maintenance_candidate_signal(service, principal) -> None:
     """Duplicate content stays discoverable by digest for later maintenance."""
 
     first = service.write(principal, _request(source_id="a"))

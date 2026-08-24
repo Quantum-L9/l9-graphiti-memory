@@ -62,9 +62,7 @@ def test_profile_ingestor_emits_atomic_identity_and_domain_requests() -> None:
     domain_requests = ProfileIngestor.domain(domain)
 
     assert len(identity_requests) == 2
-    assert {request.memory_class for request in identity_requests} == {
-        MemoryClass.IDENTITY
-    }
+    assert {request.memory_class for request in identity_requests} == {MemoryClass.IDENTITY}
     assert identity_requests[0].assertion is not None
     assert len(domain_requests) == 1
     assert domain_requests[0].memory_class is MemoryClass.SEMANTIC

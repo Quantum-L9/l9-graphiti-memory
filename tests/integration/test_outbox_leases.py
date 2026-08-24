@@ -87,9 +87,7 @@ def test_claim_grants_a_bounded_lease(store, principal) -> None:
     event_id = _seed_event(store, principal)
     now = datetime.now(timezone.utc)
 
-    claimed = store.claim_outbox(
-        limit=10, now=now, lease_seconds=300, lease_owner="worker-a"
-    )
+    claimed = store.claim_outbox(limit=10, now=now, lease_seconds=300, lease_owner="worker-a")
 
     assert [event.event_id for event in claimed] == [event_id]
     event = claimed[0]
@@ -105,12 +103,8 @@ def test_a_live_lease_is_not_reclaimable(store, principal) -> None:
     _seed_event(store, principal)
     now = datetime.now(timezone.utc)
 
-    first = store.claim_outbox(
-        limit=10, now=now, lease_seconds=300, lease_owner="worker-a"
-    )
-    second = store.claim_outbox(
-        limit=10, now=now, lease_seconds=300, lease_owner="worker-b"
-    )
+    first = store.claim_outbox(limit=10, now=now, lease_seconds=300, lease_owner="worker-a")
+    second = store.claim_outbox(limit=10, now=now, lease_seconds=300, lease_owner="worker-b")
 
     assert len(first) == 1
     assert second == []
@@ -122,9 +116,7 @@ def test_an_abandoned_claim_recovers_after_lease_expiry(store, principal) -> Non
     event_id = _seed_event(store, principal)
     now = datetime.now(timezone.utc)
 
-    first = store.claim_outbox(
-        limit=10, now=now, lease_seconds=60, lease_owner="worker-a"
-    )
+    first = store.claim_outbox(limit=10, now=now, lease_seconds=60, lease_owner="worker-a")
     assert len(first) == 1
 
     # worker-a crashes here: it never calls update_outbox.
@@ -154,9 +146,7 @@ def test_a_stale_worker_cannot_settle_a_recovered_event(store, principal) -> Non
     event_id = _seed_event(store, principal)
     now = datetime.now(timezone.utc)
 
-    stale = store.claim_outbox(
-        limit=10, now=now, lease_seconds=60, lease_owner="worker-a"
-    )[0]
+    stale = store.claim_outbox(limit=10, now=now, lease_seconds=60, lease_owner="worker-a")[0]
     recovered = store.claim_outbox(
         limit=10,
         now=now + timedelta(seconds=61),
@@ -191,9 +181,7 @@ def test_a_stale_worker_cannot_settle_a_recovered_event(store, principal) -> Non
 def test_settling_clears_the_lease(store, principal) -> None:
     event_id = _seed_event(store, principal)
     now = datetime.now(timezone.utc)
-    claimed = store.claim_outbox(
-        limit=10, now=now, lease_seconds=60, lease_owner="worker-a"
-    )[0]
+    claimed = store.claim_outbox(limit=10, now=now, lease_seconds=60, lease_owner="worker-a")[0]
 
     store.update_outbox(
         event_id,
@@ -204,16 +192,12 @@ def test_settling_clears_the_lease(store, principal) -> None:
         lease_id=claimed.lease_id,
     )
 
-    requeued = store.claim_outbox(
-        limit=10, now=now, lease_seconds=60, lease_owner="worker-b"
-    )
+    requeued = store.claim_outbox(limit=10, now=now, lease_seconds=60, lease_owner="worker-b")
     assert [event.event_id for event in requeued] == [event_id]
     assert requeued[0].attempts == 1
 
 
-def test_worker_reports_lease_loss_instead_of_overwriting(
-    store, principal, monkeypatch
-) -> None:
+def test_worker_reports_lease_loss_instead_of_overwriting(store, principal, monkeypatch) -> None:
     """SP-07 at the worker level: a lost lease is reported, not forced."""
 
     from l9_graphite_memory.config import MemorySettings
@@ -274,9 +258,7 @@ def test_concurrent_workers_never_share_an_event_on_the_shared_backend(
                 memory_class=MemoryClass.SEMANTIC,
                 content=f"contended record {index}",
                 provenance=Provenance(source="race-test"),
-                evidence=(
-                    EvidenceRef(kind=EvidenceKind.EXPLICIT, description="test"),
-                ),
+                evidence=(EvidenceRef(kind=EvidenceKind.EXPLICIT, description="test"),),
             ),
         )
         expected.update(receipt.outbox_event_ids)

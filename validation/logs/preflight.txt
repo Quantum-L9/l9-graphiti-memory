@@ -10,15 +10,15 @@ PASS  MCP inventory
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/val47/.venv/bin/python3",
+    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr46/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-24T00:29:45.252661Z",
+  "created_at": "2026-08-24T00:36:56.362964Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.hGZHgtanTd/cursor/mcp.json",
+  "path": "/tmp/tmp.DMqWeX9wZ8/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,27 +26,27 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "7947d31a-28d4-4500-94c1-562aed7fc5c2",
+  "receipt_id": "71e1b88a-4e6b-495b-b0d3-f45206cd0cdc",
   "status": "dry_run",
   "warnings": []
 }
 PASS  cursor client dry-run
 {
   "command_argv": [
-    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/val47/.venv/bin/python3",
+    "/tmp/claude-0/-home-user/c5f49282-c34b-505d-a83f-3e939dcfec1a/scratchpad/pr46/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-08-24T00:29:46.907309Z",
+  "created_at": "2026-08-24T00:36:58.139919Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "984fc17f-0e98-473a-b471-eb8daeef8d6a",
+  "receipt_id": "4927d979-cb0f-43cf-a340-455a02ffb84b",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.2.0",
@@ -97,7 +97,7 @@ PASS: core, adapter, service, and integration dependency directions are aligned
 PASS  layer boundary alignment
 PASS: recursive L9 alignment contract satisfied across all ten passes
 PASS  recursive L9 alignment
-PASS: 675 manifested files exist with matching size and SHA-256
+PASS: 696 manifested files exist with matching size and SHA-256
 PASS  release manifest
 PASS: no canonical memory write bypasses or deferred-ingestion paths detected
 PASS  write bypass assurance
@@ -123,25 +123,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.7759,
-      "p50_ms": 0.5883,
-      "p95_ms": 0.7759,
+      "max_ms": 0.6404,
+      "p50_ms": 0.5836,
+      "p95_ms": 0.6404,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.9028,
-      "p50_ms": 0.4033,
-      "p95_ms": 0.5104,
+      "max_ms": 0.8884,
+      "p50_ms": 0.4121,
+      "p95_ms": 0.4791,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.7134,
-      "p50_ms": 0.138,
-      "p95_ms": 0.2371,
+      "max_ms": 0.6957,
+      "p50_ms": 0.1448,
+      "p95_ms": 0.2776,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

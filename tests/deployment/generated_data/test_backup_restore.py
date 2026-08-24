@@ -20,12 +20,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-VERIFIER = (
-    ROOT
-    / "deployment"
-    / "generated-data"
-    / "verify_backup_restore.py"
-)
+VERIFIER = ROOT / "deployment" / "generated-data" / "verify_backup_restore.py"
 
 
 def create_database(path: Path) -> None:
@@ -50,9 +45,7 @@ def create_database(path: Path) -> None:
 
 
 def sha256(path: Path) -> str:
-    return hashlib.sha256(
-        path.read_bytes()
-    ).hexdigest()
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 class BackupRestoreTests(unittest.TestCase):
@@ -99,9 +92,7 @@ class BackupRestoreTests(unittest.TestCase):
             result["backup"]["sha256"],
             result["restored"]["sha256"],
         )
-        self.assertFalse(
-            result["source_modified"]
-        )
+        self.assertFalse(result["source_modified"])
 
     def test_source_database_is_not_modified(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

@@ -292,8 +292,7 @@ class ActiveAgentSession:
         except ActiveMemoryUnavailableError:
             self._heartbeat_failures += 1
             if (
-                self._heartbeat_failures
-                >= self._runtime_config.heartbeat_failure_threshold
+                self._heartbeat_failures >= self._runtime_config.heartbeat_failure_threshold
                 and self._lifecycle.state is ActiveAgentSessionState.ACTIVE
             ):
                 self._lifecycle.transition_to(ActiveAgentSessionState.DEGRADED)
@@ -341,8 +340,7 @@ class ActiveAgentSession:
         """
         if not self._lifecycle.can_write():
             raise ActiveMemoryUnavailableError(
-                f"cannot write context while session is in state "
-                f"{self._lifecycle.state.value!r}"
+                f"cannot write context while session is in state {self._lifecycle.state.value!r}"
             )
         assert self._lease is not None
         draft = ActiveContextDraft(
@@ -373,9 +371,7 @@ class ActiveAgentSession:
             items = tuple(p for p in items if p.identity.role in roles)
         return items
 
-    async def subscribe(
-        self, *, group_id: str | None = None
-    ) -> AsyncIterator[AgentEvent]:
+    async def subscribe(self, *, group_id: str | None = None) -> AsyncIterator[AgentEvent]:
         """Subscribe to awareness events scoped to this deployment.
 
         This is a best-effort, at-most-once stream (see `AwarenessBus`).

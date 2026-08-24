@@ -123,8 +123,7 @@ def _request_local_names(tree: ast.AST) -> set[str]:
             return func.id == "MemoryWriteRequest"
         if isinstance(func, ast.Attribute):
             return func.attr in {"MemoryWriteRequest", "request"} or (
-                isinstance(func.value, ast.Name)
-                and func.value.id == "MemoryWriteRequest"
+                isinstance(func.value, ast.Name) and func.value.id == "MemoryWriteRequest"
             )
         return False
 
@@ -209,10 +208,7 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
                 )
             )
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            if (
-                node.func.attr == "transition_state"
-                and relative not in _ALLOWED_TRANSITION_CALLERS
-            ):
+            if node.func.attr == "transition_state" and relative not in _ALLOWED_TRANSITION_CALLERS:
                 violations.append(
                     Violation(
                         relative,
@@ -221,10 +217,7 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
                         lines[node.lineno - 1].strip()[:300],
                     )
                 )
-            if (
-                node.func.attr in _GUARDED_STORE_METHODS
-                and relative not in _ALLOWED_COMMIT_CALLERS
-            ):
+            if node.func.attr in _GUARDED_STORE_METHODS and relative not in _ALLOWED_COMMIT_CALLERS:
                 violations.append(
                     Violation(
                         relative,
@@ -253,9 +246,7 @@ def scan_file(path: Path, root: Path) -> list[Violation]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--repo-root", type=Path, default=Path(__file__).resolve().parents[2]
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     root = args.repo_root.resolve()
@@ -264,8 +255,7 @@ def main() -> int:
         violations.extend(scan_file(path, root))
     if args.json:
         sys.stdout.write(
-            json.dumps({"violations": [asdict(item) for item in violations]}, indent=2)
-            + "\n"
+            json.dumps({"violations": [asdict(item) for item in violations]}, indent=2) + "\n"
         )
     elif violations:
         for item in violations:

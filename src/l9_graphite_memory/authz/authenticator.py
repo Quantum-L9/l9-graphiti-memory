@@ -20,9 +20,7 @@ from l9_graphite_memory.contracts import MemoryPrincipal
 from l9_graphite_memory.errors import AuthenticationError
 
 
-def _principal_from_config(
-    config: TokenPrincipalConfig, *, auth_method: str
-) -> MemoryPrincipal:
+def _principal_from_config(config: TokenPrincipalConfig, *, auth_method: str) -> MemoryPrincipal:
     return MemoryPrincipal(
         principal_id=config.principal_id,
         tenant_id=config.tenant_id,
@@ -79,9 +77,7 @@ def build_local_principal(
         roles=("local-operator",),
         read_namespaces=read_namespaces,
         write_namespaces=write_namespaces,
-        promote_namespaces=write_namespaces
-        if promote_namespaces is None
-        else promote_namespaces,
+        promote_namespaces=write_namespaces if promote_namespaces is None else promote_namespaces,
         maintain_namespaces=maintain_namespaces,
         auth_method="local",
     )

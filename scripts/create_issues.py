@@ -94,9 +94,7 @@ def main() -> int:
         lines = ["# Created Issues", "", f"Repository: `{args.repo}`", ""]
         for issue_id in issues["creation_order"]:
             lines.append(f"- `{issue_id}`: {created[issue_id]}")
-        (ROOT / "CREATED_ISSUES.md").write_text(
-            "\n".join(lines) + "\n", encoding="utf-8"
-        )
+        (ROOT / "CREATED_ISSUES.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return 0
 
 

@@ -19,9 +19,7 @@ from l9_graphite_memory.group_resolver import resolve_group
 from l9_graphite_memory.runtime import build_runtime, local_principal_for_resolution
 
 
-def run_prune_report(
-    *, dry_run: bool = True, cwd: Path | None = None
-) -> dict[str, Any]:
+def run_prune_report(*, dry_run: bool = True, cwd: Path | None = None) -> dict[str, Any]:
     runtime = build_runtime()
     try:
         resolution = resolve_group(cwd or Path.cwd(), settings=runtime.settings)
@@ -31,9 +29,7 @@ def run_prune_report(
                 "dry_run": dry_run,
             }
         principal = local_principal_for_resolution(runtime.settings, resolution)
-        receipt = runtime.service.prune(
-            principal, resolution.group_id, apply=not dry_run
-        )
+        receipt = runtime.service.prune(principal, resolution.group_id, apply=not dry_run)
         return {
             "namespace": resolution.group_id,
             "dry_run": dry_run,

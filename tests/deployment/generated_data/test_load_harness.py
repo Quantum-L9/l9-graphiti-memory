@@ -20,12 +20,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-HARNESS = (
-    ROOT
-    / "deployment"
-    / "generated-data"
-    / "load_test_generated_data.py"
-)
+HARNESS = ROOT / "deployment" / "generated-data" / "load_test_generated_data.py"
 
 
 def make_command(
@@ -34,14 +29,10 @@ def make_command(
 ) -> Path:
     path = directory / "synthetic-command"
     path.write_text(
-        "#!/usr/bin/env python3\n"
-        + textwrap.dedent(body),
+        "#!/usr/bin/env python3\n" + textwrap.dedent(body),
         encoding="utf-8",
     )
-    path.chmod(
-        path.stat().st_mode
-        | stat.S_IXUSR
-    )
+    path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
 
 
@@ -181,9 +172,7 @@ class LoadHarnessTests(unittest.TestCase):
         )
         result = json.loads(completed.stdout)
         self.assertEqual(result["failures"], 4)
-        self.assertTrue(
-            result["failure_details"]
-        )
+        self.assertTrue(result["failure_details"])
 
     def test_harness_is_bounded(self) -> None:
         content = HARNESS.read_text(encoding="utf-8")

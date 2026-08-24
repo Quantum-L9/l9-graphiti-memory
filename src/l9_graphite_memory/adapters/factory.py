@@ -38,9 +38,7 @@ def build_store(settings: MemorySettings) -> RecordStore:
             statement_timeout_ms=settings.postgres_statement_timeout_ms,
         )
     else:
-        raise ConfigurationError(
-            f"unsupported store backend: {settings.store_backend}"
-        )
+        raise ConfigurationError(f"unsupported store backend: {settings.store_backend}")
     store.initialize()
 
     # A freshly initialized store reports itself healthy with zero records.
@@ -68,9 +66,7 @@ def build_projection(settings: MemorySettings) -> ProjectionAdapter:
         from .graphiti_projection import GraphitiProjection
 
         return GraphitiProjection(
-            HttpMcpTransport(
-                url=settings.graphiti_mcp_url, token=settings.graphiti_mcp_token
-            )
+            HttpMcpTransport(url=settings.graphiti_mcp_url, token=settings.graphiti_mcp_token)
         )
     if settings.projection_backend == "zep":
         if not settings.zep_api_key:
@@ -80,10 +76,6 @@ def build_projection(settings: MemorySettings) -> ProjectionAdapter:
         from .graphiti_projection import GraphitiProjection
 
         return GraphitiProjection(
-            ZepCloudTransport(
-                api_key=settings.zep_api_key, base_url=settings.zep_api_url
-            )
+            ZepCloudTransport(api_key=settings.zep_api_key, base_url=settings.zep_api_url)
         )
-    raise ConfigurationError(
-        f"unsupported projection backend: {settings.projection_backend}"
-    )
+    raise ConfigurationError(f"unsupported projection backend: {settings.projection_backend}")

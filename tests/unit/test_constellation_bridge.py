@@ -46,9 +46,7 @@ class FakePacket:
 
 class FakeFactory:
     def create(self, *, payload: BaseModel, trace_id: str) -> FakePacket:
-        return FakePacket(
-            packet_id="packet-1", trace_id=trace_id, lineage=(), payload=payload
-        )
+        return FakePacket(packet_id="packet-1", trace_id=trace_id, lineage=(), payload=payload)
 
 
 class FakeGate:

@@ -37,16 +37,12 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
         }
     )
     src = Path(__file__).resolve().parents[2] / "src"
-    env["PYTHONPATH"] = f"{src}{os.pathsep}{env.get('PYTHONPATH', '')}".rstrip(
-        os.pathsep
-    )
+    env["PYTHONPATH"] = f"{src}{os.pathsep}{env.get('PYTHONPATH', '')}".rstrip(os.pathsep)
     return env
 
 
 def test_probe_generated_server_full_handshake(tmp_path: Path) -> None:
-    receipt = probe_generated_server(
-        env=_isolated_env(tmp_path), timeout_seconds=60.0
-    )
+    receipt = probe_generated_server(env=_isolated_env(tmp_path), timeout_seconds=60.0)
     assert receipt.status == ClientConfigStatus.COMPLETE, receipt.reasons
     assert receipt.protocol_version == "2024-11-05"
     assert receipt.server_name == "l9-graphite-memory"

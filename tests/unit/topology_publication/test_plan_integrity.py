@@ -168,9 +168,7 @@ def test_missing_packet_document_is_rejected(tmp_path: Path) -> None:
     topo_root = make_topology_bundle(tmp_path / "topo")
     manifest_path = topo_root / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    manifest["files"] = [
-        entry for entry in manifest["files"] if entry["path"] != "packet.json"
-    ]
+    manifest["files"] = [entry for entry in manifest["files"] if entry["path"] != "packet.json"]
     manifest_path.write_text(json.dumps(manifest, sort_keys=True) + "\n")
     plan_root = make_plan_bundle(
         tmp_path / "plan", [make_candidate(candidate_id="c-1", status="eligible")]

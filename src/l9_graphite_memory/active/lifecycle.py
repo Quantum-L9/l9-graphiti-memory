@@ -39,9 +39,7 @@ class ActiveAgentSessionState(str, Enum):
     CLOSED = "closed"
 
 
-_ALLOWED_TRANSITIONS: dict[
-    ActiveAgentSessionState, frozenset[ActiveAgentSessionState]
-] = {
+_ALLOWED_TRANSITIONS: dict[ActiveAgentSessionState, frozenset[ActiveAgentSessionState]] = {
     ActiveAgentSessionState.NEW: frozenset({ActiveAgentSessionState.REGISTERING}),
     ActiveAgentSessionState.REGISTERING: frozenset(
         {ActiveAgentSessionState.ACTIVE, ActiveAgentSessionState.FAILED}

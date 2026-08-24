@@ -246,9 +246,7 @@ class TopologyPublicationBatchReceipt(_FrozenModel):
     created_at: datetime = Field(default_factory=utc_now)
 
 
-_PLAN_ADAPTER: TypeAdapter[TopologyPublicationPlanModel] = TypeAdapter(
-    TopologyPublicationPlanModel
-)
+_PLAN_ADAPTER: TypeAdapter[TopologyPublicationPlanModel] = TypeAdapter(TopologyPublicationPlanModel)
 _MANIFEST_ADAPTER: TypeAdapter[BundleManifestModel] = TypeAdapter(BundleManifestModel)
 
 
@@ -269,9 +267,7 @@ def _read_bundle_file(root: Path, relative: str) -> bytes:
     resolved_root = root.resolve()
     candidate = (root / relative).resolve()
     if not candidate.is_relative_to(resolved_root):
-        raise TopologyPlanError(
-            f"bundle path resolves outside the bundle root: {relative}"
-        )
+        raise TopologyPlanError(f"bundle path resolves outside the bundle root: {relative}")
     if not candidate.is_file():
         raise TopologyPlanError(f"bundle file is missing: {relative}")
     return candidate.read_bytes()
@@ -350,9 +346,7 @@ def _validate_plan_structure(plan: TopologyPublicationPlanModel) -> None:
     seen: set[str] = set()
     for candidate in plan.candidates:
         if candidate.candidate_id in seen:
-            raise TopologyPlanError(
-                f"duplicate candidate_id in plan: {candidate.candidate_id}"
-            )
+            raise TopologyPlanError(f"duplicate candidate_id in plan: {candidate.candidate_id}")
         seen.add(candidate.candidate_id)
         request_key = candidate.memory_intent.request.idempotency_key
         if not request_key:
@@ -415,9 +409,7 @@ def _repository_model_packet_ids(topology: VerifiedBundle) -> set[str]:
     }
 
 
-def validate_topology_binding(
-    plan: TopologyPublicationPlanModel, topology: VerifiedBundle
-) -> None:
+def validate_topology_binding(plan: TopologyPublicationPlanModel, topology: VerifiedBundle) -> None:
     """Bind the plan to the supplied topology packet bundle, fail-closed.
 
     A JSON plan is not accepted as an unauthenticated assertion that some
@@ -434,8 +426,7 @@ def validate_topology_binding(
         )
     if manifest.semantic_hash != plan.source_topology_semantic_hash:
         raise TopologyPlanError(
-            "plan source_topology_semantic_hash does not match the supplied "
-            "topology bundle"
+            "plan source_topology_semantic_hash does not match the supplied topology bundle"
         )
     if ref.semantic_hash != manifest.semantic_hash:
         raise TopologyPlanError(
@@ -476,9 +467,7 @@ def _validate_gate_conformance(plan: TopologyPublicationPlanModel) -> None:
         if candidate.eligibility.status != "eligible":
             continue
         try:
-            GateMemoryBridge.validate_intent(
-                candidate.memory_intent.model_dump(mode="python")
-            )
+            GateMemoryBridge.validate_intent(candidate.memory_intent.model_dump(mode="python"))
         except (ValidationError, ValueError) as exc:
             raise TopologyPlanError(
                 f"candidate {candidate.candidate_id}: eligible intent failed "
@@ -546,9 +535,7 @@ def execute_topology_publication(
                     idempotency_key=candidate.idempotency_key,
                     attempted=False,
                     execution_status=(
-                        "not_attempted_held"
-                        if status == "held"
-                        else "not_attempted_rejected"
+                        "not_attempted_held" if status == "held" else "not_attempted_rejected"
                     ),
                 )
             )
@@ -594,15 +581,9 @@ def execute_topology_publication(
         source_topology_packet_id=plan.source_topology_packet.packet_id,
         source_topology_semantic_hash=plan.source_topology_semantic_hash,
         mode=mode,
-        eligible_count=sum(
-            1 for item in plan.candidates if item.eligibility.status == "eligible"
-        ),
-        held_count=sum(
-            1 for item in plan.candidates if item.eligibility.status == "held"
-        ),
-        rejected_count=sum(
-            1 for item in plan.candidates if item.eligibility.status == "rejected"
-        ),
+        eligible_count=sum(1 for item in plan.candidates if item.eligibility.status == "eligible"),
+        held_count=sum(1 for item in plan.candidates if item.eligibility.status == "held"),
+        rejected_count=sum(1 for item in plan.candidates if item.eligibility.status == "rejected"),
         skipped_count=len(plan.skipped_candidates),
         attempted_count=counters["attempted"],
         admitted_count=counters["admitted"],

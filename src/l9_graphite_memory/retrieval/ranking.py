@@ -115,9 +115,7 @@ class RankingPolicy:
                 pass
         return _CLASS_IMPORTANCE[record.memory_class]
 
-    def recency_score(
-        self, record: MemoryRecord, *, now: datetime | None = None
-    ) -> float:
+    def recency_score(self, record: MemoryRecord, *, now: datetime | None = None) -> float:
         reference = now or datetime.now(timezone.utc)
         return self.retention_policy.decay_score(record, now=reference)
 

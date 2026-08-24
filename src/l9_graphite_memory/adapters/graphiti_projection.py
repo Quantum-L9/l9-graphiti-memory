@@ -48,13 +48,9 @@ class GraphitiProjection:
             "namespace": record.namespace,
             "memory_class": record.memory_class.value,
             "content": record.content,
-            "assertion": record.assertion.model_dump(mode="json")
-            if record.assertion
-            else None,
+            "assertion": record.assertion.model_dump(mode="json") if record.assertion else None,
             "valid_from": record.temporal.valid_from.isoformat(),
-            "valid_to": record.temporal.valid_to.isoformat()
-            if record.temporal.valid_to
-            else None,
+            "valid_to": record.temporal.valid_to.isoformat() if record.temporal.valid_to else None,
             "recorded_at": record.temporal.recorded_at.isoformat(),
             "confidence": record.confidence.score,
             "tags": list(record.tags),
@@ -197,10 +193,7 @@ class GraphitiProjection:
             values = result
         if not isinstance(values, list):
             return []
-        return [
-            item if isinstance(item, dict) else {"content": str(item)}
-            for item in values
-        ]
+        return [item if isinstance(item, dict) else {"content": str(item)} for item in values]
 
     def search_strategy(
         self,
@@ -218,16 +211,10 @@ class GraphitiProjection:
             tool = "search_nodes"
             limit_key = "max_nodes"
         else:
-            tool = (
-                "search_memory_facts"
-                if "search_memory_facts" in tools
-                else "search_facts"
-            )
+            tool = "search_memory_facts" if "search_memory_facts" in tools else "search_facts"
             limit_key = "max_facts"
         if tool not in tools:
-            raise ProjectionError(
-                f"transport {self.transport.name} does not expose {tool}"
-            )
+            raise ProjectionError(f"transport {self.transport.name} does not expose {tool}")
         hits: dict[UUID, ProjectionHit] = {}
         per_namespace = max(1, limit // max(1, len(namespaces)))
         for namespace in namespaces:
@@ -250,10 +237,7 @@ class GraphitiProjection:
                     record_id=record_id,
                     score=score,
                     excerpt=str(
-                        item.get("content")
-                        or item.get("fact")
-                        or item.get("summary")
-                        or ""
+                        item.get("content") or item.get("fact") or item.get("summary") or ""
                     )[:1_000],
                     metadata={
                         "namespace": namespace,
@@ -267,16 +251,12 @@ class GraphitiProjection:
                     hits[record_id] = hit
         return sorted(hits.values(), key=lambda item: item.score, reverse=True)[:limit]
 
-    def search(
-        self, query: str, namespaces: tuple[str, ...], *, limit: int
-    ) -> list[ProjectionHit]:
+    def search(self, query: str, namespaces: tuple[str, ...], *, limit: int) -> list[ProjectionHit]:
         combined: dict[UUID, ProjectionHit] = {}
         failures: list[str] = []
         for strategy in self.capabilities:
             try:
-                for hit in self.search_strategy(
-                    strategy, query, namespaces, limit=limit
-                ):
+                for hit in self.search_strategy(strategy, query, namespaces, limit=limit):
                     existing = combined.get(hit.record_id)
                     if existing is None or hit.score > existing.score:
                         combined[hit.record_id] = hit
@@ -284,6 +264,4 @@ class GraphitiProjection:
                 failures.append(f"{strategy}: {exc}")
         if failures and not combined:
             raise ProjectionError("; ".join(failures))
-        return sorted(combined.values(), key=lambda item: item.score, reverse=True)[
-            :limit
-        ]
+        return sorted(combined.values(), key=lambda item: item.score, reverse=True)[:limit]

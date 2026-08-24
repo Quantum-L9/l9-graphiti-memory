@@ -111,29 +111,19 @@ def main() -> int:
     ).strip()
 
     if not raw_command:
-        raise SystemExit(
-            "No command configured for load scenario"
-        )
+        raise SystemExit("No command configured for load scenario")
 
     command = shlex.split(raw_command)
     fixture = (
         DEPLOYMENT
         / "fixtures"
-        / (
-            "reuse-event.json"
-            if args.scenario == "concurrent_reuse"
-            else "governed-candidate.json"
-        )
+        / ("reuse-event.json" if args.scenario == "concurrent_reuse" else "governed-candidate.json")
     )
-    payload = json.loads(
-        fixture.read_text(encoding="utf-8")
-    )
+    payload = json.loads(fixture.read_text(encoding="utf-8"))
 
     invocations: list[Invocation] = []
 
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=max(1, args.workers)
-    ) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.workers)) as executor:
         futures = [
             executor.submit(
                 invoke,
@@ -143,28 +133,14 @@ def main() -> int:
             )
             for _ in range(max(1, args.iterations))
         ]
-        for future in concurrent.futures.as_completed(
-            futures
-        ):
+        for future in concurrent.futures.as_completed(futures):
             invocations.append(future.result())
 
-    durations = [
-        item.duration_seconds for item in invocations
-    ]
-    success = [
-        item for item in invocations
-        if item.returncode == 0
-    ]
-    failure = [
-        item for item in invocations
-        if item.returncode != 0
-    ]
+    durations = [item.duration_seconds for item in invocations]
+    success = [item for item in invocations if item.returncode == 0]
+    failure = [item for item in invocations if item.returncode != 0]
 
-    statuses = [
-        str(item.response.get("status"))
-        for item in success
-        if item.response is not None
-    ]
+    statuses = [str(item.response.get("status")) for item in success if item.response is not None]
 
     accepted_like = {
         "accepted",
@@ -192,11 +168,7 @@ def main() -> int:
             "p50": percentile(durations, 0.50),
             "p95": percentile(durations, 0.95),
             "p99": percentile(durations, 0.99),
-            "mean": (
-                statistics.fmean(durations)
-                if durations
-                else 0.0
-            ),
+            "mean": (statistics.fmean(durations) if durations else 0.0),
         },
         "failure_details": [
             {

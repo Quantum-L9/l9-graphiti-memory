@@ -80,9 +80,7 @@ def redact_stderr(text: str, env: dict[str, str]) -> str:
 class _StdioSession:
     """Minimal line-delimited JSON-RPC client over a child process."""
 
-    def __init__(
-        self, argv: tuple[str, ...], env: dict[str, str], deadline: float
-    ) -> None:
+    def __init__(self, argv: tuple[str, ...], env: dict[str, str], deadline: float) -> None:
         self.deadline = deadline
         self.process = subprocess.Popen(
             list(argv),
@@ -178,18 +176,12 @@ def probe_generated_server(
         response = _call(session, 1, "initialize", {"protocolVersion": "2024-11-05"})
         result = _result_of(response, "initialize", steps)
         info = result.get("serverInfo", {}) if isinstance(result, dict) else {}
-        protocol_version = (
-            result.get("protocolVersion") if isinstance(result, dict) else None
-        )
+        protocol_version = result.get("protocolVersion") if isinstance(result, dict) else None
         if isinstance(info, dict):
             server_name = info.get("name")
             server_version = info.get("version")
-        session.send(
-            {"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}}
-        )
-        steps.append(
-            ProbeStep(method="notifications/initialized", ok=True, detail="sent")
-        )
+        session.send({"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}})
+        steps.append(ProbeStep(method="notifications/initialized", ok=True, detail="sent"))
         response = _call(session, 2, "tools/list", {})
         result = _result_of(response, "tools/list", steps)
         tools = result.get("tools", []) if isinstance(result, dict) else []
@@ -199,9 +191,7 @@ def probe_generated_server(
             if isinstance(item, dict) and isinstance(item.get("name"), str)
         }
         tool_count = len(tools)
-        missing = tuple(
-            sorted(name for name in REQUIRED_TOOL_NAMES if name not in names)
-        )
+        missing = tuple(sorted(name for name in REQUIRED_TOOL_NAMES if name not in names))
         required_present = not missing
         if missing:
             reasons.append(f"missing required tools: {', '.join(missing)}")
@@ -233,9 +223,7 @@ def probe_generated_server(
         and all(step.ok for step in steps)
     )
     return ProbeReceipt(
-        status=(
-            ClientConfigStatus.COMPLETE if succeeded else ClientConfigStatus.FAILED
-        ),
+        status=(ClientConfigStatus.COMPLETE if succeeded else ClientConfigStatus.FAILED),
         command_argv=argv,
         protocol_version=protocol_version,
         server_name=server_name,
@@ -255,18 +243,14 @@ def probe_generated_server(
 def _call(
     session: _StdioSession, request_id: int, method: str, params: dict[str, Any]
 ) -> dict[str, Any]:
-    session.send(
-        {"jsonrpc": "2.0", "id": request_id, "method": method, "params": params}
-    )
+    session.send({"jsonrpc": "2.0", "id": request_id, "method": method, "params": params})
     while True:
         response = session.receive()
         if response.get("id") == request_id:
             return response
 
 
-def _result_of(
-    response: dict[str, Any], label: str, steps: list[ProbeStep]
-) -> dict[str, Any]:
+def _result_of(response: dict[str, Any], label: str, steps: list[ProbeStep]) -> dict[str, Any]:
     error = response.get("error")
     if error is not None:
         detail = str(error.get("message", "")) if isinstance(error, dict) else ""

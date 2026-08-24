@@ -25,9 +25,7 @@ def test_mcp_inventory_contains_recursive_harvest_tools() -> None:
     } <= names
 
 
-def test_mcp_lineage_and_retention_delegate_to_canonical_service(
-    memory_service, principal
-) -> None:
+def test_mcp_lineage_and_retention_delegate_to_canonical_service(memory_service, principal) -> None:
     receipt = memory_service.write(
         principal,
         MemoryWriteRequest(

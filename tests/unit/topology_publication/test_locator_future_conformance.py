@@ -82,9 +82,7 @@ def test_locator_bearing_topology_intent_roundtrips_canonically(
     assert parsed.provenance.source_range is None
     assert parsed.evidence[0].source_range is None
 
-    service = MemoryService(
-        SQLiteRecordStore(tmp_path / "canonical.sqlite3"), NullProjection()
-    )
+    service = MemoryService(SQLiteRecordStore(tmp_path / "canonical.sqlite3"), NullProjection())
     service.initialize()
     receipt = execute_topology_publication(
         plan=plan,
@@ -94,9 +92,7 @@ def test_locator_bearing_topology_intent_roundtrips_canonically(
         mode="apply",
     )
     assert receipt.admitted_count == 1
-    record = service.get(
-        topology_principal, receipt.candidate_results[0].memory_record_id
-    )
+    record = service.get(topology_principal, receipt.candidate_results[0].memory_record_id)
     stored_provenance = record.provenance.source_locator
     stored_evidence = record.evidence[0].source_locator
     assert stored_provenance is not None

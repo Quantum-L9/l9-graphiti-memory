@@ -19,12 +19,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-VERIFIER = (
-    ROOT
-    / "deployment"
-    / "generated-data"
-    / "verify_selector_indexes.py"
-)
+VERIFIER = ROOT / "deployment" / "generated-data" / "verify_selector_indexes.py"
 
 
 def create_indexed_database(path: Path) -> None:

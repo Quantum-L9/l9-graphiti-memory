@@ -81,8 +81,7 @@ def run_json_command(
         return (
             False,
             {},
-            completed.stderr.strip()
-            or f"exit={completed.returncode}",
+            completed.stderr.strip() or f"exit={completed.returncode}",
         )
 
     try:
@@ -115,9 +114,7 @@ def static_checks() -> list[Check]:
         "context_requirement",
         "artifact_lineage",
     }
-    supported = set(
-        manifest["candidate_ingress"]["supported_classes"]
-    )
+    supported = set(manifest["candidate_ingress"]["supported_classes"])
 
     checks = [
         Check(
@@ -137,48 +134,27 @@ def static_checks() -> list[Check]:
         ),
         Check(
             name="service_principal",
-            passed=(
-                principal.get("principal", {}).get("type")
-                == "service"
-            ),
+            passed=(principal.get("principal", {}).get("type") == "service"),
             required=True,
-            details={
-                "principal": principal.get("principal", {})
-            },
+            details={"principal": principal.get("principal", {})},
         ),
         Check(
             name="delete_denied",
-            passed=(
-                principal.get("constraints", {}).get(
-                    "may_delete_memory"
-                )
-                is False
-            ),
+            passed=(principal.get("constraints", {}).get("may_delete_memory") is False),
             required=True,
             details={},
         ),
         Check(
             name="visibility_widening_forbidden",
-            passed=(
-                namespace.get("rules", {}).get(
-                    "widening_forbidden"
-                )
-                is True
-            ),
+            passed=(namespace.get("rules", {}).get("widening_forbidden") is True),
             required=True,
             details={},
         ),
         Check(
             name="raw_packets_owned_by_governance",
             passed=(
-                retention.get("raw_subagent_packets", {}).get(
-                    "owner"
-                )
-                == "Cursor-Governance"
-                and retention.get(
-                    "raw_subagent_packets", {}
-                ).get("store_in_graphiti")
-                is False
+                retention.get("raw_subagent_packets", {}).get("owner") == "Cursor-Governance"
+                and retention.get("raw_subagent_packets", {}).get("store_in_graphiti") is False
             ),
             required=True,
             details={},
@@ -255,24 +231,12 @@ def live_checks() -> list[Check]:
     checks = local_checks()
 
     commands = {
-        "capabilities": command_from_env(
-            "L9_SGD_GRAPHITI_CAPABILITIES_COMMAND"
-        ),
-        "ingest": command_from_env(
-            "L9_SGD_GRAPHITI_INGEST_COMMAND"
-        ),
-        "search": command_from_env(
-            "L9_SGD_GRAPHITI_SEARCH_COMMAND"
-        ),
-        "hydrate": command_from_env(
-            "L9_SGD_GRAPHITI_HYDRATE_COMMAND"
-        ),
-        "reuse": command_from_env(
-            "L9_SGD_GRAPHITI_REUSE_COMMAND"
-        ),
-        "invalidate": command_from_env(
-            "L9_SGD_GRAPHITI_INVALIDATE_COMMAND"
-        ),
+        "capabilities": command_from_env("L9_SGD_GRAPHITI_CAPABILITIES_COMMAND"),
+        "ingest": command_from_env("L9_SGD_GRAPHITI_INGEST_COMMAND"),
+        "search": command_from_env("L9_SGD_GRAPHITI_SEARCH_COMMAND"),
+        "hydrate": command_from_env("L9_SGD_GRAPHITI_HYDRATE_COMMAND"),
+        "reuse": command_from_env("L9_SGD_GRAPHITI_REUSE_COMMAND"),
+        "invalidate": command_from_env("L9_SGD_GRAPHITI_INVALIDATE_COMMAND"),
     }
 
     for name, command in commands.items():
@@ -287,14 +251,8 @@ def live_checks() -> list[Check]:
 
     capability_command = commands["capabilities"]
     if capability_command:
-        passed, response, error = run_json_command(
-            capability_command
-        )
-        tool_plane_ready = bool(
-            response.get("runtime", {}).get(
-                "mcp_tool_plane_ready", False
-            )
-        )
+        passed, response, error = run_json_command(capability_command)
+        tool_plane_ready = bool(response.get("runtime", {}).get("mcp_tool_plane_ready", False))
         checks.append(
             Check(
                 name="live_capability_response",
@@ -311,9 +269,7 @@ def live_checks() -> list[Check]:
                 name="tool_plane_not_liveness_only",
                 passed=passed and tool_plane_ready,
                 required=True,
-                details={
-                    "mcp_tool_plane_ready": tool_plane_ready
-                },
+                details={"mcp_tool_plane_ready": tool_plane_ready},
             )
         )
 
@@ -335,18 +291,12 @@ def main() -> int:
         "live": live_checks,
     }[args.mode]()
 
-    ready = all(
-        item.passed for item in checks if item.required
-    )
+    ready = all(item.passed for item in checks if item.required)
     result = {
         "mode": args.mode,
         "ready": ready,
         "checks": [item.to_dict() for item in checks],
-        "failures": [
-            item.to_dict()
-            for item in checks
-            if item.required and not item.passed
-        ],
+        "failures": [item.to_dict() for item in checks if item.required and not item.passed],
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if ready else 1

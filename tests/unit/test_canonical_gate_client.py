@@ -167,9 +167,7 @@ def test_trace_mismatch_fails_closed() -> None:
         trace_id="other-trace",
     )
     with pytest.raises(GateMalformedReceiptError, match="trace_id"):
-        receipt_from_response(
-            request_packet=request.canonical_packet, response_packet=mismatched
-        )
+        receipt_from_response(request_packet=request.canonical_packet, response_packet=mismatched)
 
 
 @pytest.mark.parametrize(
@@ -246,7 +244,9 @@ def test_local_duplicate_packet_is_rejected() -> None:
     pytest.importorskip("constellation_node_sdk")
     from constellation_node_sdk import TransportPacket
 
-    client = CanonicalGateClient(sdk_client=_StubSdkClient(response=object()), packet_type=TransportPacket)
+    client = CanonicalGateClient(
+        sdk_client=_StubSdkClient(response=object()), packet_type=TransportPacket
+    )
     with pytest.raises(BoundaryAlignmentError, match="authoritative TransportPacket"):
         client.dispatch(_LocalPacket(packet_id=str(uuid4())))
 

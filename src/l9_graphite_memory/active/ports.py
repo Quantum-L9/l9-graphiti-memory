@@ -57,9 +57,7 @@ class ActiveStore(Protocol):
     directly to these methods; it is bound at construction time).
     """
 
-    async def register(
-        self, identity: AgentIdentity, lease: AgentLease
-    ) -> AgentPresence:
+    async def register(self, identity: AgentIdentity, lease: AgentLease) -> AgentPresence:
         """Register a new agent instance and store its initial presence.
 
         Raises:

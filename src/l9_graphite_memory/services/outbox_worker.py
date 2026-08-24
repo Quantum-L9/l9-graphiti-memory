@@ -114,13 +114,9 @@ class OutboxWorker:
                 if event.event_type == "memory.record.project":
                     record = self.store.get_record(event.aggregate_id)
                     if record is None:
-                        raise RuntimeError(
-                            f"outbox aggregate not found: {event.aggregate_id}"
-                        )
+                        raise RuntimeError(f"outbox aggregate not found: {event.aggregate_id}")
                     result = self.projection.project(record)
-                    locator = (
-                        result.get("locator") if isinstance(result, dict) else None
-                    )
+                    locator = result.get("locator") if isinstance(result, dict) else None
                     if not isinstance(locator, str) or not locator.strip():
                         raise RuntimeError(
                             f"projection {self.projection.name} did not return a stable locator "
@@ -144,9 +140,7 @@ class OutboxWorker:
                     # must never touch canonical state: the record keeps its
                     # content and its lifecycle history, and only the derived
                     # projection is withdrawn (ADR-074).
-                    link = self.store.get_projection_link(
-                        event.aggregate_id, self.projection.name
-                    )
+                    link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
                     if link is None:
                         # Nothing was ever projected, so there is nothing to
                         # withdraw. Retirement is satisfied.
@@ -166,9 +160,7 @@ class OutboxWorker:
                             locator=link.locator,
                             reason=reason_text,
                         )
-                        self.store.delete_projection_link(
-                            event.aggregate_id, self.projection.name
-                        )
+                        self.store.delete_projection_link(event.aggregate_id, self.projection.name)
                         # A provider whose only removal primitive is deletion
                         # cannot distinguish this from a privacy erasure in its
                         # own logs. Record the distinction in canonical state,
@@ -183,16 +175,12 @@ class OutboxWorker:
                                 reason=reason_text,
                                 rebuildable=True,
                                 outbox_event_id=event.event_id,
-                                provider_result=result
-                                if isinstance(result, dict)
-                                else {},
+                                provider_result=result if isinstance(result, dict) else {},
                                 retired_at=now,
                             )
                         )
                 elif event.event_type == "memory.record.erase":
-                    link = self.store.get_projection_link(
-                        event.aggregate_id, self.projection.name
-                    )
+                    link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
                     if link is None:
                         raise RuntimeError(
                             f"projection locator not found for {event.aggregate_id} on {self.projection.name}"
@@ -202,14 +190,10 @@ class OutboxWorker:
                         event.namespace,
                         locator=link.locator,
                     )
-                    self.store.delete_projection_link(
-                        event.aggregate_id, self.projection.name
-                    )
+                    self.store.delete_projection_link(event.aggregate_id, self.projection.name)
                     receipt_id = event.payload.get("deletion_receipt_id")
                     if not isinstance(receipt_id, str):
-                        raise RuntimeError(
-                            "deletion outbox event lacks deletion_receipt_id"
-                        )
+                        raise RuntimeError("deletion outbox event lacks deletion_receipt_id")
                     from uuid import UUID
 
                     self.store.complete_deletion(
@@ -218,9 +202,7 @@ class OutboxWorker:
                         completed_at=now,
                     )
                 else:
-                    raise RuntimeError(
-                        f"unsupported outbox event type: {event.event_type}"
-                    )
+                    raise RuntimeError(f"unsupported outbox event type: {event.event_type}")
                 settled = self._settle(
                     event,
                     status=OutboxStatus.DELIVERED,
@@ -241,9 +223,7 @@ class OutboxWorker:
                 else:
                     status = OutboxStatus.RETRY
                     retried += 1
-                    delay = self.settings.outbox_base_delay_seconds * (
-                        2 ** min(attempts - 1, 10)
-                    )
+                    delay = self.settings.outbox_base_delay_seconds * (2 ** min(attempts - 1, 10))
                     next_attempt = now + timedelta(seconds=delay)
                 if not self._settle(
                     event,
@@ -278,15 +258,9 @@ class OutboxWorker:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Deliver L9 memory outbox events")
-    parser.add_argument(
-        "--once", action="store_true", help="Process one batch and exit"
-    )
-    parser.add_argument(
-        "--interval", type=float, default=5.0, help="Polling interval in seconds"
-    )
-    parser.add_argument(
-        "--config", default=None, help="Optional YAML configuration path"
-    )
+    parser.add_argument("--once", action="store_true", help="Process one batch and exit")
+    parser.add_argument("--interval", type=float, default=5.0, help="Polling interval in seconds")
+    parser.add_argument("--config", default=None, help="Optional YAML configuration path")
     args = parser.parse_args()
 
     from l9_graphite_memory.adapters import build_projection, build_store

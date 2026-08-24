@@ -130,25 +130,15 @@ def test_session_expiry_triggers_single_reinit_and_retry() -> None:
     call_methods: list[str] = []
 
     def make_error() -> HTTPError:
-        body = json.dumps(
-            {"error": {"message": "Bad Request: Missing session ID"}}
-        ).encode("utf-8")
-        return HTTPError(
-            "https://graphiti.example/mcp", 400, "Bad Request", None, io.BytesIO(body)
-        )
+        body = json.dumps({"error": {"message": "Bad Request: Missing session ID"}}).encode("utf-8")
+        return HTTPError("https://graphiti.example/mcp", 400, "Bad Request", None, io.BytesIO(body))
 
     responses = [
         make_error(),
+        _FakeResponse(_headers("application/json", session_id="fresh-session"), _json_body({})),
+        _FakeResponse(_headers("application/json", session_id="fresh-session"), _json_body({})),
         _FakeResponse(
-            _headers("application/json", session_id="fresh-session"), _json_body({})
-        ),
-        _FakeResponse(
-            _headers("application/json", session_id="fresh-session"), _json_body({})
-        ),
-        _FakeResponse(
-            _headers(
-                "text/event-stream", session_id="fresh-session"
-            ),
+            _headers("text/event-stream", session_id="fresh-session"),
             _sse_body({"jsonrpc": "2.0", "result": {"tools": []}}),
         ),
     ]

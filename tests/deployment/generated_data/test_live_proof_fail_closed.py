@@ -22,12 +22,7 @@ from collections.abc import Mapping
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-LIVE = (
-    ROOT
-    / "deployment"
-    / "generated-data"
-    / "live_end_to_end_proof.py"
-)
+LIVE = ROOT / "deployment" / "generated-data" / "live_end_to_end_proof.py"
 
 
 REQUIRED_ENV = (
@@ -47,14 +42,10 @@ def write_command(
 ) -> Path:
     path = directory / name
     path.write_text(
-        "#!/usr/bin/env python3\n"
-        + textwrap.dedent(body),
+        "#!/usr/bin/env python3\n" + textwrap.dedent(body),
         encoding="utf-8",
     )
-    path.chmod(
-        path.stat().st_mode
-        | stat.S_IXUSR
-    )
+    path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
 
 
@@ -79,18 +70,14 @@ def execute(
         check=False,
         timeout=30,
     )
-    return completed.returncode, json.loads(
-        completed.stdout
-    )
+    return completed.returncode, json.loads(completed.stdout)
 
 
 class LiveProofFailClosedTests(unittest.TestCase):
     def test_missing_commands_fail(self) -> None:
         returncode, result = execute({})
         self.assertNotEqual(returncode, 0)
-        self.assertFalse(
-            result["full_loop_proven"]
-        )
+        self.assertFalse(result["full_loop_proven"])
         self.assertTrue(result["failures"])
 
     def test_health_only_does_not_prove_tool_plane(
@@ -134,23 +121,14 @@ class LiveProofFailClosedTests(unittest.TestCase):
                 """,
             )
 
-            env = {
-                name: str(fail)
-                for name in REQUIRED_ENV
-            }
-            env[
-                "L9_SGD_GRAPHITI_CAPABILITIES_COMMAND"
-            ] = str(capabilities)
+            env = {name: str(fail) for name in REQUIRED_ENV}
+            env["L9_SGD_GRAPHITI_CAPABILITIES_COMMAND"] = str(capabilities)
 
             returncode, result = execute(env)
 
         self.assertNotEqual(returncode, 0)
-        self.assertFalse(
-            result["tool_plane_proven"]
-        )
-        self.assertFalse(
-            result["full_loop_proven"]
-        )
+        self.assertFalse(result["tool_plane_proven"])
+        self.assertFalse(result["full_loop_proven"])
 
     def test_mcp_404_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -174,23 +152,13 @@ class LiveProofFailClosedTests(unittest.TestCase):
                 raise SystemExit(5)
                 """,
             )
-            env = {
-                name: str(not_found)
-                for name in REQUIRED_ENV
-            }
+            env = {name: str(not_found) for name in REQUIRED_ENV}
 
             returncode, result = execute(env)
 
         self.assertNotEqual(returncode, 0)
-        self.assertFalse(
-            result["full_loop_proven"]
-        )
-        self.assertTrue(
-            any(
-                "404" in failure
-                for failure in result["failures"]
-            )
-        )
+        self.assertFalse(result["full_loop_proven"])
+        self.assertTrue(any("404" in failure for failure in result["failures"]))
 
     def test_missing_reuse_prevents_full_loop(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -245,23 +213,14 @@ class LiveProofFailClosedTests(unittest.TestCase):
                 """,
             )
 
-            env = {
-                name: str(command)
-                for name in REQUIRED_ENV
-            }
-            env[
-                "L9_SGD_GRAPHITI_REUSE_COMMAND"
-            ] = str(reuse_fail)
+            env = {name: str(command) for name in REQUIRED_ENV}
+            env["L9_SGD_GRAPHITI_REUSE_COMMAND"] = str(reuse_fail)
 
             returncode, result = execute(env)
 
         self.assertNotEqual(returncode, 0)
-        self.assertFalse(
-            result["reuse_proven"]
-        )
-        self.assertFalse(
-            result["full_loop_proven"]
-        )
+        self.assertFalse(result["reuse_proven"])
+        self.assertFalse(result["full_loop_proven"])
 
     def test_invalidation_deletion_claim_fails_proof(
         self,
@@ -319,23 +278,14 @@ class LiveProofFailClosedTests(unittest.TestCase):
                 """,
             )
 
-            env = {
-                name: str(generic)
-                for name in REQUIRED_ENV
-            }
-            env[
-                "L9_SGD_GRAPHITI_INVALIDATE_COMMAND"
-            ] = str(deleting)
+            env = {name: str(generic) for name in REQUIRED_ENV}
+            env["L9_SGD_GRAPHITI_INVALIDATE_COMMAND"] = str(deleting)
 
             returncode, result = execute(env)
 
         self.assertNotEqual(returncode, 0)
-        self.assertFalse(
-            result["deletion_absent"]
-        )
-        self.assertFalse(
-            result["full_loop_proven"]
-        )
+        self.assertFalse(result["deletion_absent"])
+        self.assertFalse(result["full_loop_proven"])
 
 
 if __name__ == "__main__":

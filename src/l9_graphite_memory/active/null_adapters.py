@@ -59,9 +59,7 @@ class NullActiveStore:
     for Liskov compatibility, not incidental.
     """
 
-    async def register(
-        self, _identity: AgentIdentity, _lease: AgentLease
-    ) -> AgentPresence:
+    async def register(self, _identity: AgentIdentity, _lease: AgentLease) -> AgentPresence:
         raise ActiveMemoryUnavailableError(_DISABLED_MESSAGE)
 
     async def renew(self, _lease: AgentLease) -> AgentPresence:

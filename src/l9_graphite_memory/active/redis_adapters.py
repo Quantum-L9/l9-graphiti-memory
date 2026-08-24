@@ -72,9 +72,7 @@ def _default(value: Any) -> Any:
 
 
 def _dump(value: Any) -> str:
-    return json.dumps(
-        asdict(value), default=_default, separators=(",", ":"), sort_keys=True
-    )
+    return json.dumps(asdict(value), default=_default, separators=(",", ":"), sort_keys=True)
 
 
 def _dt(value: str) -> datetime:
@@ -125,9 +123,7 @@ def _draft(data: Mapping[str, Any]) -> ActiveContextDraft:
         status=AgentStatus(data["status"]),
         working_on=tuple(data.get("working_on", [])),
         blockers=tuple(data.get("blockers", [])),
-        observations=tuple(
-            _observation(o) for o in data.get("observations", [])
-        ),
+        observations=tuple(_observation(o) for o in data.get("observations", [])),
         graph_references=tuple(data.get("graph_references", [])),
     )
 
@@ -203,9 +199,7 @@ class RedisActiveStore:
                 raise ActiveMemoryUnavailableError(str(exc)) from exc
             raise
 
-    async def register(
-        self, identity: AgentIdentity, _lease: AgentLease
-    ) -> AgentPresence:
+    async def register(self, identity: AgentIdentity, _lease: AgentLease) -> AgentPresence:
         # Redis has no separate lease record: the presence key's own TTL
         # (`ex=self._pt`) is the sole source of lease-expiry truth here.
         now = self._clock()
@@ -227,16 +221,12 @@ class RedisActiveStore:
         await self._call(
             self._r.zadd,
             self._index_key(),
-            {
-                f"{identity.agent_id}|{identity.instance_id}": presence.expires_at.timestamp()
-            },
+            {f"{identity.agent_id}|{identity.instance_id}": presence.expires_at.timestamp()},
         )
         return presence
 
     async def renew(self, lease: AgentLease) -> AgentPresence:
-        raw = await self._call(
-            self._r.get, self._presence_key(lease.agent_id, lease.instance_id)
-        )
+        raw = await self._call(self._r.get, self._presence_key(lease.agent_id, lease.instance_id))
         if not raw:
             raise LeaseExpiredError(lease.agent_id, lease.instance_id)
         old = _presence(json.loads(raw))
@@ -269,9 +259,7 @@ class RedisActiveStore:
             self._presence_key(lease.agent_id, lease.instance_id),
             self._context_key(lease.agent_id, lease.instance_id),
         )
-        await self._call(
-            self._r.zrem, self._index_key(), f"{lease.agent_id}|{lease.instance_id}"
-        )
+        await self._call(self._r.zrem, self._index_key(), f"{lease.agent_id}|{lease.instance_id}")
 
     async def put_context(
         self,
@@ -317,9 +305,7 @@ class RedisActiveStore:
             _, no_script_error_cls, redis_error_cls = _redis_modules()
             if isinstance(exc, no_script_error_cls):
                 self._sha = await self._call(self._r.script_load, self._CAS)
-                result = await self._call(
-                    self._r.evalsha, self._sha, len(keys), *keys, *args
-                )
+                result = await self._call(self._r.evalsha, self._sha, len(keys), *keys, *args)
             elif isinstance(exc, redis_error_cls):
                 raise ActiveMemoryUnavailableError(str(exc)) from exc
             else:
@@ -346,29 +332,20 @@ class RedisActiveStore:
         raw = await self._call(self._r.get, self._presence_key(agent_id, instance_id))
         return _presence(json.loads(raw)) if raw else None
 
-    async def list_active(
-        self, scope: AgentScope, cursor: str | None, limit: int
-    ) -> RedisPage:
+    async def list_active(self, scope: AgentScope, cursor: str | None, limit: int) -> RedisPage:
         start = int(cursor or 0)
-        members = await self._call(
-            self._r.zrange, self._index_key(), start, start + limit - 1
-        )
+        members = await self._call(self._r.zrange, self._index_key(), start, start + limit - 1)
         items = []
         for member in members:
             agent_id, instance_id = member.split("|", 1)
             presence = await self.get_presence(agent_id, instance_id)
             if (
                 presence
-                and (
-                    scope.group_id is None
-                    or scope.group_id in presence.identity.memory_group_ids
-                )
+                and (scope.group_id is None or scope.group_id in presence.identity.memory_group_ids)
                 and (scope.role is None or scope.role == presence.identity.role)
             ):
                 items.append(presence)
-        return RedisPage(
-            tuple(items), str(start + limit) if len(members) == limit else None
-        )
+        return RedisPage(tuple(items), str(start + limit) if len(members) == limit else None)
 
     async def health(self) -> RedisHealth:
         await self._call(self._r.ping)
@@ -402,9 +379,7 @@ class RedisAwarenessBus:
         except Exception as exc:
             raise ActiveMemoryUnavailableError(str(exc)) from exc
 
-    async def subscribe(
-        self, subscription: AgentSubscription
-    ) -> AsyncIterator[AgentEvent]:
+    async def subscribe(self, subscription: AgentSubscription) -> AsyncIterator[AgentEvent]:
         channel = self._channel(subscription.scope.group_id)
         pubsub = self._r.pubsub()
         await pubsub.subscribe(channel)

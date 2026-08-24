@@ -37,12 +37,7 @@ def inventories(
             """
         ):
             name = row[0]
-            columns = {
-                column[1]
-                for column in connection.execute(
-                    f'PRAGMA table_info("{name}")'
-                )
-            }
+            columns = {column[1] for column in connection.execute(f'PRAGMA table_info("{name}")')}
             tables[name] = columns
 
         indexes = {
@@ -68,23 +63,18 @@ def main() -> int:
 
     database = Path(args.database).resolve()
     if not database.is_file():
-        raise SystemExit(
-            f"Database not found: {database}"
-        )
+        raise SystemExit(f"Database not found: {database}")
 
     tables, indexes = inventories(database)
 
     selector_tables = {
-        name: columns
-        for name, columns in tables.items()
-        if REQUIRED_SELECTOR_COLUMNS <= columns
+        name: columns for name, columns in tables.items() if REQUIRED_SELECTOR_COLUMNS <= columns
     }
 
     matching_indexes = {
         name: sql
         for name, sql in indexes.items()
-        if "selector_type" in sql
-        and "selector_value" in sql
+        if "selector_type" in sql and "selector_value" in sql
     }
 
     passed = bool(selector_tables) and bool(matching_indexes)
@@ -92,24 +82,16 @@ def main() -> int:
     result: dict[str, Any] = {
         "database": str(database),
         "passed": passed,
-        "selector_tables": {
-            name: sorted(columns)
-            for name, columns in selector_tables.items()
-        },
+        "selector_tables": {name: sorted(columns) for name, columns in selector_tables.items()},
         "matching_indexes": matching_indexes,
         "full_scan_for_ordinary_selector_lookup_allowed": False,
         "failures": [],
     }
 
     if not selector_tables:
-        result["failures"].append(
-            "No table contains record_id, selector_type "
-            "and selector_value"
-        )
+        result["failures"].append("No table contains record_id, selector_type and selector_value")
     if not matching_indexes:
-        result["failures"].append(
-            "No index covers selector_type and selector_value"
-        )
+        result["failures"].append("No index covers selector_type and selector_value")
 
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if passed else 1

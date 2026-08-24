@@ -41,9 +41,7 @@ def test_well_formed_plan_parses_with_canonical_intent_validation(
     plan = _load(root)
     assert plan.plan_version == "1.0.0"
     assert plan.candidates[0].memory_intent.operation == "memory.ingest"
-    assert plan.candidates[0].memory_intent.request.namespace.startswith(
-        "l9.constellation/"
-    )
+    assert plan.candidates[0].memory_intent.request.namespace.startswith("l9.constellation/")
 
 
 def test_unsupported_plan_version_is_rejected(tmp_path: Path) -> None:
@@ -90,9 +88,7 @@ def test_unknown_plan_fields_are_rejected(tmp_path: Path) -> None:
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     import hashlib
 
-    manifest["files"][0]["content_hash"] = (
-        "sha256:" + hashlib.sha256(content).hexdigest()
-    )
+    manifest["files"][0]["content_hash"] = "sha256:" + hashlib.sha256(content).hexdigest()
     manifest["files"][0]["size_bytes"] = len(content)
     (root / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
     with pytest.raises(TopologyPlanError, match="publication plan is invalid"):

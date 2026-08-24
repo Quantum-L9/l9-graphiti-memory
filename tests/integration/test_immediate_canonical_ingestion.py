@@ -54,8 +54,7 @@ def test_session_ingestor_exposes_no_deferred_success_surface() -> None:
 
     assert not hasattr(SessionIngestor, "ingest_or_queue")
     assert not any(
-        name.startswith("enqueue") or "queue" in name.casefold()
-        for name in vars(SessionIngestor)
+        name.startswith("enqueue") or "queue" in name.casefold() for name in vars(SessionIngestor)
     )
 
 

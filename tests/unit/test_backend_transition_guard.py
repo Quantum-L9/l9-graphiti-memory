@@ -112,9 +112,7 @@ def test_reopening_the_same_ledger_is_not_a_transition(tmp_path, principal) -> N
     ledger = tmp_path / "memory.sqlite3"
     _seed_ledger(ledger, principal)
 
-    settings = MemorySettings(
-        store_backend="sqlite", data_dir=tmp_path, database_path=ledger
-    )
+    settings = MemorySettings(store_backend="sqlite", data_dir=tmp_path, database_path=ledger)
     store = build_store(settings)
     try:
         assert store.stats()["records"] == 1
@@ -122,9 +120,7 @@ def test_reopening_the_same_ledger_is_not_a_transition(tmp_path, principal) -> N
         store.close()
 
 
-def test_a_populated_backend_is_never_treated_as_a_transition(
-    tmp_path, principal
-) -> None:
+def test_a_populated_backend_is_never_treated_as_a_transition(tmp_path, principal) -> None:
     """Ambiguity only exists while the configured store is empty."""
 
     _seed_ledger(tmp_path / "memory.sqlite3", principal)

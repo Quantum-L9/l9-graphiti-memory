@@ -124,19 +124,16 @@ class InMemoryRecordStore:
                 or record.confidence.score < request.min_confidence
             ):
                 continue
-            if (
-                request.memory_classes
-                and record.memory_class not in request.memory_classes
-            ):
+            if request.memory_classes and record.memory_class not in request.memory_classes:
                 continue
             if not record.temporal.is_valid_at(request.valid_at):
                 continue
             if record.temporal.recorded_at > recorded_before:
                 continue
             results.append(record)
-        return sorted(
-            results, key=lambda item: item.temporal.recorded_at, reverse=True
-        )[: request.limit * 10]
+        return sorted(results, key=lambda item: item.temporal.recorded_at, reverse=True)[
+            : request.limit * 10
+        ]
 
     def list_records(
         self,
@@ -154,9 +151,7 @@ class InMemoryRecordStore:
             and record.namespace == namespace
             and (not state_set or record.state in state_set)
         ]
-        return sorted(
-            records, key=lambda item: item.temporal.recorded_at, reverse=True
-        )[:limit]
+        return sorted(records, key=lambda item: item.temporal.recorded_at, reverse=True)[:limit]
 
     def transition_state(self, event: MemoryStatusEvent) -> None:
         record = self.records.get(event.record_id)
@@ -174,9 +169,7 @@ class InMemoryRecordStore:
         self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
     ) -> None:
         require_service_write_capability(capability)
-        self.phase_locks[
-            (receipt.tenant_id, receipt.namespace, receipt.task_signature)
-        ] = receipt
+        self.phase_locks[(receipt.tenant_id, receipt.namespace, receipt.task_signature)] = receipt
 
     def get_phase_lock(
         self, tenant_id: str, namespace: str, task_signature: str
@@ -200,9 +193,7 @@ class InMemoryRecordStore:
         lease_seconds: int = 300,
         lease_owner: str = "outbox-worker",
     ) -> list[OutboxEvent]:
-        candidates = [
-            event for event in self.outbox.values() if self._is_claimable(event, now)
-        ]
+        candidates = [event for event in self.outbox.values() if self._is_claimable(event, now)]
         claimed: list[OutboxEvent] = []
         for event in sorted(candidates, key=lambda item: item.created_at)[:limit]:
             updated = event.model_copy(
@@ -233,8 +224,7 @@ class InMemoryRecordStore:
             raise StoreError(f"outbox event not found: {event_id}")
         if lease_id is not None and event.lease_id != lease_id:
             raise StoreError(
-                f"outbox lease is no longer held for {event_id}; "
-                "another worker owns this event"
+                f"outbox lease is no longer held for {event_id}; another worker owns this event"
             )
         self.outbox[event_id] = event.model_copy(
             update={
@@ -274,9 +264,7 @@ class InMemoryRecordStore:
         by_class: dict[str, int] = {}
         for record in self.records.values():
             by_state[record.state.value] = by_state.get(record.state.value, 0) + 1
-            by_class[record.memory_class.value] = (
-                by_class.get(record.memory_class.value, 0) + 1
-            )
+            by_class[record.memory_class.value] = by_class.get(record.memory_class.value, 0) + 1
         return {
             "records": len(self.records),
             "receipts": len(self.receipts) + len(self.archive_receipts),
@@ -285,9 +273,7 @@ class InMemoryRecordStore:
             "by_class": by_class,
         }
 
-    def save_projection_retirement(
-        self, receipt: ProjectionRetirementReceipt
-    ) -> None:
+    def save_projection_retirement(self, receipt: ProjectionRetirementReceipt) -> None:
         self.projection_retirements.append(receipt)
 
     def list_unprojected_records(
@@ -326,21 +312,15 @@ class InMemoryRecordStore:
     def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
         self.maintenance_runs.append(receipt)
 
-    def get_maintenance_watermark(
-        self, tenant_id: str, namespace: str
-    ) -> datetime | None:
+    def get_maintenance_watermark(self, tenant_id: str, namespace: str) -> datetime | None:
         applied = [
             run.watermark
             for run in self.maintenance_runs
-            if run.tenant_id == tenant_id
-            and run.namespace == namespace
-            and run.applied
+            if run.tenant_id == tenant_id and run.namespace == namespace and run.applied
         ]
         return max(applied) if applied else None
 
-    def find_maintenance_action_digests(
-        self, tenant_id: str, namespace: str
-    ) -> frozenset[str]:
+    def find_maintenance_action_digests(self, tenant_id: str, namespace: str) -> frozenset[str]:
         return frozenset(
             action.action_digest
             for run in self.maintenance_runs
@@ -383,25 +363,16 @@ class InMemoryRecordStore:
             raise ValueError("cannot persist a non-applied archive receipt")
         event_ids = {event.record_id for event in status_events}
         if event_ids != set(receipt.archived_record_ids):
-            raise ValueError(
-                "archive receipt and status events target different records"
-            )
+            raise ValueError("archive receipt and status events target different records")
 
         updates: dict[UUID, MemoryRecord] = {}
         for event in status_events:
             record = self.records.get(event.record_id)
             if record is None:
                 raise KeyError(f"record not found: {event.record_id}")
-            if (
-                event.previous_state is not None
-                and record.state is not event.previous_state
-            ):
-                raise ValueError(
-                    f"record state changed before archive: {event.record_id}"
-                )
-            updates[event.record_id] = record.model_copy(
-                update={"state": event.new_state}
-            )
+            if event.previous_state is not None and record.state is not event.previous_state:
+                raise ValueError(f"record state changed before archive: {event.record_id}")
+            updates[event.record_id] = record.model_copy(update={"state": event.new_state})
 
         self.records.update(updates)
         self.status_events.extend(status_events)
@@ -436,9 +407,7 @@ class InMemoryRecordStore:
         receipt = self.deletion_receipts.get(receipt_id)
         if record is None or receipt is None:
             raise KeyError("deletion record or receipt not found")
-        self.records[record_id] = record.model_copy(
-            update={"state": MemoryState.DELETED}
-        )
+        self.records[record_id] = record.model_copy(update={"state": MemoryState.DELETED})
         self.deletion_receipts[receipt_id] = receipt.model_copy(
             update={"status": DeletionStatus.COMPLETE, "completed_at": completed_at}
         )

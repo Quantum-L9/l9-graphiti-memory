@@ -29,9 +29,7 @@ from tests.conftest import STORE_BACKENDS, make_store
 
 
 @pytest.mark.parametrize("backend", STORE_BACKENDS)
-def test_store_adapters_share_write_read_contract(
-    tmp_path: Path, principal, backend: str
-) -> None:
+def test_store_adapters_share_write_read_contract(tmp_path: Path, principal, backend: str) -> None:
     store = make_store(backend, tmp_path)
     service = MemoryService(store, NullProjection())
     service.initialize()

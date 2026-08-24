@@ -34,9 +34,7 @@ async def test_expired_lease_triggers_reregistration_with_new_instance_id(
 
 
 @pytest.mark.asyncio
-async def test_reregistration_preserves_stable_agent_id(
-    client, active_store, clock
-) -> None:
+async def test_reregistration_preserves_stable_agent_id(client, active_store, clock) -> None:
     async with client.open_session(
         agent_id="agent-primary",
         role="personal_assistant",

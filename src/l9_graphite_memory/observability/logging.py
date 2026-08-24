@@ -69,9 +69,7 @@ def configure_logging(level: str = "INFO", *, json_output: bool = True) -> None:
     root.handlers.clear()
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(
-        JsonFormatter()
-        if json_output
-        else logging.Formatter("%(levelname)s %(name)s: %(message)s")
+        JsonFormatter() if json_output else logging.Formatter("%(levelname)s %(name)s: %(message)s")
     )
     root.addHandler(handler)
     root.setLevel(getattr(logging, level.upper(), logging.INFO))

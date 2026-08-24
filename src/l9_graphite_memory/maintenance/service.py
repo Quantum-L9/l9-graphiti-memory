@@ -79,11 +79,7 @@ class MaintenanceService:
             states=(MemoryState.ACTIVE,),
             limit=request.max_records,
         )
-        return [
-            record
-            for record in records
-            if record.temporal.recorded_at <= watermark
-        ]
+        return [record for record in records if record.temporal.recorded_at <= watermark]
 
     @staticmethod
     def _derived_request(
@@ -115,9 +111,7 @@ class MaintenanceService:
                 if record.temporal.valid_to is not None
             )
 
-        evidence = list(
-            dict.fromkeys(item for record in ordered for item in record.evidence)
-        )
+        evidence = list(dict.fromkeys(item for record in ordered for item in record.evidence))
         evidence.append(
             EvidenceRef(
                 kind=EvidenceKind.AGGREGATION,
@@ -126,9 +120,7 @@ class MaintenanceService:
             )
         )
 
-        evidence_count = sum(
-            max(record.confidence.evidence_count, 1) for record in ordered
-        )
+        evidence_count = sum(max(record.confidence.evidence_count, 1) for record in ordered)
         score = max(record.confidence.score for record in ordered)
 
         source_ids = tuple(record.record_id for record in ordered)
@@ -181,11 +173,7 @@ class MaintenanceService:
         *,
         namespace: str,
     ) -> MaintenanceAction:
-        sources = [
-            by_id[record_id]
-            for record_id in action.source_record_ids
-            if record_id in by_id
-        ]
+        sources = [by_id[record_id] for record_id in action.source_record_ids if record_id in by_id]
         if len(sources) < 2:
             raise StoreError(
                 f"consolidation sources are no longer available: {action.action_digest}"
@@ -197,9 +185,7 @@ class MaintenanceService:
             reason=action.reason,
             now=self.service.clock.now(),
         )
-        receipt = self.service._admit(
-            principal, request, action=AuthorizationAction.MAINTAIN
-        )
+        receipt = self.service._admit(principal, request, action=AuthorizationAction.MAINTAIN)
         if receipt.status is WriteStatus.DUPLICATE:
             # The same action already produced this record on an earlier run.
             return action.model_copy(
@@ -224,9 +210,7 @@ class MaintenanceService:
                 f"consolidation was not admitted ({receipt.status.value}): "
                 + "; ".join(receipt.admission.reasons)
             )
-        return action.model_copy(
-            update={"applied": True, "result_record_id": receipt.record_id}
-        )
+        return action.model_copy(update={"applied": True, "result_record_id": receipt.record_id})
 
     def _apply_supersede(
         self,
@@ -282,9 +266,7 @@ class MaintenanceService:
 
     # -- entry point ----------------------------------------------------------
 
-    def run(
-        self, principal: MemoryPrincipal, request: MaintenanceRequest
-    ) -> MaintenanceRunReceipt:
+    def run(self, principal: MemoryPrincipal, request: MaintenanceRequest) -> MaintenanceRunReceipt:
         """Plan and, unless this is a dry run, apply one maintenance pass."""
 
         authorization = self.service.namespace_policy.require(
@@ -390,13 +372,9 @@ class MaintenanceService:
         receipt = MaintenanceRunReceipt(
             tenant_id=principal.tenant_id,
             namespace=request.namespace,
-            status=(
-                OperationStatus.PARTIAL if failures else OperationStatus.COMPLETE
-            ),
+            status=(OperationStatus.PARTIAL if failures else OperationStatus.COMPLETE),
             maintenance_status=(
-                MaintenanceStatus.FAILED
-                if failures and not applied
-                else MaintenanceStatus.APPLIED
+                MaintenanceStatus.FAILED if failures and not applied else MaintenanceStatus.APPLIED
             ),
             applied=True,
             operations=tuple(request.operations),

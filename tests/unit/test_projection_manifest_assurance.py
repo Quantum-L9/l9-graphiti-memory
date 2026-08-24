@@ -28,9 +28,7 @@ def test_projection_schema_is_packaged_as_a_resource() -> None:
     assert schema.is_file()
     value = json.loads(schema.read_text(encoding="utf-8"))
     assert value["title"] == "L9 Projection Manifest"
-    assert value["properties"]["api_version"]["const"] == (
-        "memory.quantum-l9.dev/v1"
-    )
+    assert value["properties"]["api_version"]["const"] == ("memory.quantum-l9.dev/v1")
 
 
 def test_projection_manifest_assurance_command_passes() -> None:

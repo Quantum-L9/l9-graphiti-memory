@@ -45,9 +45,7 @@ def _inputs(tmp_path: Path, count: int = 4):
 
 
 def _sqlite_service(tmp_path: Path) -> MemoryService:
-    service = MemoryService(
-        SQLiteRecordStore(tmp_path / "canonical.sqlite3"), NullProjection()
-    )
+    service = MemoryService(SQLiteRecordStore(tmp_path / "canonical.sqlite3"), NullProjection())
     service.initialize()
     return service
 
@@ -71,9 +69,7 @@ def test_preflight_validates_everything_and_writes_nothing(
     assert all(r.memory_record_id is None for r in receipt.candidate_results)
 
 
-def test_preflight_does_not_mutate_identity_fields(
-    tmp_path: Path, topology_principal
-) -> None:
+def test_preflight_does_not_mutate_identity_fields(tmp_path: Path, topology_principal) -> None:
     plan, topo = _inputs(tmp_path, count=1)
 
     captured = {}
@@ -155,8 +151,7 @@ def test_candidate_execution_order_is_candidate_id_code_point_order(
     tmp_path: Path, topology_principal
 ) -> None:
     candidates = [
-        make_candidate(candidate_id=name, status="eligible")
-        for name in ("zeta", "alpha", "Mid")
+        make_candidate(candidate_id=name, status="eligible") for name in ("zeta", "alpha", "Mid")
     ]
     plan_root = make_plan_bundle(tmp_path / "plan", candidates)
     topo_root = make_topology_bundle(tmp_path / "topo")
@@ -234,9 +229,7 @@ def test_crash_mid_batch_recovers_by_rerunning_the_same_plan(
     store.close()
 
 
-def test_replayed_records_keep_their_record_ids(
-    tmp_path: Path, topology_principal
-) -> None:
+def test_replayed_records_keep_their_record_ids(tmp_path: Path, topology_principal) -> None:
     plan, topo = _inputs(tmp_path, count=3)
     service = _sqlite_service(tmp_path)
     first = execute_topology_publication(
@@ -319,7 +312,6 @@ def test_same_effect_key_in_a_new_plan_container_is_the_same_memory_operation(
     assert second.admitted_count == 0
     assert second.duplicate_count == 1
     assert (
-        first.candidate_results[0].memory_record_id
-        == second.candidate_results[0].memory_record_id
+        first.candidate_results[0].memory_record_id == second.candidate_results[0].memory_record_id
     )
     assert service.store.stats()["records"] == 1

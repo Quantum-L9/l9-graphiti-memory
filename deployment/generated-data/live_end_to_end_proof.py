@@ -58,22 +58,15 @@ def invoke(
     )
 
     if completed.returncode != 0:
-        raise ProofFailure(
-            f"{' '.join(command_value)} failed: "
-            f"{completed.stderr.strip()}"
-        )
+        raise ProofFailure(f"{' '.join(command_value)} failed: {completed.stderr.strip()}")
 
     try:
         response = json.loads(completed.stdout or "{}")
     except json.JSONDecodeError as exc:
-        raise ProofFailure(
-            f"{' '.join(command_value)} returned invalid JSON"
-        ) from exc
+        raise ProofFailure(f"{' '.join(command_value)} returned invalid JSON") from exc
 
     if not isinstance(response, Mapping):
-        raise ProofFailure(
-            f"{' '.join(command_value)} returned non-object JSON"
-        )
+        raise ProofFailure(f"{' '.join(command_value)} returned non-object JSON")
     return response
 
 
@@ -90,35 +83,19 @@ def main() -> int:
     evidence: dict[str, Any] = {}
 
     candidate = json.loads(
-        (
-            DEPLOYMENT
-            / "fixtures"
-            / "governed-candidate.json"
-        ).read_text(encoding="utf-8")
+        (DEPLOYMENT / "fixtures" / "governed-candidate.json").read_text(encoding="utf-8")
     )
     suffix = uuid.uuid4().hex[:12]
-    candidate["candidate_id"] = (
-        f"{candidate['candidate_id']}-{suffix}"
-    )
-    candidate["knowledge"]["unit_id"] = (
-        f"{candidate['knowledge']['unit_id']}-{suffix}"
-    )
+    candidate["candidate_id"] = f"{candidate['candidate_id']}-{suffix}"
+    candidate["knowledge"]["unit_id"] = f"{candidate['knowledge']['unit_id']}-{suffix}"
 
     reuse_fixture = json.loads(
-        (
-            DEPLOYMENT / "fixtures" / "reuse-event.json"
-        ).read_text(encoding="utf-8")
+        (DEPLOYMENT / "fixtures" / "reuse-event.json").read_text(encoding="utf-8")
     )
     invalidation = json.loads(
-        (
-            DEPLOYMENT
-            / "fixtures"
-            / "path-invalidation.json"
-        ).read_text(encoding="utf-8")
+        (DEPLOYMENT / "fixtures" / "path-invalidation.json").read_text(encoding="utf-8")
     )
-    invalidation["event_id"] = (
-        f"{invalidation['event_id']}-{suffix}"
-    )
+    invalidation["event_id"] = f"{invalidation['event_id']}-{suffix}"
 
     result: dict[str, Any] = {
         "mode": args.mode,
@@ -147,12 +124,8 @@ def main() -> int:
         )
         evidence["capabilities"] = capabilities
         result["tool_plane_proven"] = bool(
-            capabilities.get("runtime", {}).get(
-                "mcp_tool_plane_ready", False
-            )
-            or capabilities.get("runtime", {}).get(
-                "candidate_ingress_ready", False
-            )
+            capabilities.get("runtime", {}).get("mcp_tool_plane_ready", False)
+            or capabilities.get("runtime", {}).get("candidate_ingress_ready", False)
         )
 
         ingestion = invoke(
@@ -179,26 +152,20 @@ def main() -> int:
         result["record_id"] = record_id
 
         if not record_id:
-            raise ProofFailure(
-                "Ingestion returned no record_id"
-            )
+            raise ProofFailure("Ingestion returned no record_id")
 
         query = {
             "schema_version": "1.0.0",
             "query": candidate["knowledge"]["statement"],
             "repository": candidate["source"]["repository"],
-            "repository_class": candidate["source"][
-                "repository_class"
-            ],
+            "repository_class": candidate["source"]["repository_class"],
             "paths": candidate["knowledge"]["scope"]["paths"],
             "base_sha": candidate["source"]["base_sha"],
-            "visibility_ceiling": candidate["governance"][
-                "visibility"
-            ],
+            "visibility_ceiling": candidate["governance"]["visibility"],
             "max_items": 10,
             "max_characters": 10000,
             "include_contested": False,
-            "include_raw_evidence": False
+            "include_raw_evidence": False,
         }
 
         search = invoke(
@@ -218,24 +185,18 @@ def main() -> int:
             hydrate_request,
         )
         evidence["hydrate_before"] = hydration
-        result["hydration_proven"] = (
-            record_id in _record_ids(hydration)
-            or record_id
-            == str(hydration.get("record_id", ""))
+        result["hydration_proven"] = record_id in _record_ids(hydration) or record_id == str(
+            hydration.get("record_id", "")
         )
 
-        reuse_fixture["event_id"] = (
-            f"{reuse_fixture['event_id']}-{suffix}"
-        )
+        reuse_fixture["event_id"] = f"{reuse_fixture['event_id']}-{suffix}"
         reuse_fixture["record_id"] = record_id
         reuse = invoke(
             command("L9_SGD_GRAPHITI_REUSE_COMMAND"),
             reuse_fixture,
         )
         evidence["reuse"] = reuse
-        result["reuse_proven"] = str(
-            reuse.get("status", "")
-        ) in {
+        result["reuse_proven"] = str(reuse.get("status", "")) in {
             "recorded",
             "duplicate",
             "accepted",
@@ -246,26 +207,20 @@ def main() -> int:
             invalidation,
         )
         evidence["invalidation"] = invalidation_response
-        result["invalidation_proven"] = str(
-            invalidation_response.get("status", "")
-        ) in {
+        result["invalidation_proven"] = str(invalidation_response.get("status", "")) in {
             "invalidated",
             "partially_invalidated",
             "duplicate",
             "accepted",
         }
-        result["deletion_absent"] = (
-            invalidation_response.get("deleted") is not True
-        )
+        result["deletion_absent"] = invalidation_response.get("deleted") is not True
 
         search_after = invoke(
             command("L9_SGD_GRAPHITI_SEARCH_COMMAND"),
             query,
         )
         evidence["search_after"] = search_after
-        result["normal_exclusion_proven"] = (
-            record_id not in _record_ids(search_after)
-        )
+        result["normal_exclusion_proven"] = record_id not in _record_ids(search_after)
 
         historical_query = {
             **query,
@@ -277,9 +232,7 @@ def main() -> int:
             historical_query,
         )
         evidence["historical"] = historical
-        result["historical_evidence_proven"] = (
-            record_id in _record_ids(historical)
-        )
+        result["historical_evidence_proven"] = record_id in _record_ids(historical)
 
         result["cross_repo_contract_proven"] = True
 
@@ -307,10 +260,7 @@ def main() -> int:
         "tool_plane_proven",
         "cross_repo_contract_proven",
     )
-    result["full_loop_proven"] = (
-        not failures
-        and all(result[name] for name in required)
-    )
+    result["full_loop_proven"] = not failures and all(result[name] for name in required)
 
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["full_loop_proven"] else 1

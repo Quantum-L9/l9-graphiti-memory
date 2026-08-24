@@ -108,16 +108,12 @@ def _status_of(payload: Mapping[str, Any]) -> str:
     return status
 
 
-def receipt_from_response(
-    *, request_packet: Any, response_packet: Any
-) -> GateDispatchReceipt:
+def receipt_from_response(*, request_packet: Any, response_packet: Any) -> GateDispatchReceipt:
     """Validate a production Gate response packet against the dispatched packet."""
     request_trace = str(request_packet.header.trace_id)
     response_trace = str(response_packet.header.trace_id)
     if response_trace != request_trace:
-        raise GateMalformedReceiptError(
-            "receipt trace_id does not match the dispatched packet"
-        )
+        raise GateMalformedReceiptError("receipt trace_id does not match the dispatched packet")
     payload = _payload_mapping(response_packet.payload)
     status = _status_of(payload)
     if status in _DENIED_STATUS:
@@ -154,7 +150,9 @@ def attach_gate_health(report: HealthReport, gate: dict[str, Any]) -> HealthRepo
             degraded.append("gate is unavailable")
         if status == OperationStatus.COMPLETE:
             status = OperationStatus.PARTIAL
-    return report.model_copy(update={"gate": gate, "status": status, "degraded_reasons": tuple(degraded)})
+    return report.model_copy(
+        update={"gate": gate, "status": status, "degraded_reasons": tuple(degraded)}
+    )
 
 
 class CanonicalGateClient:

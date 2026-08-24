@@ -37,9 +37,7 @@ def parse_projection_manifest(raw: str) -> ProjectionManifest:
     try:
         data = yaml.safe_load(raw)
     except yaml.YAMLError as exc:
-        raise ConfigurationError(
-            f"projection manifest is not valid YAML: {exc}"
-        ) from exc
+        raise ConfigurationError(f"projection manifest is not valid YAML: {exc}") from exc
     return parse_projection_manifest_data(data)
 
 
@@ -47,9 +45,7 @@ def load_projection_manifest(path: str | Path) -> ProjectionManifest:
     """Read and validate a projection manifest from disk."""
     manifest_path = Path(path).expanduser()
     if not manifest_path.is_file():
-        raise ConfigurationError(
-            f"projection manifest does not exist: {manifest_path}"
-        )
+        raise ConfigurationError(f"projection manifest does not exist: {manifest_path}")
     try:
         raw = manifest_path.read_text(encoding="utf-8")
     except OSError as exc:

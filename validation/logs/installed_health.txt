@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-08-24T00:29:58.087027Z",
+  "checked_at": "2026-08-24T00:37:08.751894Z",
   "degraded_reasons": [],
   "gate": {
     "configured": false,
@@ -17,7 +17,7 @@
   "store": {
     "healthy": true,
     "name": "sqlite",
-    "path": "/tmp/tmp.kbTta7INCs/installed-smoke/data/memory.sqlite3",
+    "path": "/tmp/tmp.L1joeewYyw/installed-smoke/data/memory.sqlite3",
     "records": 0,
     "schema_version": 7
   }
