@@ -1,5 +1,5 @@
 {
-  "file_count": 648,
+  "file_count": 649,
   "files": [
     {
       "category": "ci",
@@ -446,8 +446,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "fbd91523c4b5132d62719273ce7b2fc07fc33c0cbb1503f2e5414dc3132e397a",
-      "size_bytes": 109535
+      "sha256": "b3beff4ef8acbdc3541622e8bbbd028c7701f247998f721b561ee159dd879452",
+      "size_bytes": 109702
     },
     {
       "category": "repository_root",
@@ -830,8 +830,8 @@
         "version": "2.2.0"
       },
       "path": "deployment/generated-data/cursor-command-env.example",
-      "sha256": "9670649d8fcf7adff4f1dbdfba45f82b3f7ea0afe7e4c7f9d17fad6e667ce232",
-      "size_bytes": 605
+      "sha256": "004272eec9f81232f815d839e20d33ed14c72fbbe0b7b0bfee42a55dc0c21f0b",
+      "size_bytes": 565
     },
     {
       "category": "repository_root",
@@ -910,8 +910,8 @@
         "version": "2.2.0"
       },
       "path": "deployment/generated-data/live_end_to_end_proof.py",
-      "sha256": "f40c6e8d59014fcce58158e788800d19470ce2882c19ecbe0772eb8369b63d21",
-      "size_bytes": 9274
+      "sha256": "cda58f2417c3b9b205cf3d76940e11ba450a00bba5c0a7b9d55baf43b6432fbe",
+      "size_bytes": 9310
     },
     {
       "category": "repository_root",
@@ -4494,8 +4494,8 @@
         "version": "2.2.0"
       },
       "path": "install_generated_data_deployment_wave1.sh",
-      "sha256": "4c283ddeea951de5fac15c31e4b1ff9f2209638a982cd027776c2b0e96db009a",
-      "size_bytes": 70618
+      "sha256": "486163f4e655a2805d0fd4b2a1d7100008fc5e185e561b5644f35ad31733efd3",
+      "size_bytes": 70578
     },
     {
       "category": "repository_root",
@@ -5502,8 +5502,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/cli.py",
-      "sha256": "8de3d8584895d3a962ede939dde80614f7b31c66783751e78baba00c6bce1421",
-      "size_bytes": 40370
+      "sha256": "05437d69257fdbe088e12451111e1f9e0d2407993062e7db2f76e035e560d9a2",
+      "size_bytes": 41437
     },
     {
       "category": "production_source",
@@ -5678,8 +5678,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/contracts/generated_data.py",
-      "sha256": "af862dba2e9d146aa2ebed765048ad35c36a702dbe48e6e46afde398691f041b",
-      "size_bytes": 7107
+      "sha256": "66065cdaeeb24ca4f17d07d02bed9dcfa025eb88744106a50b39d0943eb0b35f",
+      "size_bytes": 7679
     },
     {
       "category": "production_source",
@@ -6910,8 +6910,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/services/generated_data.py",
-      "sha256": "93e9a02ef29df55ba6cbd59a12dd364767f1efa4cb0cb67ec7e2eefb5dfee2a9",
-      "size_bytes": 8020
+      "sha256": "2e910eb2e656bf4297afbd86daa1a36d4510260293d83d3e536f5124c0987b41",
+      "size_bytes": 13259
     },
     {
       "category": "production_source",
@@ -7328,6 +7328,22 @@
       "path": "tests/deployment/generated_data/test_principal_policy.py",
       "sha256": "ad4b34bec3c3a855d67bfd61b572c5f81e05ad874101d74245f7d6d78a330242",
       "size_bytes": 3654
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/deployment/generated_data/test_runtime_status_protocol.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/deployment/generated_data/test_runtime_status_protocol.py",
+      "sha256": "2827b9f6c72c7a5cee55bdaa32dc01740415385da26dd512716d3bbd6b06cd12",
+      "size_bytes": 6054
     },
     {
       "category": "tests",
@@ -8606,8 +8622,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "2e6d95b5ad642825ae8db0f0d2827b4927e078ca421e502614cff20108fede4c",
-      "size_bytes": 12806
+      "sha256": "6e22cb224e11bcf6ae46e0f03f54ae359842845fba112b349558195487e51ba0",
+      "size_bytes": 13170
     },
     {
       "category": "assurance",

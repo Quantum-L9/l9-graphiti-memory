@@ -163,6 +163,7 @@ def main() -> int:
         status = str(ingestion.get("status", ""))
         result["candidate_ingress_proven"] = status in {
             "accepted",
+            "admitted",
             "duplicate",
             "merged",
             "quarantined",
@@ -171,7 +172,7 @@ def main() -> int:
         result["canonical_commit_proven"] = bool(
             ingestion.get(
                 "storage_committed",
-                status in {"accepted", "merged"},
+                status in {"accepted", "admitted", "merged"},
             )
         )
         record_id = ingestion.get("record_id")

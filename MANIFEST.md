@@ -44,10 +44,10 @@ updated: 2026-07-22
 | `production_source` | 123 |
 | `repository_root` | 76 |
 | `skill` | 2 |
-| `tests` | 87 |
+| `tests` | 88 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **647**
+- Hashed inventory files below: **648**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -106,12 +106,12 @@ updated: 2026-07-22
 | `config/projections/facts-v8.yaml` | `configuration` | `configuration` | 2054 | `bee363a9736f2731f6e79b027e5213d383041f5b323a48f534da5c9fc4db6257` |
 | `deployment/generated-data/activation-runbook.md` | `repository_root` | `repository_root` | 4358 | `7bb2ede08c8ebc48e74ec3681824fc9ac7f25f7439e9af5badfea01a9dcb1fba` |
 | `deployment/generated-data/capability-manifest.yaml` | `repository_root` | `repository_root` | 2462 | `2963fe434ae60da41158525082f4f6a5e365f4061eb7a0f99d6a981c80636bba` |
-| `deployment/generated-data/cursor-command-env.example` | `repository_root` | `repository_root` | 605 | `9670649d8fcf7adff4f1dbdfba45f82b3f7ea0afe7e4c7f9d17fad6e667ce232` |
+| `deployment/generated-data/cursor-command-env.example` | `repository_root` | `repository_root` | 565 | `004272eec9f81232f815d839e20d33ed14c72fbbe0b7b0bfee42a55dc0c21f0b` |
 | `deployment/generated-data/fixtures/capability-response.json` | `repository_root` | `repository_root` | 1698 | `4d69106ecc0d0360e269504767244826fe2c46f88ea3ded3718953dc14f1af1b` |
 | `deployment/generated-data/fixtures/governed-candidate.json` | `repository_root` | `repository_root` | 3100 | `c5b3364c19da888f7b395eee0f6722f5ed451349d16b77d449bdd9d75258fc5b` |
 | `deployment/generated-data/fixtures/path-invalidation.json` | `repository_root` | `repository_root` | 540 | `1c50d499027d71671b020398e53c57d096c7b8831ef4d25d8d4c7c75a2fafb7d` |
 | `deployment/generated-data/fixtures/reuse-event.json` | `repository_root` | `repository_root` | 884 | `58af81630065c19fa8c309e65eb7b59823ac3542ff9430720dbb73c053514aca` |
-| `deployment/generated-data/live_end_to_end_proof.py` | `repository_root` | `repository_root` | 9274 | `f40c6e8d59014fcce58158e788800d19470ce2882c19ecbe0772eb8369b63d21` |
+| `deployment/generated-data/live_end_to_end_proof.py` | `repository_root` | `repository_root` | 9310 | `cda58f2417c3b9b205cf3d76940e11ba450a00bba5c0a7b9d55baf43b6432fbe` |
 | `deployment/generated-data/load_test_generated_data.py` | `repository_root` | `repository_root` | 5456 | `6609e9311fefd76546b0d0fe8cf03ddd2eb8b50236be44b03db8ca80447c36f0` |
 | `deployment/generated-data/migration-runbook.md` | `repository_root` | `repository_root` | 3254 | `76aed6b026529697ee15c63bba7ff054e4593e7cbe666a99b4eced645a4c3ba5` |
 | `deployment/generated-data/namespace-mapping.yaml` | `repository_root` | `repository_root` | 1157 | `697930c3c3c01936068cf5f4f4b06466524ee6e6595832c67847d5f493a4f70e` |
@@ -335,7 +335,7 @@ updated: 2026-07-22
 | `hooks/graphiti_common.sh` | `hooks` | `hooks` | 1345 | `76ee5c40245b76f699fc5d6ec767a570da4b376ce9d61b59f5fa8e1ad7b3c71d` |
 | `hooks/graphiti_gate_runner.sh` | `hooks` | `hooks` | 880 | `58203955f07dd049ed12c117f13405c7b651aa4f8d8df099a2e698d8a4e7174a` |
 | `improvement_log.jsonl` | `repository_root` | `repository_root` | 2364 | `7a1b20557352284372622d9b11bc363a92b04286d61fecc2c4b2105f0280cab4` |
-| `install_generated_data_deployment_wave1.sh` | `repository_root` | `repository_root` | 70618 | `4c283ddeea951de5fac15c31e4b1ff9f2209638a982cd027776c2b0e96db009a` |
+| `install_generated_data_deployment_wave1.sh` | `repository_root` | `repository_root` | 70578 | `486163f4e655a2805d0fd4b2a1d7100008fc5e185e561b5644f35ad31733efd3` |
 | `install_generated_data_deployment_wave2.sh` | `repository_root` | `repository_root` | 58737 | `567923821aff28225a19882dd61683abd55118cc62e81f2c850274600990a684` |
 | `pyproject.toml` | `repository_root` | `repository_root` | 4368 | `71d92ba1c9de575504f2f81524b2214e159048b86ae14f2ca55a3079997e10f1` |
 | `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository_root` | 5739 | `ce072ae10b4c8722da70ab49ef4be3af00eb6b093a70922caa654a9d67c48357` |
@@ -398,7 +398,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/authz/authenticator.py` | `production_source` | `production_source` | 3154 | `9881d9d230957ef080f42a5e71d7ed95376ad7847b75391d47a291d448de6192` |
 | `src/l9_graphite_memory/authz/policy.py` | `production_source` | `production_source` | 2836 | `e4a31c3d46c06d20b2c86ba815e6c9c29915427923ab554f8a06a38bb72137f5` |
 | `src/l9_graphite_memory/circuit_breaker.py` | `production_source` | `production_source` | 2784 | `48348de22f97e017768d47ac47930ed19167e290eeb614d79f474c4bdc7d7499` |
-| `src/l9_graphite_memory/cli.py` | `production_source` | `production_source` | 40370 | `8de3d8584895d3a962ede939dde80614f7b31c66783751e78baba00c6bce1421` |
+| `src/l9_graphite_memory/cli.py` | `production_source` | `production_source` | 41437 | `05437d69257fdbe088e12451111e1f9e0d2407993062e7db2f76e035e560d9a2` |
 | `src/l9_graphite_memory/client_config/__init__.py` | `production_source` | `production_source` | 1508 | `8be2bf37736e4d79a2f078f6d94941cc66ac7317b12669d27be736fa357180d4` |
 | `src/l9_graphite_memory/client_config/contracts.py` | `production_source` | `production_source` | 4106 | `bf5326b877a34d17382c2cfa17187a150297b87a15af328f4c97367db6be60b6` |
 | `src/l9_graphite_memory/client_config/cursor.py` | `production_source` | `production_source` | 18792 | `00a6f98b8087870a229eab6b2e9d1f22f7be325237bc11e9f7bf87f6b76e88b2` |
@@ -409,7 +409,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/contracts/__init__.py` | `production_source` | `contract` | 3271 | `716749588642723fe0063ca548d3b48b53af0286a1dc6af55728d69f3fb173d4` |
 | `src/l9_graphite_memory/contracts/enums.py` | `production_source` | `contract` | 2931 | `8a782f884683e35827c2caa0cf858de8c867f97ce04834b981a3bfcb38db9030` |
 | `src/l9_graphite_memory/contracts/evidence.py` | `production_source` | `contract` | 2887 | `d28ad47ee2b3b83743de8cc57caef44e104335447399f962faadfc197753daf6` |
-| `src/l9_graphite_memory/contracts/generated_data.py` | `production_source` | `contract` | 7107 | `af862dba2e9d146aa2ebed765048ad35c36a702dbe48e6e46afde398691f041b` |
+| `src/l9_graphite_memory/contracts/generated_data.py` | `production_source` | `contract` | 7679 | `66065cdaeeb24ca4f17d07d02bed9dcfa025eb88744106a50b39d0943eb0b35f` |
 | `src/l9_graphite_memory/contracts/identity.py` | `production_source` | `contract` | 1977 | `66375f00719a3402f1e8f391dadeb8b68b6ffbe89b310ddc805a9b228a9e5c80` |
 | `src/l9_graphite_memory/contracts/maintenance.py` | `production_source` | `contract` | 4824 | `763ea4775a0e96cbf9c468d09ca629d16f6e7b69fdc08d1e512f76eab49fae42` |
 | `src/l9_graphite_memory/contracts/memory.py` | `production_source` | `contract` | 3213 | `fffc735bc5592d03e81451909ed19520357224baa87ae59a35302549d62b71f3` |
@@ -486,7 +486,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/secrets.py` | `production_source` | `production_source` | 6790 | `09ae550d20ee1e0e9e84cc938a24b189a7cc031d8ef626cff358bd693ae6771d` |
 | `src/l9_graphite_memory/server.py` | `production_source` | `production_source` | 11257 | `081f42956c3c8f3a21cf108f00fdd1c90a4dc0a03962c28960bbeaeccbd516ae` |
 | `src/l9_graphite_memory/services/__init__.py` | `production_source` | `service` | 474 | `1c5499701993253acd4a359a336fd654ef53a28ac02953b1ccc4a0033ff42158` |
-| `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 8020 | `93e9a02ef29df55ba6cbd59a12dd364767f1efa4cb0cb67ec7e2eefb5dfee2a9` |
+| `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 13259 | `2e910eb2e656bf4297afbd86daa1a36d4510260293d83d3e536f5124c0987b41` |
 | `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 40888 | `7d9646fdd05e85cf9f362d5c64d72c126b5403513e2f27f988915482be3718da` |
 | `src/l9_graphite_memory/services/outbox_worker.py` | `production_source` | `service` | 12199 | `fd7db4c3513f2ebf420fa1ae4520ece9ed81a3cf673cd9ef8502ae761924557d` |
 | `src/l9_graphite_memory/transport.py` | `production_source` | `production_source` | 13884 | `290a4ad833522eb7ddc5c2ccada06f377dcda1364a1eb7c4084ea0dd614252d9` |
@@ -513,6 +513,7 @@ updated: 2026-07-22
 | `tests/deployment/generated_data/test_migration_verifier.py` | `tests` | `tests` | 5165 | `39464d446ac15da874c7dd9374000104bbc9a45832643ed2fbf33db3bea00d52` |
 | `tests/deployment/generated_data/test_namespace_mapping.py` | `tests` | `tests` | 4159 | `54a240d07e8240692511bd1aeb9de29544fede9d0473628195a8803cb1d6624e` |
 | `tests/deployment/generated_data/test_principal_policy.py` | `tests` | `tests` | 3654 | `ad4b34bec3c3a855d67bfd61b572c5f81e05ad874101d74245f7d6d78a330242` |
+| `tests/deployment/generated_data/test_runtime_status_protocol.py` | `tests` | `tests` | 6054 | `2827b9f6c72c7a5cee55bdaa32dc01740415385da26dd512716d3bbd6b06cd12` |
 | `tests/deployment/generated_data/test_selector_indexes.py` | `tests` | `tests` | 6275 | `2eabca567c386621ab7dd43c26cef9bfe5d7be5fb2b210d9806a67fc7587b5c0` |
 | `tests/external_runtime/__init__.py` | `tests` | `tests` | 222 | `84b533a73a74a9270a46f15627d6b08e012953b137e9dfd65106d976551fcc03` |
 | `tests/external_runtime/conftest.py` | `tests` | `tests` | 2433 | `4d30d3eafb51622cbedae2217c3924a1f107010f2dfebdc2e9f26ecff827fc3b` |
@@ -592,7 +593,7 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4494 | `01954963e948dc26b476868ac4a57b844dee3f39c12070902efd9314a0f4d137` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 6055 | `1c7f93a3324c77d46e778f2ea776c05ea96cc612efdeb7835f9bdb67f0482266` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 7324 | `4fdf809c64dd89bc0a1d299438bd8982dcd87734e26bf10eb3386c8ff7b613ef` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 12806 | `2e6d95b5ad642825ae8db0f0d2827b4927e078ca421e502614cff20108fede4c` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 13170 | `6e22cb224e11bcf6ae46e0f03f54ae359842845fba112b349558195487e51ba0` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4595 | `a323c31e2f8305dfeb30a8489c45e853e4171e645ca183df48966b196682efcd` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2624 | `2e983a8407014f80c44caace7ee4a81e51ff2bc95827cd7551cbbfe2a4e8e4cf` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4282 | `dfb473fea080bb880ff9de2f5e9101bc616d2a4a8ed4a1f17be927d7aae75100` |
