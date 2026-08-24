@@ -18,12 +18,12 @@ SKIPPED [4] ../valclone/.venv/lib/python3.13/site-packages/_pytest/unittest.py:3
 SKIPPED [1] tests/deployment/generated_data/test_runtime_status_protocol.py:115: CURSOR_GOVERNANCE_ROOT is not configured
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:136: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:156: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-SKIPPED [1] tests/unit/test_canonical_gate_client.py:182: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-SKIPPED [1] tests/unit/test_canonical_gate_client.py:194: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-SKIPPED [1] tests/unit/test_canonical_gate_client.py:221: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-SKIPPED [1] tests/unit/test_canonical_gate_client.py:246: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
+SKIPPED [1] tests/unit/test_canonical_gate_client.py:180: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
+SKIPPED [1] tests/unit/test_canonical_gate_client.py:192: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
+SKIPPED [1] tests/unit/test_canonical_gate_client.py:219: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
+SKIPPED [1] tests/unit/test_canonical_gate_client.py:244: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:255: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:76: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:110: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:129: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-602 passed, 15 skipped, 1 warning in 32.33s
+602 passed, 15 skipped, 1 warning in 30.24s
