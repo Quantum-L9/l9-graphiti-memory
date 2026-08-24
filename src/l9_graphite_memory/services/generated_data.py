@@ -5,10 +5,10 @@
 #   layer: service
 #   owner: memory-control-plane
 #   status: active
-#   version: 1.0.0
-#   updated: 2026-08-14
+#   version: 1.1.0
+#   updated: 2026-08-23
 
-"""Narrow generated-data operations. Durable writes go through MemoryService.write only."""
+"""Narrow generated-data operations. Durable writes use MemoryService.write only."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ from l9_graphite_memory.contracts import (
     EvidenceRef,
     MemoryClass,
     MemoryPrincipal,
+    MemorySearchRequest,
     MemoryWriteRequest,
     Provenance,
 )
@@ -49,6 +50,8 @@ class GeneratedDataService:
     ) -> MemoryCandidateIngestionResult:
         candidate = GovernedMemoryCandidate.model_validate(payload)
         namespace = candidate.namespace()
+        knowledge = candidate.knowledge.model_dump(mode="json")
+        source = candidate.source.model_dump(mode="json")
         request = MemoryWriteRequest(
             namespace=namespace,
             memory_class=MemoryClass.SEMANTIC,
@@ -69,7 +72,15 @@ class GeneratedDataService:
                 ),
             ),
             confidence=Confidence(
-                score=candidate.knowledge.confidence, evidence_count=1
+                score=candidate.knowledge.confidence,
+                evidence_count=max(
+                    1,
+                    len(
+                        payload.get("provenance", {}).get("source_evidence", [])
+                        if isinstance(payload.get("provenance"), dict)
+                        else []
+                    ),
+                ),
             ),
             tags=("generated-data", candidate.knowledge.primary_class),
             metadata={
@@ -77,23 +88,131 @@ class GeneratedDataService:
                 "primary_class": candidate.knowledge.primary_class,
                 "candidate_id": candidate.candidate_id,
                 "repository": candidate.source.repository,
+                "campaign_id": candidate.source.campaign_id,
+                "source_sha": candidate.source.resolved_sha(),
+                "scope": knowledge.get("scope") or {},
+                "epistemic_status": knowledge.get("epistemic_status", "observed"),
+                "invalidation_conditions": candidate.knowledge.invalidation_conditions,
+                "visibility": candidate.source.visibility
+                or candidate.governance.visibility,
+                "authority_class": candidate.governance.authority_class,
+                "source": source,
             },
             idempotency_key=f"generated-data:{candidate.candidate_id}",
         )
         receipt = self.memory.write(principal, request)
-        if receipt.status.value == "duplicate":
+        raw_status = receipt.status.value
+        if raw_status == "duplicate":
             status = MemoryCandidateIngestionStatus.DUPLICATE
-        elif receipt.status.value not in {"rejected"}:
-            status = MemoryCandidateIngestionStatus.ADMITTED
-        else:
+        elif raw_status == "quarantined":
+            status = MemoryCandidateIngestionStatus.QUARANTINED
+        elif raw_status == "rejected":
             status = MemoryCandidateIngestionStatus.REJECTED
+        else:
+            status = MemoryCandidateIngestionStatus.ADMITTED
         return MemoryCandidateIngestionResult(
             status=status,
             candidate_id=candidate.candidate_id,
             namespace=namespace,
+            record_id=receipt.record_id,
             write_receipt_id=str(receipt.receipt_id),
-            reason=None if status != MemoryCandidateIngestionStatus.REJECTED else "write rejected",
+            storage_committed=raw_status != "rejected",
+            memory_state=(
+                "quarantined"
+                if status is MemoryCandidateIngestionStatus.QUARANTINED
+                else "active"
+                if status is MemoryCandidateIngestionStatus.ADMITTED
+                else "existing"
+                if status is MemoryCandidateIngestionStatus.DUPLICATE
+                else "rejected"
+            ),
+            reason=(
+                "write rejected"
+                if status is MemoryCandidateIngestionStatus.REJECTED
+                else "admission quarantined candidate"
+                if status is MemoryCandidateIngestionStatus.QUARANTINED
+                else None
+            ),
         )
+
+    @staticmethod
+    def _context_candidate(hit: Any, *, repository: str) -> dict[str, Any]:
+        record = hit.record
+        metadata = dict(record.metadata or {})
+        raw_scope = metadata.get("scope")
+        scope: dict[str, Any] = raw_scope if isinstance(raw_scope, dict) else {}
+        confidence = getattr(record.confidence, "score", record.confidence)
+        state = getattr(record.state, "value", str(record.state))
+        return {
+            "record_id": str(record.record_id),
+            "text": record.content,
+            "score": float(hit.score),
+            "confidence": float(confidence),
+            "state": str(state),
+            "authority_class": str(metadata.get("authority_class", "advisory")),
+            "visibility": str(metadata.get("visibility", "repository_local")),
+            "repository": str(metadata.get("repository", repository)),
+            "source_sha": metadata.get("source_sha"),
+            "paths": list(scope.get("paths") or []),
+            "task_types": list(scope.get("task_types") or []),
+            "roles": list(scope.get("roles") or []),
+            "epistemic_status": str(metadata.get("epistemic_status", "observed")),
+            "invalidated": str(state) in {
+                "archived",
+                "deleted",
+                "deletion_pending",
+                "superseded",
+                "rejected",
+            },
+            "metadata": metadata,
+        }
+
+    def search_context(
+        self, principal: MemoryPrincipal, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        repository = str(payload.get("repository") or "").strip()
+        namespace = str(payload.get("namespace") or "").strip()
+        if not namespace:
+            if not repository:
+                raise ValueError("repository or namespace is required")
+            namespace = f"repository/{repository}"
+        receipt = self.memory.search(
+            principal,
+            MemorySearchRequest(
+                query=str(payload.get("query") or payload.get("task") or "generated data"),
+                namespaces=(namespace,),
+                min_confidence=float(payload.get("minimum_confidence", 0.0)),
+                limit=max(1, int(payload.get("max_items", payload.get("limit", 12)))),
+                token_budget=(
+                    max(1, int(payload["max_characters"]) // 4)
+                    if payload.get("max_characters") is not None
+                    else None
+                ),
+                include_superseded=bool(payload.get("include_historical", False)),
+                include_archived=bool(payload.get("include_invalidated", False)),
+            ),
+        )
+        candidates = [
+            self._context_candidate(hit, repository=repository)
+            for hit in receipt.hits
+        ]
+        return {
+            "schema_version": "1.0.0",
+            "available": receipt.status.value != "failed",
+            "source": "l9-graphiti-memory",
+            "request_id": str(receipt.receipt_id),
+            "candidates": candidates,
+            "result_digest": receipt.result_digest,
+            "status": receipt.status.value,
+        }
+
+    def hydrate_context(
+        self, principal: MemoryPrincipal, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        result = self.search_context(principal, payload)
+        result["kind"] = "GeneratedDataHydrationResult"
+        result["records"] = list(result["candidates"])
+        return result
 
     def record_reuse(
         self, principal: MemoryPrincipal, payload: dict[str, Any]

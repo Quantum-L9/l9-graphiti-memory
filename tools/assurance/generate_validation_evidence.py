@@ -46,14 +46,19 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        # 598 is the count CI produces: the postgres service is present so the
-        # shared-backend matrix runs, while the four cross-repo contract tests
+        # 602 is the count CI produces: the postgres service is present so the
+        # shared-backend matrix runs, while the five cross-repo contract tests
         # skip because CI checks out only this repository, and the constellation-SDK
-        # contract tests skip because CI omits the constellation extra. A workspace with a
-        # sibling Cursor-Governance checkout reports 602 instead; point
-        # CURSOR_GOVERNANCE_ROOT at a nonexistent path to reproduce CI.
-        "598 tests pass",
-        r"598 passed",
+        # contract tests skip because CI omits the constellation extra. A workspace
+        # that can reach a Cursor-Governance checkout runs some or all of those five
+        # and reports more; point CURSOR_GOVERNANCE_ROOT at a nonexistent path to
+        # reproduce CI. The five are not discovered uniformly:
+        # test_cross_repo_contract.py path-sniffs for a sibling checkout, while
+        # test_runtime_status_protocol.py runs only on an explicit
+        # CURSOR_GOVERNANCE_ROOT -- so a bare sibling checkout yields 606, and a
+        # sibling plus the exported variable yields 607.
+        "602 tests pass",
+        r"602 passed",
     ),
     CheckSpec(
         "V-002",

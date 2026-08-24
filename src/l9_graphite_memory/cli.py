@@ -901,6 +901,32 @@ def cmd_ingest_topology_plan(args: argparse.Namespace) -> int:
         runtime.close()
 
 
+def cmd_search_context(args: argparse.Namespace) -> int:
+    runtime = _runtime(args)
+    try:
+        _, principal = _context(runtime, args)
+        result = GeneratedDataService(runtime.service).search_context(
+            principal, _read_json_payload(args)
+        )
+        _print(result)
+        return 0 if result.get("available") else 1
+    finally:
+        runtime.close()
+
+
+def cmd_hydrate_context(args: argparse.Namespace) -> int:
+    runtime = _runtime(args)
+    try:
+        _, principal = _context(runtime, args)
+        result = GeneratedDataService(runtime.service).hydrate_context(
+            principal, _read_json_payload(args)
+        )
+        _print(result)
+        return 0 if result.get("available") else 1
+    finally:
+        runtime.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="L9 contract-governed memory")
     parser.add_argument("--config", default=None, help="Optional YAML settings file")
@@ -1124,6 +1150,10 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_topology.add_argument("--group-id", default=None)
     ingest_gd = sub.add_parser("ingest-governed-candidate")
     ingest_gd.add_argument("--file", default=None)
+    search_gd = sub.add_parser("search-context")
+    search_gd.add_argument("--file", default=None)
+    hydrate_gd = sub.add_parser("hydrate-context")
+    hydrate_gd.add_argument("--file", default=None)
     reuse_gd = sub.add_parser("record-reuse")
     reuse_gd.add_argument("--file", default=None)
     invalidate_gd = sub.add_parser("invalidate-source")
@@ -1163,6 +1193,8 @@ def main(argv: list[str] | None = None) -> int:
         "client": cmd_client,
         "ingest-topology-plan": cmd_ingest_topology_plan,
         "ingest-governed-candidate": cmd_ingest_governed_candidate,
+        "search-context": cmd_search_context,
+        "hydrate-context": cmd_hydrate_context,
         "record-reuse": cmd_record_reuse,
         "invalidate-source": cmd_invalidate_source,
         "generated-data-capabilities": cmd_generated_data_capabilities,
