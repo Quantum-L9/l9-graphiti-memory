@@ -337,7 +337,7 @@ updated: 2026-07-22
 | `improvement_log.jsonl` | `repository_root` | `repository_root` | 2364 | `7a1b20557352284372622d9b11bc363a92b04286d61fecc2c4b2105f0280cab4` |
 | `install_generated_data_deployment_wave1.sh` | `repository_root` | `repository_root` | 70578 | `486163f4e655a2805d0fd4b2a1d7100008fc5e185e561b5644f35ad31733efd3` |
 | `install_generated_data_deployment_wave2.sh` | `repository_root` | `repository_root` | 58737 | `567923821aff28225a19882dd61683abd55118cc62e81f2c850274600990a684` |
-| `pyproject.toml` | `repository_root` | `repository_root` | 3896 | `301af9bd4b464e3c20f4fddf155ad34b3fffcebe400f71306e3eaf26187ca138` |
+| `pyproject.toml` | `repository_root` | `repository_root` | 4368 | `71d92ba1c9de575504f2f81524b2214e159048b86ae14f2ca55a3079997e10f1` |
 | `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository_root` | 5739 | `ce072ae10b4c8722da70ab49ef4be3af00eb6b093a70922caa654a9d67c48357` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository_root` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
 | `release-work/repository-review/INDEX.md` | `repository_root` | `repository_root` | 2795 | `860cdfa56635dcb9d659c6f6191831f19b18adfd09d49068249636e4eb3ee903` |
@@ -581,7 +581,7 @@ updated: 2026-07-22
 | `tests/unit/test_schema_registry.py` | `tests` | `tests` | 964 | `008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee` |
 | `tests/unit/test_server_principal.py` | `tests` | `tests` | 870 | `ee90435a75d372007b48334e9cbe8b16e05af6a370e4c43af04d34cd9262c982` |
 | `tests/unit/test_zep_transport.py` | `tests` | `tests` | 2594 | `130bd0c3c2dd41d9abdb37c1b4e87a4a81d7e0e00c42de25af52ab76915d6dda` |
-| `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 6080 | `4203d69a18a55142151c77b3498bd6ce11182e9c1d9dda968c374a6f655800c8` |
+| `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 6714 | `6fc59d8c436c1d9af81821b9184aadd51c24bd30d7cbd5df441637509773f3c2` |
 | `tools/assurance/audit_package_wiring.py` | `assurance` | `assurance` | 4768 | `7f5933d4d05dd2cfd449e4cf4b3f3c54b6e5dc73fa0f47aefecb6073cd86dfaf` |
 | `tools/assurance/benchmark_local.py` | `assurance` | `assurance` | 4785 | `b42d3c76d88af1a6337869c8bb988bcd36bfa202b026a66aa139db894ce223e1` |
 | `tools/assurance/check_active_memory_public_api.py` | `assurance` | `assurance` | 2365 | `5af8fd2e02d6d7b6b71df7152060fec43db66552da9e1448a177e8f6f694d811` |
@@ -589,7 +589,7 @@ updated: 2026-07-22
 | `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 4257 | `1c8b8ebb0ca50057e8c595e05e33311091df7fcbf0d33eb7863760df88ff8fd4` |
 | `tools/assurance/check_layer_boundaries.py` | `assurance` | `assurance` | 3341 | `c504e3864969a96f7474641d31dc9d8e25008c871a940ca157c27f5b43e27f92` |
 | `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 10564 | `9cdd8e7a6f1f08002ccb3aff215dda48005bb1a9f5850351443db1e91113fd7a` |
-| `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12730 | `c0fa85ea4e0709da9ed8529a342cbef4a7ec0d055fcb01081648c9b9ebd8c2f4` |
+| `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12830 | `1b6cfb9d3d77c84e3fcc2d295d32acf568409598c2c7dea6d6f1091bfcf37624` |
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4494 | `01954963e948dc26b476868ac4a57b844dee3f39c12070902efd9314a0f4d137` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 6055 | `1c7f93a3324c77d46e778f2ea776c05ea96cc612efdeb7835f9bdb67f0482266` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 7324 | `4fdf809c64dd89bc0a1d299438bd8982dcd87734e26bf10eb3386c8ff7b613ef` |

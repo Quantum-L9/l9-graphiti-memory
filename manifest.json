@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "25a96d1f7a04cb5d7087ebc671e9b763a5127ea0bfe48655265fe542eb548650",
+      "sha256": "b3beff4ef8acbdc3541622e8bbbd028c7701f247998f721b561ee159dd879452",
       "size_bytes": 109702
     },
     {
@@ -4526,8 +4526,8 @@
         "version": "2.2.0"
       },
       "path": "pyproject.toml",
-      "sha256": "301af9bd4b464e3c20f4fddf155ad34b3fffcebe400f71306e3eaf26187ca138",
-      "size_bytes": 3896
+      "sha256": "71d92ba1c9de575504f2f81524b2214e159048b86ae14f2ca55a3079997e10f1",
+      "size_bytes": 4368
     },
     {
       "category": "repository_root",
@@ -8430,8 +8430,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/apply_l9_meta.py",
-      "sha256": "4203d69a18a55142151c77b3498bd6ce11182e9c1d9dda968c374a6f655800c8",
-      "size_bytes": 6080
+      "sha256": "6fc59d8c436c1d9af81821b9184aadd51c24bd30d7cbd5df441637509773f3c2",
+      "size_bytes": 6714
     },
     {
       "category": "assurance",
@@ -8558,8 +8558,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/check_recursive_alignment.py",
-      "sha256": "c0fa85ea4e0709da9ed8529a342cbef4a7ec0d055fcb01081648c9b9ebd8c2f4",
-      "size_bytes": 12730
+      "sha256": "1b6cfb9d3d77c84e3fcc2d295d32acf568409598c2c7dea6d6f1091bfcf37624",
+      "size_bytes": 12830
     },
     {
       "category": "assurance",

@@ -67,6 +67,14 @@ all = [
 ]
 dev = [
   "build>=1.2,<2",
+  # mypy reads the same source whether or not these are importable, but not the
+  # same result: server.py guards the starlette import with a `type: ignore`
+  # fallback, which mypy reports as an unused ignore once the real import is
+  # missing. ci.yml already installs --extra server alongside dev, so this only
+  # closes the gap for a caller that installs `.[dev]` alone -- the org's seeded
+  # lint job does exactly that.
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
   "cryptography>=46.0,<47",
   "jsonschema>=4.26,<5",
   "PyJWT>=2.13,<3",
