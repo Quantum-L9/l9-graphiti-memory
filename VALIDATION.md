@@ -24,9 +24,9 @@ The source tree, canonical stores, compatibility surfaces, constellation boundar
 
 | Check | Result | Evidence |
 |---|---:|---|
-| pytest | PASS, 103 tests | `validation/logs/pytest.txt` |
+| pytest | PASS, 598 tests | `validation/logs/pytest.txt` |
 | Python compilation | PASS | `validation/logs/compileall.txt` |
-| ADR ledger | PASS, 62 ADRs | `validation/logs/adr_validation.txt` |
+| ADR ledger | PASS, 78 ADRs | `validation/logs/adr_validation.txt` |
 | harvest coverage | PASS, 44 decisions | `validation/logs/harvest_coverage.txt` |
 | L9 metadata coverage | PASS | `validation/logs/l9_meta.txt` |
 | layer-boundary alignment | PASS | `validation/logs/layer_boundaries.txt` |
@@ -34,7 +34,7 @@ The source tree, canonical stores, compatibility surfaces, constellation boundar
 | write-bypass audit | PASS, zero findings | `validation/logs/bypass_check.txt` |
 | configuration drift | PASS, zero findings | `validation/logs/config_drift.txt` |
 | package wiring | PASS, 86 modules and zero unexplained orphans | `validation/logs/wiring_audit.txt` |
-| deterministic source quality | PASS, 86 production files | `validation/logs/source_quality.txt` |
+| deterministic source quality | PASS, 119 production files | `validation/logs/source_quality.txt` |
 | committed-secret scan | PASS, zero high-confidence findings | `validation/logs/committed_secrets.txt` |
 | local SLO benchmark | PASS | `validation/logs/local_benchmark.txt` |
 | preflight | PASS, 25 gates | `validation/logs/preflight.txt` |
@@ -44,7 +44,7 @@ The source tree, canonical stores, compatibility surfaces, constellation boundar
 | installed registry resolution | PASS | `validation/logs/installed_resolve.txt` |
 | installed CLI health | PASS | `validation/logs/installed_health.txt` |
 | installed MCP/resources/entrypoints/constellation bridge | PASS, 22 tools | `validation/logs/installed_mcp.txt` |
-| structured validation evidence | PASS, 20 local checks and 5 external blockers | `validation/logs/validation_evidence.txt` |
+| structured validation evidence | PASS, 22 local checks and 5 external blockers | `validation/logs/validation_evidence.txt` |
 | release manifest integrity | PASS | `validation/logs/manifest_validation.txt` and final validator execution |
 
 ## Recursive alignment evidence
