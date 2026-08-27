@@ -46,7 +46,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "tests/",
         "pytest -q",
         "logs/pytest.txt",
-        # 602 is the count CI produces: the postgres service is present so the
+        # 608 is the count CI produces: the postgres service is present so the
         # shared-backend matrix runs, while the five cross-repo contract tests
         # skip because CI checks out only this repository, and the constellation-SDK
         # contract tests skip because CI omits the constellation extra. A workspace
@@ -55,10 +55,16 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # reproduce CI. The five are not discovered uniformly:
         # test_cross_repo_contract.py path-sniffs for a sibling checkout, while
         # test_runtime_status_protocol.py runs only on an explicit
-        # CURSOR_GOVERNANCE_ROOT -- so a bare sibling checkout yields 606, and a
-        # sibling plus the exported variable yields 607.
-        "602 tests pass",
-        r"602 passed",
+        # CURSOR_GOVERNANCE_ROOT -- so a bare sibling checkout yields 612, and a
+        # sibling plus the exported variable yields 613.
+        #
+        # Re-pinned 602 -> 608 for ADR-079: test_phase_lock_write_atomicity.py
+        # adds two cases across the three STORE_BACKENDS. All six run in CI --
+        # the postgres leg included, which is where the advisory-lock path is
+        # actually exercised, since a local run without
+        # L9_MEMORY_TEST_POSTGRES_DSN skips it.
+        "608 tests pass",
+        r"608 passed",
     ),
     CheckSpec(
         "V-002",
