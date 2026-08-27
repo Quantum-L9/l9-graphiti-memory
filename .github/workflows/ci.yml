@@ -6,7 +6,7 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.3.0
-#   updated: 2026-08-04
+#   updated: 2026-08-27
 
 name: CI
 on:
@@ -68,3 +68,58 @@ jobs:
         with:
           name: validation-py${{ matrix.python-version }}
           path: validation/
+
+  # RP-001/RP-002 bind this package to the authoritative TransportPacket and
+  # Gate client, but the `validate` matrix omits the `constellation` extra, so
+  # every pytest.importorskip("constellation_node_sdk") case skipped on both
+  # legs. An unavailable tag or an incompatible SDK API could still produce a
+  # green release validation while the binding was marked bound: asserted,
+  # never exercised (issue #39).
+  #
+  # A separate job rather than a fourth extra on `validate`, for two reasons.
+  # An SDK outage fails a check that names the SDK instead of turning the whole
+  # release-validation matrix red; and `validate` keeps skipping these cases, so
+  # the V-001 execution count in tools/assurance/generate_validation_evidence.py
+  # stays put instead of moving every time this job changes.
+  constellation-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          # The extra is gated `python_full_version >= '3.12'`, so the matrix's
+          # 3.10 leg could never carry it. This job pins the supported leg.
+          python-version: '3.13'
+      - name: Sync the constellation extra
+        # No --no-build here, unlike `validate`: the SDK is a git source
+        # distribution with no wheel, and --no-build refuses it outright with
+        # "can't be installed because it is marked as `--no-build` but has no
+        # binary distribution". uv.lock pins the exact commit behind the tag,
+        # so building it is not fetching arbitrary code.
+        run: uv sync --frozen --no-install-project --extra dev --extra constellation
+      - name: Prove the SDK is importable
+        # The failure this job exists to catch is a SILENT skip. Import it
+        # explicitly first so a missing or broken SDK fails a step that names
+        # it, instead of quietly turning the contract tests into no-ops.
+        run: PYTHONPATH=src .venv/bin/python -c "import constellation_node_sdk"
+      - name: Every SDK-bound test file is covered by this job
+        # Guards the same failure one level up: a new file that binds the SDK
+        # must be added below, or it would skip in `validate` and never run
+        # here. A set comparison, deliberately not a pinned count.
+        run: |
+          set -euo pipefail
+          expected="$(printf '%s\n' \
+            tests/unit/test_canonical_gate_client.py \
+            tests/unit/test_canonical_transport_packet.py | sort)"
+          actual="$(grep -rl 'importorskip("constellation_node_sdk")' tests/ | sort)"
+          if [ "$expected" != "$actual" ]; then
+            echo "SDK-bound test files changed; update this job's test list." >&2
+            diff <(echo "$expected") <(echo "$actual") || true
+            exit 1
+          fi
+      - name: Run the constellation contract tests
+        run: |
+          PYTHONPATH=src .venv/bin/python -m pytest \
+            tests/unit/test_canonical_transport_packet.py \
+            tests/unit/test_canonical_gate_client.py -q

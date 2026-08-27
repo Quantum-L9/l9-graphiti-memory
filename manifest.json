@@ -46,8 +46,8 @@
         "version": "2.2.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "844ce583c8e317d850fd695c75f1c5be6ab80f47e27a91e2c27530cb24b62745",
-      "size_bytes": 2560
+      "sha256": "4d2e2182cef74d23fa74a6779320f58a7dc46bb0fd3993bb430c2ee245fbc823",
+      "size_bytes": 5652
     },
     {
       "category": "ci",
