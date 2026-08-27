@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
@@ -76,16 +77,47 @@ def _layer(relative: Path) -> str:
     return category
 
 
+def _tracked_paths(root: Path) -> frozenset[str]:
+    """Return git-tracked paths (posix), or empty when git cannot answer.
+
+    A release manifest describes committed repository content, and git already
+    knows exactly what that is. Deriving the file set from a hand-maintained
+    exclusion list instead let lint and type caches, editable-install
+    ``*.egg-info`` and build output into the manifest, which made it churn
+    per-machine and recorded files a clean checkout does not have.
+
+    Mirrors ``check_recursive_alignment._tracked_paths``.
+    """
+
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z"],
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return frozenset()
+    return frozenset(entry for entry in result.stdout.split("\0") if entry)
+
+
 def _iter_files(root: Path, *, exclude_manifest_markdown: bool = False) -> tuple[Path, ...]:
+    # Falls back to the filesystem walk only where git cannot answer, such as an
+    # unpacked release tarball.
+    tracked = _tracked_paths(root)
     result: list[Path] = []
     for path in root.rglob("*"):
         if not path.is_file():
             continue
         relative = path.relative_to(root)
-        if any(part in EXCLUDED_ANY_PARTS for part in relative.parts):
-            continue
-        if relative.parts and relative.parts[0] in EXCLUDED_TOP_LEVEL:
-            continue
+        if tracked:
+            if relative.as_posix() not in tracked:
+                continue
+        else:
+            if any(part in EXCLUDED_ANY_PARTS for part in relative.parts):
+                continue
+            if relative.parts and relative.parts[0] in EXCLUDED_TOP_LEVEL:
+                continue
         if relative.as_posix() == "manifest.json":
             continue
         if exclude_manifest_markdown and relative.as_posix() == "MANIFEST.md":
