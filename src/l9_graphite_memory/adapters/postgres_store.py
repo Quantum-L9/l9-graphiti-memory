@@ -37,7 +37,12 @@ from l9_graphite_memory.contracts import (
     ProjectionRetirementReceipt,
     WriteReceipt,
 )
-from l9_graphite_memory.errors import ConfigurationError, StoreError
+from l9_graphite_memory.errors import (
+    ConfigurationError,
+    PhaseLockSnapshotConflict,
+    StoreError,
+)
+from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
 from l9_graphite_memory.ports.service_capability import (
     ServiceWriteCapability,
     require_service_write_capability,
@@ -73,6 +78,9 @@ _LIST_RECORDS_PREDICATES = (
 )
 _LIST_RECORDS_SQL = _LIST_RECORDS_PREDICATES + _SEARCH_RECORDS_ORDER
 _LIST_RECORDS_BY_STATE_SQL = _LIST_RECORDS_PREDICATES + " AND state IN %s" + _SEARCH_RECORDS_ORDER
+# Unbounded and unordered on purpose: the phase-lock snapshot must digest
+# every active record in the namespace, and snapshot_digest sorts itself.
+_PHASE_LOCK_SNAPSHOT_SQL = _LIST_RECORDS_PREDICATES + " AND state = %s"
 
 
 def _json(value: Any) -> str:
@@ -375,6 +383,32 @@ class PostgresRecordStore:
     def _row_to_record(row: Any) -> MemoryRecord:
         return schema_registry.read_record(json.loads(str(row["record_json"])))
 
+    def _require_phase_lock_snapshot(self, tx: Any, expected: PhaseLockPrecondition) -> None:
+        """Serialize on the namespace, then re-verify the snapshot in-transaction.
+
+        A plain ``SELECT ... FOR UPDATE`` would lock only the rows that already
+        exist, so a concurrent governed write inserting a *new* record would not
+        be excluded. The transaction-scoped advisory lock serializes governed
+        writers on the namespace itself and is released on commit or rollback.
+        The re-read then also catches non-governed writers, which never take the
+        advisory lock but do change the digest.
+        """
+
+        tx.execute(
+            "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+            (f"{expected.tenant_id}/{expected.namespace}",),
+        )
+        tx.execute(
+            _PHASE_LOCK_SNAPSHOT_SQL,
+            (expected.tenant_id, expected.namespace, MemoryState.ACTIVE.value),
+        )
+        current = snapshot_digest([self._row_to_record(row) for row in tx.fetchall()])
+        if current != expected.expected_snapshot_digest:
+            raise PhaseLockSnapshotConflict(
+                "namespace changed after phase-lock verification: "
+                f"expected={expected.expected_snapshot_digest} current={current}"
+            )
+
     def _insert_record(self, tx: Any, record: MemoryRecord) -> None:
         tx.execute(
             """
@@ -512,11 +546,14 @@ class PostgresRecordStore:
         *,
         outbox_events: tuple[OutboxEvent, ...] = (),
         status_events: tuple[MemoryStatusEvent, ...] = (),
+        expected_phase_lock: PhaseLockPrecondition | None = None,
     ) -> None:
         require_service_write_capability(capability)
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
+                if expected_phase_lock is not None:
+                    self._require_phase_lock_snapshot(tx, expected_phase_lock)
                 if record is not None:
                     self._insert_record(tx, record)
                 self._insert_operation_receipt(

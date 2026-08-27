@@ -1,5 +1,5 @@
 {
-  "file_count": 712,
+  "file_count": 715,
   "files": [
     {
       "category": "ci",
@@ -4597,6 +4597,22 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
+        "layer": "adr",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-079-governed-write-phase-lock-atomicity.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-08-27",
+        "version": "2.3.0"
+      },
+      "path": "docs/adr/ADR-079-governed-write-phase-lock-atomicity.md",
+      "sha256": "1d5b7a4eb77d5e8b25cb7814e7eb90fa100661687992464c827b9d2876fac7ea",
+      "size_bytes": 8030
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
         "layer": "architecture_decisions",
         "owner": "memory-control-plane",
         "path": "docs/adr/README.md",
@@ -4606,8 +4622,8 @@
         "version": "2.2.0"
       },
       "path": "docs/adr/README.md",
-      "sha256": "ec81619b38878bf90be4e3b185962e44045d2274bfa02deb64eee1f324baabfe",
-      "size_bytes": 9824
+      "sha256": "b28a806cfde1ca976ac6b4ba67cf7c7f750ba84f2101d90fa944b48f7c057b8d",
+      "size_bytes": 9935
     },
     {
       "category": "documentation",
@@ -5678,8 +5694,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/adapters/in_memory_store.py",
-      "sha256": "887eae28a85baa936803616687a116389bb48f72b22439a2a9e7310a760a6c95",
-      "size_bytes": 15486
+      "sha256": "d1d0622a612301c5535d709724647eacc317658344f7a0f13f8ceb8f998d8785",
+      "size_bytes": 16736
     },
     {
       "category": "production_source",
@@ -5710,8 +5726,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/adapters/postgres_store.py",
-      "sha256": "ade7737adf559d9ee1b0624af735d5f1ac663e452c82579eb3e0ecb783de108b",
-      "size_bytes": 48165
+      "sha256": "fcc4472fdf4b6d926bd69709ccfd31add75397f4cc7559c870bb0e2afef6a6db",
+      "size_bytes": 50013
     },
     {
       "category": "production_source",
@@ -5726,8 +5742,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/adapters/sqlite_store.py",
-      "sha256": "ae6b43beb49ae87b7a948bb361c8465f41468adc548768aaab9e9e18f37c00f9",
-      "size_bytes": 45718
+      "sha256": "018331ebef4a822baf2ec2767f70730394169e625f5c2d12b9954401ac1d2bf2",
+      "size_bytes": 46943
     },
     {
       "category": "production_source",
@@ -6286,8 +6302,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/errors.py",
-      "sha256": "ecd8dceed3be81802bf7843077ddaac2ed76cafd1f570a838ea99749f9d990af",
-      "size_bytes": 2190
+      "sha256": "c4967f9fc9b4c35775f92b387b8432d688fe4b0b5711cdb2850f60bdc3dfdcdc",
+      "size_bytes": 2553
     },
     {
       "category": "production_source",
@@ -6782,8 +6798,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/ports/__init__.py",
-      "sha256": "b57f0c4d71df7fa95730c44f515b4541924b7aff4e117eddca9b747d12f4ec03",
-      "size_bytes": 1123
+      "sha256": "c6bdf28443054d987fbdc17fe9e35d841c9e0ebae99ba875c75680a829f22342",
+      "size_bytes": 1238
     },
     {
       "category": "production_source",
@@ -6823,6 +6839,22 @@
         "l9_schema": 1,
         "layer": "port",
         "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/ports/phase_lock.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-08-27",
+        "version": "2.3.0"
+      },
+      "path": "src/l9_graphite_memory/ports/phase_lock.py",
+      "sha256": "81ab0a2b9cac9f897d7a3f51a5291831be59d33d94d10212ab51f6887c39657b",
+      "size_bytes": 2756
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "port",
+        "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/ports/projection.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -6846,8 +6878,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/ports/record_store.py",
-      "sha256": "1f3b94175d1d32833f6136c6797e1eb5b5d60e19c63db47ac793d4440f0d9380",
-      "size_bytes": 5446
+      "sha256": "44fbc3b31f0da096e248d421cef5bb9a5f3a0e8bdb04fc999a36125e4fe735ae",
+      "size_bytes": 6070
     },
     {
       "category": "production_source",
@@ -7310,8 +7342,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/services/memory_service.py",
-      "sha256": "59f9c565acea88b8aaa49002ec78e2aedc15836c7678417b0cb3eb199fdc972a",
-      "size_bytes": 40160
+      "sha256": "6f386c8b583e582c9ee920f04ab4371302bbb56462f3d86d6d8c0b02eba2cb78",
+      "size_bytes": 40610
     },
     {
       "category": "production_source",
@@ -7504,6 +7536,22 @@
       "path": "tests/conformance/test_maintenance_ledger.py",
       "sha256": "629dcd89320a5e16f4a9be0aaf97a8cf563e78970125d2968098da5515c461ba",
       "size_bytes": 4340
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "test",
+        "owner": "memory-control-plane",
+        "path": "tests/conformance/test_phase_lock_write_atomicity.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-08-27",
+        "version": "2.3.0"
+      },
+      "path": "tests/conformance/test_phase_lock_write_atomicity.py",
+      "sha256": "2e3ffb15eb958054903d7962a65079a96084ffa0b5540095b55456f2fa13899e",
+      "size_bytes": 4501
     },
     {
       "category": "tests",
@@ -9646,7 +9694,7 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/validate_adrs.py",
-      "sha256": "5328fe36630c181b899718d92714e0084ee94824fdd9dddfb399736f69535075",
+      "sha256": "6f5b2c99fc16258ae3bca57d1f7a6ab3d807a20d4d268e3e8c0c2ad1120a72ba",
       "size_bytes": 2580
     },
     {

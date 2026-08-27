@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import threading
 from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
@@ -33,7 +34,8 @@ from l9_graphite_memory.contracts import (
     ProjectionRetirementReceipt,
     WriteReceipt,
 )
-from l9_graphite_memory.errors import StoreError
+from l9_graphite_memory.errors import PhaseLockSnapshotConflict, StoreError
+from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
 from l9_graphite_memory.ports.service_capability import (
     ServiceWriteCapability,
     require_service_write_capability,
@@ -57,6 +59,7 @@ class InMemoryRecordStore:
         self.projection_retirements: list[ProjectionRetirementReceipt] = []
         self.projection_rebuilds: list[ProjectionRebuildReceipt] = []
         self.initialized = False
+        self._write_lock = threading.RLock()
 
     def initialize(self) -> None:
         self.initialized = True
@@ -79,20 +82,42 @@ class InMemoryRecordStore:
         *,
         outbox_events: tuple[OutboxEvent, ...] = (),
         status_events: tuple[MemoryStatusEvent, ...] = (),
+        expected_phase_lock: PhaseLockPrecondition | None = None,
     ) -> None:
         require_service_write_capability(capability)
-        if record is not None:
-            key = (record.tenant_id, record.namespace, record.idempotency_key)
-            existing_id = self.idempotency.get(key)
-            if existing_id is not None and existing_id != record.record_id:
-                raise ValueError("duplicate idempotency key")
-            self.records[record.record_id] = record
-            self.idempotency[key] = record.record_id
-        self.receipts[receipt.receipt_id] = receipt
-        for status_event in status_events:
-            self.transition_state(status_event)
-        for outbox_event in outbox_events:
-            self.outbox[outbox_event.event_id] = outbox_event
+        # The lock makes the snapshot re-check and the mutation one critical
+        # section, so two governed writers cannot both pass the check.
+        with self._write_lock:
+            if expected_phase_lock is not None:
+                self._require_phase_lock_snapshot(expected_phase_lock)
+            if record is not None:
+                key = (record.tenant_id, record.namespace, record.idempotency_key)
+                existing_id = self.idempotency.get(key)
+                if existing_id is not None and existing_id != record.record_id:
+                    raise ValueError("duplicate idempotency key")
+                self.records[record.record_id] = record
+                self.idempotency[key] = record.record_id
+            self.receipts[receipt.receipt_id] = receipt
+            for status_event in status_events:
+                self.transition_state(status_event)
+            for outbox_event in outbox_events:
+                self.outbox[outbox_event.event_id] = outbox_event
+
+    def _require_phase_lock_snapshot(self, expected: PhaseLockPrecondition) -> None:
+        current = snapshot_digest(
+            [
+                item
+                for item in self.records.values()
+                if item.tenant_id == expected.tenant_id
+                and item.namespace == expected.namespace
+                and item.state is MemoryState.ACTIVE
+            ]
+        )
+        if current != expected.expected_snapshot_digest:
+            raise PhaseLockSnapshotConflict(
+                "namespace changed after phase-lock verification: "
+                f"expected={expected.expected_snapshot_digest} current={current}"
+            )
 
     def get_record(self, record_id: UUID) -> MemoryRecord | None:
         return self.records.get(record_id)

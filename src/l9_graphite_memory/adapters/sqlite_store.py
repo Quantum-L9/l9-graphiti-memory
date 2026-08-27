@@ -39,7 +39,8 @@ from l9_graphite_memory.contracts import (
     ProjectionRetirementReceipt,
     WriteReceipt,
 )
-from l9_graphite_memory.errors import StoreError
+from l9_graphite_memory.errors import PhaseLockSnapshotConflict, StoreError
+from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
 from l9_graphite_memory.ports.service_capability import (
     ServiceWriteCapability,
     require_service_write_capability,
@@ -485,10 +486,16 @@ class SQLiteRecordStore:
         *,
         outbox_events: tuple[OutboxEvent, ...] = (),
         status_events: tuple[MemoryStatusEvent, ...] = (),
+        expected_phase_lock: PhaseLockPrecondition | None = None,
     ) -> None:
         require_service_write_capability(capability)
         try:
             with self._transaction() as tx:
+                # BEGIN IMMEDIATE already holds the write lock here, so the
+                # re-read below cannot be overtaken by another writer before
+                # this transaction commits.
+                if expected_phase_lock is not None:
+                    self._require_phase_lock_snapshot(tx, expected_phase_lock)
                 if record is not None:
                     self._insert_record(tx, record)
                 self._insert_receipt(tx, receipt)
@@ -500,6 +507,21 @@ class SQLiteRecordStore:
             raise StoreError(f"atomic memory write violated store constraints: {exc}") from exc
         except sqlite3.Error as exc:
             raise StoreError(f"atomic memory write failed: {exc}") from exc
+
+    def _require_phase_lock_snapshot(
+        self, tx: sqlite3.Connection, expected: PhaseLockPrecondition
+    ) -> None:
+        rows = tx.execute(
+            "SELECT record_json FROM memory_records "
+            "WHERE tenant_id = ? AND namespace = ? AND state = ?",
+            (expected.tenant_id, expected.namespace, MemoryState.ACTIVE.value),
+        ).fetchall()
+        current = snapshot_digest([self._row_to_record(row) for row in rows])
+        if current != expected.expected_snapshot_digest:
+            raise PhaseLockSnapshotConflict(
+                "namespace changed after phase-lock verification: "
+                f"expected={expected.expected_snapshot_digest} current={current}"
+            )
 
     @staticmethod
     def _row_to_record(row: sqlite3.Row) -> MemoryRecord:

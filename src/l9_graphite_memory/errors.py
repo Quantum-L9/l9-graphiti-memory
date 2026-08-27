@@ -37,6 +37,16 @@ class StoreError(L9MemoryError):
     """The canonical record store failed."""
 
 
+class PhaseLockSnapshotConflict(StoreError):
+    """A governed write lost its phase-lock snapshot race.
+
+    The store re-verified the phase-lock snapshot inside the committing
+    transaction and found the namespace had changed since the lock was
+    verified, so the write was refused rather than admitted against a stale
+    authorization (ADR-079).
+    """
+
+
 class ProjectionError(L9MemoryError):
     """A graph or semantic projection failed."""
 
