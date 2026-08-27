@@ -9326,7 +9326,7 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "45ef1831676f4a7318ec54d8c4d95bc29b706eafb01a06ea74239e8e431643d5",
+      "sha256": "655ff3d573d77dc445da452fd31c6f8ed8b72947b7a420178b4201d9df299b28",
       "size_bytes": 13430
     },
     {
@@ -10638,7 +10638,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/adr_validation.txt",
-      "sha256": "99c7340aec8d6dfb8456cfce1c859a3f4d6f0ce6f75dfa58586ec26df7f3adf7",
+      "sha256": "bab692f605e7bfe12fb3a7e029ec3e8e5d3d0d0ff85d2d62bfc2557437cda0af",
       "size_bytes": 35
     },
     {
@@ -10926,8 +10926,8 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "427e816158f3b82725454a0bcd65a899b7ab2871cf4a69c9dc8da3f179b21208",
-      "size_bytes": 3094
+      "sha256": "301bf71b575697639b2fa79ca379bf5477e2d635cc65b74a60315d0ed99e7096",
+      "size_bytes": 3056
     },
     {
       "category": "validation_evidence",
@@ -10974,7 +10974,7 @@
         "version": "2.2.0"
       },
       "path": "validation/logs/source_quality.txt",
-      "sha256": "f525ad65c873343453f87a7fa298d724a5ebb868c0548acf6a52ab7fb1d14d90",
+      "sha256": "4a4b6cbaae10672af1c53b3955c1299ee48b538e84aadc1037a46c0b9f53cb73",
       "size_bytes": 67
     },
     {
@@ -11054,7 +11054,7 @@
         "version": "2.2.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "a22ae8fa13146652c8da57fab396a31933e7598c9a9312a49c18736b448428d9",
+      "sha256": "e41321c8af2ff1af973e281c5a420b19ca6962569e9d7914a73f29a734a872e8",
       "size_bytes": 11387
     },
     {
