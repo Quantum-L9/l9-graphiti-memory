@@ -101,26 +101,34 @@ def _tracked_paths(root: Path) -> frozenset[str]:
     return frozenset(entry for entry in result.stdout.split("\0") if entry)
 
 
+def _is_repository_content(relative: Path, tracked: frozenset[str]) -> bool:
+    """Whether one path counts as committed repository content.
+
+    Git is authoritative when it can answer. The exclusion lists are the
+    fallback for a checkout git cannot read, such as an unpacked release
+    tarball.
+    """
+
+    if tracked:
+        return relative.as_posix() in tracked
+    if any(part in EXCLUDED_ANY_PARTS for part in relative.parts):
+        return False
+    return not (relative.parts and relative.parts[0] in EXCLUDED_TOP_LEVEL)
+
+
 def _iter_files(root: Path, *, exclude_manifest_markdown: bool = False) -> tuple[Path, ...]:
-    # Falls back to the filesystem walk only where git cannot answer, such as an
-    # unpacked release tarball.
     tracked = _tracked_paths(root)
+    self_excluded = {"manifest.json"}
+    if exclude_manifest_markdown:
+        self_excluded.add("MANIFEST.md")
     result: list[Path] = []
     for path in root.rglob("*"):
         if not path.is_file():
             continue
         relative = path.relative_to(root)
-        if tracked:
-            if relative.as_posix() not in tracked:
-                continue
-        else:
-            if any(part in EXCLUDED_ANY_PARTS for part in relative.parts):
-                continue
-            if relative.parts and relative.parts[0] in EXCLUDED_TOP_LEVEL:
-                continue
-        if relative.as_posix() == "manifest.json":
+        if relative.as_posix() in self_excluded:
             continue
-        if exclude_manifest_markdown and relative.as_posix() == "MANIFEST.md":
+        if not _is_repository_content(relative, tracked):
             continue
         result.append(path)
     return tuple(sorted(result))

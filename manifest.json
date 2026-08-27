@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "be21f46ecb5f039564205134cb508d383ef7473dd598c9c33a18c8c97cc2ca1a",
+      "sha256": "bbd839c4d9c220a9a8a2900da59d7cd5f012ae057ee1494a58e53adb47be3adf",
       "size_bytes": 117261
     },
     {
@@ -7214,8 +7214,8 @@
         "version": "2.2.0"
       },
       "path": "tests/conformance/test_phase_lock_write_atomicity.py",
-      "sha256": "2e3ffb15eb958054903d7962a65079a96084ffa0b5540095b55456f2fa13899e",
-      "size_bytes": 4501
+      "sha256": "8ac245f3becbc81213c84365d206fd8d391ad2ae417160e248c2239dc8e9dc5c",
+      "size_bytes": 4622
     },
     {
       "category": "tests",
@@ -9310,8 +9310,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_manifest.py",
-      "sha256": "649a7c59c272dbf89a3f0fd6d89b16d8a4b41668bf3136866e933b4353f5d3f6",
-      "size_bytes": 8472
+      "sha256": "74ecb0025bff0ca49140c4be65f9fb992aade75536f13d3dcdbec28422d2787a",
+      "size_bytes": 8677
     },
     {
       "category": "assurance",

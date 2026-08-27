@@ -100,10 +100,11 @@ def test_governed_write_refuses_a_snapshot_that_moved_before_commit(
         # Land a competing canonical write in the check-to-commit window.
         racing.arm(lambda: competitor.write(principal, _request("competing write")))
 
+        # Built outside the block so the raise is provably the governed write's,
+        # not the request construction's.
+        governed = _request("governed write")
         with pytest.raises(PhaseLockSnapshotConflict):
-            service.write_governed(
-                principal, _request("governed write"), task_signature="task-signature-1"
-            )
+            service.write_governed(principal, governed, task_signature="task-signature-1")
 
         # The refused write left nothing behind; only the competitor landed.
         remaining = inner.list_records(principal.tenant_id, NAMESPACE)
