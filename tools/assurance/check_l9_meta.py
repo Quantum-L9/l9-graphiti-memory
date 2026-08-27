@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 
 sys.dont_write_bytecode = True
@@ -42,14 +43,45 @@ EXCLUDED_PARTS = {
     "validation",
     ".venv",
 }
+# Machine-local runtime state the L4 publish path writes into the governed
+# `.l9/` namespace. `.l9/` also holds committed governance artifacts, so these
+# are excluded by prefix rather than by path part -- matching by part would
+# also exclude any directory named "autonomy" or "pr" anywhere in the tree.
+MACHINE_LOCAL_PREFIXES = (".l9/autonomy/", ".l9/pr/")
+
+
+def _git_tracked(root: Path) -> frozenset[str]:
+    """Return git-tracked paths (posix), or empty when git cannot answer.
+
+    Mirrors ``check_recursive_alignment._tracked_paths``. Walking the
+    filesystem instead made every transient tooling artifact -- lint and type
+    caches, editable-install ``*.egg-info``, and the machine-local L4 publish
+    receipts -- look like committed content missing a metadata carrier.
+    """
+
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z"],
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return frozenset()
+    return frozenset(entry for entry in result.stdout.split("\0") if entry)
 
 
 def _tracked_files(root: Path) -> tuple[Path, ...]:
+    # The prefix and part exclusions below are the fallback for a checkout git
+    # cannot read, such as an unpacked release tarball.
+    tracked = _git_tracked(root)
     result: list[Path] = []
     for path in root.rglob("*"):
         if not path.is_file():
             continue
         relative = path.relative_to(root)
+        if tracked and relative.as_posix() not in tracked:
+            continue
         if any(
             part in EXCLUDED_PARTS
             or part.endswith(".egg-info")
@@ -58,6 +90,8 @@ def _tracked_files(root: Path) -> tuple[Path, ...]:
             or part == "coverage.xml"
             for part in relative.parts
         ):
+            continue
+        if relative.as_posix().startswith(MACHINE_LOCAL_PREFIXES):
             continue
         if relative.as_posix() == "manifest.json":
             continue

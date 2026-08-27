@@ -17,6 +17,7 @@ from .constellation import (
     TransportPacketFactory,
     TransportPacketPort,
 )
+from .phase_lock import PhaseLockPrecondition, snapshot_digest
 from .projection import ProjectionAdapter, ProjectionHit
 from .record_store import RecordStore
 from .service_capability import (
@@ -31,6 +32,7 @@ __all__ = [
     "Clock",
     "GateClientPort",
     "GateDispatchReceipt",
+    "PhaseLockPrecondition",
     "ProceduralSynthesizer",
     "ProjectionAdapter",
     "ProjectionHit",
@@ -41,4 +43,5 @@ __all__ = [
     "TransportPacketFactory",
     "TransportPacketPort",
     "require_service_write_capability",
+    "snapshot_digest",
 ]

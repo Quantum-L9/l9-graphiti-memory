@@ -610,6 +610,7 @@ constellation = [
 dev = [
     { name = "build" },
     { name = "cryptography" },
+    { name = "fastapi" },
     { name = "httpx" },
     { name = "jsonschema" },
     { name = "mypy" },
@@ -619,6 +620,7 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "uvicorn" },
 ]
 infisical = [
     { name = "infisical-python" },
@@ -646,6 +648,7 @@ requires-dist = [
     { name = "cryptography", marker = "extra == 'dev'", specifier = ">=46.0,<47" },
     { name = "cryptography", marker = "extra == 'phase6'", specifier = ">=46.0,<47" },
     { name = "fastapi", marker = "extra == 'all'", specifier = ">=0.115,<1" },
+    { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.115,<1" },
     { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27,<1" },
     { name = "infisical-python", marker = "extra == 'all'", specifier = ">=2.0,<3" },
@@ -667,6 +670,7 @@ requires-dist = [
     { name = "redis", marker = "extra == 'all'", specifier = ">=5,<7" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8,<1" },
     { name = "uvicorn", marker = "extra == 'all'", specifier = ">=0.30,<1" },
+    { name = "uvicorn", marker = "extra == 'dev'", specifier = ">=0.30,<1" },
     { name = "uvicorn", marker = "extra == 'server'", specifier = ">=0.30,<1" },
     { name = "zep-cloud", marker = "extra == 'all'", specifier = ">=3.0,<4" },
     { name = "zep-cloud", marker = "extra == 'zep'", specifier = ">=3.0,<4" },

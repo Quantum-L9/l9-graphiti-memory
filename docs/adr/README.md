@@ -103,6 +103,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-076 | [Projection Retirement Capability Ceiling](ADR-076-projection-retirement-capability-ceiling.md) | Accepted |
 | ADR-077 | [Canonical Store Backend Transition Safety](ADR-077-canonical-store-backend-transition-safety.md) | Accepted |
 | ADR-078 | [Topology Publication Admission and Structured Source Locators](ADR-078-topology-publication-admission.md) | Accepted |
+| ADR-079 | [Governed Write Phase-Lock Atomicity](ADR-079-governed-write-phase-lock-atomicity.md) | Accepted |
 
 ## Validation
 
@@ -112,4 +113,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-078 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-079 ledger and all mandatory sections.

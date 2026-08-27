@@ -69,6 +69,7 @@ from l9_graphite_memory.ports import (
     RecordStore,
     SystemClock,
 )
+from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
 from l9_graphite_memory.retrieval import ContextBudgetAllocator, RetrievalPlanner
 from l9_graphite_memory.version import MEMORY_SCHEMA_VERSION, PACKAGE_VERSION
 
@@ -135,6 +136,7 @@ class MemoryService:
         request: MemoryWriteRequest,
         *,
         action: AuthorizationAction,
+        expected_phase_lock: PhaseLockPrecondition | None = None,
     ) -> WriteReceipt:
         """Single admission implementation behind an explicit authority gate.
 
@@ -359,6 +361,7 @@ class MemoryService:
                 receipt,
                 outbox_events=outbox_events,
                 status_events=tuple(status_events),
+                expected_phase_lock=expected_phase_lock,
             )
         return receipt
 
@@ -375,7 +378,20 @@ class MemoryService:
                 "memory.write_governed requires a held phase-lock: "
                 + "; ".join(verification.reasons)
             )
-        return self.write(principal, request)
+        # This check is advisory on its own: the namespace can change between
+        # here and the commit. The store re-verifies the same digest inside the
+        # transaction that admits the record and refuses the write if it moved,
+        # which is what actually closes the window (ADR-079).
+        return self._admit(
+            principal,
+            request,
+            action=AuthorizationAction.WRITE,
+            expected_phase_lock=PhaseLockPrecondition(
+                tenant_id=principal.tenant_id,
+                namespace=request.namespace,
+                expected_snapshot_digest=verification.current_snapshot_digest,
+            ),
+        )
 
     def close(self, principal: MemoryPrincipal, request: CloseRequest) -> CloseReceipt:
         write_receipt = self.write(
@@ -506,21 +522,10 @@ class MemoryService:
 
     @staticmethod
     def _snapshot_digest(records: tuple[MemoryRecord, ...] | list[MemoryRecord]) -> str:
-        return sha256_text(
-            canonical_json(
-                [
-                    {
-                        "record_id": str(record.record_id),
-                        "digest": record.normalized_digest,
-                        "state": record.state.value,
-                        "valid_from": record.temporal.valid_from,
-                        "valid_to": record.temporal.valid_to,
-                        "recorded_at": record.temporal.recorded_at,
-                    }
-                    for record in sorted(records, key=lambda item: str(item.record_id))
-                ]
-            )
-        )
+        # Delegates so the service and every store adapter digest a namespace
+        # identically; the stores re-verify this value inside their own
+        # committing transaction (ADR-079).
+        return snapshot_digest(records)
 
     def conflicts(self, principal: MemoryPrincipal, namespace: str) -> ConflictReport:
         self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)

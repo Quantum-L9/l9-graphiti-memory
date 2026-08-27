@@ -33,6 +33,7 @@ from l9_graphite_memory.contracts import (
     WriteReceipt,
 )
 
+from .phase_lock import PhaseLockPrecondition
 from .service_capability import ServiceWriteCapability
 
 
@@ -53,7 +54,18 @@ class RecordStore(Protocol):
         *,
         outbox_events: tuple[OutboxEvent, ...] = (),
         status_events: tuple[MemoryStatusEvent, ...] = (),
-    ) -> None: ...
+        expected_phase_lock: PhaseLockPrecondition | None = None,
+    ) -> None:
+        """Commit one canonical write atomically.
+
+        When ``expected_phase_lock`` is supplied the implementation must
+        re-verify its ``expected_snapshot_digest`` against the namespace's live
+        active records *inside* the committing transaction, and raise
+        ``PhaseLockSnapshotConflict`` when it no longer matches. Verifying
+        before the transaction is not sufficient: a concurrent writer sharing
+        the store can change the namespace in between (ADR-079).
+        """
+        ...
 
     def get_record(self, record_id: UUID) -> MemoryRecord | None: ...
 
