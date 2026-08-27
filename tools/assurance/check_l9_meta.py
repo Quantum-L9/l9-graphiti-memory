@@ -42,6 +42,11 @@ EXCLUDED_PARTS = {
     "validation",
     ".venv",
 }
+# Machine-local runtime state the L4 publish path writes into the governed
+# `.l9/` namespace. `.l9/` also holds committed governance artifacts, so these
+# are excluded by prefix rather than by path part -- matching by part would
+# also exclude any directory named "autonomy" or "pr" anywhere in the tree.
+MACHINE_LOCAL_PREFIXES = (".l9/autonomy/", ".l9/pr/")
 
 
 def _tracked_files(root: Path) -> tuple[Path, ...]:
@@ -58,6 +63,8 @@ def _tracked_files(root: Path) -> tuple[Path, ...]:
             or part == "coverage.xml"
             for part in relative.parts
         ):
+            continue
+        if relative.as_posix().startswith(MACHINE_LOCAL_PREFIXES):
             continue
         if relative.as_posix() == "manifest.json":
             continue

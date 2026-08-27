@@ -142,8 +142,8 @@
         "version": "2.2.0"
       },
       "path": ".gitignore",
-      "sha256": "45c400a6c40a9cc74ab9949b52be1a9e0db3684cf4f65c6fd64512da5d655f6b",
-      "size_bytes": 1364
+      "sha256": "13c16211b3ecadbf11a89c4ddbe505db586f98782f692e6952dbbf0a4f868524",
+      "size_bytes": 1668
     },
     {
       "category": "repository_root",
@@ -9550,8 +9550,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/check_l9_meta.py",
-      "sha256": "4a2d6e894b3e0bc6b0dfcd4915f2c583fc492ad422ae28a98b579cdf42430c1e",
-      "size_bytes": 4229
+      "sha256": "6933d4d60af23194b406c2709ca1ff8728af16864863d4241e0346563ddb57cc",
+      "size_bytes": 4677
     },
     {
       "category": "assurance",

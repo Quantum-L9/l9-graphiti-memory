@@ -39,6 +39,12 @@ htmlcov/
 *.state.json
 .l9-memory/
 .l9/memory/
+# L4 local-autonomy and publish-gate state (machine-local; never repository
+# content). `.l9/` is a governed namespace here -- several `.l9/*.json` and
+# `.l9/*.yaml` files are meant to be committed -- so only these subtrees are
+# ignored, matching l9-meta-injector and l9-ci-core.
+.l9/autonomy/
+.l9/pr/
 validation/wheel-site/
 validation/installed-run/
 validation/installed-smoke/
