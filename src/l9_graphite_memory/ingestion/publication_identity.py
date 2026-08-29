@@ -72,7 +72,13 @@ SUPPORTED_IDEMPOTENCY_ALGORITHMS: frozenset[str] = frozenset({"v3"})
 #: Lowering contract versions this consumer can recompute. Read from the
 #: intent's own metadata: the contract that lowered a fact participates in its
 #: effect identity, so recomputing under the wrong one produces a false mismatch.
-SUPPORTED_LOWERING_CONTRACTS: frozenset[str] = frozenset({"lowering/v1"})
+#:
+#: Both are supported, and older plans are not deprecated by the newer contract.
+#: The version is a property of the plan that was generated, not of the consumer
+#: reading it: a plan produced under v1 has v1 keys and verifies correctly under
+#: v1 forever. Dropping v1 here would refuse a plan that is still entirely
+#: honest about itself.
+SUPPORTED_LOWERING_CONTRACTS: frozenset[str] = frozenset({"lowering/v1", "lowering/v2"})
 
 IDEMPOTENCY_NAMESPACE = "l9-topology-publication"
 _EFFECT_IDENTITY_DOMAIN_BY_VERSION: dict[str, str] = {"v3": "l9.memory-effect-id/v3"}

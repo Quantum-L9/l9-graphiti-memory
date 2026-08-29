@@ -80,7 +80,12 @@ def test_vector_file_is_bound_to_a_producer_revision() -> None:
     assert origin["producer_repository"] == "Quantum-L9/l9-constellation-topology"
     assert len(origin["producer_revision"]) == 40
     assert document["effect_identity_algorithm_version"] in SUPPORTED_IDEMPOTENCY_ALGORITHMS
-    assert document["lowering_contract_version"] in SUPPORTED_LOWERING_CONTRACTS
+    assert document["current_lowering_contract_version"] in SUPPORTED_LOWERING_CONTRACTS
+    # Every contract version the producer has ever keyed a plan under must stay
+    # verifiable here: a superseded contract is not an unsupported one.
+    covered = set(document["covered_lowering_contract_versions"])
+    assert covered <= SUPPORTED_LOWERING_CONTRACTS
+    assert covered == SUPPORTED_LOWERING_CONTRACTS
     assert len(document["vectors"]) >= 4
 
 
@@ -95,7 +100,7 @@ def test_idempotency_key_matches_the_producer(vector: dict[str, Any]) -> None:
     recomputed = idempotency_key(
         _identity(vector),
         algorithm_version=document["effect_identity_algorithm_version"],
-        lowering_contract_version=document["lowering_contract_version"],
+        lowering_contract_version=vector["lowering_contract_version"],
         local_evidence=tuple(
             evidence_semantics(
                 evidence_kind=item["evidence_kind"],
@@ -131,7 +136,7 @@ def test_evidence_order_does_not_change_the_key() -> None:
         idempotency_key(
             _identity(vector),
             algorithm_version=document["effect_identity_algorithm_version"],
-            lowering_contract_version=document["lowering_contract_version"],
+            lowering_contract_version=vector["lowering_contract_version"],
             local_evidence=tuple(order),
             confidence=confidence_semantics(**vector["confidence"]),
             derivation_kind=vector["derivation_kind"],
@@ -150,7 +155,7 @@ def test_a_changed_claim_changes_the_key() -> None:
         return idempotency_key(
             _identity(vector),
             algorithm_version=document["effect_identity_algorithm_version"],
-            lowering_contract_version=document["lowering_contract_version"],
+            lowering_contract_version=vector["lowering_contract_version"],
             local_evidence=(),
             confidence=confidence_semantics(**confidence),
             derivation_kind=vector["derivation_kind"],

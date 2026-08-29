@@ -437,7 +437,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/ingestion/__init__.py` | `production_source` | `production_source` | 1339 | `18a04624e4a95e39edfd0a06c37f82395d56a22f7dd38b96ec1bb2dfaa5e5dfa` |
 | `src/l9_graphite_memory/ingestion/document.py` | `production_source` | `production_source` | 4758 | `e30f613d6448b37e21dad07e204a9270c0e61a8c3cb755facba1a50d77ce6052` |
 | `src/l9_graphite_memory/ingestion/profiles.py` | `production_source` | `production_source` | 7588 | `5a9a7f02fb7bc7b2efed36acb54f2b322a16850260f7297937730b2a2afe9cb4` |
-| `src/l9_graphite_memory/ingestion/publication_identity.py` | `production_source` | `production_source` | 18501 | `e2ca89dadd9443f8e961ca628981f440ac87d6247d9820ca8fb28de1e1f47d86` |
+| `src/l9_graphite_memory/ingestion/publication_identity.py` | `production_source` | `production_source` | 18861 | `4678c7ebd23055b68e4a5973f024abdbb44e9908ca9f1230aabbe66e2e53707b` |
 | `src/l9_graphite_memory/ingestion/repository.py` | `production_source` | `production_source` | 2723 | `b664de965a16b438a0ac73a22876e21b5e3fdc6295856b37744630bacaab56cb` |
 | `src/l9_graphite_memory/ingestion/topology_publication.py` | `production_source` | `production_source` | 26054 | `c25a2f88b3944df154ddfbea44d911235a060f455e1e322d50d696d20b872d61` |
 | `src/l9_graphite_memory/integrations/__init__.py` | `production_source` | `integration` | 1235 | `0d6a5ca91aec74b35c0a185e096757e945207c61ea37eba899ffe52b59164c76` |
@@ -529,7 +529,7 @@ updated: 2026-07-22
 | `tests/external_runtime/test_graceful_shutdown.py` | `tests` | `tests` | 1519 | `aa3b0d17321e6fcfe204e55022279a757484431ccca55d7683270aab46d65188` |
 | `tests/external_runtime/test_lease_expiration.py` | `tests` | `tests` | 1536 | `c2cec6fc5aeadb851e169fd03d4c1caca35b04e25d592c69ff4bd965c69ad34f` |
 | `tests/external_runtime/test_startup.py` | `tests` | `tests` | 1691 | `45c3e4c7a035cefa37fb3c5be43b37b53acd58179a70ca785ec700bb769c6ded` |
-| `tests/fixtures/publication_identity/golden-vectors.json` | `tests` | `tests` | 5549 | `e9e5e581f0f0cb2f42e0ea5ed0bd1c183130384e87481a780a634605b6ff9fd8` |
+| `tests/fixtures/publication_identity/golden-vectors.json` | `tests` | `tests` | 11223 | `a250d7d95ff0b377347c059f563e6176581935e870f57e272e3f2f73f52b5e4c` |
 | `tests/fixtures/topology_publication/PROVENANCE.md` | `tests` | `tests` | 1295 | `7e46926a9837d60f0e531b1d087acd11c1d6935de18e7296a198ab736dc83d07` |
 | `tests/fixtures/topology_publication/plan-bundle/intents/memory-ingest.json` | `tests` | `tests` | 251945 | `15eae9692f38b0e441aa33413bcd3eef0ae2b401ec432b9f9965392e08ed1d82` |
 | `tests/fixtures/topology_publication/plan-bundle/manifest.json` | `tests` | `tests` | 774 | `667eb95b78dc44470d28a1a8b00179b718deb3e1377c718b941656584da994c7` |
@@ -624,7 +624,7 @@ updated: 2026-07-22
 | `tests/unit/topology_publication/test_containment_and_identity.py` | `tests` | `tests` | 8214 | `6e670ffc647a3e0e230adac3529a4775fa34938f04df33d7090d30f8cf4575df` |
 | `tests/unit/topology_publication/test_execution_modes.py` | `tests` | `tests` | 10856 | `9d941e1644b94acd2c7e4c9204df739ab65d1cc2cbaa372af606d11e8abec97a` |
 | `tests/unit/topology_publication/test_gate_and_architecture.py` | `tests` | `tests` | 4849 | `7ceebd47d979e32f5040773d662c2803667a68a0a091bdd08510a610c75c4384` |
-| `tests/unit/topology_publication/test_identity_golden_vectors.py` | `tests` | `tests` | 5996 | `2c108dc03db3aa2be3e9dc41634baa082695cd8a660bf576a8e24095745a87d6` |
+| `tests/unit/topology_publication/test_identity_golden_vectors.py` | `tests` | `tests` | 6318 | `7e7c8848fe1f825db9e822a7e534d56a2041e873e0c71a15deac29e8ef110537` |
 | `tests/unit/topology_publication/test_locator_future_conformance.py` | `tests` | `tests` | 5419 | `a91c35296741ef926b2a9d0820b511b1bbf7980d5678dd8d131dd4eefa3369ab` |
 | `tests/unit/topology_publication/test_plan_integrity.py` | `tests` | `tests` | 6775 | `88f19959905103c020b8430780829afebd54117901d1b793df6567df7e30bb55` |
 | `tests/unit/topology_publication/test_plan_parser.py` | `tests` | `tests` | 4781 | `85ecd33f6700fc7243dc944ddc46c0e50e6d931a55120eb2b8c20433bfcd9e82` |

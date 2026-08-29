@@ -446,8 +446,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "f216b68c9f2358d33d4c23ae2ec444989a8ccb3249033a726adb7454871780ba",
-      "size_bytes": 117934
+      "sha256": "2495ed952d74b9d0ad770a4a42ca55e5dea1270422190bfb31085a4f1ab5b5e6",
+      "size_bytes": 117935
     },
     {
       "category": "repository_root",
@@ -6126,8 +6126,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/ingestion/publication_identity.py",
-      "sha256": "e2ca89dadd9443f8e961ca628981f440ac87d6247d9820ca8fb28de1e1f47d86",
-      "size_bytes": 18501
+      "sha256": "4678c7ebd23055b68e4a5973f024abdbb44e9908ca9f1230aabbe66e2e53707b",
+      "size_bytes": 18861
     },
     {
       "category": "production_source",
@@ -7598,8 +7598,8 @@
         "version": "2.2.0"
       },
       "path": "tests/fixtures/publication_identity/golden-vectors.json",
-      "sha256": "e9e5e581f0f0cb2f42e0ea5ed0bd1c183130384e87481a780a634605b6ff9fd8",
-      "size_bytes": 5549
+      "sha256": "a250d7d95ff0b377347c059f563e6176581935e870f57e272e3f2f73f52b5e4c",
+      "size_bytes": 11223
     },
     {
       "category": "tests",
@@ -9118,8 +9118,8 @@
         "version": "2.2.0"
       },
       "path": "tests/unit/topology_publication/test_identity_golden_vectors.py",
-      "sha256": "2c108dc03db3aa2be3e9dc41634baa082695cd8a660bf576a8e24095745a87d6",
-      "size_bytes": 5996
+      "sha256": "7e7c8848fe1f825db9e822a7e534d56a2041e873e0c71a15deac29e8ef110537",
+      "size_bytes": 6318
     },
     {
       "category": "tests",
