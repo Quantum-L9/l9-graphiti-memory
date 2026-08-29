@@ -176,11 +176,15 @@ def test_candidate_execution_order_is_candidate_id_code_point_order(
         memory_service=service,
         mode="apply",
     )
-    assert order == [
-        "l9-topology-publication/v3:Mid",
-        "l9-topology-publication/v3:alpha",
-        "l9-topology-publication/v3:zeta",
+    # Execution order is candidate_id code-point order. The ids are derived
+    # digests now, so the expectation is derived the same way rather than
+    # restated as literals that would only encode the old invented ids.
+    expected = [
+        item["idempotency_key"]
+        for item in sorted(candidates, key=lambda entry: entry["candidate_id"])
     ]
+    assert order == expected
+    assert expected != [item["idempotency_key"] for item in candidates]
 
 
 def test_crash_mid_batch_recovers_by_rerunning_the_same_plan(

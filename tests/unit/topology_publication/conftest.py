@@ -13,6 +13,13 @@
 The builders mimic the producer's bundle shape (manifest with real sha256
 content hashes) so integrity verification passes for well-formed synthetic
 plans and adversarial cases can corrupt one property at a time.
+
+``candidate_id`` and ``idempotency_key`` are *derived* from each synthetic
+candidate's own payload rather than invented, using the same public functions
+the adapter verifies with. Invented identities would have made every
+well-formed synthetic plan fail identity verification for a reason no test was
+about; deriving them keeps each suite testing the property it names, and lets a
+forgery suite corrupt exactly one field and observe exactly that refusal.
 """
 
 from __future__ import annotations
@@ -25,6 +32,18 @@ from typing import Any
 import pytest
 
 from l9_graphite_memory.contracts import MemoryPrincipal
+from l9_graphite_memory.ingestion.publication_identity import (
+    bare_digest,
+    candidate_identity,
+    confidence_semantics,
+    evidence_semantics,
+)
+from l9_graphite_memory.ingestion.publication_identity import (
+    candidate_id as compute_candidate_id,
+)
+from l9_graphite_memory.ingestion.publication_identity import (
+    idempotency_key as compute_idempotency_key,
+)
 
 PACKET_ID = "packet:" + "1" * 64
 PACKET_SEMANTIC_HASH = "sha256:" + "2" * 64
@@ -33,8 +52,36 @@ PLAN_SEMANTIC_HASH = "sha256:" + "4" * 64
 NAMESPACE = "l9.constellation/repo-a"
 FIXED_TIME = "2026-03-01T00:00:00Z"
 
+LOWERING_CONTRACT_VERSION = "lowering/v1"
+IDEMPOTENCY_ALGORITHM = "v3"
+EVIDENCE_DIGEST = "b" * 64
+
+#: Mirrors the producer's checked-in publication policy for the two keys the
+#: consumer's identity recomputation reads out of the embedded policy.
+SYNTHETIC_POLICY = {
+    "policy_id": "synthetic/1.0.0",
+    "evidence_kind_by_class": {
+        "observed": "observation",
+        "declared": "explicit",
+        "derived": "inference",
+        "assisted": "inference",
+        "projected": "inference",
+        "validated": "test",
+        "committed": "explicit",
+    },
+    "maximum_evidence_refs_per_candidate": 32,
+}
+
 ENTITY_IDS = ("repo:alpha", "cap:alpha-serve", "artifact:alpha-spec")
 EVIDENCE_IDS = ("evidence:alpha-1", "evidence:alpha-2")
+
+#: Source path recorded for each bound evidence id, so derivation and the
+#: topology bundle agree without either restating the other. An id absent from
+#: this map is deliberately unbound: such a candidate is refused at binding,
+#: before identity verification runs, so derivation only has to not crash.
+EVIDENCE_SOURCE_PATHS = {
+    evidence_id: f"docs/{index}.md" for index, evidence_id in enumerate(EVIDENCE_IDS)
+}
 RMP_IDS = ("packet:" + "a" * 64,)
 
 
@@ -95,8 +142,15 @@ def make_topology_bundle(root: Path) -> Path:
                 }
             ],
             "payload/evidence.json": [
-                {"evidence_id": EVIDENCE_IDS[0]},
-                {"evidence_id": EVIDENCE_IDS[1]},
+                {
+                    "evidence_id": evidence_id,
+                    "evidence_class": "declared",
+                    "source_ref": {
+                        "source_path": source_path,
+                        "content_hash": f"sha256:{EVIDENCE_DIGEST}",
+                    },
+                }
+                for evidence_id, source_path in EVIDENCE_SOURCE_PATHS.items()
             ],
         },
         {
@@ -114,6 +168,7 @@ def make_intent(
     idempotency_key: str,
     namespace: str = NAMESPACE,
     metadata: dict[str, Any] | None = None,
+    confidence_score: float = 1.0,
 ) -> dict[str, Any]:
     return {
         "operation": "memory.ingest",
@@ -128,7 +183,7 @@ def make_intent(
                 "transformed_at": FIXED_TIME,
             },
             "confidence": {
-                "score": 1.0,
+                "score": confidence_score,
                 "method": "explicit",
                 "evidence_count": 1,
                 "policy_version": "confidence/v1",
@@ -139,11 +194,64 @@ def make_intent(
             or {
                 "topology_packet_id": PACKET_ID,
                 "topology_semantic_hash": PACKET_SEMANTIC_HASH,
+                "lowering_contract_version": LOWERING_CONTRACT_VERSION,
             },
             "idempotency_key": idempotency_key,
             "dry_run": False,
         },
     }
+
+
+def derive_identities(
+    *,
+    content: str,
+    entity_ids: tuple[str, ...],
+    evidence_ids: tuple[str, ...],
+    namespace: str = NAMESPACE,
+    memory_class: str = "observation",
+    assertion: dict[str, Any] | None = None,
+    confidence_score: float = 1.0,
+    confidence_method: str = "explicit",
+    evidence_count: int = 1,
+    confidence_policy_version: str = "confidence/v1",
+) -> tuple[str, str]:
+    """Derive the identities the producer would have minted for this payload.
+
+    Uses the adapter's own public functions rather than a second copy: a
+    fixture that derived identities its own way would prove only that the two
+    fixtures agree.
+    """
+    identity = candidate_identity(
+        operation="memory.ingest",
+        candidate_kind="entity",
+        namespace=namespace,
+        memory_class=memory_class,
+        content=content,
+        assertion=assertion,
+        source_topology_entity_ids=entity_ids,
+    )
+    local_evidence = tuple(
+        evidence_semantics(
+            evidence_kind=SYNTHETIC_POLICY["evidence_kind_by_class"]["declared"],
+            source_content_digest=bare_digest(f"sha256:{EVIDENCE_DIGEST}"),
+            stable_source_locator=EVIDENCE_SOURCE_PATHS.get(evidence_id),
+        )
+        for evidence_id in evidence_ids
+    )
+    key = compute_idempotency_key(
+        identity,
+        algorithm_version=IDEMPOTENCY_ALGORITHM,
+        lowering_contract_version=LOWERING_CONTRACT_VERSION,
+        local_evidence=local_evidence,
+        confidence=confidence_semantics(
+            score=confidence_score,
+            method=confidence_method,
+            evidence_count=evidence_count,
+            confidence_policy_version=confidence_policy_version,
+        ),
+        derivation_kind=None,
+    )
+    return compute_candidate_id(identity), key
 
 
 def make_candidate(
@@ -156,10 +264,32 @@ def make_candidate(
     entity_ids: tuple[str, ...] = (ENTITY_IDS[0],),
     evidence_ids: tuple[str, ...] = (),
     rmp_ids: tuple[str, ...] = RMP_IDS,
+    derive: bool = True,
+    namespace: str = NAMESPACE,
+    confidence_score: float = 1.0,
 ) -> dict[str, Any]:
-    key = idempotency_key or f"l9-topology-publication/v3:{candidate_id}"
+    """Build one synthetic publication candidate.
+
+    ``candidate_id`` names the candidate for the test that reads it; the
+    identity fields the adapter verifies are derived from the payload unless a
+    suite deliberately overrides them to test a refusal. ``derive=False`` keeps
+    the caller's literal ``candidate_id``, which is what a forgery suite needs
+    when the point is that a declared identity does *not* match its payload.
+    """
+    body = content or f"Synthetic fact for {candidate_id}"
+    derived_id, derived_key = derive_identities(
+        content=body,
+        entity_ids=entity_ids,
+        evidence_ids=evidence_ids,
+        namespace=namespace,
+        confidence_score=confidence_score,
+    )
+    resolved_id = derived_id if derive else candidate_id
+    key = idempotency_key or (
+        derived_key if derive else f"l9-topology-publication/v3:{candidate_id}"
+    )
     return {
-        "candidate_id": candidate_id,
+        "candidate_id": resolved_id,
         "candidate_kind": "entity",
         "source_topology_entity_ids": list(entity_ids),
         "source_evidence_ids": list(evidence_ids),
@@ -167,13 +297,16 @@ def make_candidate(
         "eligibility": {"status": status, "reasons": [f"synthetic.{status}"]},
         "lowering": {
             "source_fields": ["name"],
+            "resolved_evidence_ids": list(evidence_ids),
             "confidence_level": "high",
             "confidence_method": "explicit",
             "conflict_status": "none",
         },
         "memory_intent": make_intent(
-            content=content or f"Synthetic fact for {candidate_id}",
+            content=body,
             idempotency_key=intent_key if intent_key is not None else key,
+            namespace=namespace,
+            confidence_score=confidence_score,
         ),
         "idempotency_key": key,
     }
@@ -204,7 +337,7 @@ def make_plan_document(
             "validation_status": "passed",
         },
         "source_topology_semantic_hash": source_semantic_hash,
-        "policy": {"policy_id": "synthetic/1.0.0"},
+        "policy": dict(SYNTHETIC_POLICY),
         "policy_hash": "sha256:" + "5" * 64,
         "candidates": candidates,
         "skipped_candidates": [

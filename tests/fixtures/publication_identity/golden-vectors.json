@@ -1,0 +1,150 @@
+{
+  "effect_identity_algorithm_version": "v3",
+  "generated_from": {
+    "generator": "l9_constellation_topology.publication.identity",
+    "producer_repository": "Quantum-L9/l9-constellation-topology",
+    "producer_revision": "5d8c46a5a02dd05d9ff6b1185e4ef60325219cd4"
+  },
+  "lowering_contract_version": "lowering/v1",
+  "schema": "l9.publication-identity-golden-vectors/v1",
+  "vectors": [
+    {
+      "confidence": {
+        "confidence_policy_version": "l9-topology-publication/1.0.0",
+        "evidence_count": 1,
+        "method": "extracted",
+        "score": 0.9
+      },
+      "derivation_kind": null,
+      "expected_candidate_id": "publication-candidate:3f57e248472a4ff6dc7fd00170b5edb0b94202a1e02ade2c6873915636e8e728",
+      "expected_idempotency_key": "l9-topology-publication/v3:eb4048a54dc2beae342bf87e96006245284b5f34a764778df0326fab6325decc",
+      "identity": {
+        "assertion": null,
+        "candidate_kind": "entity",
+        "content": "Repository alpha has primary role library.",
+        "memory_class": "observation",
+        "namespace": "l9.constellation/alpha",
+        "operation": "memory.ingest",
+        "source_topology_entity_ids": [
+          "repo:alpha"
+        ]
+      },
+      "label": "entity-no-assertion-no-evidence",
+      "local_evidence": []
+    },
+    {
+      "confidence": {
+        "confidence_policy_version": "l9-topology-publication/1.0.0",
+        "evidence_count": 2,
+        "method": "aggregated",
+        "score": 0.6
+      },
+      "derivation_kind": "aggregation",
+      "expected_candidate_id": "publication-candidate:f17e0a1ea094d1f6addf653d56c0d40a0eff277fddb6e3300ed1578a6766cbaa",
+      "expected_idempotency_key": "l9-topology-publication/v3:f96bc78834993b90333a4a625a516077dce4ab072735ad20f2a958c81b596205",
+      "identity": {
+        "assertion": {
+          "object": "package:beta",
+          "predicate": "DEPENDS_ON",
+          "subject": "repo:alpha"
+        },
+        "candidate_kind": "relationship",
+        "content": "Topology relationship: repo:alpha DEPENDS_ON package:beta (direction outbound).",
+        "memory_class": "semantic",
+        "namespace": "l9.constellation/alpha",
+        "operation": "memory.ingest",
+        "source_topology_entity_ids": [
+          "repo:alpha",
+          "package:beta"
+        ]
+      },
+      "label": "relationship-with-assertion-and-evidence",
+      "local_evidence": [
+        {
+          "evidence_kind": "explicit",
+          "source_content_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "stable_source_locator": "pyproject.toml"
+        },
+        {
+          "evidence_kind": "observation",
+          "source_content_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "stable_source_locator": "src/alpha/__init__.py"
+        }
+      ]
+    },
+    {
+      "confidence": {
+        "confidence_policy_version": "l9-topology-publication/1.0.0",
+        "evidence_count": 1,
+        "method": "inferred",
+        "score": 0.3
+      },
+      "derivation_kind": "inference",
+      "expected_candidate_id": "publication-candidate:ff975bb892a0c79e079b5aad0b438b954e39d65600d7702cbc6e01a0b6d1b372",
+      "expected_idempotency_key": "l9-topology-publication/v3:37524c1a0cd761ea64e6f36cee29185d23b4742d23be7a77f627ca04518b1d01",
+      "identity": {
+        "assertion": {
+          "object": "«naïve café»",
+          "predicate": "work.blocked_by",
+          "subject": "repo:ü"
+        },
+        "candidate_kind": "claim",
+        "content": "Repository-model assertion: repo:ü work.blocked_by «naïve café» — done.",
+        "memory_class": "semantic",
+        "namespace": "l9.constellation/ünïcode",
+        "operation": "memory.ingest",
+        "source_topology_entity_ids": [
+          "repo:ü"
+        ]
+      },
+      "label": "claim-unicode-and-null-digest",
+      "local_evidence": [
+        {
+          "evidence_kind": "inference",
+          "source_content_digest": null,
+          "stable_source_locator": null
+        }
+      ]
+    },
+    {
+      "confidence": {
+        "confidence_policy_version": "l9-topology-publication/1.0.0",
+        "evidence_count": 2,
+        "method": "aggregated",
+        "score": 0.9
+      },
+      "derivation_kind": null,
+      "expected_candidate_id": "publication-candidate:757003687dfa80af6e222180f7f9ae5019149cfd49398727166e12f2de48b59e",
+      "expected_idempotency_key": "l9-topology-publication/v3:e8c0b3792f46eda1d2990991a49f104d2e2d61c3651da8346f1ad27a18ac4f76",
+      "identity": {
+        "assertion": {
+          "object": "b",
+          "predicate": "DUPLICATE_OF",
+          "subject": "a"
+        },
+        "candidate_kind": "relationship",
+        "content": "Topology relationship: a DUPLICATE_OF b (direction bidirectional).",
+        "memory_class": "semantic",
+        "namespace": "l9.constellation/alpha",
+        "operation": "memory.ingest",
+        "source_topology_entity_ids": [
+          "a",
+          "b"
+        ]
+      },
+      "label": "evidence-order-independence",
+      "local_evidence": [
+        {
+          "evidence_kind": "observation",
+          "source_content_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "stable_source_locator": "src/alpha/__init__.py"
+        },
+        {
+          "evidence_kind": "explicit",
+          "source_content_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "stable_source_locator": "pyproject.toml"
+        }
+      ]
+    }
+  ]
+}
