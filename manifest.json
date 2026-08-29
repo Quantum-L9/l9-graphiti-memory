@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "d43ddd30d86fdf125b7c2f39446f55313f5bbabf168f042908f7ee91b4623319",
+      "sha256": "f216b68c9f2358d33d4c23ae2ec444989a8ccb3249033a726adb7454871780ba",
       "size_bytes": 117934
     },
     {
@@ -5710,8 +5710,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/contracts/evidence.py",
-      "sha256": "4ab92b9360580248483f7ffc4c894d11e57a2045d7ed618a7c51c99e6cfbada2",
-      "size_bytes": 7833
+      "sha256": "99ada6d19f98f7db799f2e37a364007f387c2dd265149ed45e28c2ac94c9e712",
+      "size_bytes": 9528
     },
     {
       "category": "production_source",
@@ -9134,8 +9134,8 @@
         "version": "2.2.0"
       },
       "path": "tests/unit/topology_publication/test_locator_future_conformance.py",
-      "sha256": "b667561c55dc5accb7dcc9e0cc1a67ca370983b0eaf3d853694f1e13653d4cbf",
-      "size_bytes": 4466
+      "sha256": "a91c35296741ef926b2a9d0820b511b1bbf7980d5678dd8d131dd4eefa3369ab",
+      "size_bytes": 5419
     },
     {
       "category": "tests",

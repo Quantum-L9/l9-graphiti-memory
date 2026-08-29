@@ -69,6 +69,11 @@ class DocxSourceLocator(BaseModel):
     kind: Literal["docx"] = "docx"
     block_index: int = Field(ge=0)
     block_kind: str = Field(min_length=1, max_length=100)
+    #: The OPC part the block was read from, e.g. ``word/document.xml``. A Word
+    #: file is several XML parts and block 3 of the body is not block 3 of a
+    #: footnote, so the ordinal alone does not identify the block. Empty means
+    #: the producer did not state a part, which is different from naming one.
+    part: str = Field(default="", max_length=300)
 
 
 class PptxSourceLocator(BaseModel):
@@ -77,6 +82,9 @@ class PptxSourceLocator(BaseModel):
     kind: Literal["pptx"] = "pptx"
     slide_number: int = Field(ge=1)
     shape_index: int = Field(ge=0)
+    #: The OPC part the shape was read from. Same reason as ``DocxSourceLocator``:
+    #: a notes slide and its slide carry independent shape ordinals.
+    part: str = Field(default="", max_length=300)
 
 
 class SpreadsheetSourceLocator(BaseModel):
@@ -93,14 +101,29 @@ class NotebookSourceLocator(BaseModel):
     kind: Literal["notebook"] = "notebook"
     cell_index: int = Field(ge=0)
     cell_type: str = Field(min_length=1, max_length=100)
+    #: A notebook cell does have lines, so a span *within* the cell is a real
+    #: coordinate rather than an invented one. Absent when the producer cited
+    #: the cell whole.
+    start_line: int | None = Field(default=None, ge=1)
+    end_line: int | None = Field(default=None, ge=1)
 
 
 class CsvSourceLocator(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     kind: Literal["csv"] = "csv"
-    #: Zero-based row index into the parsed file, header row included.
-    row: int = Field(ge=0)
+    #: One-based row number, counting the header row as row 1 — the number the
+    #: file's own tooling shows, and the number the producer cites.
+    #:
+    #: This was documented as a zero-based index while the only producer emitted
+    #: one-based rows, so every stored CSV coordinate named the row above the one
+    #: the evidence was actually read from. The bound is what makes the two
+    #: conventions distinguishable rather than silently interchangeable: a
+    #: zero-based citation is now refused instead of being off by one.
+    row: int = Field(ge=1)
+    #: The named column, when the claim was read from one cell rather than the
+    #: whole row.
+    column: str | None = Field(default=None, max_length=300)
 
 
 class HtmlSourceLocator(BaseModel):
@@ -109,6 +132,9 @@ class HtmlSourceLocator(BaseModel):
     kind: Literal["html"] = "html"
     #: Index into a stable document-order enumeration of element nodes.
     stable_node_index: int = Field(ge=0)
+    #: The element path the index was counted along. The index is stable only
+    #: relative to a traversal; the path is what a reader can actually follow.
+    node_path: str = Field(default="", max_length=1_000)
 
 
 #: Format-aware source coordinates (ADR-078). ``SourceRange`` keeps carrying

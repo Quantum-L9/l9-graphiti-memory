@@ -39,16 +39,42 @@ from tests.unit.topology_publication.conftest import (
     make_topology_bundle,
 )
 
+#: One locator per binary-format variant, carrying every field the producer can
+#: set. These were hand-written with only the fields this repository happened to
+#: declare, which is exactly why five producer-side fields — ``docx.part``,
+#: ``pptx.part``, ``notebook.start_line``/``end_line``, ``csv.column`` and
+#: ``html.node_path`` — could be absent here and rejected at the boundary
+#: without any suite noticing. The producer's full shape is asserted now, and
+#: the constraint parity test in l9-constellation-topology holds the two model
+#: sets together going forward.
 FUTURE_LOCATORS: dict[str, dict[str, Any]] = {
     "pdf": {"kind": "pdf", "page_number": 14, "block_index": 2},
-    "docx": {"kind": "docx", "block_index": 31, "block_kind": "heading"},
-    "pptx": {"kind": "pptx", "slide_number": 5, "shape_index": 0},
+    "docx": {
+        "kind": "docx",
+        "block_index": 31,
+        "block_kind": "heading",
+        "part": "word/footnotes.xml",
+    },
+    "pptx": {
+        "kind": "pptx",
+        "slide_number": 5,
+        "shape_index": 0,
+        "part": "ppt/notesSlides/notesSlide1.xml",
+    },
     "spreadsheet": {
         "kind": "spreadsheet",
         "sheet": "Inventory",
         "cell_or_range": "A2:C40",
     },
-    "notebook": {"kind": "notebook", "cell_index": 12, "cell_type": "code"},
+    "notebook": {
+        "kind": "notebook",
+        "cell_index": 12,
+        "cell_type": "code",
+        "start_line": 2,
+        "end_line": 5,
+    },
+    "csv": {"kind": "csv", "row": 7, "column": "owner"},
+    "html": {"kind": "html", "stable_node_index": 9, "node_path": "html>body>div[2]"},
 }
 
 

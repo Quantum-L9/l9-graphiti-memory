@@ -411,7 +411,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/config/models.py` | `production_source` | `production_source` | 5340 | `b9a92132055b6975243f2d726ddcf0babe0260e199994e575cb2ad996af9613d` |
 | `src/l9_graphite_memory/contracts/__init__.py` | `production_source` | `contract` | 3734 | `aef663ff748d4e284da8c55444c9654d7aa23e89efd899214e245f3d83986b1b` |
 | `src/l9_graphite_memory/contracts/enums.py` | `production_source` | `contract` | 2931 | `8a782f884683e35827c2caa0cf858de8c867f97ce04834b981a3bfcb38db9030` |
-| `src/l9_graphite_memory/contracts/evidence.py` | `production_source` | `contract` | 7833 | `4ab92b9360580248483f7ffc4c894d11e57a2045d7ed618a7c51c99e6cfbada2` |
+| `src/l9_graphite_memory/contracts/evidence.py` | `production_source` | `contract` | 9528 | `99ada6d19f98f7db799f2e37a364007f387c2dd265149ed45e28c2ac94c9e712` |
 | `src/l9_graphite_memory/contracts/generated_data.py` | `production_source` | `contract` | 7611 | `bdda97d403a1c5978f87ecc398a2b461aec15b564b4a189c2edfafd8f52dec64` |
 | `src/l9_graphite_memory/contracts/identity.py` | `production_source` | `contract` | 1977 | `66375f00719a3402f1e8f391dadeb8b68b6ffbe89b310ddc805a9b228a9e5c80` |
 | `src/l9_graphite_memory/contracts/maintenance.py` | `production_source` | `contract` | 4818 | `9c63ca601c5b4d87cfca9de73f15ddb569da2ac4d3bb1e0fb668f015188764be` |
@@ -625,7 +625,7 @@ updated: 2026-07-22
 | `tests/unit/topology_publication/test_execution_modes.py` | `tests` | `tests` | 10856 | `9d941e1644b94acd2c7e4c9204df739ab65d1cc2cbaa372af606d11e8abec97a` |
 | `tests/unit/topology_publication/test_gate_and_architecture.py` | `tests` | `tests` | 4849 | `7ceebd47d979e32f5040773d662c2803667a68a0a091bdd08510a610c75c4384` |
 | `tests/unit/topology_publication/test_identity_golden_vectors.py` | `tests` | `tests` | 5996 | `2c108dc03db3aa2be3e9dc41634baa082695cd8a660bf576a8e24095745a87d6` |
-| `tests/unit/topology_publication/test_locator_future_conformance.py` | `tests` | `tests` | 4466 | `b667561c55dc5accb7dcc9e0cc1a67ca370983b0eaf3d853694f1e13653d4cbf` |
+| `tests/unit/topology_publication/test_locator_future_conformance.py` | `tests` | `tests` | 5419 | `a91c35296741ef926b2a9d0820b511b1bbf7980d5678dd8d131dd4eefa3369ab` |
 | `tests/unit/topology_publication/test_plan_integrity.py` | `tests` | `tests` | 6775 | `88f19959905103c020b8430780829afebd54117901d1b793df6567df7e30bb55` |
 | `tests/unit/topology_publication/test_plan_parser.py` | `tests` | `tests` | 4781 | `85ecd33f6700fc7243dc944ddc46c0e50e6d931a55120eb2b8c20433bfcd9e82` |
 | `tests/unit/topology_publication/test_publication_identity.py` | `tests` | `tests` | 10135 | `56fdecc6ee664c74baf86b6b5363b731c11921b296904546b9b08343428be9be` |
