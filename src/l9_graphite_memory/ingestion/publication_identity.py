@@ -82,7 +82,6 @@ SUPPORTED_LOWERING_CONTRACTS: frozenset[str] = frozenset({"lowering/v1", "loweri
 
 IDEMPOTENCY_NAMESPACE = "l9-topology-publication"
 _EFFECT_IDENTITY_DOMAIN_BY_VERSION: dict[str, str] = {"v3": "l9.memory-effect-id/v3"}
-MEMORY_INGEST_OPERATION = "memory.ingest"
 
 #: Volatile fields stripped before hashing, matching the producer's
 #: ``PUBLICATION_EXCLUDED_FIELDS`` exactly. None of them occurs inside an

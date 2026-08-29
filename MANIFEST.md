@@ -437,7 +437,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/ingestion/__init__.py` | `production_source` | `production_source` | 1339 | `18a04624e4a95e39edfd0a06c37f82395d56a22f7dd38b96ec1bb2dfaa5e5dfa` |
 | `src/l9_graphite_memory/ingestion/document.py` | `production_source` | `production_source` | 4758 | `e30f613d6448b37e21dad07e204a9270c0e61a8c3cb755facba1a50d77ce6052` |
 | `src/l9_graphite_memory/ingestion/profiles.py` | `production_source` | `production_source` | 7588 | `5a9a7f02fb7bc7b2efed36acb54f2b322a16850260f7297937730b2a2afe9cb4` |
-| `src/l9_graphite_memory/ingestion/publication_identity.py` | `production_source` | `production_source` | 18861 | `4678c7ebd23055b68e4a5973f024abdbb44e9908ca9f1230aabbe66e2e53707b` |
+| `src/l9_graphite_memory/ingestion/publication_identity.py` | `production_source` | `production_source` | 18819 | `20bd034ae3c443367c92fb0f839d0bee2aca87808c84f34bc6e94baaf3f36a16` |
 | `src/l9_graphite_memory/ingestion/repository.py` | `production_source` | `production_source` | 2723 | `b664de965a16b438a0ac73a22876e21b5e3fdc6295856b37744630bacaab56cb` |
 | `src/l9_graphite_memory/ingestion/topology_publication.py` | `production_source` | `production_source` | 26054 | `c25a2f88b3944df154ddfbea44d911235a060f455e1e322d50d696d20b872d61` |
 | `src/l9_graphite_memory/integrations/__init__.py` | `production_source` | `integration` | 1235 | `0d6a5ca91aec74b35c0a185e096757e945207c61ea37eba899ffe52b59164c76` |
