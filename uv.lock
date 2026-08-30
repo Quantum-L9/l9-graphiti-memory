@@ -609,7 +609,6 @@ constellation = [
 ]
 dev = [
     { name = "build" },
-    { name = "constellation-node-sdk", marker = "python_full_version >= '3.12'" },
     { name = "cryptography" },
     { name = "fastapi" },
     { name = "httpx" },
@@ -646,7 +645,6 @@ zep = [
 requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2,<2" },
     { name = "constellation-node-sdk", marker = "python_full_version >= '3.12' and extra == 'constellation'", git = "https://github.com/Quantum-L9/Gate_SDK.git?rev=v1.0.1" },
-    { name = "constellation-node-sdk", marker = "python_full_version >= '3.12' and extra == 'dev'", git = "https://github.com/Quantum-L9/Gate_SDK.git?rev=v1.0.1" },
     { name = "cryptography", marker = "extra == 'dev'", specifier = ">=46.0,<47" },
     { name = "cryptography", marker = "extra == 'phase6'", specifier = ">=46.0,<47" },
     { name = "fastapi", marker = "extra == 'all'", specifier = ">=0.115,<1" },
