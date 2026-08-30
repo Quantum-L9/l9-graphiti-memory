@@ -44,10 +44,10 @@ updated: 2026-07-22
 | `production_source` | 126 |
 | `repository_root` | 76 |
 | `skill` | 2 |
-| `tests` | 130 |
+| `tests` | 158 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **696**
+- Hashed inventory files below: **724**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -557,6 +557,33 @@ updated: 2026-07-22
 | `tests/fixtures/topology_publication/topology-bundle/payload/topology-reasoning-candidates.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
 | `tests/fixtures/topology_publication/topology-bundle/payload/unknowns.json` | `tests` | `tests` | 4559 | `1868cd7cc59724cab6e0c6ff2e7cf3636b6f97af48680e6ef8690199aae9e74e` |
 | `tests/fixtures/topology_publication/topology-bundle/receipts/validation-receipt.json` | `tests` | `tests` | 11892 | `38f938abf589b30abe4b6b66644f67704d3ca0b5e34ed8bf368e59d05227c527` |
+| `tests/fixtures/topology_publication_v2/PROVENANCE.md` | `tests` | `tests` | 2193 | `58f484108a43243f4d416f82a867b3f5d26d98b7b3e8fa601d380e78879fd106` |
+| `tests/fixtures/topology_publication_v2/plan-bundle/intents/memory-ingest.json` | `tests` | `tests` | 264416 | `999fbe604e639a1cb2e20bf73821ebb201d6f6e5a5ff5fdab0e32b6a62625027` |
+| `tests/fixtures/topology_publication_v2/plan-bundle/manifest.json` | `tests` | `tests` | 774 | `c74ad56dfc6435599514ab5098dbfa1dc5fadf0bc60492bb812f711d110c0270` |
+| `tests/fixtures/topology_publication_v2/plan-bundle/publication-plan.json` | `tests` | `tests` | 420068 | `8b65280c2ba53b42d91c5cf7e3f8eefe4b98058ec20f753030386c85bec7ee9e` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/manifest.json` | `tests` | `tests` | 4282 | `2ac65a984961019a00a438509496dbb5a15469da88a23c6ddcb461d74b9683c9` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/packet.json` | `tests` | `tests` | 6377 | `31f14dd09e4c2dfabec5a51e470d0fa45aad7e684390594ab9df2c2644490b45` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/artifact-records.json` | `tests` | `tests` | 12151 | `caa04140c647f6cee2761c3218505612dab6e84307491d6de9128fd86cf8b885` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-clusters.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-relations.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/capability-records.json` | `tests` | `tests` | 6493 | `cffd9592a9dc88c81b4ce0626c2f384dc326f0d9ef431e0a2db19421c9f268e3` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/conflicts.json` | `tests` | `tests` | 417 | `65ae1bd15aecc57d6417c28cb78ade86eaf250ffe1798c36125784901e745e7b` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/corpus-records.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/diagnostics.json` | `tests` | `tests` | 5441 | `310246a92fb193ea32bce0ff53f9e4a77db250129b2cc505a1897edb53433dfc` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/edge-records.json` | `tests` | `tests` | 31618 | `9eb609598f744aa29effbe13751697e57fa8920e13ac8abb541f1ca5b56d76eb` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/evidence.json` | `tests` | `tests` | 65874 | `036b1d4279ded8dbf4859fd8774a6143672bcbaabd21082a41610178f046a782` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/flow-records.json` | `tests` | `tests` | 3689 | `e6e7338ef3c7129563f46738ea261c64155021158f0a460d7573fe188ed23550` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/graph-records.json` | `tests` | `tests` | 57588 | `faf191683d88fc678d8a720324f3aca78a73a34641914f17002912675672aaaa` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/impact-indexes.json` | `tests` | `tests` | 825 | `54949ff0b196d800b7bd92ffd83b38109e73cf0bb3f11000163aa5ccb8baa446` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/maturity.json` | `tests` | `tests` | 2192 | `135f9cbef9f27960f72900195b6ea3c33f071eb5529a3634ff7879900a34f9eb` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/readiness-evidence.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/repository-records.json` | `tests` | `tests` | 5164 | `54730747daa92c5d08c821ba218298a6fc14acf5ba6aeba214e96a70e865a4e7` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/risks.json` | `tests` | `tests` | 7631 | `1852f01e50b9590369f0a8e86111daabb6c7b05b3acedb112bd8831edaba3cf0` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/root-records.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/semantic-claims.json` | `tests` | `tests` | 27471 | `e811ec9c3803c89a7d15ad97af0b06b73fd2bf8ffe2c607a19c454e64c15b4ff` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/topology-reasoning-candidates.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/unknowns.json` | `tests` | `tests` | 4559 | `1868cd7cc59724cab6e0c6ff2e7cf3636b6f97af48680e6ef8690199aae9e74e` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/receipts/validation-receipt.json` | `tests` | `tests` | 11892 | `b70c9e83a1c649f8b4a6361bf3cb4bd4592759266e1f667f4a87b937414ff1a3` |
 | `tests/integration/test_cursor_mcp_instantiation.py` | `tests` | `tests` | 4206 | `6a7314643fa1addae408d3df72442802842ffbb861baa15276d34345088549a1` |
 | `tests/integration/test_distillation_profiles_sdk.py` | `tests` | `tests` | 2387 | `eca08e5672f8eae50279468f4e1462d8eb237a6e864ec8d3901658ce2c9f36ba` |
 | `tests/integration/test_immediate_canonical_ingestion.py` | `tests` | `tests` | 4877 | `4c72a3298792fe7b1f4eee90c8a1a3289ef834e7b6fa420a2f45eb5a17b6a5b8` |
@@ -574,6 +601,7 @@ updated: 2026-07-22
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `tests` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `tests` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |
 | `tests/integration/test_topology_publication_e2e.py` | `tests` | `tests` | 7214 | `958dd1ecfce5c526b5ff067581a7e004c4d6fd8f7b018161fdff4b640b541421` |
+| `tests/integration/test_topology_publication_e2e_v2.py` | `tests` | `tests` | 8546 | `fcf1178af45342fa9982728a06bf292425d9b2202a159aa88fec32263123a003` |
 | `tests/regression/test_assurance_tools.py` | `tests` | `tests` | 1982 | `79f0cb7dae4814c1a6ed73858b9ab47d05518c0dcb6d975d998902e62f6908ef` |
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `tests` | 4320 | `4ab10fdc1eee8035396984f6960aaaf80100aa6206778a6090d878e1142c6615` |
 | `tests/regression/test_phase6_operator.py` | `tests` | `tests` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
