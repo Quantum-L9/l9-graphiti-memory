@@ -49,7 +49,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from l9_graphite_memory.errors import L9MemoryError
@@ -137,7 +137,7 @@ def _canonical(value: Any) -> Any:
     if isinstance(value, (set, frozenset)):
         return sorted((_canonical(item) for item in value), key=_canonical_json)
     if isinstance(value, datetime):
-        return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
+        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
     return value
 
 

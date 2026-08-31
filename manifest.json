@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "2de999b7f9d5be58aaf41c2193079d2af732b27508f0126c7e54577f682d7680",
+      "sha256": "2acbec1652dd363af4e0ac40d4fa1165502ee0c25690713dc28ffd3d9ad8b53c",
       "size_bytes": 122984
     },
     {
@@ -6126,8 +6126,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/ingestion/publication_identity.py",
-      "sha256": "20bd034ae3c443367c92fb0f839d0bee2aca87808c84f34bc6e94baaf3f36a16",
-      "size_bytes": 18819
+      "sha256": "0737e411c182837deaf13419a6723aca3a21817daae7e5bf8a32a997a4ce0b8c",
+      "size_bytes": 18833
     },
     {
       "category": "production_source",
@@ -9838,8 +9838,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "655ff3d573d77dc445da452fd31c6f8ed8b72947b7a420178b4201d9df299b28",
-      "size_bytes": 13430
+      "sha256": "d807d7a275c3082e30fbd07c966d6a5ce0cd7e0d600f163c07c4bf980c6cc203",
+      "size_bytes": 14085
     },
     {
       "category": "assurance",

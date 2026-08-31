@@ -437,7 +437,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/ingestion/__init__.py` | `production_source` | `production_source` | 1339 | `18a04624e4a95e39edfd0a06c37f82395d56a22f7dd38b96ec1bb2dfaa5e5dfa` |
 | `src/l9_graphite_memory/ingestion/document.py` | `production_source` | `production_source` | 4758 | `e30f613d6448b37e21dad07e204a9270c0e61a8c3cb755facba1a50d77ce6052` |
 | `src/l9_graphite_memory/ingestion/profiles.py` | `production_source` | `production_source` | 7588 | `5a9a7f02fb7bc7b2efed36acb54f2b322a16850260f7297937730b2a2afe9cb4` |
-| `src/l9_graphite_memory/ingestion/publication_identity.py` | `production_source` | `production_source` | 18819 | `20bd034ae3c443367c92fb0f839d0bee2aca87808c84f34bc6e94baaf3f36a16` |
+| `src/l9_graphite_memory/ingestion/publication_identity.py` | `production_source` | `production_source` | 18833 | `0737e411c182837deaf13419a6723aca3a21817daae7e5bf8a32a997a4ce0b8c` |
 | `src/l9_graphite_memory/ingestion/repository.py` | `production_source` | `production_source` | 2723 | `b664de965a16b438a0ac73a22876e21b5e3fdc6295856b37744630bacaab56cb` |
 | `src/l9_graphite_memory/ingestion/topology_publication.py` | `production_source` | `production_source` | 26054 | `c25a2f88b3944df154ddfbea44d911235a060f455e1e322d50d696d20b872d61` |
 | `src/l9_graphite_memory/integrations/__init__.py` | `production_source` | `integration` | 1235 | `0d6a5ca91aec74b35c0a185e096757e945207c61ea37eba899ffe52b59164c76` |
@@ -669,7 +669,7 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 8677 | `74ecb0025bff0ca49140c4be65f9fb992aade75536f13d3dcdbec28422d2787a` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 13430 | `655ff3d573d77dc445da452fd31c6f8ed8b72947b7a420178b4201d9df299b28` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 14085 | `d807d7a275c3082e30fbd07c966d6a5ce0cd7e0d600f163c07c4bf980c6cc203` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `6f5b2c99fc16258ae3bca57d1f7a6ab3d807a20d4d268e3e8c0c2ad1120a72ba` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |
