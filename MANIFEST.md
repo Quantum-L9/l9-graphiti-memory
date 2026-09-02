@@ -41,13 +41,13 @@ updated: 2026-07-22
 | `documentation` | 125 |
 | `hooks` | 9 |
 | `operations` | 8 |
-| `production_source` | 125 |
+| `production_source` | 126 |
 | `repository_root` | 76 |
 | `skill` | 2 |
-| `tests` | 127 |
+| `tests` | 158 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **692**
+- Hashed inventory files below: **724**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -58,7 +58,7 @@ updated: 2026-07-22
 |---|---|---|---:|---|
 | `.github/issues.json` | `ci` | `ci` | 5755 | `23cbdff3ae0c9491c419771321766af4f510cd954dc671404994e7c7e3771d28` |
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
-| `.github/workflows/ci.yml` | `ci` | `ci` | 2560 | `844ce583c8e317d850fd695c75f1c5be6ab80f47e27a91e2c27530cb24b62745` |
+| `.github/workflows/ci.yml` | `ci` | `ci` | 5652 | `4d2e2182cef74d23fa74a6779320f58a7dc46bb0fd3993bb430c2ee245fbc823` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
 | `.github/workflows/nightly-maintenance.yml` | `ci` | `ci` | 5140 | `0626627b16523ced1bfdf6f13271a434e92a2c0138b862a2ff5ccfb15db41d48` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1439 | `a0020911d065fb943ffd8c2eda19f2fb21060ea782ffdf1830fbb9d5dffbc72b` |
@@ -411,7 +411,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/config/models.py` | `production_source` | `production_source` | 5340 | `b9a92132055b6975243f2d726ddcf0babe0260e199994e575cb2ad996af9613d` |
 | `src/l9_graphite_memory/contracts/__init__.py` | `production_source` | `contract` | 3734 | `aef663ff748d4e284da8c55444c9654d7aa23e89efd899214e245f3d83986b1b` |
 | `src/l9_graphite_memory/contracts/enums.py` | `production_source` | `contract` | 2931 | `8a782f884683e35827c2caa0cf858de8c867f97ce04834b981a3bfcb38db9030` |
-| `src/l9_graphite_memory/contracts/evidence.py` | `production_source` | `contract` | 7833 | `4ab92b9360580248483f7ffc4c894d11e57a2045d7ed618a7c51c99e6cfbada2` |
+| `src/l9_graphite_memory/contracts/evidence.py` | `production_source` | `contract` | 9528 | `99ada6d19f98f7db799f2e37a364007f387c2dd265149ed45e28c2ac94c9e712` |
 | `src/l9_graphite_memory/contracts/generated_data.py` | `production_source` | `contract` | 7611 | `bdda97d403a1c5978f87ecc398a2b461aec15b564b4a189c2edfafd8f52dec64` |
 | `src/l9_graphite_memory/contracts/identity.py` | `production_source` | `contract` | 1977 | `66375f00719a3402f1e8f391dadeb8b68b6ffbe89b310ddc805a9b228a9e5c80` |
 | `src/l9_graphite_memory/contracts/maintenance.py` | `production_source` | `contract` | 4818 | `9c63ca601c5b4d87cfca9de73f15ddb569da2ac4d3bb1e0fb668f015188764be` |
@@ -434,11 +434,12 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/graphiti_gate_lib.py` | `production_source` | `production_source` | 1409 | `00a4dd1fc7a6462974c78d0ac0e95ece49e2f91ad6375d3c905e7a2c39415c8e` |
 | `src/l9_graphite_memory/graphiti_memory_client.py` | `production_source` | `production_source` | 441 | `1d52faf2979e368428395634d1828d55e35603c997cc06158b28f3162d0cdd52` |
 | `src/l9_graphite_memory/group_resolver.py` | `production_source` | `production_source` | 5043 | `bc64121f5d488dcb07b2a27c37ca16d44b4d0a585e876147b19fd3170a6bdef9` |
-| `src/l9_graphite_memory/ingestion/__init__.py` | `production_source` | `production_source` | 1171 | `eec3daacea73e81dbbccdbe4091edd01043b85a68c863a691e5fcdd69825b06a` |
+| `src/l9_graphite_memory/ingestion/__init__.py` | `production_source` | `production_source` | 1339 | `18a04624e4a95e39edfd0a06c37f82395d56a22f7dd38b96ec1bb2dfaa5e5dfa` |
 | `src/l9_graphite_memory/ingestion/document.py` | `production_source` | `production_source` | 4758 | `e30f613d6448b37e21dad07e204a9270c0e61a8c3cb755facba1a50d77ce6052` |
 | `src/l9_graphite_memory/ingestion/profiles.py` | `production_source` | `production_source` | 7588 | `5a9a7f02fb7bc7b2efed36acb54f2b322a16850260f7297937730b2a2afe9cb4` |
+| `src/l9_graphite_memory/ingestion/publication_identity.py` | `production_source` | `production_source` | 18833 | `0737e411c182837deaf13419a6723aca3a21817daae7e5bf8a32a997a4ce0b8c` |
 | `src/l9_graphite_memory/ingestion/repository.py` | `production_source` | `production_source` | 2723 | `b664de965a16b438a0ac73a22876e21b5e3fdc6295856b37744630bacaab56cb` |
-| `src/l9_graphite_memory/ingestion/topology_publication.py` | `production_source` | `production_source` | 24562 | `f4cfaf7b22109e9b7aa5df6a3775c6a43364f2c3132f74674326079cee3d24d8` |
+| `src/l9_graphite_memory/ingestion/topology_publication.py` | `production_source` | `production_source` | 26054 | `c25a2f88b3944df154ddfbea44d911235a060f455e1e322d50d696d20b872d61` |
 | `src/l9_graphite_memory/integrations/__init__.py` | `production_source` | `integration` | 1235 | `0d6a5ca91aec74b35c0a185e096757e945207c61ea37eba899ffe52b59164c76` |
 | `src/l9_graphite_memory/integrations/constellation.py` | `production_source` | `integration` | 4724 | `078e5d811ca6f350c9557d89504da3dbcf9b3256d5843a8e8780e0f9b22b588a` |
 | `src/l9_graphite_memory/integrations/gate_client.py` | `production_source` | `integration` | 9582 | `50c90b677b228ce1dfd33a7bda18a42e757eaa216f6326e620361680b2eb3d88` |
@@ -528,6 +529,7 @@ updated: 2026-07-22
 | `tests/external_runtime/test_graceful_shutdown.py` | `tests` | `tests` | 1519 | `aa3b0d17321e6fcfe204e55022279a757484431ccca55d7683270aab46d65188` |
 | `tests/external_runtime/test_lease_expiration.py` | `tests` | `tests` | 1536 | `c2cec6fc5aeadb851e169fd03d4c1caca35b04e25d592c69ff4bd965c69ad34f` |
 | `tests/external_runtime/test_startup.py` | `tests` | `tests` | 1691 | `45c3e4c7a035cefa37fb3c5be43b37b53acd58179a70ca785ec700bb769c6ded` |
+| `tests/fixtures/publication_identity/golden-vectors.json` | `tests` | `tests` | 11223 | `a250d7d95ff0b377347c059f563e6176581935e870f57e272e3f2f73f52b5e4c` |
 | `tests/fixtures/topology_publication/PROVENANCE.md` | `tests` | `tests` | 1295 | `7e46926a9837d60f0e531b1d087acd11c1d6935de18e7296a198ab736dc83d07` |
 | `tests/fixtures/topology_publication/plan-bundle/intents/memory-ingest.json` | `tests` | `tests` | 251945 | `15eae9692f38b0e441aa33413bcd3eef0ae2b401ec432b9f9965392e08ed1d82` |
 | `tests/fixtures/topology_publication/plan-bundle/manifest.json` | `tests` | `tests` | 774 | `667eb95b78dc44470d28a1a8b00179b718deb3e1377c718b941656584da994c7` |
@@ -555,6 +557,33 @@ updated: 2026-07-22
 | `tests/fixtures/topology_publication/topology-bundle/payload/topology-reasoning-candidates.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
 | `tests/fixtures/topology_publication/topology-bundle/payload/unknowns.json` | `tests` | `tests` | 4559 | `1868cd7cc59724cab6e0c6ff2e7cf3636b6f97af48680e6ef8690199aae9e74e` |
 | `tests/fixtures/topology_publication/topology-bundle/receipts/validation-receipt.json` | `tests` | `tests` | 11892 | `38f938abf589b30abe4b6b66644f67704d3ca0b5e34ed8bf368e59d05227c527` |
+| `tests/fixtures/topology_publication_v2/PROVENANCE.md` | `tests` | `tests` | 2193 | `58f484108a43243f4d416f82a867b3f5d26d98b7b3e8fa601d380e78879fd106` |
+| `tests/fixtures/topology_publication_v2/plan-bundle/intents/memory-ingest.json` | `tests` | `tests` | 264416 | `999fbe604e639a1cb2e20bf73821ebb201d6f6e5a5ff5fdab0e32b6a62625027` |
+| `tests/fixtures/topology_publication_v2/plan-bundle/manifest.json` | `tests` | `tests` | 774 | `c74ad56dfc6435599514ab5098dbfa1dc5fadf0bc60492bb812f711d110c0270` |
+| `tests/fixtures/topology_publication_v2/plan-bundle/publication-plan.json` | `tests` | `tests` | 420068 | `8b65280c2ba53b42d91c5cf7e3f8eefe4b98058ec20f753030386c85bec7ee9e` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/manifest.json` | `tests` | `tests` | 4282 | `2ac65a984961019a00a438509496dbb5a15469da88a23c6ddcb461d74b9683c9` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/packet.json` | `tests` | `tests` | 6377 | `31f14dd09e4c2dfabec5a51e470d0fa45aad7e684390594ab9df2c2644490b45` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/artifact-records.json` | `tests` | `tests` | 12151 | `caa04140c647f6cee2761c3218505612dab6e84307491d6de9128fd86cf8b885` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-clusters.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-relations.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/capability-records.json` | `tests` | `tests` | 6493 | `cffd9592a9dc88c81b4ce0626c2f384dc326f0d9ef431e0a2db19421c9f268e3` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/conflicts.json` | `tests` | `tests` | 417 | `65ae1bd15aecc57d6417c28cb78ade86eaf250ffe1798c36125784901e745e7b` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/corpus-records.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/diagnostics.json` | `tests` | `tests` | 5441 | `310246a92fb193ea32bce0ff53f9e4a77db250129b2cc505a1897edb53433dfc` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/edge-records.json` | `tests` | `tests` | 31618 | `9eb609598f744aa29effbe13751697e57fa8920e13ac8abb541f1ca5b56d76eb` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/evidence.json` | `tests` | `tests` | 65874 | `036b1d4279ded8dbf4859fd8774a6143672bcbaabd21082a41610178f046a782` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/flow-records.json` | `tests` | `tests` | 3689 | `e6e7338ef3c7129563f46738ea261c64155021158f0a460d7573fe188ed23550` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/graph-records.json` | `tests` | `tests` | 57588 | `faf191683d88fc678d8a720324f3aca78a73a34641914f17002912675672aaaa` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/impact-indexes.json` | `tests` | `tests` | 825 | `54949ff0b196d800b7bd92ffd83b38109e73cf0bb3f11000163aa5ccb8baa446` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/maturity.json` | `tests` | `tests` | 2192 | `135f9cbef9f27960f72900195b6ea3c33f071eb5529a3634ff7879900a34f9eb` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/readiness-evidence.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/repository-records.json` | `tests` | `tests` | 5164 | `54730747daa92c5d08c821ba218298a6fc14acf5ba6aeba214e96a70e865a4e7` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/risks.json` | `tests` | `tests` | 7631 | `1852f01e50b9590369f0a8e86111daabb6c7b05b3acedb112bd8831edaba3cf0` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/root-records.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/semantic-claims.json` | `tests` | `tests` | 27471 | `e811ec9c3803c89a7d15ad97af0b06b73fd2bf8ffe2c607a19c454e64c15b4ff` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/topology-reasoning-candidates.json` | `tests` | `tests` | 3 | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/payload/unknowns.json` | `tests` | `tests` | 4559 | `1868cd7cc59724cab6e0c6ff2e7cf3636b6f97af48680e6ef8690199aae9e74e` |
+| `tests/fixtures/topology_publication_v2/topology-bundle/receipts/validation-receipt.json` | `tests` | `tests` | 11892 | `b70c9e83a1c649f8b4a6361bf3cb4bd4592759266e1f667f4a87b937414ff1a3` |
 | `tests/integration/test_cursor_mcp_instantiation.py` | `tests` | `tests` | 4206 | `6a7314643fa1addae408d3df72442802842ffbb861baa15276d34345088549a1` |
 | `tests/integration/test_distillation_profiles_sdk.py` | `tests` | `tests` | 2387 | `eca08e5672f8eae50279468f4e1462d8eb237a6e864ec8d3901658ce2c9f36ba` |
 | `tests/integration/test_immediate_canonical_ingestion.py` | `tests` | `tests` | 4877 | `4c72a3298792fe7b1f4eee90c8a1a3289ef834e7b6fa420a2f45eb5a17b6a5b8` |
@@ -572,6 +601,7 @@ updated: 2026-07-22
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `tests` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `tests` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |
 | `tests/integration/test_topology_publication_e2e.py` | `tests` | `tests` | 7214 | `958dd1ecfce5c526b5ff067581a7e004c4d6fd8f7b018161fdff4b640b541421` |
+| `tests/integration/test_topology_publication_e2e_v2.py` | `tests` | `tests` | 8546 | `fcf1178af45342fa9982728a06bf292425d9b2202a159aa88fec32263123a003` |
 | `tests/regression/test_assurance_tools.py` | `tests` | `tests` | 1982 | `79f0cb7dae4814c1a6ed73858b9ab47d05518c0dcb6d975d998902e62f6908ef` |
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `tests` | 4320 | `4ab10fdc1eee8035396984f6960aaaf80100aa6206778a6090d878e1142c6615` |
 | `tests/regression/test_phase6_operator.py` | `tests` | `tests` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
@@ -618,13 +648,15 @@ updated: 2026-07-22
 | `tests/unit/test_source_locator_contract.py` | `tests` | `tests` | 7831 | `e7d88d9f95d4406cd4b33e1785ff7a9c748a1089100eab8cab368424bd03623b` |
 | `tests/unit/test_zep_transport.py` | `tests` | `tests` | 2594 | `130bd0c3c2dd41d9abdb37c1b4e87a4a81d7e0e00c42de25af52ab76915d6dda` |
 | `tests/unit/topology_publication/__init__.py` | `tests` | `tests` | 231 | `b3723aac5f7bb9c8bc6936528f90ca857a7a3795bd6bc10fe289bb505373d1d1` |
-| `tests/unit/topology_publication/conftest.py` | `tests` | `tests` | 8033 | `cbc3f077c9ce4da1c96ddeb3081804e02884d613e6504b5594cf68a223644ccc` |
-| `tests/unit/topology_publication/test_containment_and_identity.py` | `tests` | `tests` | 7951 | `f55a51e914f9715ec4b0edd9f9d79b705013ab1ba1b6f1a2c14095faa373bfbe` |
-| `tests/unit/topology_publication/test_execution_modes.py` | `tests` | `tests` | 10555 | `9ff977afc287ebfcde4d67351e37cb27268c132f27aace806e89b53bc140accc` |
+| `tests/unit/topology_publication/conftest.py` | `tests` | `tests` | 13127 | `43a71e3343830311befd66e80c79302c9545e1ff9b1d5206206db3421e73621b` |
+| `tests/unit/topology_publication/test_containment_and_identity.py` | `tests` | `tests` | 8214 | `6e670ffc647a3e0e230adac3529a4775fa34938f04df33d7090d30f8cf4575df` |
+| `tests/unit/topology_publication/test_execution_modes.py` | `tests` | `tests` | 10856 | `9d941e1644b94acd2c7e4c9204df739ab65d1cc2cbaa372af606d11e8abec97a` |
 | `tests/unit/topology_publication/test_gate_and_architecture.py` | `tests` | `tests` | 4849 | `7ceebd47d979e32f5040773d662c2803667a68a0a091bdd08510a610c75c4384` |
-| `tests/unit/topology_publication/test_locator_future_conformance.py` | `tests` | `tests` | 4466 | `b667561c55dc5accb7dcc9e0cc1a67ca370983b0eaf3d853694f1e13653d4cbf` |
+| `tests/unit/topology_publication/test_identity_golden_vectors.py` | `tests` | `tests` | 6318 | `7e7c8848fe1f825db9e822a7e534d56a2041e873e0c71a15deac29e8ef110537` |
+| `tests/unit/topology_publication/test_locator_future_conformance.py` | `tests` | `tests` | 5419 | `a91c35296741ef926b2a9d0820b511b1bbf7980d5678dd8d131dd4eefa3369ab` |
 | `tests/unit/topology_publication/test_plan_integrity.py` | `tests` | `tests` | 6775 | `88f19959905103c020b8430780829afebd54117901d1b793df6567df7e30bb55` |
 | `tests/unit/topology_publication/test_plan_parser.py` | `tests` | `tests` | 4781 | `85ecd33f6700fc7243dc944ddc46c0e50e6d931a55120eb2b8c20433bfcd9e82` |
+| `tests/unit/topology_publication/test_publication_identity.py` | `tests` | `tests` | 10135 | `56fdecc6ee664c74baf86b6b5363b731c11921b296904546b9b08343428be9be` |
 | `tools/assurance/apply_l9_meta.py` | `assurance` | `assurance` | 6636 | `ae309381006f6296fbfc03fc19ea35253bf642a291088fd947cb1f4eaac47d05` |
 | `tools/assurance/audit_package_wiring.py` | `assurance` | `assurance` | 4740 | `5f7eb704f907a9607b6bcb3c7751331fc61b3663e766ca5bac0acfdebdac7e8a` |
 | `tools/assurance/benchmark_local.py` | `assurance` | `assurance` | 4769 | `fdcc508e655ab26759926dafd6f41d27f7c9dcba5628b5d69a80cb65cfb206e9` |
@@ -637,7 +669,7 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 8677 | `74ecb0025bff0ca49140c4be65f9fb992aade75536f13d3dcdbec28422d2787a` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 13430 | `655ff3d573d77dc445da452fd31c6f8ed8b72947b7a420178b4201d9df299b28` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 14085 | `d807d7a275c3082e30fbd07c966d6a5ce0cd7e0d600f163c07c4bf980c6cc203` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `6f5b2c99fc16258ae3bca57d1f7a6ab3d807a20d4d268e3e8c0c2ad1120a72ba` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |

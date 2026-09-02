@@ -63,8 +63,16 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # the postgres leg included, which is where the advisory-lock path is
         # actually exercised, since a local run without
         # L9_MEMORY_TEST_POSTGRES_DSN skips it.
-        "608 tests pass",
-        r"608 passed",
+        #
+        # Re-pinned 608 -> 649 for the publication-identity work: 41 cases added
+        # across test_publication_identity.py, test_identity_golden_vectors.py,
+        # test_locator_future_conformance.py and the v2 end-to-end suite. The
+        # arithmetic is the same one that produced 608 -- collected minus the
+        # fifteen CI skips (ten constellation-SDK, five cross-repo) -- and it
+        # reproduces the old pin exactly on main: 623 collected - 15 = 608.
+        # This branch collects 664, so 664 - 15 = 649.
+        "649 tests pass",
+        r"649 passed",
     ),
     CheckSpec(
         "V-002",
@@ -153,8 +161,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "production Python",
         "check_source_quality.py",
         "logs/source_quality.txt",
-        "120 production files pass",
-        r"PASS: 120 production Python files",
+        # Re-pinned 120 -> 121: ingestion/publication_identity.py is a new
+        # production module on this branch.
+        "121 production files pass",
+        r"PASS: 121 production Python files",
     ),
     CheckSpec(
         "V-012",

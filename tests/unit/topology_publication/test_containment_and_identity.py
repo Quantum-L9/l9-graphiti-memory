@@ -82,9 +82,13 @@ def test_adversarial_mix_calls_memory_service_exactly_for_eligible(
     assert receipt.rejected_count == 4
     assert receipt.skipped_count == 5
     assert receipt.attempted_count == 3
+    # Identities are derived from payload, so a candidate is located by the id
+    # its own builder produced rather than by the label the test named it with.
     statuses = {r.candidate_id: r.execution_status for r in receipt.candidate_results}
-    assert statuses["held-0"] == "not_attempted_held"
-    assert statuses["rejected-0"] == "not_attempted_rejected"
+    held_ids = {item["candidate_id"] for item in candidates[3:5]}
+    rejected_ids = {item["candidate_id"] for item in candidates[5:]}
+    assert {statuses[item] for item in held_ids} == {"not_attempted_held"}
+    assert {statuses[item] for item in rejected_ids} == {"not_attempted_rejected"}
     unattempted = [r for r in receipt.candidate_results if not r.attempted]
     assert all(r.memory_receipt_id is None for r in unattempted)
 
@@ -145,9 +149,9 @@ def test_unauthorized_namespace_is_refused_by_memory_policy(
         make_candidate(
             candidate_id="unauthorized",
             status="eligible",
+            namespace="l9.constellation/other-repo",
         )
     ]
-    candidates[0]["memory_intent"]["request"]["namespace"] = "l9.constellation/other-repo"
     plan, topo = _load_inputs(tmp_path, candidates)
     service = CountingMemoryService()
     receipt = execute_topology_publication(
@@ -168,8 +172,9 @@ def test_unauthorized_namespace_is_refused_by_memory_policy(
 
 
 def test_low_confidence_outcome_is_memorys_decision(tmp_path: Path, topology_principal) -> None:
-    candidate = make_candidate(candidate_id="low-confidence", status="eligible")
-    candidate["memory_intent"]["request"]["confidence"]["score"] = 0.05
+    candidate = make_candidate(
+        candidate_id="low-confidence", status="eligible", confidence_score=0.05
+    )
     plan, topo = _load_inputs(tmp_path, [candidate])
     service = CountingMemoryService()
     receipt = execute_topology_publication(

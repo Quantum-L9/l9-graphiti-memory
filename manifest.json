@@ -1,5 +1,5 @@
 {
-  "file_count": 693,
+  "file_count": 725,
   "files": [
     {
       "category": "ci",
@@ -446,8 +446,8 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "bbd839c4d9c220a9a8a2900da59d7cd5f012ae057ee1494a58e53adb47be3adf",
-      "size_bytes": 117261
+      "sha256": "2acbec1652dd363af4e0ac40d4fa1165502ee0c25690713dc28ffd3d9ad8b53c",
+      "size_bytes": 122984
     },
     {
       "category": "repository_root",
@@ -5710,8 +5710,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/contracts/evidence.py",
-      "sha256": "4ab92b9360580248483f7ffc4c894d11e57a2045d7ed618a7c51c99e6cfbada2",
-      "size_bytes": 7833
+      "sha256": "99ada6d19f98f7db799f2e37a364007f387c2dd265149ed45e28c2ac94c9e712",
+      "size_bytes": 9528
     },
     {
       "category": "production_source",
@@ -6078,8 +6078,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/ingestion/__init__.py",
-      "sha256": "eec3daacea73e81dbbccdbe4091edd01043b85a68c863a691e5fcdd69825b06a",
-      "size_bytes": 1171
+      "sha256": "18a04624e4a95e39edfd0a06c37f82395d56a22f7dd38b96ec1bb2dfaa5e5dfa",
+      "size_bytes": 1339
     },
     {
       "category": "production_source",
@@ -6119,6 +6119,22 @@
         "l9_schema": 1,
         "layer": "production_source",
         "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/ingestion/publication_identity.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "src/l9_graphite_memory/ingestion/publication_identity.py",
+      "sha256": "0737e411c182837deaf13419a6723aca3a21817daae7e5bf8a32a997a4ce0b8c",
+      "size_bytes": 18833
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/ingestion/repository.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -6142,8 +6158,8 @@
         "version": "2.2.0"
       },
       "path": "src/l9_graphite_memory/ingestion/topology_publication.py",
-      "sha256": "f4cfaf7b22109e9b7aa5df6a3775c6a43364f2c3132f74674326079cee3d24d8",
-      "size_bytes": 24562
+      "sha256": "c25a2f88b3944df154ddfbea44d911235a060f455e1e322d50d696d20b872d61",
+      "size_bytes": 26054
     },
     {
       "category": "production_source",
@@ -7575,6 +7591,22 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/fixtures/publication_identity/golden-vectors.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/publication_identity/golden-vectors.json",
+      "sha256": "a250d7d95ff0b377347c059f563e6176581935e870f57e272e3f2f73f52b5e4c",
+      "size_bytes": 11223
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/PROVENANCE.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -8007,6 +8039,438 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/PROVENANCE.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/PROVENANCE.md",
+      "sha256": "58f484108a43243f4d416f82a867b3f5d26d98b7b3e8fa601d380e78879fd106",
+      "size_bytes": 2193
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/plan-bundle/intents/memory-ingest.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/plan-bundle/intents/memory-ingest.json",
+      "sha256": "999fbe604e639a1cb2e20bf73821ebb201d6f6e5a5ff5fdab0e32b6a62625027",
+      "size_bytes": 264416
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/plan-bundle/manifest.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/plan-bundle/manifest.json",
+      "sha256": "c74ad56dfc6435599514ab5098dbfa1dc5fadf0bc60492bb812f711d110c0270",
+      "size_bytes": 774
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/plan-bundle/publication-plan.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/plan-bundle/publication-plan.json",
+      "sha256": "8b65280c2ba53b42d91c5cf7e3f8eefe4b98058ec20f753030386c85bec7ee9e",
+      "size_bytes": 420068
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/manifest.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/manifest.json",
+      "sha256": "2ac65a984961019a00a438509496dbb5a15469da88a23c6ddcb461d74b9683c9",
+      "size_bytes": 4282
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/packet.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/packet.json",
+      "sha256": "31f14dd09e4c2dfabec5a51e470d0fa45aad7e684390594ab9df2c2644490b45",
+      "size_bytes": 6377
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/artifact-records.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/artifact-records.json",
+      "sha256": "caa04140c647f6cee2761c3218505612dab6e84307491d6de9128fd86cf8b885",
+      "size_bytes": 12151
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-clusters.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-clusters.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size_bytes": 3
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-relations.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-relations.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size_bytes": 3
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/capability-records.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/capability-records.json",
+      "sha256": "cffd9592a9dc88c81b4ce0626c2f384dc326f0d9ef431e0a2db19421c9f268e3",
+      "size_bytes": 6493
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/conflicts.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/conflicts.json",
+      "sha256": "65ae1bd15aecc57d6417c28cb78ade86eaf250ffe1798c36125784901e745e7b",
+      "size_bytes": 417
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/corpus-records.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/corpus-records.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size_bytes": 3
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/diagnostics.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/diagnostics.json",
+      "sha256": "310246a92fb193ea32bce0ff53f9e4a77db250129b2cc505a1897edb53433dfc",
+      "size_bytes": 5441
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/edge-records.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/edge-records.json",
+      "sha256": "9eb609598f744aa29effbe13751697e57fa8920e13ac8abb541f1ca5b56d76eb",
+      "size_bytes": 31618
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/evidence.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/evidence.json",
+      "sha256": "036b1d4279ded8dbf4859fd8774a6143672bcbaabd21082a41610178f046a782",
+      "size_bytes": 65874
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/flow-records.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/flow-records.json",
+      "sha256": "e6e7338ef3c7129563f46738ea261c64155021158f0a460d7573fe188ed23550",
+      "size_bytes": 3689
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/graph-records.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/graph-records.json",
+      "sha256": "faf191683d88fc678d8a720324f3aca78a73a34641914f17002912675672aaaa",
+      "size_bytes": 57588
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/impact-indexes.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/impact-indexes.json",
+      "sha256": "54949ff0b196d800b7bd92ffd83b38109e73cf0bb3f11000163aa5ccb8baa446",
+      "size_bytes": 825
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/maturity.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/maturity.json",
+      "sha256": "135f9cbef9f27960f72900195b6ea3c33f071eb5529a3634ff7879900a34f9eb",
+      "size_bytes": 2192
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/readiness-evidence.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/readiness-evidence.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size_bytes": 3
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/repository-records.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/repository-records.json",
+      "sha256": "54730747daa92c5d08c821ba218298a6fc14acf5ba6aeba214e96a70e865a4e7",
+      "size_bytes": 5164
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/risks.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/risks.json",
+      "sha256": "1852f01e50b9590369f0a8e86111daabb6c7b05b3acedb112bd8831edaba3cf0",
+      "size_bytes": 7631
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/root-records.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/root-records.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size_bytes": 3
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/semantic-claims.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/semantic-claims.json",
+      "sha256": "e811ec9c3803c89a7d15ad97af0b06b73fd2bf8ffe2c607a19c454e64c15b4ff",
+      "size_bytes": 27471
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/topology-reasoning-candidates.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/topology-reasoning-candidates.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "size_bytes": 3
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/unknowns.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/unknowns.json",
+      "sha256": "1868cd7cc59724cab6e0c6ff2e7cf3636b6f97af48680e6ef8690199aae9e74e",
+      "size_bytes": 4559
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/topology_publication_v2/topology-bundle/receipts/validation-receipt.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/fixtures/topology_publication_v2/topology-bundle/receipts/validation-receipt.json",
+      "sha256": "b70c9e83a1c649f8b4a6361bf3cb4bd4592759266e1f667f4a87b937414ff1a3",
+      "size_bytes": 11892
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/integration/test_cursor_mcp_instantiation.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -8272,6 +8736,22 @@
       "path": "tests/integration/test_topology_publication_e2e.py",
       "sha256": "958dd1ecfce5c526b5ff067581a7e004c4d6fd8f7b018161fdff4b640b541421",
       "size_bytes": 7214
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/integration/test_topology_publication_e2e_v2.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/integration/test_topology_publication_e2e_v2.py",
+      "sha256": "fcf1178af45342fa9982728a06bf292425d9b2202a159aa88fec32263123a003",
+      "size_bytes": 8546
     },
     {
       "category": "tests",
@@ -9022,8 +9502,8 @@
         "version": "2.2.0"
       },
       "path": "tests/unit/topology_publication/conftest.py",
-      "sha256": "cbc3f077c9ce4da1c96ddeb3081804e02884d613e6504b5594cf68a223644ccc",
-      "size_bytes": 8033
+      "sha256": "43a71e3343830311befd66e80c79302c9545e1ff9b1d5206206db3421e73621b",
+      "size_bytes": 13127
     },
     {
       "category": "tests",
@@ -9038,8 +9518,8 @@
         "version": "2.2.0"
       },
       "path": "tests/unit/topology_publication/test_containment_and_identity.py",
-      "sha256": "f55a51e914f9715ec4b0edd9f9d79b705013ab1ba1b6f1a2c14095faa373bfbe",
-      "size_bytes": 7951
+      "sha256": "6e670ffc647a3e0e230adac3529a4775fa34938f04df33d7090d30f8cf4575df",
+      "size_bytes": 8214
     },
     {
       "category": "tests",
@@ -9054,8 +9534,8 @@
         "version": "2.2.0"
       },
       "path": "tests/unit/topology_publication/test_execution_modes.py",
-      "sha256": "9ff977afc287ebfcde4d67351e37cb27268c132f27aace806e89b53bc140accc",
-      "size_bytes": 10555
+      "sha256": "9d941e1644b94acd2c7e4c9204df739ab65d1cc2cbaa372af606d11e8abec97a",
+      "size_bytes": 10856
     },
     {
       "category": "tests",
@@ -9079,6 +9559,22 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/unit/topology_publication/test_identity_golden_vectors.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/unit/topology_publication/test_identity_golden_vectors.py",
+      "sha256": "7e7c8848fe1f825db9e822a7e534d56a2041e873e0c71a15deac29e8ef110537",
+      "size_bytes": 6318
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_locator_future_conformance.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -9086,8 +9582,8 @@
         "version": "2.2.0"
       },
       "path": "tests/unit/topology_publication/test_locator_future_conformance.py",
-      "sha256": "b667561c55dc5accb7dcc9e0cc1a67ca370983b0eaf3d853694f1e13653d4cbf",
-      "size_bytes": 4466
+      "sha256": "a91c35296741ef926b2a9d0820b511b1bbf7980d5678dd8d131dd4eefa3369ab",
+      "size_bytes": 5419
     },
     {
       "category": "tests",
@@ -9120,6 +9616,22 @@
       "path": "tests/unit/topology_publication/test_plan_parser.py",
       "sha256": "85ecd33f6700fc7243dc944ddc46c0e50e6d931a55120eb2b8c20433bfcd9e82",
       "size_bytes": 4781
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/topology_publication/test_publication_identity.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.2.0"
+      },
+      "path": "tests/unit/topology_publication/test_publication_identity.py",
+      "sha256": "56fdecc6ee664c74baf86b6b5363b731c11921b296904546b9b08343428be9be",
+      "size_bytes": 10135
     },
     {
       "category": "assurance",
@@ -9326,8 +9838,8 @@
         "version": "2.2.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "655ff3d573d77dc445da452fd31c6f8ed8b72947b7a420178b4201d9df299b28",
-      "size_bytes": 13430
+      "sha256": "d807d7a275c3082e30fbd07c966d6a5ce0cd7e0d600f163c07c4bf980c6cc203",
+      "size_bytes": 14085
     },
     {
       "category": "assurance",

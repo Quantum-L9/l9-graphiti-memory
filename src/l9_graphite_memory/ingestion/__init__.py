@@ -12,6 +12,10 @@
 
 from .document import DocumentIngestor, IngestedChunk
 from .profiles import ProfileIngestor
+from .publication_identity import (
+    PublicationIdentityError,
+    verify_publication_identity,
+)
 from .repository import RepositoryBootstrapper
 from .topology_publication import (
     TopologyCandidateResult,
@@ -30,6 +34,7 @@ __all__ = [
     "DocumentIngestor",
     "IngestedChunk",
     "ProfileIngestor",
+    "PublicationIdentityError",
     "RepositoryBootstrapper",
     "TopologyCandidateResult",
     "TopologyPlanError",
@@ -41,4 +46,5 @@ __all__ = [
     "load_verified_bundle",
     "validate_publication_inputs",
     "validate_topology_binding",
+    "verify_publication_identity",
 ]

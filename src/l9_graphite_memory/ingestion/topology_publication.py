@@ -32,10 +32,20 @@ not a second memory control plane:
   interrupted plan turns already-committed operations into duplicate receipts
   instead of new records.
 * The plan and topology packet arrive as integrity-bound bundles. File content
-  hashes are recomputed here (``sha256:`` over exact bytes); recomputing the
-  producer's *semantic* hash is producer-owned and deliberately not
-  reimplemented, so a forged semantic hash is caught by the bundle manifest
-  cross-checks rather than by a second hash algorithm claiming equivalence.
+  hashes are recomputed here (``sha256:`` over exact bytes), and every
+  candidate's declared ``candidate_id`` and ``idempotency_key`` are recomputed
+  from its own payload by :mod:`.publication_identity`.
+
+  The manifest cross-check alone was never sufficient and is no longer relied
+  on for this: ``manifest.semantic_hash`` and ``plan.semantic_hash`` live in two
+  files an editor of the bundle controls together, so a coordinated edit that
+  left that pair untouched and repaired only the per-file ``content_hash``
+  admitted arbitrary content at arbitrary confidence. Binding the declared
+  identities to the payload is what makes the cross-check meaningful instead of
+  circular. It does not defend against a party that reimplements the producer's
+  canonicalization and emits a self-consistent forgery — no recomputable hash
+  can, without a secret — and that residual is answered by signing the bundle,
+  which this module deliberately does not pre-empt.
 
 The ``MemoryPrincipal`` is supplied by the caller (server or operator derived,
 via runtime settings). Nothing in the plan payload can influence it.
@@ -56,6 +66,10 @@ from l9_graphite_memory.contracts import MemoryPrincipal
 from l9_graphite_memory.contracts.enums import WriteStatus
 from l9_graphite_memory.contracts.temporal import utc_now
 from l9_graphite_memory.errors import L9MemoryError
+from l9_graphite_memory.ingestion.publication_identity import (
+    PublicationIdentityError,
+    verify_publication_identity,
+)
 from l9_graphite_memory.integrations import GateMemoryBridge, IngestMemoryIntent
 from l9_graphite_memory.services.memory_service import MemoryService
 
@@ -335,8 +349,8 @@ def load_publication_plan(bundle: VerifiedBundle) -> TopologyPublicationPlanMode
     if bundle.manifest.semantic_hash != plan.semantic_hash:
         raise TopologyPlanError(
             "plan bundle manifest semantic_hash does not match the plan's "
-            "declared semantic_hash; recomputing the producer hash algorithm "
-            "is producer-owned, so this cross-check is the integrity boundary"
+            "declared semantic_hash; the two files disagree about which plan "
+            "this bundle carries"
         )
     _validate_plan_structure(plan)
     return plan
@@ -478,9 +492,23 @@ def _validate_gate_conformance(plan: TopologyPublicationPlanModel) -> None:
 def validate_publication_inputs(
     plan: TopologyPublicationPlanModel, topology: VerifiedBundle
 ) -> None:
-    """Run the complete pre-execution validation phase for one plan."""
+    """Run the complete pre-execution validation phase for one plan.
+
+    Identity verification runs after binding on purpose: recomputing a
+    candidate's effect identity reads evidence records out of the topology
+    packet, and binding is what proves the supplied packet is the one the plan
+    names. Verifying identities against an unbound packet would compute a true
+    answer about the wrong inputs.
+    """
     _validate_plan_structure(plan)
     validate_topology_binding(plan, topology)
+    try:
+        verify_publication_identity(plan, topology)
+    except PublicationIdentityError as exc:
+        # One error class at this boundary: a plan refused for a misdescribed
+        # identity is refused the same way as one refused for a bad binding, so
+        # a caller does not have to know which check ran to catch the refusal.
+        raise TopologyPlanError(str(exc)) from exc
     _validate_gate_conformance(plan)
 
 
