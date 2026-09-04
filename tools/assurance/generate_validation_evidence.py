@@ -71,8 +71,25 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # fifteen CI skips (ten constellation-SDK, five cross-repo) -- and it
         # reproduces the old pin exactly on main: 623 collected - 15 = 608.
         # This branch collects 664, so 664 - 15 = 649.
-        "649 tests pass",
-        r"649 passed",
+        #
+        # Re-pinned 649 -> 715 for the 2026-09-04 forensic repair: 66 cases
+        # added across test_lifecycle_projection_consistency.py,
+        # test_phase_lock_snapshot_scale.py, test_temporal_law.py,
+        # test_idempotency_race_and_drift.py,
+        # test_retrieval_projection_hydration.py, test_probe_redaction.py,
+        # test_graphiti_http_projection_loop.py, the active-store conformance
+        # suite, and test_authz.py. Same arithmetic: this branch collects 730,
+        # so 730 - 15 = 715. Locally, export L9_MEMORY_TEST_POSTGRES_DSN to
+        # reproduce the CI figure; without it the postgres legs skip.
+        #
+        # Re-pinned 715 -> 797 for GMP-001: quarantine review (ADR-080),
+        # conflict links (ADR-081), and the Redis leg of the active-store
+        # conformance suite, which CI now runs against a redis:7 service.
+        # Same arithmetic: this branch collects 812, so 812 - 15 = 797. Export
+        # both L9_MEMORY_TEST_POSTGRES_DSN and L9_MEMORY_TEST_REDIS_URL to
+        # reproduce the CI figure locally.
+        "797 tests pass",
+        r"797 passed",
     ),
     CheckSpec(
         "V-002",
@@ -89,8 +106,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "docs/adr/",
         "validate_adrs.py",
         "logs/adr_validation.txt",
-        "79 ADRs complete and indexed",
-        r"PASS: 79 ADRs",
+        # Re-pinned 79 -> 81 for GMP-001: ADR-080 (automated quarantine
+        # review) and ADR-081 (canonical conflict links) join the ledger.
+        "81 ADRs complete and indexed",
+        r"PASS: 81 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -163,8 +182,12 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/source_quality.txt",
         # Re-pinned 120 -> 121: ingestion/publication_identity.py is a new
         # production module on this branch.
-        "121 production files pass",
-        r"PASS: 121 production Python files",
+        #
+        # Re-pinned 121 -> 124 for GMP-001: contracts/review.py, ports/review.py,
+        # and curation/quarantine.py carry the quarantine review contract, port,
+        # and evidence-bound reviewer (ADR-080).
+        "124 production files pass",
+        r"PASS: 124 production Python files",
     ),
     CheckSpec(
         "V-012",

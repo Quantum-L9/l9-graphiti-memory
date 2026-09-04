@@ -162,6 +162,14 @@ def test_projection_deletion_completes_through_outbox(tmp_path, principal, admin
             provenance=Provenance(source="test"),
         ),
     )
+    worker = OutboxWorker(
+        store,
+        projection,
+        MemorySettings(data_dir=tmp_path / "data", state_dir=tmp_path / "state"),
+    )
+    assert worker.run_once()["delivered"] == 1  # the record is projected while active
+    assert store.get_projection_link(write.record_id, projection.name) is not None
+
     deletion = service.delete(
         admin_principal,
         DeletionRequest(
@@ -175,14 +183,21 @@ def test_projection_deletion_completes_through_outbox(tmp_path, principal, admin
     pending = service.get(admin_principal, write.record_id)
     assert pending is not None and pending.state is MemoryState.DELETION_PENDING
 
-    worker = OutboxWorker(
-        store,
-        projection,
-        MemorySettings(data_dir=tmp_path / "data", state_dir=tmp_path / "state"),
-    )
     result = worker.run_once()
 
-    assert result["delivered"] == 2  # initial projection and deletion erasure
+    assert result["delivered"] == 1  # the erasure
     deleted = service.get(admin_principal, write.record_id)
     assert deleted is not None and deleted.state is MemoryState.DELETED
     assert projection.erased == [(str(write.record_id), "repo-a")]
+    assert store.get_projection_link(write.record_id, projection.name) is None
+    # The lifecycle ledger records both halves of the deletion (ADR-024).
+    ledger = [
+        (event.previous_state, event.new_state)
+        for event in store.status_events
+        if event.record_id == write.record_id
+    ]
+    assert ledger == [
+        (None, MemoryState.ACTIVE),
+        (MemoryState.ACTIVE, MemoryState.DELETION_PENDING),
+        (MemoryState.DELETION_PENDING, MemoryState.DELETED),
+    ]

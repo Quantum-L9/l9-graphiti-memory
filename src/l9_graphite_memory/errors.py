@@ -37,6 +37,17 @@ class StoreError(L9MemoryError):
     """The canonical record store failed."""
 
 
+class IdempotencyConflict(StoreError):
+    """A concurrent write already committed this operation identity.
+
+    Raised by a store when the unique ``(tenant_id, namespace,
+    idempotency_key)`` constraint rejects an insert. The duplicate lookup runs
+    before the transaction, so two retries of one operation racing each other
+    can both miss it; the constraint is what actually decides, and the service
+    resolves this into a DUPLICATE receipt rather than a failed write (ADR-008).
+    """
+
+
 class PhaseLockSnapshotConflict(StoreError):
     """A governed write lost its phase-lock snapshot race.
 

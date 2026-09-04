@@ -15,11 +15,11 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .enums import MemoryClass
 from .evidence import EvidenceRef
-from .temporal import utc_now
+from .temporal import coerce_utc, utc_now
 
 
 class ConsentGrant(BaseModel):
@@ -39,6 +39,13 @@ class ConsentGrant(BaseModel):
     granted_at: datetime = Field(default_factory=utc_now)
     expires_at: datetime | None = None
     revoked_at: datetime | None = None
+
+    @field_validator("granted_at", "expires_at", "revoked_at")
+    @classmethod
+    def normalize_utc(cls, value: datetime | None) -> datetime | None:
+        # Consent is compared against request validity time in admission, so
+        # it must live in the same zone as every other coordinate (ADR-029).
+        return coerce_utc(value)
 
     def permits(
         self,

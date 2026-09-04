@@ -17,7 +17,9 @@ from uuid import UUID
 
 from l9_graphite_memory.admission.normalization import canonical_json, sha256_text
 from l9_graphite_memory.contracts import (
+    MemoryRecord,
     MemorySearchRequest,
+    MemoryState,
     OperationStatus,
     SearchHit,
     SearchReceipt,
@@ -43,6 +45,56 @@ class RetrievalPlanner:
         self.ranking = ranking or RankingPolicy()
         self.classifier = classifier or QueryClassifier()
         self.projection_required = projection_required
+
+    def _hydrate_projection_hits(
+        self,
+        tenant_id: str,
+        request: MemorySearchRequest,
+        namespaces: tuple[str, ...],
+        records: list[MemoryRecord],
+        projection_scores: dict[UUID, float],
+        *,
+        now: datetime,
+    ) -> list[MemoryRecord]:
+        """Resolve projection hits into canonical records the store window missed.
+
+        The canonical candidate set is the most recent ``limit * 20`` records.
+        A graph or semantic strategy exists precisely to find the relevant
+        record that recency does not surface, so a hit outside that window is
+        read back from the canonical store and admitted under exactly the
+        filters the store applied: tenant, authorized namespace, lifecycle
+        state, class, confidence, valid time, and transaction time. The
+        projection contributes identity only; the record served is canonical.
+        """
+
+        known = {record.record_id for record in records}
+        allowed_states = {MemoryState.ACTIVE}
+        if request.include_superseded:
+            allowed_states.add(MemoryState.SUPERSEDED)
+        if request.include_archived:
+            allowed_states.add(MemoryState.ARCHIVED)
+        recorded_before = request.recorded_before or request.valid_at or now
+        hydrated = list(records)
+        for record_id in projection_scores:
+            if record_id in known:
+                continue
+            record = self.store.get_record(record_id)
+            if record is None:
+                continue
+            if record.tenant_id != tenant_id or record.namespace not in namespaces:
+                continue
+            if record.state not in allowed_states:
+                continue
+            if request.memory_classes and record.memory_class not in request.memory_classes:
+                continue
+            if record.confidence.score < request.min_confidence:
+                continue
+            if not record.temporal.is_valid_at(request.valid_at):
+                continue
+            if record.temporal.recorded_at > recorded_before:
+                continue
+            hydrated.append(record)
+        return hydrated
 
     def search(
         self,
@@ -116,6 +168,10 @@ class RetrievalPlanner:
                 for strategy in strategies_attempted
                 if strategy not in {"graph-search", "semantic-search"}
             ]
+        if projection_scores and self.store.name not in stores_failed:
+            records = self._hydrate_projection_hits(
+                tenant_id, request, namespaces, records, projection_scores, now=now
+            )
 
         if (
             self.store.name in stores_failed

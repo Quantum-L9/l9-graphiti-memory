@@ -187,8 +187,58 @@ class RedisActiveStore:
     def _context_key(self, a: str, i: str) -> str:
         return f"{self._prefix}:agent:{a}:{i}:context"
 
+    def _lease_key(self, a: str, i: str) -> str:
+        return f"{self._prefix}:agent:{a}:{i}:lease"
+
     def _index_key(self) -> str:
         return f"{self._prefix}:agent:index"
+
+    @staticmethod
+    def _lease_ttl_seconds(lease: AgentLease) -> int:
+        return max(1, int((lease.expires_at - lease.issued_at).total_seconds()))
+
+    def _lease_value(self, lease: AgentLease, now: datetime) -> str:
+        """Serialise the lease as held: its id and the instant it lapses.
+
+        The expiry is recorded explicitly rather than left to the key's TTL so
+        every read judges it against the adapter's own clock, exactly as the
+        in-memory reference adapter does. The TTL stays on the key as garbage
+        collection, not as the source of truth.
+        """
+
+        expires_at = now + timedelta(seconds=self._lease_ttl_seconds(lease))
+        return json.dumps(
+            {"lease_id": lease.lease_id, "expires_at": expires_at.isoformat()},
+            separators=(",", ":"),
+        )
+
+    @staticmethod
+    def _parse_lease(stored: str) -> tuple[str, datetime | None]:
+        try:
+            data = json.loads(stored)
+        except ValueError:
+            # A value written before the expiry was recorded alongside the id.
+            return stored, None
+        if not isinstance(data, dict):
+            return stored, None
+        expires_raw = data.get("expires_at")
+        return str(data.get("lease_id", "")), _dt(expires_raw) if expires_raw else None
+
+    async def _require_lease(self, lease: AgentLease) -> None:
+        """Refuse a lease Redis does not hold, holds for a different id, or that lapsed.
+
+        A session that stops heartbeating loses its lease on its own interval
+        even while its presence key is still alive, and a caller who knows
+        only the agent and instance ids cannot act on the registration without
+        the issued lease id.
+        """
+
+        stored = await self._call(self._r.get, self._lease_key(lease.agent_id, lease.instance_id))
+        if not stored:
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
+        lease_id, expires_at = self._parse_lease(stored)
+        if lease_id != lease.lease_id or (expires_at is not None and expires_at <= self._clock()):
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
 
     async def _call(self, method: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         try:
@@ -199,10 +249,15 @@ class RedisActiveStore:
                 raise ActiveMemoryUnavailableError(str(exc)) from exc
             raise
 
-    async def register(self, identity: AgentIdentity, _lease: AgentLease) -> AgentPresence:
-        # Redis has no separate lease record: the presence key's own TTL
-        # (`ex=self._pt`) is the sole source of lease-expiry truth here.
+    async def register(self, identity: AgentIdentity, lease: AgentLease) -> AgentPresence:
         now = self._clock()
+        # presence_version is documented as monotonic per instance, so a
+        # re-registration of the same instance continues from the version it
+        # left rather than restarting at 1 and reading as older than before.
+        previous = await self._call(
+            self._r.get, self._presence_key(identity.agent_id, identity.instance_id)
+        )
+        version = _presence(json.loads(previous)).presence_version + 1 if previous else 1
         presence = AgentPresence(
             identity=identity,
             status=AgentStatus.STARTING,
@@ -210,13 +265,21 @@ class RedisActiveStore:
             started_at=now,
             heartbeat_at=now,
             expires_at=now + timedelta(seconds=self._pt),
-            presence_version=1,
+            presence_version=version,
         )
         await self._call(
             self._r.set,
             self._presence_key(identity.agent_id, identity.instance_id),
             _dump(presence),
             ex=self._pt,
+        )
+        # The lease is its own key on its own interval, matching the in-memory
+        # reference adapter: renewal extends it, silence lets it lapse.
+        await self._call(
+            self._r.set,
+            self._lease_key(identity.agent_id, identity.instance_id),
+            self._lease_value(lease, now),
+            ex=self._lease_ttl_seconds(lease),
         )
         await self._call(
             self._r.zadd,
@@ -226,11 +289,20 @@ class RedisActiveStore:
         return presence
 
     async def renew(self, lease: AgentLease) -> AgentPresence:
+        await self._require_lease(lease)
+        now = self._clock()
         raw = await self._call(self._r.get, self._presence_key(lease.agent_id, lease.instance_id))
         if not raw:
             raise LeaseExpiredError(lease.agent_id, lease.instance_id)
         old = _presence(json.loads(raw))
-        now = self._clock()
+        if old.is_expired(now):
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
+        await self._call(
+            self._r.set,
+            self._lease_key(lease.agent_id, lease.instance_id),
+            self._lease_value(lease, now),
+            ex=self._lease_ttl_seconds(lease),
+        )
         presence = AgentPresence(
             identity=old.identity,
             status=old.status,
@@ -254,10 +326,15 @@ class RedisActiveStore:
         return presence
 
     async def unregister(self, lease: AgentLease) -> None:
+        stored = await self._call(self._r.get, self._lease_key(lease.agent_id, lease.instance_id))
+        if stored and self._parse_lease(stored)[0] != lease.lease_id:
+            # Idempotent for the holder, inert for anyone else.
+            return
         await self._call(
             self._r.unlink,
             self._presence_key(lease.agent_id, lease.instance_id),
             self._context_key(lease.agent_id, lease.instance_id),
+            self._lease_key(lease.agent_id, lease.instance_id),
         )
         await self._call(self._r.zrem, self._index_key(), f"{lease.agent_id}|{lease.instance_id}")
 
@@ -267,6 +344,7 @@ class RedisActiveStore:
         expected_version: int | None,
         draft: ActiveContextDraft,
     ) -> ActiveContext:
+        await self._require_lease(lease)
         presence = await self.get_presence(lease.agent_id, lease.instance_id)
         if presence is None:
             raise LeaseExpiredError(lease.agent_id, lease.instance_id)
@@ -322,7 +400,13 @@ class RedisActiveStore:
         if instance_id is None:
             return None
         raw = await self._call(self._r.get, self._context_key(agent_id, instance_id))
-        return _context(json.loads(raw)) if raw else None
+        if not raw:
+            return None
+        context = _context(json.loads(raw))
+        # The key's TTL is garbage collection; the recorded expiry judged
+        # against this adapter's clock is the contract, as in the reference
+        # adapter, so a stale value never reads as live between sweeps.
+        return None if context.is_expired(self._clock()) else context
 
     async def get_presence(
         self, agent_id: str, instance_id: str | None = None
@@ -330,10 +414,22 @@ class RedisActiveStore:
         if instance_id is None:
             return None
         raw = await self._call(self._r.get, self._presence_key(agent_id, instance_id))
-        return _presence(json.loads(raw)) if raw else None
+        if not raw:
+            return None
+        presence = _presence(json.loads(raw))
+        return None if presence.is_expired(self._clock()) else presence
 
     async def list_active(self, scope: AgentScope, cursor: str | None, limit: int) -> RedisPage:
+        if limit < 1:
+            raise ValueError("limit must be at least 1")
         start = int(cursor or 0)
+        # Presence keys expire on their own; the index does not. Drop members
+        # whose recorded expiry has passed so the index cannot grow without
+        # bound and a page cannot come back empty while live agents sit
+        # further along it.
+        await self._call(
+            self._r.zremrangebyscore, self._index_key(), "-inf", self._clock().timestamp()
+        )
         members = await self._call(self._r.zrange, self._index_key(), start, start + limit - 1)
         items = []
         for member in members:
@@ -341,6 +437,7 @@ class RedisActiveStore:
             presence = await self.get_presence(agent_id, instance_id)
             if (
                 presence
+                and presence.deployment_id == scope.deployment_id
                 and (scope.group_id is None or scope.group_id in presence.identity.memory_group_ids)
                 and (scope.role is None or scope.role == presence.identity.role)
             ):

@@ -102,6 +102,21 @@ class MaintenanceOperation(str, Enum):
     SUPERSEDE = "supersede"
     ARCHIVE = "archive"
     RECONCILE = "reconcile"
+    # Review records admission held for a safety or PII signal and release
+    # the ones a reviewer clears; escalate the serious ones for a person
+    # (ADR-080).
+    REVIEW_QUARANTINE = "review_quarantine"
+
+
+class QuarantineVerdict(str, Enum):
+    """Outcome of one automated review of a quarantined record (ADR-080)."""
+
+    #: The record is safe to serve; release it to ACTIVE under MAINTAIN.
+    RELEASE = "release"
+    #: Not enough confidence either way; leave it quarantined and review again.
+    HOLD = "hold"
+    #: A serious finding a person has to decide; leave it quarantined and report it.
+    ESCALATE = "escalate"
 
 
 class MaintenanceStatus(str, Enum):

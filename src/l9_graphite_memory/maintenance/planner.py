@@ -350,6 +350,42 @@ class MaintenancePlanner:
             )
         ]
 
+    # -- quarantine review ----------------------------------------------------
+
+    def _plan_review_quarantine(
+        self,
+        records: Sequence[MemoryRecord],
+        *,
+        tenant_id: str,
+        namespace: str,
+    ) -> list[MaintenanceAction]:
+        """One review per quarantined record (ADR-080).
+
+        The plan names the records; the reviewer is consulted only when the
+        run is applied, so a dry run costs no model calls. The digest is the
+        record alone: a released or escalated record is never reviewed twice,
+        while a held one stays unapplied and is planned again next run.
+        """
+
+        return [
+            MaintenanceAction(
+                operation=MaintenanceOperation.REVIEW_QUARANTINE,
+                source_record_ids=(record.record_id,),
+                reason="quarantined record awaits automated review",
+                action_digest=action_digest(
+                    MaintenanceOperation.REVIEW_QUARANTINE,
+                    tenant_id,
+                    namespace,
+                    (record.record_id,),
+                ),
+                details={
+                    "safety_signals": list(record.metadata.get("safety_signals", [])),
+                    "pii_redacted": bool(record.metadata.get("pii_redacted", False)),
+                },
+            )
+            for record in records
+        ]
+
     # -- reconcile ------------------------------------------------------------
 
     def _plan_reconcile(
@@ -390,6 +426,13 @@ class MaintenancePlanner:
                         continue
                     if left.temporal.valid_from != right.temporal.valid_from:
                         # A later start makes this evolution, handled by supersede.
+                        continue
+                    if (
+                        right.record_id in left.conflicts_with
+                        and left.record_id in right.conflicts_with
+                    ):
+                        # Already linked by an earlier run; the conflict report
+                        # reads the link, so there is nothing left to record.
                         continue
                     source_ids = (left.record_id, right.record_id)
                     actions.append(
@@ -487,7 +530,7 @@ class MaintenancePlanner:
                 )
             )
         if MaintenanceOperation.RECONCILE in selected:
-            # Reconciliation only reports, so it does not consume records.
+            # Reconciliation links, never resolves, so it does not consume records.
             planned.extend(
                 self._plan_reconcile(
                     eligible,
@@ -495,6 +538,17 @@ class MaintenancePlanner:
                     namespace=namespace,
                     consumed=consumed,
                 )
+            )
+        if MaintenanceOperation.REVIEW_QUARANTINE in selected:
+            quarantined = [
+                record
+                for record in records
+                if record.state is MemoryState.QUARANTINED
+                and record.temporal.recorded_at <= watermark
+            ]
+            quarantined.sort(key=lambda item: (item.temporal.recorded_at, str(item.record_id)))
+            planned.extend(
+                self._plan_review_quarantine(quarantined, tenant_id=tenant_id, namespace=namespace)
             )
 
         skipped = tuple(

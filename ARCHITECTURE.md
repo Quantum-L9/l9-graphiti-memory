@@ -94,7 +94,11 @@ The write is canonical when step 8 commits, or it raises. No provider call, loca
 
 ## Scheduled maintenance
 
-Semantic consolidation happens after admission, not during it (ADR-071). A scheduled pass under `MAINTAIN` authority plans and applies five bounded operations over records the store already holds: dedupe, refine, supersede, archive, and reconcile. Planning is pure and reproducible; consolidation derives a new record citing its sources and supersedes them, never rewriting canonical state in place. Runs are watermarked and digest-idempotent, so a rerun is a no-op and a concurrent live write is out of scope rather than half-processed. Contradictions are reported for governance, never auto-resolved (ADR-075).
+Semantic consolidation happens after admission, not during it (ADR-071). A scheduled pass under `MAINTAIN` authority plans and applies six bounded operations over records the store already holds: dedupe, refine, supersede, archive, reconcile, and quarantine review. Planning is pure and reproducible; consolidation derives a new record citing its sources and supersedes them, never rewriting canonical state in place. Runs are watermarked and digest-idempotent, so a rerun is a no-op and a concurrent live write is out of scope rather than half-processed (ADR-075).
+
+Reconciliation never resolves a contradiction; it records one. Two active records asserting different objects for one subject and predicate over the same validity are linked on both records' `conflicts_with` through `MemoryService.link_conflicts`, under a `ConflictLinkReceipt`. The conflict report that guards phase locks and promotion reads those links between records that are both still active, so it costs a read rather than a namespace scan and is as current as the last reconciliation pass; superseding or archiving either side resolves the conflict (ADR-081).
+
+Quarantine review consults an injected `QuarantineReviewer` for each record admission held, under a `QuarantineReviewPolicy`. A RELEASE that clears the policy moves the record to active through `MemoryService.transition_lifecycle` with the verdict as evidence on the lifecycle receipt; HOLD leaves it for the next run; ESCALATE, forced for any credential-shaped value or exfiltration signal, leaves it quarantined and lists it on the run receipt for a person. The model binding is injected by configuration, and with none every quarantined record is reported as unreviewed (ADR-080).
 
 ## Extraction and source ingestion
 
@@ -130,6 +134,8 @@ No backend failure is represented as zero results.
 Projections have three operations (ADR-074). `project` makes a current record retrievable. `retire` withdraws a projection when the record is superseded or archived: the canonical record keeps its content, evidence, and history, and no deletion receipt is produced. `erase` destroys the projected copy under verified privacy deletion. Retirement intent is committed in the same transaction as the canonical transition that caused it.
 
 Adapters declare a `retirement_mode`. A provider that can deactivate a projected record is `native`; one offering only removal is `withdraw`. Graphiti is `withdraw`, so retirement there removes the episode and is undone by `rebuild-projection` rather than reactivated in place. Every retirement writes a receipt to canonical state, so the retirement/erasure distinction does not depend on the provider's own log (ADR-076).
+
+Every lifecycle transition outside `write` and `apply_retention` goes through `MemoryService.transition_lifecycle`, which commits the status events, a `LifecycleTransitionReceipt`, and the matching projection intent in one transaction: retirement when a record leaves `ACTIVE`, re-projection when governance restores one. Scheduled maintenance supersedes and archives through it. The outbox worker projects only a record that is still `ACTIVE` when the event is delivered and withdraws only one that is still retired, so a late or retried event can never re-materialise stale content or undo a reactivation. An erase event that finds no projection link completes the deletion, as a retire event that finds none settles as delivered (ADR-074 amendment, 2026-09-04).
 
 ## Projection erasure
 

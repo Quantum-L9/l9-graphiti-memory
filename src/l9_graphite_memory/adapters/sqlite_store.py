@@ -24,8 +24,10 @@ from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
+    ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
@@ -39,7 +41,11 @@ from l9_graphite_memory.contracts import (
     ProjectionRetirementReceipt,
     WriteReceipt,
 )
-from l9_graphite_memory.errors import PhaseLockSnapshotConflict, StoreError
+from l9_graphite_memory.errors import (
+    IdempotencyConflict,
+    PhaseLockSnapshotConflict,
+    StoreError,
+)
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
 from l9_graphite_memory.ports.service_capability import (
     ServiceWriteCapability,
@@ -504,6 +510,11 @@ class SQLiteRecordStore:
                 for outbox_event in outbox_events:
                     self._insert_outbox(tx, outbox_event)
         except sqlite3.IntegrityError as exc:
+            if "idempotency_key" in str(exc):
+                raise IdempotencyConflict(
+                    "operation identity already committed by a concurrent write: "
+                    f"{record.idempotency_key if record else '?'}"
+                ) from exc
             raise StoreError(f"atomic memory write violated store constraints: {exc}") from exc
         except sqlite3.Error as exc:
             raise StoreError(f"atomic memory write failed: {exc}") from exc
@@ -603,7 +614,7 @@ class SQLiteRecordStore:
         namespace: str,
         *,
         states: tuple[MemoryState, ...] = (),
-        limit: int = 1_000,
+        limit: int | None = 1_000,
     ) -> list[MemoryRecord]:
         params: list[Any] = [tenant_id, namespace]
         sql = "SELECT record_json FROM memory_records WHERE tenant_id = ? AND namespace = ?"
@@ -611,14 +622,109 @@ class SQLiteRecordStore:
             marks = ",".join("?" for _ in states)
             sql += f" AND state IN ({marks})"
             params.extend(item.value for item in states)
-        sql += " ORDER BY recorded_at DESC LIMIT ?"
-        params.append(limit)
+        sql += " ORDER BY recorded_at DESC"
+        if limit is not None:
+            sql += " LIMIT ?"
+            params.append(limit)
         rows = self._connection().execute(sql, params).fetchall()
         return [self._row_to_record(row) for row in rows]
 
-    def transition_state(self, event: MemoryStatusEvent) -> None:
-        with self._transaction() as tx:
-            self._insert_status_event(tx, event)
+    def transition_state(
+        self, capability: ServiceWriteCapability, event: MemoryStatusEvent
+    ) -> None:
+        require_service_write_capability(capability)
+        try:
+            with self._transaction() as tx:
+                self._insert_status_event(tx, event)
+        except sqlite3.Error as exc:
+            raise StoreError(f"lifecycle transition failed: {exc}") from exc
+
+    def commit_lifecycle(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LifecycleTransitionReceipt,
+        *,
+        status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        event_ids = {event.record_id for event in status_events}
+        if event_ids != {item.record_id for item in receipt.transitions}:
+            raise StoreError("lifecycle receipt and status events target different records")
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "lifecycle",
+                        receipt.namespace,
+                        receipt.status.value,
+                        _dt(receipt.created_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for event in status_events:
+                    self._insert_status_event(tx, event)
+                for outbox_event in outbox_events:
+                    self._insert_outbox(tx, outbox_event)
+        except sqlite3.IntegrityError as exc:
+            raise StoreError(
+                f"atomic lifecycle transition violated store constraints: {exc}"
+            ) from exc
+        except sqlite3.Error as exc:
+            raise StoreError(f"atomic lifecycle transition failed: {exc}") from exc
+
+    def commit_conflict_links(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ConflictLinkReceipt,
+    ) -> None:
+        require_service_write_capability(capability)
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "conflict_link",
+                        receipt.namespace,
+                        receipt.status.value,
+                        _dt(receipt.created_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for link in receipt.links:
+                    self._add_conflict_link(tx, link.left_record_id, link.right_record_id)
+                    self._add_conflict_link(tx, link.right_record_id, link.left_record_id)
+        except sqlite3.IntegrityError as exc:
+            raise StoreError(f"atomic conflict link violated store constraints: {exc}") from exc
+        except sqlite3.Error as exc:
+            raise StoreError(f"atomic conflict link failed: {exc}") from exc
+
+    @staticmethod
+    def _add_conflict_link(tx: sqlite3.Connection, record_id: UUID, other_id: UUID) -> None:
+        row = tx.execute(
+            "SELECT record_json FROM memory_records WHERE record_id = ?", (str(record_id),)
+        ).fetchone()
+        if row is None:
+            raise StoreError(f"conflict link target not found: {record_id}")
+        payload = json.loads(str(row["record_json"]))
+        links = [str(item) for item in payload.get("conflicts_with", [])]
+        if str(other_id) in links:
+            return
+        links.append(str(other_id))
+        payload["conflicts_with"] = links
+        tx.execute(
+            "UPDATE memory_records SET conflicts_with_json = ?, record_json = ? WHERE record_id = ?",
+            (_json(links), _json(payload), str(record_id)),
+        )
 
     def save_phase_lock(
         self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
@@ -1061,10 +1167,16 @@ class SQLiteRecordStore:
         redacted_record: MemoryRecord,
         *,
         outbox_event: OutboxEvent | None,
+        status_event: MemoryStatusEvent,
     ) -> None:
         require_service_write_capability(capability)
         if redacted_record.record_id != receipt.record_id:
             raise StoreError("deletion receipt and redacted record target differ")
+        if (
+            status_event.record_id != receipt.record_id
+            or status_event.new_state is not redacted_record.state
+        ):
+            raise StoreError("deletion status event does not describe the tombstone transition")
         try:
             with self._transaction() as tx:
                 existing = tx.execute(
@@ -1073,6 +1185,9 @@ class SQLiteRecordStore:
                 ).fetchone()
                 if existing is None:
                     raise StoreError(f"deletion target not found: {receipt.record_id}")
+                # The lifecycle event is verified against the pre-redaction
+                # state; the redaction below then replaces the whole row.
+                self._insert_status_event(tx, status_event)
                 tx.execute(
                     """
                     UPDATE memory_records SET
@@ -1116,6 +1231,7 @@ class SQLiteRecordStore:
         receipt_id: UUID,
         *,
         completed_at: datetime,
+        actor: str = "memory.outbox-worker",
     ) -> None:
         try:
             with self._transaction() as tx:
@@ -1131,21 +1247,25 @@ class SQLiteRecordStore:
                     raise StoreError("deletion record or receipt not found")
                 record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
                 receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
-                updated_record = record.model_copy(update={"state": MemoryState.DELETED})
                 updated_receipt = receipt.model_copy(
                     update={
                         "status": DeletionStatus.COMPLETE,
                         "completed_at": completed_at,
                     }
                 )
-                tx.execute(
-                    "UPDATE memory_records SET state = ?, record_json = ? WHERE record_id = ?",
-                    (
-                        MemoryState.DELETED.value,
-                        _json(updated_record.model_dump(mode="json")),
-                        str(record_id),
-                    ),
-                )
+                if record.state is not MemoryState.DELETED:
+                    self._insert_status_event(
+                        tx,
+                        MemoryStatusEvent(
+                            record_id=record_id,
+                            previous_state=record.state,
+                            new_state=MemoryState.DELETED,
+                            reason="projection erasure confirmed; verified deletion complete",
+                            actor=actor,
+                            occurred_at=completed_at,
+                            receipt_id=receipt_id,
+                        ),
+                    )
                 tx.execute(
                     "UPDATE operation_receipts SET status = ?, receipt_json = ? WHERE receipt_id = ?",
                     (

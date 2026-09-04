@@ -276,7 +276,7 @@ def test_temporal_evolution_supersedes_rather_than_deduping(
 def test_contradiction_is_reported_not_resolved(
     service, store, maintenance, writer, maintainer
 ) -> None:
-    """SP-13: an unresolvable conflict is surfaced, and nothing is mutated."""
+    """SP-13: an unresolvable conflict is linked on both records, never resolved (ADR-081)."""
 
     left = write(
         service,
@@ -304,21 +304,23 @@ def test_contradiction_is_reported_not_resolved(
     assert actions[0].details["resolution"] == "requires governance decision"
     assert actions[0].result_record_id is None
 
-    # Reconciliation changes nothing.
+    # Reconciliation resolves nothing: both records stay current.
     assert store.get_record(left.record_id).state is MemoryState.ACTIVE
     assert store.get_record(right.record_id).state is MemoryState.ACTIVE
 
-    # It is reported, not applied, so the finding is not suppressed.
-    assert receipt.applied_actions == ()
-    assert actions[0].action_digest not in store.find_maintenance_action_digests(
-        "tenant-a", "repo-a"
-    )
+    # It records the contradiction as a link on both records, under a receipt,
+    # which is what the conflict report consults from now on.
+    assert store.get_record(left.record_id).conflicts_with == (right.record_id,)
+    assert store.get_record(right.record_id).conflicts_with == (left.record_id,)
+    assert actions[0].applied and actions[0].details["linked"] is True
+    assert actions[0].action_digest in store.find_maintenance_action_digests("tenant-a", "repo-a")
+    assert service.conflicts(maintainer, "repo-a").has_conflicts
 
 
-def test_an_unresolved_contradiction_is_reported_on_every_run(
+def test_an_unresolved_contradiction_stays_visible_without_being_relinked(
     service, store, maintenance, writer, maintainer, clock
 ) -> None:
-    """A conflict nobody resolved must not go quiet after the first sighting."""
+    """A conflict nobody resolved must not go quiet, and must not be written twice."""
 
     for source_id, owner in (("a", "team-alpha"), ("b", "team-beta")):
         write(
@@ -335,8 +337,10 @@ def test_an_unresolved_contradiction_is_reported_on_every_run(
     second = run(maintenance, maintainer, operations=(MaintenanceOperation.RECONCILE,))
 
     assert len(first.actions) == 1
-    assert len(second.actions) == 1
-    assert second.actions[0].action_digest == first.actions[0].action_digest
+    # The link already exists, so the second pass plans nothing new; the
+    # contradiction is still reported because the link is still live.
+    assert second.actions == ()
+    assert len(service.conflicts(maintainer, "repo-a").conflicts) == 1
 
 
 def test_corroborating_assertions_refine_with_combined_evidence(

@@ -18,7 +18,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .enums import ConfidenceMethod, EvidenceKind
-from .temporal import utc_now
+from .temporal import coerce_utc, utc_now
 
 
 class SourceRange(BaseModel):
@@ -202,6 +202,13 @@ class Provenance(BaseModel):
     source_trust: float = Field(default=1.0, ge=0.0, le=1.0)
     transformed_at: datetime = Field(default_factory=utc_now)
 
+    @field_validator("transformed_at")
+    @classmethod
+    def normalize_transformed_at(cls, value: datetime) -> datetime:
+        normalized = coerce_utc(value)
+        assert normalized is not None
+        return normalized
+
     @model_validator(mode="after")
     def validate_locator_pairing(self) -> Provenance:
         _check_locator_range_pairing(self.source_range, self.source_locator)
@@ -218,6 +225,13 @@ class EvidenceRef(BaseModel):
     source_range: SourceRange | None = None
     source_locator: SourceLocator | None = None
     observed_at: datetime = Field(default_factory=utc_now)
+
+    @field_validator("observed_at")
+    @classmethod
+    def normalize_observed_at(cls, value: datetime) -> datetime:
+        normalized = coerce_utc(value)
+        assert normalized is not None
+        return normalized
 
     @model_validator(mode="after")
     def validate_locator_pairing(self) -> EvidenceRef:
@@ -236,8 +250,9 @@ class Confidence(BaseModel):
     policy_version: str = Field(default="confidence/v1", min_length=1, max_length=100)
     calibrated_at: datetime = Field(default_factory=utc_now)
 
-    @field_validator("evidence_count")
+    @field_validator("calibrated_at")
     @classmethod
-    def inferred_requires_evidence(cls, value: int, info: object) -> int:
-        # Cross-field enforcement is completed by admission; this validator keeps the field sane.
-        return value
+    def normalize_calibrated_at(cls, value: datetime) -> datetime:
+        normalized = coerce_utc(value)
+        assert normalized is not None
+        return normalized

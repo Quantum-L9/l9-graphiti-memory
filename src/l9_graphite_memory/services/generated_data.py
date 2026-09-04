@@ -180,8 +180,10 @@ class GeneratedDataService:
                 namespaces=(namespace,),
                 min_confidence=float(payload.get("minimum_confidence", 0.0)),
                 limit=max(1, int(payload.get("max_items", payload.get("limit", 12)))),
+                # The search contract's floor is 64 tokens; a smaller character
+                # ceiling is honoured at the floor rather than refused.
                 token_budget=(
-                    max(1, int(payload["max_characters"]) // 4)
+                    max(64, int(payload["max_characters"]) // 4)
                     if payload.get("max_characters") is not None
                     else None
                 ),

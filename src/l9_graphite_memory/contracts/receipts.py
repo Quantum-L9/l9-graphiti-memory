@@ -30,11 +30,13 @@ from .enums import (
     AuthorizationAction,
     DeletionStatus,
     MemoryClass,
+    MemoryState,
     OperationStatus,
     OutboxStatus,
     QueryPattern,
     WriteStatus,
 )
+from .evidence import EvidenceRef
 from .memory import MemoryRecord
 from .temporal import utc_now
 
@@ -95,6 +97,43 @@ class ArchiveReceipt(BaseModel):
     authorization: AuthorizationReceipt
     reason: str
     actor: str
+    created_at: datetime = Field(default_factory=utc_now)
+
+
+class LifecycleTransition(BaseModel):
+    """One record moving between lifecycle states under governance."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    record_id: UUID
+    previous_state: MemoryState
+    new_state: MemoryState
+
+
+class LifecycleTransitionReceipt(BaseModel):
+    """Evidence for lifecycle transitions that are not part of a write.
+
+    Supersession caused by a write is evidenced by the ``WriteReceipt``;
+    archive by retention is evidenced by the ``ArchiveReceipt``. Every other
+    governed transition -- maintenance superseding a replaced fact, maintenance
+    archiving, governance restoring a withdrawn record to active -- commits
+    under this receipt together with its status events and the projection
+    intent the transition implies (ADR-074).
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    receipt_id: UUID = Field(default_factory=uuid4)
+    status: OperationStatus = OperationStatus.COMPLETE
+    namespace: str
+    transitions: tuple[LifecycleTransition, ...]
+    authorization: AuthorizationReceipt
+    outbox_event_ids: tuple[UUID, ...] = ()
+    reason: str = Field(min_length=1, max_length=2_000)
+    actor: str = Field(min_length=1, max_length=400)
+    #: What justified the transition beyond the actor's authority: the review
+    #: verdict that released a quarantined record, for instance (ADR-080).
+    evidence: tuple[EvidenceRef, ...] = ()
     created_at: datetime = Field(default_factory=utc_now)
 
 
@@ -191,6 +230,27 @@ class ConflictItem(BaseModel):
     subject: str | None = None
     predicate: str | None = None
     reason: str
+
+
+class ConflictLinkReceipt(BaseModel):
+    """Evidence that two active records were linked as contradicting each other.
+
+    Reconciliation identifies the contradiction; governance resolves it later
+    by superseding or archiving one side. Until then the link lives on both
+    records' ``conflicts_with`` and is what the conflict report, phase locks,
+    and promotion consult (ADR-081).
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    receipt_id: UUID = Field(default_factory=uuid4)
+    status: OperationStatus = OperationStatus.COMPLETE
+    namespace: str
+    links: tuple[ConflictItem, ...]
+    authorization: AuthorizationReceipt
+    reason: str = Field(min_length=1, max_length=2_000)
+    actor: str = Field(min_length=1, max_length=400)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class ConflictReport(BaseModel):

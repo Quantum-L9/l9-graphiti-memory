@@ -7,8 +7,8 @@ path: docs/adr/ADR-007-admission-and-quarantine.md
 layer: adr
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-09-04
 /L9_META -->
 
 
@@ -73,3 +73,12 @@ Set quarantine_on_safety_signal false only in an explicit compatibility policy a
 Replaces scattered validation and ad hoc write gates.
 
 No later ADR supersedes this decision as of 2026-07-21.
+
+## Amendments
+
+**2026-09-04 — quarantine has a governed exit.** ADR-080 adds the review
+path this decision left open: a scheduled `REVIEW_QUARANTINE` maintenance
+operation consults an injected reviewer under a review policy, releases what
+it clears through `MemoryService.transition_lifecycle` with the verdict as
+evidence, and escalates only serious findings to a person. Admission itself
+is unchanged and remains deterministic.

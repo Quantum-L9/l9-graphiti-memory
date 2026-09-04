@@ -1,18 +1,15 @@
-........................................................................ [ 11%]
-..................ssss............................s..................... [ 23%]
-........................................................................ [ 34%]
-........................................................................ [ 46%]
-........................................................................ [ 57%]
-.........................sssssss.sss.................................... [ 69%]
-........................................................................ [ 80%]
-........................................................................ [ 92%]
-...............................................                          [100%]
-=============================== warnings summary ===============================
-tests/unit/test_http_mcp_request_injection.py::test_http_mcp_initialize_uses_request_body
-  /home/runner/work/l9-graphiti-memory/l9-graphiti-memory/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
-    from starlette.testclient import TestClient as TestClient  # noqa
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+........................................................................ [  8%]
+..............................................ssss...................... [ 17%]
+......s................................................................. [ 26%]
+........................................................................ [ 35%]
+........................................................................ [ 44%]
+........................................................................ [ 53%]
+........................................................................ [ 62%]
+.........sssssss.sss.................................................... [ 70%]
+........................................................................ [ 79%]
+........................................................................ [ 88%]
+........................................................................ [ 97%]
+....................                                                     [100%]
 =========================== short test summary info ============================
 SKIPPED [4] .venv/lib/python3.13/site-packages/_pytest/unittest.py:385: Cursor-Governance checkout unavailable
 SKIPPED [1] tests/deployment/generated_data/test_runtime_status_protocol.py:115: CURSOR_GOVERNANCE_ROOT is not configured
@@ -26,4 +23,4 @@ SKIPPED [1] tests/unit/test_canonical_gate_client.py:255: could not import 'cons
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:76: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:110: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:129: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-608 passed, 15 skipped, 1 warning in 20.25s
+797 passed, 15 skipped in 34.20s

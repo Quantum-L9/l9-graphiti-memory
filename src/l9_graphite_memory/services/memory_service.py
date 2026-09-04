@@ -16,15 +16,22 @@ from datetime import timedelta
 from uuid import UUID, uuid4
 
 from l9_graphite_memory.admission import AdmissionEngine, normalize_candidate
-from l9_graphite_memory.admission.normalization import canonical_json, sha256_text
+from l9_graphite_memory.admission.normalization import (
+    NormalizationResult,
+    canonical_json,
+    sha256_text,
+)
 from l9_graphite_memory.authz import NamespacePolicy
 from l9_graphite_memory.contracts import (
+    AdmissionDecision,
     ArchiveReceipt,
     AuthorizationAction,
+    AuthorizationReceipt,
     CloseReceipt,
     CloseRequest,
     Confidence,
     ConflictItem,
+    ConflictLinkReceipt,
     ConflictReport,
     DeletionReceipt,
     DeletionRequest,
@@ -34,6 +41,8 @@ from l9_graphite_memory.contracts import (
     HealthReport,
     HydrationRequest,
     HydrationResult,
+    LifecycleTransition,
+    LifecycleTransitionReceipt,
     MemoryClass,
     MemoryPrincipal,
     MemoryRecord,
@@ -49,6 +58,8 @@ from l9_graphite_memory.contracts import (
     ProjectionRebuildReceipt,
     PromotionRequest,
     Provenance,
+    QuarantineReviewVerdict,
+    QuarantineVerdict,
     RetentionReceipt,
     SearchReceipt,
     TemporalCoordinates,
@@ -60,7 +71,12 @@ from l9_graphite_memory.curation import (
     RetentionEngine,
     RetentionPolicy,
 )
-from l9_graphite_memory.errors import AuthorizationError, StoreError
+from l9_graphite_memory.errors import (
+    AdmissionError,
+    AuthorizationError,
+    IdempotencyConflict,
+    StoreError,
+)
 from l9_graphite_memory.lineage import LineageReplay, LineageReplayer
 from l9_graphite_memory.ports import (
     SERVICE_WRITE_CAPABILITY,
@@ -72,6 +88,29 @@ from l9_graphite_memory.ports import (
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
 from l9_graphite_memory.retrieval import ContextBudgetAllocator, RetrievalPlanner
 from l9_graphite_memory.version import MEMORY_SCHEMA_VERSION, PACKAGE_VERSION
+
+#: Lifecycle states a new record may supersede. A record in review, or one a
+#: verified deletion has already tombstoned, is not current truth that a
+#: successor can replace: superseding it would move a quarantined candidate out
+#: of review without approval, or contradict a COMPLETE deletion receipt.
+_SUPERSEDABLE_STATES: frozenset[MemoryState] = frozenset(
+    {MemoryState.ACTIVE, MemoryState.SUPERSEDED, MemoryState.ARCHIVED}
+)
+
+#: Governed lifecycle transitions and the least authority each requires.
+#: Anything not listed is refused: deletion and rejection have their own
+#: paths and receipts, and this method must not become a back door around
+#: them. Releasing a quarantined record needs ADMIN unless a review verdict
+#: that clears the review policy accompanies it, in which case MAINTAIN
+#: suffices and the verdict is recorded as evidence (ADR-080).
+_LIFECYCLE_TRANSITIONS: dict[tuple[MemoryState, MemoryState], AuthorizationAction] = {
+    (MemoryState.ACTIVE, MemoryState.SUPERSEDED): AuthorizationAction.MAINTAIN,
+    (MemoryState.ACTIVE, MemoryState.ARCHIVED): AuthorizationAction.MAINTAIN,
+    (MemoryState.SUPERSEDED, MemoryState.ARCHIVED): AuthorizationAction.MAINTAIN,
+    (MemoryState.SUPERSEDED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
+    (MemoryState.ARCHIVED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
+    (MemoryState.QUARANTINED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
+}
 
 
 class MemoryService:
@@ -182,22 +221,9 @@ class MemoryService:
         if admission.status is WriteStatus.DUPLICATE:
             if existing is None:
                 raise StoreError("admission reported duplicate but store returned no record")
-            receipt = WriteReceipt(
-                status=WriteStatus.DUPLICATE,
-                record_id=existing.record_id,
-                namespace=request.namespace,
-                schema_version=existing.schema_version,
-                normalized_digest=normalization.normalized_digest,
-                original_digest=normalization.original_digest,
-                idempotency_key=idempotency_key,
-                idempotency_key_supplied=request.idempotency_key is not None,
-                admission=admission,
-                authorization=authorization,
-                warnings=admission.warnings,
+            return self._duplicate_receipt(
+                request, existing, normalization, admission, authorization, idempotency_key
             )
-            if not request.dry_run:
-                self.store.commit_write(SERVICE_WRITE_CAPABILITY, None, receipt)
-            return receipt
 
         if admission.status is WriteStatus.REJECTED:
             receipt = WriteReceipt(
@@ -243,6 +269,7 @@ class MemoryService:
             metadata={
                 **request.metadata,
                 "pii_redacted": bool(normalization.pii_types),
+                "pii_types": list(normalization.pii_types),
                 "safety_signals": list(normalization.safety_signals),
             },
             normalized_digest=normalization.normalized_digest,
@@ -267,6 +294,12 @@ class MemoryService:
             if prior.tenant_id != principal.tenant_id or prior.namespace != request.namespace:
                 raise AuthorizationError(
                     "cannot supersede a record outside the authorized tenant and namespace"
+                )
+            if prior.state not in _SUPERSEDABLE_STATES:
+                raise AdmissionError(
+                    f"cannot supersede record {record_id} in state {prior.state.value}; "
+                    "only active, superseded, or archived records carry truth a "
+                    "successor can replace"
                 )
             status_events.append(
                 MemoryStatusEvent(
@@ -355,14 +388,222 @@ class MemoryService:
             ),
         ]
         if not request.dry_run:
-            self.store.commit_write(
-                SERVICE_WRITE_CAPABILITY,
-                record,
-                receipt,
-                outbox_events=outbox_events,
-                status_events=tuple(status_events),
-                expected_phase_lock=expected_phase_lock,
+            try:
+                self.store.commit_write(
+                    SERVICE_WRITE_CAPABILITY,
+                    record,
+                    receipt,
+                    outbox_events=outbox_events,
+                    status_events=tuple(status_events),
+                    expected_phase_lock=expected_phase_lock,
+                )
+            except IdempotencyConflict as exc:
+                # A retry of this operation won the race between our duplicate
+                # lookup and our commit. The unique index is the authority; the
+                # outcome is the same DUPLICATE receipt the lookup would have
+                # produced had it run a moment later (ADR-008).
+                if request.idempotency_key is None:
+                    raise StoreError(
+                        "minted operation identity collided, which cannot happen"
+                    ) from exc
+                winner = self.store.find_by_idempotency(
+                    principal.tenant_id, request.namespace, idempotency_key
+                )
+                if winner is None:
+                    raise StoreError(
+                        "idempotency conflict reported but the winning record is not readable"
+                    ) from exc
+                duplicate = self.admission.evaluate(
+                    request, normalization, authorization, duplicate_record_exists=True
+                )
+                return self._duplicate_receipt(
+                    request, winner, normalization, duplicate, authorization, idempotency_key
+                )
+        return receipt
+
+    def _duplicate_receipt(
+        self,
+        request: MemoryWriteRequest,
+        existing: MemoryRecord,
+        normalization: NormalizationResult,
+        admission: AdmissionDecision,
+        authorization: AuthorizationReceipt,
+        idempotency_key: str,
+    ) -> WriteReceipt:
+        """Receipt for a replayed operation, naming any payload drift.
+
+        An explicit key says "same operation". When the replay carries different
+        content, class, assertion, or consent, the caller sent two different
+        things under one retry identity. The original record stays authoritative
+        and nothing is overwritten, but the receipt says so instead of implying
+        the second payload was stored.
+        """
+
+        warnings = list(admission.warnings)
+        if existing.normalized_digest != normalization.normalized_digest:
+            warnings.append(
+                "idempotent replay payload differs from the stored record "
+                f"(stored digest {existing.normalized_digest[:12]}, "
+                f"replay digest {normalization.normalized_digest[:12]}); "
+                "the original record remains authoritative"
             )
+        receipt = WriteReceipt(
+            status=WriteStatus.DUPLICATE,
+            record_id=existing.record_id,
+            namespace=request.namespace,
+            schema_version=existing.schema_version,
+            normalized_digest=normalization.normalized_digest,
+            original_digest=normalization.original_digest,
+            idempotency_key=idempotency_key,
+            idempotency_key_supplied=request.idempotency_key is not None,
+            admission=admission,
+            authorization=authorization,
+            warnings=tuple(warnings),
+        )
+        if not request.dry_run:
+            self.store.commit_write(SERVICE_WRITE_CAPABILITY, None, receipt)
+        return receipt
+
+    def transition_lifecycle(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        record_ids: tuple[UUID, ...],
+        new_state: MemoryState,
+        reason: str,
+        review: QuarantineReviewVerdict | None = None,
+        evidence: tuple[EvidenceRef, ...] = (),
+    ) -> LifecycleTransitionReceipt:
+        """Move already-canonical records between lifecycle states, with receipt.
+
+        This is the only production path for a lifecycle change that is not
+        itself a write, an archive by retention, or a verified deletion. Each
+        transition is checked against the governed table: maintenance may
+        supersede or archive current records under MAINTAIN, and governance may
+        restore a superseded or archived record to active under ADMIN. The
+        status events, the receipt, and the projection intent the transition
+        implies -- retirement when a record stops being current, projection when
+        it becomes current again -- commit in one transaction (ADR-074).
+
+        Releasing a quarantined record is governance unless ``review`` carries
+        a RELEASE verdict for that exact record with no blocker, in which case
+        the release is a maintenance act and the verdict is recorded as
+        evidence on the receipt (ADR-080). A verdict that is anything but a
+        clean RELEASE never lowers the authority required.
+        """
+
+        if not record_ids:
+            raise AdmissionError("lifecycle transition requires at least one record")
+        now = self.clock.now()
+        transitions: list[LifecycleTransition] = []
+        status_events: list[MemoryStatusEvent] = []
+        required: set[AuthorizationAction] = set()
+        evidence_items: list[EvidenceRef] = list(evidence)
+        for record_id in dict.fromkeys(record_ids):
+            record = self.store.get_record(record_id)
+            if record is None:
+                raise StoreError(f"record not found: {record_id}")
+            if record.tenant_id != principal.tenant_id or record.namespace != namespace:
+                raise AuthorizationError(
+                    "lifecycle transition target is outside the authorized tenant or namespace"
+                )
+            action = _LIFECYCLE_TRANSITIONS.get((record.state, new_state))
+            if action is None:
+                raise AdmissionError(
+                    f"lifecycle transition {record.state.value} -> {new_state.value} is not "
+                    f"governed by this path: {record_id}"
+                )
+            if record.state is MemoryState.QUARANTINED and review is not None:
+                if review.record_id != record_id:
+                    raise AdmissionError(
+                        f"review verdict is for record {review.record_id}, not {record_id}"
+                    )
+                if review.verdict is not QuarantineVerdict.RELEASE or review.requires_human:
+                    raise AdmissionError(
+                        f"review verdict {review.verdict.value} does not authorize releasing "
+                        f"{record_id} from quarantine"
+                    )
+                action = AuthorizationAction.MAINTAIN
+                evidence_items.append(
+                    EvidenceRef(
+                        kind=EvidenceKind.INFERENCE,
+                        description=review.summary()[:2_000],
+                        source_id=review.reviewer,
+                        observed_at=review.reviewed_at,
+                    )
+                )
+            required.add(action)
+            transitions.append(
+                LifecycleTransition(
+                    record_id=record_id, previous_state=record.state, new_state=new_state
+                )
+            )
+            status_events.append(
+                MemoryStatusEvent(
+                    record_id=record_id,
+                    previous_state=record.state,
+                    new_state=new_state,
+                    reason=reason,
+                    actor=principal.audit_subject,
+                    occurred_at=now,
+                )
+            )
+        authorization = self.namespace_policy.require(
+            principal, AuthorizationAction.READ, namespace
+        )
+        for action in sorted(required, key=lambda item: item.value):
+            authorization = self.namespace_policy.require(principal, action, namespace)
+
+        outbox_events: tuple[OutboxEvent, ...] = ()
+        if self.projection.name != "none":
+            if new_state is MemoryState.ACTIVE:
+                outbox_events = tuple(
+                    OutboxEvent(
+                        event_type="memory.record.project",
+                        aggregate_id=item.record_id,
+                        namespace=namespace,
+                        payload={
+                            "record_id": str(item.record_id),
+                            "reason": reason,
+                            "reactivated": True,
+                        },
+                        created_at=now,
+                        next_attempt_at=now,
+                    )
+                    for item in transitions
+                )
+            else:
+                outbox_events = tuple(
+                    OutboxEvent(
+                        event_type="memory.record.retire",
+                        aggregate_id=item.record_id,
+                        namespace=namespace,
+                        payload={"record_id": str(item.record_id), "reason": reason},
+                        created_at=now,
+                        next_attempt_at=now,
+                    )
+                    for item in transitions
+                )
+        receipt = LifecycleTransitionReceipt(
+            namespace=namespace,
+            transitions=tuple(transitions),
+            authorization=authorization,
+            outbox_event_ids=tuple(event.event_id for event in outbox_events),
+            reason=reason,
+            actor=principal.audit_subject,
+            evidence=tuple(evidence_items),
+            created_at=now,
+        )
+        self.store.commit_lifecycle(
+            SERVICE_WRITE_CAPABILITY,
+            receipt,
+            status_events=tuple(
+                event.model_copy(update={"receipt_id": receipt.receipt_id})
+                for event in status_events
+            ),
+            outbox_events=outbox_events,
+        )
         return receipt
 
     def write_governed(
@@ -529,37 +770,44 @@ class MemoryService:
 
     def conflicts(self, principal: MemoryPrincipal, namespace: str) -> ConflictReport:
         self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
+        # Unbounded on purpose: the stores re-verify the phase-lock snapshot
+        # over every active record in the namespace, so a bounded listing here
+        # would make the two digests disagree once the namespace outgrew the
+        # bound and refuse every governed write (ADR-079).
         records = self.store.list_records(
             principal.tenant_id,
             namespace,
             states=(MemoryState.ACTIVE,),
+            limit=None,
         )
-        structured = [
-            record for record in records if record.assertion and record.assertion.is_structured
-        ]
+        # A conflict is a link that governed reconciliation wrote onto both
+        # records (ADR-081). Reading the links is the whole cost of the report,
+        # so a phase lock or a promotion check does not re-derive every
+        # contradiction in the namespace on each call. A link is live only
+        # while both sides are active: superseding or archiving either side
+        # resolves it without anyone editing the link.
+        active_by_id = {record.record_id: record for record in records}
         conflicts: list[ConflictItem] = []
-        for index, left in enumerate(structured):
-            assert left.assertion is not None
-            for right in structured[index + 1 :]:
-                assert right.assertion is not None
-                same_key = (left.assertion.subject or "").casefold() == (
-                    right.assertion.subject or ""
-                ).casefold() and (left.assertion.predicate or "").casefold() == (
-                    right.assertion.predicate or ""
-                ).casefold()
-                different_value = (left.assertion.object or "").casefold() != (
-                    right.assertion.object or ""
-                ).casefold()
-                if same_key and different_value and self._overlaps(left, right):
-                    conflicts.append(
-                        ConflictItem(
-                            left_record_id=left.record_id,
-                            right_record_id=right.record_id,
-                            subject=left.assertion.subject,
-                            predicate=left.assertion.predicate,
-                            reason="overlapping valid-time assertions have different objects",
-                        )
+        seen: set[tuple[UUID, UUID]] = set()
+        for left in sorted(records, key=lambda item: str(item.record_id)):
+            for right_id in left.conflicts_with:
+                right = active_by_id.get(right_id)
+                if right is None:
+                    continue
+                pair = tuple(sorted((left.record_id, right_id), key=str))
+                if pair in seen:
+                    continue
+                seen.add((pair[0], pair[1]))
+                assertion = left.assertion or right.assertion
+                conflicts.append(
+                    ConflictItem(
+                        left_record_id=pair[0],
+                        right_record_id=pair[1],
+                        subject=assertion.subject if assertion else None,
+                        predicate=assertion.predicate if assertion else None,
+                        reason="records are linked as contradicting by governed reconciliation",
                     )
+                )
         return ConflictReport(
             namespace=namespace,
             conflicts=tuple(conflicts),
@@ -567,6 +815,65 @@ class MemoryService:
             snapshot_digest=self._snapshot_digest(records),
             checked_at=self.clock.now(),
         )
+
+    def link_conflicts(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        links: tuple[ConflictItem, ...],
+        reason: str,
+    ) -> ConflictLinkReceipt:
+        """Record that pairs of active records contradict each other (ADR-081).
+
+        Reconciliation identifies contradictions it must not resolve; this is
+        how it makes them durable. Both sides of every link must be active
+        records of this tenant and namespace. Pairs already linked are not
+        written again, so a rerun is a no-op that still returns a receipt.
+        """
+
+        authorization = self.namespace_policy.require(
+            principal, AuthorizationAction.MAINTAIN, namespace
+        )
+        fresh: list[ConflictItem] = []
+        seen: set[tuple[UUID, UUID]] = set()
+        for link in links:
+            if link.left_record_id == link.right_record_id:
+                raise AdmissionError(f"a record cannot conflict with itself: {link.left_record_id}")
+            pair = tuple(sorted((link.left_record_id, link.right_record_id), key=str))
+            if pair in seen:
+                continue
+            seen.add((pair[0], pair[1]))
+            sides = []
+            for record_id in pair:
+                record = self.store.get_record(record_id)
+                if record is None:
+                    raise StoreError(f"conflict link target not found: {record_id}")
+                if record.tenant_id != principal.tenant_id or record.namespace != namespace:
+                    raise AuthorizationError(
+                        "conflict link target is outside the authorized tenant or namespace"
+                    )
+                if record.state is not MemoryState.ACTIVE:
+                    raise AdmissionError(
+                        f"only active records can be linked as conflicting; {record_id} is "
+                        f"{record.state.value}"
+                    )
+                sides.append(record)
+            if pair[1] in sides[0].conflicts_with and pair[0] in sides[1].conflicts_with:
+                continue
+            fresh.append(link)
+        now = self.clock.now()
+        receipt = ConflictLinkReceipt(
+            namespace=namespace,
+            links=tuple(fresh),
+            authorization=authorization,
+            reason=reason,
+            actor=principal.audit_subject,
+            created_at=now,
+        )
+        if fresh:
+            self.store.commit_conflict_links(SERVICE_WRITE_CAPABILITY, receipt)
+        return receipt
 
     def phase_lock(self, principal: MemoryPrincipal, request: PhaseLockRequest) -> PhaseLockReceipt:
         self.namespace_policy.require(principal, AuthorizationAction.WRITE, request.namespace)
@@ -789,6 +1096,15 @@ class MemoryService:
             AuthorizationAction.ADMIN,
             record.namespace,
         )
+        if record.state in {MemoryState.DELETION_PENDING, MemoryState.DELETED}:
+            # A second request would mint a second tombstone, receipt, and
+            # erase event over content that is already gone. The first receipt
+            # is the deletion's evidence; a pending erasure completes through
+            # the outbox on its own.
+            raise AdmissionError(
+                f"record {record.record_id} is already {record.state.value}; "
+                "verified deletion was recorded once and is not repeated"
+            )
         now = self.clock.now()
         tombstone_digest = sha256_text(
             canonical_json(
@@ -884,6 +1200,15 @@ class MemoryService:
             receipt,
             redacted_record,
             outbox_event=event,
+            status_event=MemoryStatusEvent(
+                record_id=record.record_id,
+                previous_state=record.state,
+                new_state=redacted_state,
+                reason="verified deletion tombstoned the record",
+                actor=principal.audit_subject,
+                occurred_at=now,
+                receipt_id=receipt.receipt_id,
+            ),
         )
         return receipt
 

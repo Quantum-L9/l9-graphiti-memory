@@ -22,8 +22,10 @@ from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
+    ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
@@ -39,6 +41,7 @@ from l9_graphite_memory.contracts import (
 )
 from l9_graphite_memory.errors import (
     ConfigurationError,
+    IdempotencyConflict,
     PhaseLockSnapshotConflict,
     StoreError,
 )
@@ -78,6 +81,12 @@ _LIST_RECORDS_PREDICATES = (
 )
 _LIST_RECORDS_SQL = _LIST_RECORDS_PREDICATES + _SEARCH_RECORDS_ORDER
 _LIST_RECORDS_BY_STATE_SQL = _LIST_RECORDS_PREDICATES + " AND state IN %s" + _SEARCH_RECORDS_ORDER
+# Unbounded variants for callers that must see the complete namespace, such as
+# the phase-lock snapshot the service digests before a governed write.
+_LIST_RECORDS_UNBOUNDED_SQL = _LIST_RECORDS_PREDICATES + " ORDER BY recorded_at DESC"
+_LIST_RECORDS_BY_STATE_UNBOUNDED_SQL = (
+    _LIST_RECORDS_PREDICATES + " AND state IN %s ORDER BY recorded_at DESC"
+)
 # Unbounded and unordered on purpose: the phase-lock snapshot must digest
 # every active record in the namespace, and snapshot_digest sorts itself.
 _PHASE_LOCK_SNAPSHOT_SQL = _LIST_RECORDS_PREDICATES + " AND state = %s"
@@ -85,6 +94,18 @@ _PHASE_LOCK_SNAPSHOT_SQL = _LIST_RECORDS_PREDICATES + " AND state = %s"
 
 def _json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), default=str)
+
+
+def _parse_timestamp(value: str) -> datetime:
+    """Read an ISO-8601 timestamp from a stored JSON payload.
+
+    Record payloads carry two spellings of UTC: ``+00:00`` from
+    ``datetime.isoformat()`` and ``Z`` from pydantic's JSON mode. Python 3.10's
+    ``fromisoformat`` accepts only the first, so the suffix is normalised here
+    rather than trusting whichever writer last touched the payload.
+    """
+
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def _driver() -> Any:
@@ -474,7 +495,7 @@ class PostgresRecordStore:
             superseded_at = event.occurred_at
         else:
             existing = record_payload.get("temporal", {}).get("superseded_at")
-            superseded_at = datetime.fromisoformat(existing) if existing else None
+            superseded_at = _parse_timestamp(existing) if existing else None
         tx.execute(
             """
             UPDATE memory_records
@@ -570,6 +591,11 @@ class PostgresRecordStore:
                 for outbox_event in outbox_events:
                     self._insert_outbox(tx, outbox_event)
         except psycopg2.IntegrityError as exc:
+            if "idempotency_key" in str(exc):
+                raise IdempotencyConflict(
+                    "operation identity already committed by a concurrent write: "
+                    f"{record.idempotency_key if record else '?'}"
+                ) from exc
             raise StoreError(f"atomic memory write violated store constraints: {exc}") from exc
         except psycopg2.Error as exc:
             raise StoreError(f"atomic memory write failed: {exc}") from exc
@@ -641,15 +667,20 @@ class PostgresRecordStore:
         namespace: str,
         *,
         states: tuple[MemoryState, ...] = (),
-        limit: int = 1_000,
+        limit: int | None = 1_000,
     ) -> list[MemoryRecord]:
         params: list[Any] = [tenant_id, namespace]
         if states:
             params.append(tuple(item.value for item in states))
-            statement = _LIST_RECORDS_BY_STATE_SQL
+            statement = (
+                _LIST_RECORDS_BY_STATE_SQL
+                if limit is not None
+                else _LIST_RECORDS_BY_STATE_UNBOUNDED_SQL
+            )
         else:
-            statement = _LIST_RECORDS_SQL
-        params.append(limit)
+            statement = _LIST_RECORDS_SQL if limit is not None else _LIST_RECORDS_UNBOUNDED_SQL
+        if limit is not None:
+            params.append(limit)
         with self._cursor() as cursor:
             cursor.execute(statement, params)
             rows = cursor.fetchall()
@@ -675,9 +706,98 @@ class PostgresRecordStore:
             rows = cursor.fetchall()
         return [self._row_to_record(row) for row in rows]
 
-    def transition_state(self, event: MemoryStatusEvent) -> None:
-        with self._transaction() as tx:
-            self._insert_status_event(tx, event)
+    def transition_state(
+        self, capability: ServiceWriteCapability, event: MemoryStatusEvent
+    ) -> None:
+        require_service_write_capability(capability)
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_status_event(tx, event)
+        except psycopg2.Error as exc:
+            raise StoreError(f"lifecycle transition failed: {exc}") from exc
+
+    def commit_lifecycle(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LifecycleTransitionReceipt,
+        *,
+        status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        event_ids = {event.record_id for event in status_events}
+        if event_ids != {item.record_id for item in receipt.transitions}:
+            raise StoreError("lifecycle receipt and status events target different records")
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="lifecycle",
+                    aggregate_id=receipt.namespace,
+                    status=receipt.status.value,
+                    created_at=receipt.created_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+                for event in status_events:
+                    self._insert_status_event(tx, event)
+                for outbox_event in outbox_events:
+                    self._insert_outbox(tx, outbox_event)
+        except psycopg2.IntegrityError as exc:
+            raise StoreError(
+                f"atomic lifecycle transition violated store constraints: {exc}"
+            ) from exc
+        except psycopg2.Error as exc:
+            raise StoreError(f"atomic lifecycle transition failed: {exc}") from exc
+
+    def commit_conflict_links(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ConflictLinkReceipt,
+    ) -> None:
+        require_service_write_capability(capability)
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="conflict_link",
+                    aggregate_id=receipt.namespace,
+                    status=receipt.status.value,
+                    created_at=receipt.created_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+                for link in receipt.links:
+                    self._add_conflict_link(tx, link.left_record_id, link.right_record_id)
+                    self._add_conflict_link(tx, link.right_record_id, link.left_record_id)
+        except psycopg2.IntegrityError as exc:
+            raise StoreError(f"atomic conflict link violated store constraints: {exc}") from exc
+        except psycopg2.Error as exc:
+            raise StoreError(f"atomic conflict link failed: {exc}") from exc
+
+    @staticmethod
+    def _add_conflict_link(tx: Any, record_id: UUID, other_id: UUID) -> None:
+        tx.execute(
+            "SELECT record_json FROM memory_records WHERE record_id = %s FOR UPDATE",
+            (str(record_id),),
+        )
+        row = tx.fetchone()
+        if row is None:
+            raise StoreError(f"conflict link target not found: {record_id}")
+        payload = json.loads(str(row["record_json"]))
+        links = [str(item) for item in payload.get("conflicts_with", [])]
+        if str(other_id) in links:
+            return
+        links.append(str(other_id))
+        payload["conflicts_with"] = links
+        tx.execute(
+            "UPDATE memory_records SET conflicts_with_json = %s, record_json = %s "
+            "WHERE record_id = %s",
+            (_json(links), _json(payload), str(record_id)),
+        )
 
     # -- phase locks ----------------------------------------------------------
 
@@ -1115,10 +1235,16 @@ class PostgresRecordStore:
         redacted_record: MemoryRecord,
         *,
         outbox_event: OutboxEvent | None,
+        status_event: MemoryStatusEvent,
     ) -> None:
         require_service_write_capability(capability)
         if redacted_record.record_id != receipt.record_id:
             raise StoreError("deletion receipt and redacted record target differ")
+        if (
+            status_event.record_id != receipt.record_id
+            or status_event.new_state is not redacted_record.state
+        ):
+            raise StoreError("deletion status event does not describe the tombstone transition")
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
@@ -1128,6 +1254,9 @@ class PostgresRecordStore:
                 )
                 if tx.fetchone() is None:
                     raise StoreError(f"deletion target not found: {receipt.record_id}")
+                # The lifecycle event is verified against the pre-redaction
+                # state; the redaction below then replaces the whole row.
+                self._insert_status_event(tx, status_event)
                 tx.execute(
                     """
                     UPDATE memory_records SET
@@ -1179,6 +1308,7 @@ class PostgresRecordStore:
         receipt_id: UUID,
         *,
         completed_at: datetime,
+        actor: str = "memory.outbox-worker",
     ) -> None:
         psycopg2 = _driver()
         try:
@@ -1198,21 +1328,25 @@ class PostgresRecordStore:
                     raise StoreError("deletion record or receipt not found")
                 record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
                 receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
-                updated_record = record.model_copy(update={"state": MemoryState.DELETED})
                 updated_receipt = receipt.model_copy(
                     update={
                         "status": DeletionStatus.COMPLETE,
                         "completed_at": completed_at,
                     }
                 )
-                tx.execute(
-                    "UPDATE memory_records SET state = %s, record_json = %s WHERE record_id = %s",
-                    (
-                        MemoryState.DELETED.value,
-                        _json(updated_record.model_dump(mode="json")),
-                        str(record_id),
-                    ),
-                )
+                if record.state is not MemoryState.DELETED:
+                    self._insert_status_event(
+                        tx,
+                        MemoryStatusEvent(
+                            record_id=record_id,
+                            previous_state=record.state,
+                            new_state=MemoryState.DELETED,
+                            reason="projection erasure confirmed; verified deletion complete",
+                            actor=actor,
+                            occurred_at=completed_at,
+                            receipt_id=receipt_id,
+                        ),
+                    )
                 tx.execute(
                     "UPDATE operation_receipts SET status = %s, receipt_json = %s WHERE receipt_id = %s",
                     (

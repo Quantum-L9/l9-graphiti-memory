@@ -18,9 +18,11 @@ import socket
 import sys
 import time
 from datetime import datetime, timedelta
+from uuid import UUID
 
 from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.contracts import (
+    MemoryState,
     OutboxEvent,
     OutboxStatus,
     ProjectionLink,
@@ -115,33 +117,87 @@ class OutboxWorker:
                     record = self.store.get_record(event.aggregate_id)
                     if record is None:
                         raise RuntimeError(f"outbox aggregate not found: {event.aggregate_id}")
-                    result = self.projection.project(record)
-                    locator = result.get("locator") if isinstance(result, dict) else None
-                    if not isinstance(locator, str) or not locator.strip():
-                        raise RuntimeError(
-                            f"projection {self.projection.name} did not return a stable locator "
-                            f"for record {record.record_id}"
-                        )
-                    self.store.save_projection_link(
-                        ProjectionLink(
-                            record_id=record.record_id,
-                            namespace=record.namespace,
-                            projection_name=self.projection.name,
-                            locator=locator,
-                            metadata={
-                                "transport_result": result,
-                                "outbox_event_id": str(event.event_id),
+                    if record.state is not MemoryState.ACTIVE:
+                        # The intent was recorded while the record was current;
+                        # canonical state has moved on since (superseded,
+                        # archived, tombstoned). Projecting now would put stale
+                        # or deleted content back into the provider under a
+                        # fresh link, after the retirement or erasure that
+                        # withdrew it. The provider must reflect current
+                        # canonical state, so this event is satisfied by doing
+                        # nothing (ADR-074).
+                        log.info(
+                            "projection_project_skipped_not_active",
+                            extra={
+                                "event_id": str(event.event_id),
+                                "record_id": str(record.record_id),
+                                "state": record.state.value,
                             },
-                            created_at=now,
                         )
-                    )
+                    else:
+                        result = self.projection.project(record)
+                        locator = result.get("locator") if isinstance(result, dict) else None
+                        if not isinstance(locator, str) or not locator.strip():
+                            raise RuntimeError(
+                                f"projection {self.projection.name} did not return a stable "
+                                f"locator for record {record.record_id}"
+                            )
+                        # Re-read canonical state after the external provider
+                        # call to close the concurrent-deletion race: another
+                        # worker may have deleted or superseded the record
+                        # while the projection was being written (ADR-074).
+                        fresh = self.store.get_record(record.record_id)
+                        if fresh is None or fresh.state is not MemoryState.ACTIVE:
+                            log.info(
+                                "projection_post_project_stale",
+                                extra={
+                                    "event_id": str(event.event_id),
+                                    "record_id": str(record.record_id),
+                                    "fresh_state": (
+                                        fresh.state.value if fresh is not None else "deleted"
+                                    ),
+                                },
+                            )
+                            self.projection.retire(
+                                record.record_id,
+                                record.namespace,
+                                locator=locator,
+                                reason="post-project-race-stale",
+                            )
+                        else:
+                            self.store.save_projection_link(
+                                ProjectionLink(
+                                    record_id=record.record_id,
+                                    namespace=record.namespace,
+                                    projection_name=self.projection.name,
+                                    locator=locator,
+                                    metadata={
+                                        "transport_result": result,
+                                        "outbox_event_id": str(event.event_id),
+                                    },
+                                    created_at=now,
+                                )
+                            )
                 elif event.event_type == "memory.record.retire":
                     # Withdraw a superseded or archived projection. This path
                     # must never touch canonical state: the record keeps its
                     # content and its lifecycle history, and only the derived
                     # projection is withdrawn (ADR-074).
                     link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
-                    if link is None:
+                    current = self.store.get_record(event.aggregate_id)
+                    if current is not None and current.state is MemoryState.ACTIVE:
+                        # Governance restored the record after this retirement
+                        # was queued (or the retirement is a late retry); it is
+                        # current again and its projection must stay. The
+                        # reactivation carries its own project event.
+                        log.info(
+                            "projection_retire_skipped_active",
+                            extra={
+                                "event_id": str(event.event_id),
+                                "record_id": str(event.aggregate_id),
+                            },
+                        )
+                    elif link is None:
                         # Nothing was ever projected, so there is nothing to
                         # withdraw. Retirement is satisfied.
                         log.info(
@@ -180,26 +236,39 @@ class OutboxWorker:
                             )
                         )
                 elif event.event_type == "memory.record.erase":
-                    link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
-                    if link is None:
-                        raise RuntimeError(
-                            f"projection locator not found for {event.aggregate_id} on {self.projection.name}"
-                        )
-                    self.projection.erase(
-                        event.aggregate_id,
-                        event.namespace,
-                        locator=link.locator,
-                    )
-                    self.store.delete_projection_link(event.aggregate_id, self.projection.name)
                     receipt_id = event.payload.get("deletion_receipt_id")
                     if not isinstance(receipt_id, str):
                         raise RuntimeError("deletion outbox event lacks deletion_receipt_id")
-                    from uuid import UUID
-
+                    link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
+                    if link is None:
+                        # No projected copy is known to canonical state: the
+                        # record was never projected, or its projection was
+                        # already withdrawn by retirement. The end state
+                        # verified deletion requires -- no projected copy --
+                        # already holds, so the deletion completes instead of
+                        # retrying to DEAD and stranding the record in
+                        # deletion_pending (ADR-057, ADR-074). A late project
+                        # event cannot undo this: the worker never projects a
+                        # record that is no longer active.
+                        log.info(
+                            "projection_erase_noop",
+                            extra={
+                                "event_id": str(event.event_id),
+                                "record_id": str(event.aggregate_id),
+                            },
+                        )
+                    else:
+                        self.projection.erase(
+                            event.aggregate_id,
+                            event.namespace,
+                            locator=link.locator,
+                        )
+                        self.store.delete_projection_link(event.aggregate_id, self.projection.name)
                     self.store.complete_deletion(
                         event.aggregate_id,
                         UUID(receipt_id),
                         completed_at=now,
+                        actor=f"memory.outbox-worker:{self.worker_id}",
                     )
                 else:
                     raise RuntimeError(f"unsupported outbox event type: {event.event_type}")

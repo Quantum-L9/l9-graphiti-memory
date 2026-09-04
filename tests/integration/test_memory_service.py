@@ -101,11 +101,22 @@ def test_supersession_preserves_old_record(memory_service, principal) -> None:
 
 
 def test_conflicts_deny_phase_lock(memory_service, principal) -> None:
+    from l9_graphite_memory.contracts import MaintenanceOperation, MaintenanceRequest
+    from l9_graphite_memory.maintenance import MaintenanceService
+
     now = datetime.now(timezone.utc)
     assertion_a = MemoryAssertion(subject="service", predicate="endpoint", object="one")
     assertion_b = MemoryAssertion(subject="service", predicate="endpoint", object="two")
     memory_service.write(principal, request("one", assertion=assertion_a, valid_from=now))
     memory_service.write(principal, request("two", assertion=assertion_b, valid_from=now))
+    # A contradiction is a link reconciliation records on both records
+    # (ADR-081); until it runs, the report has nothing to consult.
+    assert not memory_service.conflicts(principal, "repo-a").has_conflicts
+    maintainer = principal.model_copy(update={"maintain_namespaces": ("repo-a",)})
+    MaintenanceService(memory_service).run(
+        maintainer,
+        MaintenanceRequest(namespace="repo-a", operations=(MaintenanceOperation.RECONCILE,)),
+    )
     report = memory_service.conflicts(principal, "repo-a")
     assert report.has_conflicts
     lock = memory_service.phase_lock(

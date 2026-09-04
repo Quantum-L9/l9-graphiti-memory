@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-08-20
+updated: 2026-09-04
 /L9_META -->
 
 
@@ -153,3 +153,35 @@ Extends ADR-025 (projections are rebuildable derivations) and narrows ADR-057
 (verified erasure) to privacy deletion only.
 
 No later ADR supersedes this decision as of 2026-08-20.
+
+## Amendments
+
+**2026-09-04 — every lifecycle transition carries projection intent.**
+
+The forensic codebase audit (`docs/audits/L9_GRAPHITI_MEMORY_FORENSIC_CODEBASE_AUDIT.md`,
+findings F-02, F-03, F-04) found three paths on which the projection and the
+canonical store still diverged:
+
+- Scheduled maintenance (ADR-075) superseded and archived records through the
+  store's `transition_state` primitive, which emits no outbox event, so the
+  projection kept serving them. `MemoryService.transition_lifecycle` is now the
+  only path for a lifecycle transition outside `write` and `apply_retention`.
+  It commits the status events, a `LifecycleTransitionReceipt`, and the
+  `memory.record.retire` event (or a `memory.record.project` event when
+  governance reactivates a record) in one `commit_lifecycle` transaction.
+  `MaintenanceService` calls it; nothing else calls `transition_state`.
+- The `memory.record.project` handler projected whatever record it found,
+  including one that had been superseded, archived, or deleted since the event
+  was enqueued. It now projects only a record that is still `ACTIVE` and
+  settles the event as delivered otherwise. The mirror holds for retirement:
+  a retire event for a record that governance has since reactivated is settled
+  without withdrawing anything.
+- The `memory.record.erase` handler dead-lettered when the projection link had
+  already been withdrawn by retirement, leaving the deletion permanently
+  `DELETION_PENDING`. With nothing left to erase it now completes the deletion,
+  mirroring the retire handler's no-link rule.
+
+Allowed transitions on this path: `ACTIVE → SUPERSEDED`, `ACTIVE → ARCHIVED`
+and `SUPERSEDED → ARCHIVED` under `MAINTAIN`; `SUPERSEDED → ACTIVE` and
+`ARCHIVED → ACTIVE` under `ADMIN`. Quarantine and deletion states are not
+governed here.

@@ -252,25 +252,30 @@ def test_rebuild_reprojects_records_whose_projection_was_withdrawn(
     assert projection.retired == [written.record_id]
     assert store.get_projection_link(written.record_id, "withdraw-only") is None
 
-    # Governance restores the record to active.
-    from l9_graphite_memory.contracts import MemoryStatusEvent
-
-    store.transition_state(
-        MemoryStatusEvent(
-            record_id=written.record_id,
-            previous_state=MemoryState.ARCHIVED,
-            new_state=MemoryState.ACTIVE,
-            reason="governance reversed the archive decision",
-            actor="tenant-a:operator",
-        )
+    # Governance restores the record to active through the service, which
+    # commits the transition with its own projection intent (ADR-074).
+    governance = maintainer.model_copy(update={"is_admin": True})
+    restored = service.transition_lifecycle(
+        governance,
+        "repo-a",
+        record_ids=(written.record_id,),
+        new_state=MemoryState.ACTIVE,
+        reason="governance reversed the archive decision",
     )
+    assert [item.new_state for item in restored.transitions] == [MemoryState.ACTIVE]
+    assert store.get_record(written.record_id).state is MemoryState.ACTIVE
+    _drain(worker)
+    assert projection.projected.count(written.record_id) == 2
+    assert store.get_projection_link(written.record_id, "withdraw-only") is not None
 
-    # Rebuild re-projects it, so the withdrawal was not permanent.
+    # A projection lost at the provider is recovered by rebuild, so the
+    # withdrawal was not permanent.
+    store.delete_projection_link(written.record_id, "withdraw-only")
     receipt = service.rebuild_projection(maintainer, "repo-a", apply=True)
     assert receipt.queued_record_ids == (written.record_id,)
     _drain(worker)
 
-    assert projection.projected.count(written.record_id) == 2
+    assert projection.projected.count(written.record_id) == 3
     assert store.get_projection_link(written.record_id, "withdraw-only") is not None
 
 

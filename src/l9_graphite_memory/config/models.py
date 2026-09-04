@@ -64,6 +64,10 @@ class MemorySettings(BaseModel):
     gate_ttl_minutes: int = Field(default=30, ge=1, le=1_440)
 
     projection_backend: Literal["none", "http", "zep"] = "none"
+    # ``package.module:factory`` returning a StructuredReviewProvider; the
+    # model binding stays outside this package (ADR-080). Unset means every
+    # quarantined record is reported as unreviewed by scheduled maintenance.
+    quarantine_review_provider: str | None = None
     graphiti_mcp_url: str | None = None
     graphiti_mcp_token: str | None = None
     zep_api_key: str | None = None

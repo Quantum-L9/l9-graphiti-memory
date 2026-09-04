@@ -42,8 +42,23 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      # The active-memory adapter conformance suite runs against the
+      # reference in-memory adapter and, with this service, against the real
+      # Redis adapter, so the lease, expiry, and deployment-scope contract is
+      # proven on the backend deployments use (ADR-065..068). Without the URL
+      # the Redis leg skips loudly, like the PostgreSQL matrix.
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
+      L9_MEMORY_TEST_REDIS_URL: redis://localhost:6379/0
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
@@ -51,7 +66,7 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: Sync locked environment
-        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres
+        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres --extra active
       - name: Put uv venv on PATH
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Expose src on PYTHONPATH
