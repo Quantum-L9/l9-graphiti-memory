@@ -7,8 +7,8 @@ path: docs/adr/ADR-057-verified-deletion-and-projection-erasure.md
 layer: adr
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-09-04
 /L9_META -->
 
 
@@ -79,3 +79,23 @@ Restore the pre-deletion backup only under approved incident procedure; otherwis
 Implements ADR-024 and extends ADR-018.
 
 No later ADR supersedes this decision as of 2026-07-22.
+
+## Amendments
+
+**2026-09-04 — deletion is evidenced and not repeatable.**
+
+The forensic codebase audit (findings F-11, F-13, F-03) found that deletion
+changed a record's state twice, to `DELETION_PENDING` and then `DELETED`,
+without appending either transition to the status-event ledger every other
+transition writes to; that a record already deleted or pending deletion could
+be deleted again, producing a second receipt and a second erase event; and
+that an erase event for a record whose projection had already been withdrawn
+dead-lettered instead of completing.
+
+`commit_deletion` now takes the `ACTIVE → DELETION_PENDING` status event and
+inserts it in the same transaction as the tombstone; `complete_deletion`
+appends `DELETION_PENDING → DELETED` when the erase is confirmed, with the
+worker's identity as actor. `MemoryService.delete` refuses a record already in
+either deletion state with an `AdmissionError`. An erase event that finds no
+projection link completes the deletion, as ADR-074 already ruled for
+retirement.

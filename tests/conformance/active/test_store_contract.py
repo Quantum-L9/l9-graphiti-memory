@@ -86,6 +86,84 @@ async def test_renew_expired_lease_raises(store, clock) -> None:
 
 
 @pytest.mark.asyncio
+async def test_renewal_extends_the_lease(store, clock) -> None:
+    """F-14: a session that heartbeats on time is never forced to re-register."""
+
+    identity = _make_identity()
+    lease = _make_lease(clock, identity, ttl=10)
+    await store.register(identity, lease)
+    for _ in range(4):
+        clock.advance(8)  # past the original 10s lease by the second step
+        await store.renew(lease)
+    assert await store.get_presence("agent-a", "instance-1") is not None
+    clock.advance(11)  # a missed heartbeat still lapses it
+    with pytest.raises(LeaseExpiredError):
+        await store.renew(lease)
+
+
+@pytest.mark.asyncio
+async def test_a_lease_with_the_wrong_id_cannot_act_on_the_registration(store, clock) -> None:
+    """F-14: the lease id is the proof of registration, not just the agent ids."""
+
+    from dataclasses import replace
+
+    identity = _make_identity()
+    lease = _make_lease(clock, identity)
+    await store.register(identity, lease)
+    forged = replace(lease, lease_id="forged")
+
+    with pytest.raises(LeaseExpiredError):
+        await store.renew(forged)
+    with pytest.raises(LeaseExpiredError):
+        await store.put_context(
+            forged,
+            expected_version=None,
+            draft=ActiveContextDraft(objective="hijack", status=AgentStatus.ACTIVE),
+        )
+    await store.unregister(forged)
+    assert await store.get_presence("agent-a", "instance-1") is not None
+    assert await store.get_context("agent-a", "instance-1") is None
+
+
+@pytest.mark.asyncio
+async def test_context_versions_restart_with_a_fresh_registration(store, clock) -> None:
+    """F-14: the version counter belongs to the registration it counted for."""
+
+    identity = _make_identity()
+    lease = _make_lease(clock, identity)
+    await store.register(identity, lease)
+    draft = ActiveContextDraft(objective="v1", status=AgentStatus.ACTIVE)
+    first = await store.put_context(lease, expected_version=None, draft=draft)
+    second = await store.put_context(lease, expected_version=first.version, draft=draft)
+    assert second.version == 2
+
+    await store.unregister(lease)
+    await store.register(identity, _make_lease(clock, identity))
+    fresh = await store.put_context(lease, expected_version=None, draft=draft)
+    assert fresh.version == 1
+
+
+@pytest.mark.asyncio
+async def test_list_active_is_scoped_to_the_deployment(store, clock) -> None:
+    """F-15: a scope for another deployment sees nothing from this one."""
+
+    identity = _make_identity()
+    await store.register(identity, _make_lease(clock, identity))
+    page = await store.list_active(
+        AgentScope(deployment_id="another-deployment"), cursor=None, limit=10
+    )
+    assert page.items == ()
+
+
+@pytest.mark.asyncio
+async def test_list_active_rejects_a_non_positive_limit(store) -> None:
+    """F-15: an empty page must not be mistaken for an empty deployment."""
+
+    with pytest.raises(ValueError):
+        await store.list_active(AgentScope(deployment_id="conformance-test"), cursor=None, limit=0)
+
+
+@pytest.mark.asyncio
 async def test_unregister_is_idempotent(store, clock) -> None:
     identity = _make_identity()
     lease = _make_lease(clock, identity)

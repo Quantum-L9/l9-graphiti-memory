@@ -590,7 +590,10 @@ def cmd_prune(args: argparse.Namespace) -> int:
         namespace = args.group_id or resolution.group_id
         if not namespace:
             raise L9MemoryError(resolution.error or "namespace is unresolved")
-        receipt = runtime.service.apply_retention(principal, namespace, apply=args.apply)
+        # --dry-run always wins over --apply: a preview flag must never archive.
+        receipt = runtime.service.apply_retention(
+            principal, namespace, apply=args.apply and not args.dry_run
+        )
         _print(receipt)
         return 0
     finally:

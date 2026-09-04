@@ -32,6 +32,7 @@ def _principal_from_config(config: TokenPrincipalConfig, *, auth_method: str) ->
         read_namespaces=config.read_namespaces,
         write_namespaces=config.write_namespaces,
         promote_namespaces=config.promote_namespaces,
+        maintain_namespaces=config.maintain_namespaces,
         is_admin=config.is_admin,
         is_global_admin=config.is_global_admin,
         auth_method=auth_method,

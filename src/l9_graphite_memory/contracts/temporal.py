@@ -14,11 +14,51 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _is_naive(value: datetime) -> bool:
+    return value.tzinfo is None or value.tzinfo.utcoffset(value) is None
+
+
+def require_utc(value: datetime | None) -> datetime | None:
+    """Normalize an ingress datetime to UTC and refuse naive values (ADR-029).
+
+    Every temporal coordinate is compared across records and across store
+    backends. SQLite compares the stored ISO text lexically and the in-memory
+    store compares Python datetimes, so a naive value or a non-UTC offset would
+    either sort wrongly or raise ``TypeError`` deep inside retrieval. Request
+    contracts therefore fail closed: a caller that omits the offset gets a
+    validation error naming the field rather than a silently mis-filed record.
+    """
+
+    if value is None:
+        return None
+    if _is_naive(value):
+        raise ValueError("datetime must be timezone-aware; ADR-029 requires UTC coordinates")
+    return value.astimezone(timezone.utc)
+
+
+def coerce_utc(value: datetime | None) -> datetime | None:
+    """Normalize a persisted datetime to UTC, reading a naive value as UTC.
+
+    Persisted contracts are read back from rows written by earlier releases,
+    some of which accepted naive values. Refusing them would make those rows
+    unreadable, so at rest the missing offset is interpreted as UTC -- the only
+    zone this system ever wrote -- and the value is normalized so that every
+    reader compares like with like. New input never reaches here naive: the
+    request contracts apply :func:`require_utc` first.
+    """
+
+    if value is None:
+        return None
+    if _is_naive(value):
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 class TemporalCoordinates(BaseModel):
@@ -31,6 +71,11 @@ class TemporalCoordinates(BaseModel):
     recorded_at: datetime = Field(default_factory=utc_now)
     source_observed_at: datetime | None = None
     superseded_at: datetime | None = None
+
+    @field_validator("valid_from", "valid_to", "recorded_at", "source_observed_at", "superseded_at")
+    @classmethod
+    def normalize_utc(cls, value: datetime | None) -> datetime | None:
+        return coerce_utc(value)
 
     @model_validator(mode="after")
     def validate_coordinates(self) -> TemporalCoordinates:

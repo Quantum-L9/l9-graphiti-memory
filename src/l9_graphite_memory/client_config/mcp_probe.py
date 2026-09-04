@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import selectors
 import subprocess
 import time
@@ -69,8 +70,18 @@ def _secret_values(env: dict[str, str]) -> tuple[str, ...]:
     return tuple(sorted(values, key=len, reverse=True))
 
 
+_URL_USERINFO = re.compile(r"(?P<scheme>[A-Za-z][A-Za-z0-9+.\-]*://)[^/@\s]+@")
+
+
 def redact_stderr(text: str, env: dict[str, str]) -> str:
-    """Remove any environment-derived secret material from captured stderr."""
+    """Remove any environment-derived secret material from captured stderr.
+
+    The name heuristic catches variables that announce themselves as secrets.
+    A connection string such as ``rediss://user:pw@host`` announces nothing in
+    its name, so credentials embedded in URLs are redacted structurally too;
+    the receipt is durable evidence and must not carry them.
+    """
+    text = _URL_USERINFO.sub(r"\g<scheme>[REDACTED]@", text)
     for value in _secret_values(env):
         if value in text:
             text = text.replace(value, "[REDACTED]")

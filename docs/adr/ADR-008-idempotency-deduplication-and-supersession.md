@@ -7,8 +7,8 @@ path: docs/adr/ADR-008-idempotency-deduplication-and-supersession.md
 layer: adr
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-09-04
 /L9_META -->
 
 
@@ -73,3 +73,23 @@ Export duplicate receipts and replay through the canonical service using preserv
 Replaces search-before-write duplicate guessing.
 
 No later ADR supersedes this decision as of 2026-07-21.
+
+## Amendments
+
+**2026-09-04 — replay identity under drift, races, and non-current targets.**
+
+The forensic codebase audit (findings F-07, F-09, F-10) narrowed three edges of
+this decision:
+
+- A replay carrying the same key and a different payload returned `DUPLICATE`
+  with no signal. It still resolves to the original record, and the receipt now
+  carries a warning that the replayed payload differs from the stored record,
+  so a caller that changed its content under an old key can see it.
+- Two retries racing between the duplicate lookup and the commit surfaced the
+  unique index violation as a generic `StoreError`. The adapters raise the
+  typed `IdempotencyConflict`; the service catches it, reads the record the
+  index chose, and returns the `DUPLICATE` receipt this decision promises.
+- Supersession accepted any target state, so a tombstone, a quarantined
+  candidate, or a record already pending deletion could be "corrected".
+  Only `ACTIVE`, `SUPERSEDED`, and `ARCHIVED` records can be superseded; any
+  other target is an `AdmissionError`.

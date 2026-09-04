@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-08-27
+updated: 2026-09-04
 /L9_META -->
 
 
@@ -189,3 +189,17 @@ Supersedes nothing. Not superseded.
 Refines the governed-write path introduced alongside the phase-lock contract
 and complements ADR-072's shared canonical backend, under which concurrent
 writers sharing one store are the expected deployment rather than an edge case.
+
+## Amendments
+
+**2026-09-04 — the snapshot is the complete active set.**
+
+The forensic codebase audit (finding F-06) found the rollback symptom this ADR
+predicted, from a cause it did not: `MemoryService.conflicts` built its digest
+from `list_records` with the store's default bound of 1,000 records, while
+every adapter re-verified the precondition over the whole active set. Past
+that bound the two digests could never agree and every governed write in the
+namespace failed with `PhaseLockSnapshotConflict`. `list_records` now accepts
+`limit=None`, the service digests the unbounded listing, and
+`tests/conformance/test_phase_lock_snapshot_scale.py` drives a governed write
+through a namespace of 1,001 records on every backend.

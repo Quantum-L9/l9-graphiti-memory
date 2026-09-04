@@ -16,13 +16,13 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .enums import ConfidenceMethod, EvidenceKind, MemoryClass
 from .evidence import Confidence, EvidenceRef, Provenance
 from .memory import MemoryAssertion
 from .privacy import ConsentGrant
-from .temporal import utc_now
+from .temporal import require_utc, utc_now
 
 
 class MemoryWriteRequest(BaseModel):
@@ -50,6 +50,11 @@ class MemoryWriteRequest(BaseModel):
     references: tuple[UUID, ...] = ()
     consent: ConsentGrant | None = None
     dry_run: bool = False
+
+    @field_validator("valid_from", "valid_to", "source_observed_at")
+    @classmethod
+    def require_utc_coordinates(cls, value: datetime | None) -> datetime | None:
+        return require_utc(value)
 
     @model_validator(mode="after")
     def validate_evidence(self) -> MemoryWriteRequest:
@@ -86,6 +91,11 @@ class MemorySearchRequest(BaseModel):
     limit: int = Field(default=20, ge=1, le=200)
     token_budget: int | None = Field(default=None, ge=64, le=64_000)
 
+    @field_validator("valid_at", "recorded_before")
+    @classmethod
+    def require_utc_coordinates(cls, value: datetime | None) -> datetime | None:
+        return require_utc(value)
+
 
 class HydrationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -98,6 +108,13 @@ class HydrationRequest(BaseModel):
     valid_at: datetime = Field(default_factory=utc_now)
     token_budget: int = Field(default=1_200, ge=128, le=64_000)
     max_records: int = Field(default=40, ge=1, le=200)
+
+    @field_validator("valid_at")
+    @classmethod
+    def require_utc_coordinates(cls, value: datetime) -> datetime:
+        normalized = require_utc(value)
+        assert normalized is not None
+        return normalized
 
 
 class PromotionRequest(BaseModel):

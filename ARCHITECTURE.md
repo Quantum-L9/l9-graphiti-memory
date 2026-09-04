@@ -131,6 +131,8 @@ Projections have three operations (ADR-074). `project` makes a current record re
 
 Adapters declare a `retirement_mode`. A provider that can deactivate a projected record is `native`; one offering only removal is `withdraw`. Graphiti is `withdraw`, so retirement there removes the episode and is undone by `rebuild-projection` rather than reactivated in place. Every retirement writes a receipt to canonical state, so the retirement/erasure distinction does not depend on the provider's own log (ADR-076).
 
+Every lifecycle transition outside `write` and `apply_retention` goes through `MemoryService.transition_lifecycle`, which commits the status events, a `LifecycleTransitionReceipt`, and the matching projection intent in one transaction: retirement when a record leaves `ACTIVE`, re-projection when governance restores one. Scheduled maintenance supersedes and archives through it. The outbox worker projects only a record that is still `ACTIVE` when the event is delivered and withdraws only one that is still retired, so a late or retried event can never re-materialise stale content or undo a reactivation. An erase event that finds no projection link completes the deletion, as a retire event that finds none settles as delivered (ADR-074 amendment, 2026-09-04).
+
 ## Projection erasure
 
 Projection writes must return or establish a stable episode locator. The locator is stored in the canonical store as a `ProjectionLink`. A deletion outbox event loads that locator and invokes the provider deletion operation. Graphiti uses `delete_episode`; Zep uses `graph.episode.delete`. The link is removed only after provider confirmation, then the canonical deletion receipt becomes complete.

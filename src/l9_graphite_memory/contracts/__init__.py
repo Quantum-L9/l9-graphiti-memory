@@ -73,6 +73,8 @@ from .receipts import (
     DeletionReceipt,
     HealthReport,
     HydrationResult,
+    LifecycleTransition,
+    LifecycleTransitionReceipt,
     OutboxEvent,
     PhaseLockReceipt,
     PhaseLockVerification,
@@ -92,7 +94,7 @@ from .requests import (
     PhaseLockRequest,
     PromotionRequest,
 )
-from .temporal import TemporalCoordinates, utc_now
+from .temporal import TemporalCoordinates, coerce_utc, require_utc, utc_now
 
 __all__ = [
     "ALL_MAINTENANCE_OPERATIONS",
@@ -122,6 +124,8 @@ __all__ = [
     "HydrationRequest",
     "HydrationResult",
     "IdentityProfile",
+    "LifecycleTransition",
+    "LifecycleTransitionReceipt",
     "LineSourceLocator",
     "MaintenanceAction",
     "MaintenanceOperation",
@@ -166,5 +170,7 @@ __all__ = [
     "TemporalCoordinates",
     "WriteReceipt",
     "WriteStatus",
+    "coerce_utc",
+    "require_utc",
     "utc_now",
 ]

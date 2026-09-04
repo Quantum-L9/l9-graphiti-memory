@@ -23,7 +23,7 @@ from l9_graphite_memory.version import MEMORY_SCHEMA_VERSION
 from .enums import MemoryClass, MemoryState
 from .evidence import Confidence, EvidenceRef, Provenance
 from .privacy import ConsentGrant
-from .temporal import TemporalCoordinates, utc_now
+from .temporal import TemporalCoordinates, coerce_utc, utc_now
 
 
 class MemoryAssertion(BaseModel):
@@ -74,6 +74,13 @@ class MemoryRecord(BaseModel):
     def normalize_tags(cls, value: tuple[str, ...]) -> tuple[str, ...]:
         return tuple(sorted({tag.strip().lower() for tag in value if tag.strip()}))
 
+    @field_validator("created_at")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        normalized = coerce_utc(value)
+        assert normalized is not None
+        return normalized
+
 
 class MemoryStatusEvent(BaseModel):
     """Append-only lifecycle evidence for a memory record."""
@@ -88,3 +95,10 @@ class MemoryStatusEvent(BaseModel):
     actor: str = Field(min_length=1, max_length=300)
     occurred_at: datetime = Field(default_factory=utc_now)
     receipt_id: UUID | None = None
+
+    @field_validator("occurred_at")
+    @classmethod
+    def normalize_occurred_at(cls, value: datetime) -> datetime:
+        normalized = coerce_utc(value)
+        assert normalized is not None
+        return normalized

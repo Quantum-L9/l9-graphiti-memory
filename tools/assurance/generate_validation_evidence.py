@@ -71,8 +71,18 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # fifteen CI skips (ten constellation-SDK, five cross-repo) -- and it
         # reproduces the old pin exactly on main: 623 collected - 15 = 608.
         # This branch collects 664, so 664 - 15 = 649.
-        "649 tests pass",
-        r"649 passed",
+        #
+        # Re-pinned 649 -> 715 for the 2026-09-04 forensic repair: 66 cases
+        # added across test_lifecycle_projection_consistency.py,
+        # test_phase_lock_snapshot_scale.py, test_temporal_law.py,
+        # test_idempotency_race_and_drift.py,
+        # test_retrieval_projection_hydration.py, test_probe_redaction.py,
+        # test_graphiti_http_projection_loop.py, the active-store conformance
+        # suite, and test_authz.py. Same arithmetic: this branch collects 730,
+        # so 730 - 15 = 715. Locally, export L9_MEMORY_TEST_POSTGRES_DSN to
+        # reproduce the CI figure; without it the postgres legs skip.
+        "715 tests pass",
+        r"715 passed",
     ),
     CheckSpec(
         "V-002",

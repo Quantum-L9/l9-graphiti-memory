@@ -23,7 +23,7 @@ from __future__ import annotations
 import asyncio
 import itertools
 from collections.abc import AsyncIterator, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 
 from l9_graphite_memory.active.deployment import ActiveDeployment
@@ -98,6 +98,8 @@ class InMemoryActiveStore:
         self._presences: dict[tuple[str, str], AgentPresence] = {}
         self._contexts: dict[tuple[str, str], ActiveContext] = {}
         self._leases: dict[tuple[str, str], AgentLease] = {}
+        # Renewal extends the lease by the interval the lease was issued for.
+        self._lease_ttl: dict[tuple[str, str], timedelta] = {}
         self._presence_version_counter = itertools.count(start=1)
         self._context_version_counter: dict[tuple[str, str], int] = {}
         self._lock = asyncio.Lock()
@@ -147,19 +149,38 @@ class InMemoryActiveStore:
             )
             self._presences[key] = presence
             self._leases[key] = lease
+            self._lease_ttl[key] = lease.expires_at - lease.issued_at
             return presence
+
+    def _valid_lease(self, lease: AgentLease, now: datetime) -> AgentLease:
+        """Return the stored lease this caller holds, or raise.
+
+        The lease is the proof of registration, so the supplied ``lease_id``
+        must match the one issued: a caller who merely knows an agent and
+        instance id cannot renew, write, or unregister on that agent's behalf.
+        """
+
+        key = (lease.agent_id, lease.instance_id)
+        stored = self._leases.get(key)
+        if stored is None or stored.lease_id != lease.lease_id or stored.is_expired(now):
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
+        return stored
 
     async def renew(self, lease: AgentLease) -> AgentPresence:
         self._check_available()
         async with self._lock:
             key = (lease.agent_id, lease.instance_id)
             now = self._clock()
-            stored_lease = self._leases.get(key)
-            if stored_lease is None or stored_lease.is_expired(now):
-                raise LeaseExpiredError(lease.agent_id, lease.instance_id)
+            stored_lease = self._valid_lease(lease, now)
             existing = self._presences.get(key)
             if existing is None or existing.is_expired(now):
                 raise LeaseExpiredError(lease.agent_id, lease.instance_id)
+            # A heartbeat extends the lease; a session that keeps renewing on
+            # time is never forced to re-register.
+            self._leases[key] = replace(
+                stored_lease,
+                expires_at=now + self._lease_ttl.get(key, stored_lease.expires_at - now),
+            )
             renewed = AgentPresence(
                 identity=existing.identity,
                 status=existing.status,
@@ -176,9 +197,18 @@ class InMemoryActiveStore:
         self._check_available()
         async with self._lock:
             key = (lease.agent_id, lease.instance_id)
+            stored = self._leases.get(key)
+            if stored is not None and stored.lease_id != lease.lease_id:
+                # Idempotent for the holder, inert for anyone else.
+                return
             self._presences.pop(key, None)
             self._contexts.pop(key, None)
             self._leases.pop(key, None)
+            self._lease_ttl.pop(key, None)
+            # A fresh registration starts its context history at version 1,
+            # as the Redis adapter does; the counter must not survive the
+            # registration it counted for.
+            self._context_version_counter.pop(key, None)
 
     async def put_context(
         self,
@@ -190,9 +220,7 @@ class InMemoryActiveStore:
         async with self._lock:
             key = (lease.agent_id, lease.instance_id)
             now = self._clock()
-            stored_lease = self._leases.get(key)
-            if stored_lease is None or stored_lease.is_expired(now):
-                raise LeaseExpiredError(lease.agent_id, lease.instance_id)
+            self._valid_lease(lease, now)
             presence = self._presences.get(key)
             if presence is None:
                 raise LeaseExpiredError(lease.agent_id, lease.instance_id)
@@ -267,6 +295,8 @@ class InMemoryActiveStore:
         self, scope: AgentScope, cursor: str | None, limit: int
     ) -> _InMemoryAgentPage:
         self._check_available()
+        if limit < 1:
+            raise ValueError("limit must be at least 1")
         async with self._lock:
             now = self._clock()
             matches = [

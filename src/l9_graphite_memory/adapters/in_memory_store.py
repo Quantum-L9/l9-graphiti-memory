@@ -21,6 +21,7 @@ from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
     DeletionStatus,
+    LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
@@ -34,7 +35,11 @@ from l9_graphite_memory.contracts import (
     ProjectionRetirementReceipt,
     WriteReceipt,
 )
-from l9_graphite_memory.errors import PhaseLockSnapshotConflict, StoreError
+from l9_graphite_memory.errors import (
+    IdempotencyConflict,
+    PhaseLockSnapshotConflict,
+    StoreError,
+)
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
 from l9_graphite_memory.ports.service_capability import (
     ServiceWriteCapability,
@@ -58,6 +63,7 @@ class InMemoryRecordStore:
         self.maintenance_runs: list[MaintenanceRunReceipt] = []
         self.projection_retirements: list[ProjectionRetirementReceipt] = []
         self.projection_rebuilds: list[ProjectionRebuildReceipt] = []
+        self.lifecycle_receipts: dict[UUID, LifecycleTransitionReceipt] = {}
         self.initialized = False
         self._write_lock = threading.RLock()
 
@@ -94,12 +100,31 @@ class InMemoryRecordStore:
                 key = (record.tenant_id, record.namespace, record.idempotency_key)
                 existing_id = self.idempotency.get(key)
                 if existing_id is not None and existing_id != record.record_id:
-                    raise ValueError("duplicate idempotency key")
+                    raise IdempotencyConflict(
+                        "operation identity already committed by a concurrent write: "
+                        f"{record.idempotency_key}"
+                    )
+            # Insert the record, then verify every transition before applying
+            # any, so a failed status event cannot leave a half-applied commit
+            # behind: the insert is rolled back and nothing else was touched.
+            if record is not None:
                 self.records[record.record_id] = record
-                self.idempotency[key] = record.record_id
+                self.idempotency[(record.tenant_id, record.namespace, record.idempotency_key)] = (
+                    record.record_id
+                )
+            try:
+                for status_event in status_events:
+                    self._check_transition(status_event)
+            except StoreError:
+                if record is not None:
+                    del self.records[record.record_id]
+                    del self.idempotency[
+                        (record.tenant_id, record.namespace, record.idempotency_key)
+                    ]
+                raise
             self.receipts[receipt.receipt_id] = receipt
             for status_event in status_events:
-                self.transition_state(status_event)
+                self._apply_transition(status_event)
             for outbox_event in outbox_events:
                 self.outbox[outbox_event.event_id] = outbox_event
 
@@ -166,7 +191,7 @@ class InMemoryRecordStore:
         namespace: str,
         *,
         states: tuple[MemoryState, ...] = (),
-        limit: int = 1_000,
+        limit: int | None = 1_000,
     ) -> list[MemoryRecord]:
         state_set = set(states)
         records = [
@@ -176,12 +201,22 @@ class InMemoryRecordStore:
             and record.namespace == namespace
             and (not state_set or record.state in state_set)
         ]
-        return sorted(records, key=lambda item: item.temporal.recorded_at, reverse=True)[:limit]
+        ordered = sorted(records, key=lambda item: item.temporal.recorded_at, reverse=True)
+        return ordered if limit is None else ordered[:limit]
 
-    def transition_state(self, event: MemoryStatusEvent) -> None:
+    def _check_transition(self, event: MemoryStatusEvent) -> MemoryRecord:
         record = self.records.get(event.record_id)
         if record is None:
-            raise KeyError(f"record not found: {event.record_id}")
+            raise StoreError(f"status transition target not found: {event.record_id}")
+        if event.previous_state is not None and record.state is not event.previous_state:
+            raise StoreError(
+                f"status transition expected {event.previous_state.value} "
+                f"but found {record.state.value}: {event.record_id}"
+            )
+        return record
+
+    def _apply_transition(self, event: MemoryStatusEvent) -> None:
+        record = self._check_transition(event)
         temporal = record.temporal
         if event.new_state is MemoryState.SUPERSEDED:
             temporal = temporal.model_copy(update={"superseded_at": event.occurred_at})
@@ -189,6 +224,34 @@ class InMemoryRecordStore:
             update={"state": event.new_state, "temporal": temporal}
         )
         self.status_events.append(event)
+
+    def transition_state(
+        self, capability: ServiceWriteCapability, event: MemoryStatusEvent
+    ) -> None:
+        require_service_write_capability(capability)
+        with self._write_lock:
+            self._apply_transition(event)
+
+    def commit_lifecycle(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LifecycleTransitionReceipt,
+        *,
+        status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        event_ids = {event.record_id for event in status_events}
+        if event_ids != {item.record_id for item in receipt.transitions}:
+            raise StoreError("lifecycle receipt and status events target different records")
+        with self._write_lock:
+            for event in status_events:
+                self._check_transition(event)
+            self.lifecycle_receipts[receipt.receipt_id] = receipt
+            for event in status_events:
+                self._apply_transition(event)
+            for outbox_event in outbox_events:
+                self.outbox[outbox_event.event_id] = outbox_event
 
     def save_phase_lock(
         self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
@@ -292,7 +355,9 @@ class InMemoryRecordStore:
             by_class[record.memory_class.value] = by_class.get(record.memory_class.value, 0) + 1
         return {
             "records": len(self.records),
-            "receipts": len(self.receipts) + len(self.archive_receipts),
+            "receipts": len(self.receipts)
+            + len(self.archive_receipts)
+            + len(self.lifecycle_receipts),
             "outbox_backlog": self.outbox_backlog(),
             "by_state": by_state,
             "by_class": by_class,
@@ -385,25 +450,19 @@ class InMemoryRecordStore:
     ) -> None:
         require_service_write_capability(capability)
         if not receipt.applied:
-            raise ValueError("cannot persist a non-applied archive receipt")
+            raise StoreError("cannot persist a non-applied archive receipt")
         event_ids = {event.record_id for event in status_events}
         if event_ids != set(receipt.archived_record_ids):
-            raise ValueError("archive receipt and status events target different records")
+            raise StoreError("archive receipt and status events target different records")
 
-        updates: dict[UUID, MemoryRecord] = {}
-        for event in status_events:
-            record = self.records.get(event.record_id)
-            if record is None:
-                raise KeyError(f"record not found: {event.record_id}")
-            if event.previous_state is not None and record.state is not event.previous_state:
-                raise ValueError(f"record state changed before archive: {event.record_id}")
-            updates[event.record_id] = record.model_copy(update={"state": event.new_state})
-
-        self.records.update(updates)
-        self.status_events.extend(status_events)
-        self.archive_receipts[receipt.receipt_id] = receipt
-        for outbox_event in outbox_events:
-            self.outbox[outbox_event.event_id] = outbox_event
+        with self._write_lock:
+            for event in status_events:
+                self._check_transition(event)
+            self.archive_receipts[receipt.receipt_id] = receipt
+            for event in status_events:
+                self._apply_transition(event)
+            for outbox_event in outbox_events:
+                self.outbox[outbox_event.event_id] = outbox_event
 
     def commit_deletion(
         self,
@@ -412,14 +471,25 @@ class InMemoryRecordStore:
         redacted_record: MemoryRecord,
         *,
         outbox_event: OutboxEvent | None,
+        status_event: MemoryStatusEvent,
     ) -> None:
         require_service_write_capability(capability)
         if redacted_record.record_id != receipt.record_id:
-            raise ValueError("deletion receipt and record target differ")
-        self.records[redacted_record.record_id] = redacted_record
-        self.deletion_receipts[receipt.receipt_id] = receipt
-        if outbox_event is not None:
-            self.outbox[outbox_event.event_id] = outbox_event
+            raise StoreError("deletion receipt and record target differ")
+        if (
+            status_event.record_id != receipt.record_id
+            or status_event.new_state is not redacted_record.state
+        ):
+            raise StoreError("deletion status event does not describe the tombstone transition")
+        with self._write_lock:
+            if redacted_record.record_id not in self.records:
+                raise StoreError(f"deletion target not found: {receipt.record_id}")
+            self._check_transition(status_event)
+            self.status_events.append(status_event)
+            self.records[redacted_record.record_id] = redacted_record
+            self.deletion_receipts[receipt.receipt_id] = receipt
+            if outbox_event is not None:
+                self.outbox[outbox_event.event_id] = outbox_event
 
     def complete_deletion(
         self,
@@ -427,12 +497,25 @@ class InMemoryRecordStore:
         receipt_id: UUID,
         *,
         completed_at: datetime,
+        actor: str = "memory.outbox-worker",
     ) -> None:
-        record = self.records.get(record_id)
-        receipt = self.deletion_receipts.get(receipt_id)
-        if record is None or receipt is None:
-            raise KeyError("deletion record or receipt not found")
-        self.records[record_id] = record.model_copy(update={"state": MemoryState.DELETED})
-        self.deletion_receipts[receipt_id] = receipt.model_copy(
-            update={"status": DeletionStatus.COMPLETE, "completed_at": completed_at}
-        )
+        with self._write_lock:
+            record = self.records.get(record_id)
+            receipt = self.deletion_receipts.get(receipt_id)
+            if record is None or receipt is None:
+                raise StoreError("deletion record or receipt not found")
+            if record.state is not MemoryState.DELETED:
+                self._apply_transition(
+                    MemoryStatusEvent(
+                        record_id=record_id,
+                        previous_state=record.state,
+                        new_state=MemoryState.DELETED,
+                        reason="projection erasure confirmed; verified deletion complete",
+                        actor=actor,
+                        occurred_at=completed_at,
+                        receipt_id=receipt_id,
+                    )
+                )
+            self.deletion_receipts[receipt_id] = receipt.model_copy(
+                update={"status": DeletionStatus.COMPLETE, "completed_at": completed_at}
+            )

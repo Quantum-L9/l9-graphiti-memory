@@ -19,6 +19,7 @@ from uuid import UUID
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     DeletionReceipt,
+    LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
     MemorySearchRequest,
@@ -64,6 +65,11 @@ class RecordStore(Protocol):
         ``PhaseLockSnapshotConflict`` when it no longer matches. Verifying
         before the transaction is not sufficient: a concurrent writer sharing
         the store can change the namespace in between (ADR-079).
+
+        When the record's ``(tenant_id, namespace, idempotency_key)`` is already
+        held by another record the implementation must raise
+        ``IdempotencyConflict`` and leave nothing behind, so the service can
+        resolve the race into a DUPLICATE receipt (ADR-008).
         """
         ...
 
@@ -89,10 +95,46 @@ class RecordStore(Protocol):
         namespace: str,
         *,
         states: tuple[MemoryState, ...] = (),
-        limit: int = 1_000,
-    ) -> list[MemoryRecord]: ...
+        limit: int | None = 1_000,
+    ) -> list[MemoryRecord]:
+        """Most-recent-first records in one namespace.
 
-    def transition_state(self, event: MemoryStatusEvent) -> None: ...
+        ``limit=None`` returns every matching record. The phase-lock snapshot
+        digest is computed over the complete active set, so the service must be
+        able to read the same set the store re-verifies in-transaction; a
+        bounded listing there would make the two digests disagree (ADR-079).
+        """
+        ...
+
+    def transition_state(
+        self, capability: ServiceWriteCapability, event: MemoryStatusEvent
+    ) -> None:
+        """Append one lifecycle event and move the record between states.
+
+        A canonical mutation like the commit methods, so it carries the
+        service-issued capability (ADR-036). Production callers go through
+        ``MemoryService.transition_lifecycle`` so the transition commits with
+        its receipt and projection intent; this single-event primitive exists
+        for the adapters' own composition and for conformance work.
+        """
+        ...
+
+    def commit_lifecycle(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LifecycleTransitionReceipt,
+        *,
+        status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
+    ) -> None:
+        """Atomically record governed lifecycle transitions.
+
+        The receipt, every status event, and the projection intent the
+        transitions imply (retire on SUPERSEDED/ARCHIVED, project on
+        reactivation) commit together or not at all, so the projection can
+        never disagree with canonical state about what is current (ADR-074).
+        """
+        ...
 
     def save_phase_lock(
         self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
@@ -206,7 +248,15 @@ class RecordStore(Protocol):
         redacted_record: MemoryRecord,
         *,
         outbox_event: OutboxEvent | None,
-    ) -> None: ...
+        status_event: MemoryStatusEvent,
+    ) -> None:
+        """Atomically tombstone a record under a verified deletion receipt.
+
+        ``status_event`` is the lifecycle evidence for the transition into
+        DELETION_PENDING or DELETED; the append-only ledger must record privacy
+        deletions like every other transition (ADR-024, ADR-057).
+        """
+        ...
 
     def complete_deletion(
         self,
@@ -214,4 +264,11 @@ class RecordStore(Protocol):
         receipt_id: UUID,
         *,
         completed_at: datetime,
-    ) -> None: ...
+        actor: str = "memory.outbox-worker",
+    ) -> None:
+        """Mark projection erasure confirmed: DELETION_PENDING becomes DELETED.
+
+        Appends the DELETED lifecycle event attributed to ``actor`` and marks
+        the deletion receipt COMPLETE. Idempotent for an already-DELETED record.
+        """
+        ...

@@ -29,11 +29,13 @@ _ALLOWED_COMMIT_CALLERS = {
 }
 # Lifecycle transitions append a status event and move a record between states.
 # They never rewrite content, and the store enforces the expected previous
-# state, but they still mutate canonical state, so the set of modules allowed
-# to perform one is explicit rather than incidental.
+# state, but they still mutate canonical state. Since the transition primitive
+# carries the service write capability like every other canonical mutation,
+# the only production caller is the control plane: maintenance and governance
+# reach it through MemoryService.transition_lifecycle, which commits the
+# transition with its receipt and projection intent (ADR-036, ADR-074).
 _ALLOWED_TRANSITION_CALLERS = {
     "src/l9_graphite_memory/services/memory_service.py",
-    "src/l9_graphite_memory/maintenance/service.py",
     # Store adapters implement the operation; they are not callers of it.
     "src/l9_graphite_memory/adapters/in_memory_store.py",
     "src/l9_graphite_memory/adapters/sqlite_store.py",
@@ -67,6 +69,10 @@ _GUARDED_STORE_METHODS = {
     # Enqueues projection events inside a receipt transaction, so it is a
     # canonical mutation and carries the same capability (ADR-076).
     "commit_projection_rebuild",
+    # Governed lifecycle transitions and the single-event primitive beneath
+    # them move records between states; both carry the capability (ADR-074).
+    "commit_lifecycle",
+    "transition_state",
 }
 # Only these modules may reference the service write capability. Anything else
 # forwarding it would be minting proof-of-service for a bypass.

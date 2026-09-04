@@ -7,8 +7,8 @@ path: docs/adr/ADR-029-temporal-coordinate-model.md
 layer: adr
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-09-04
 /L9_META -->
 
 
@@ -73,3 +73,21 @@ Convert legacy timestamps through explicit upcasters and retain raw values in mi
 Expands ADR-004 with field-level law.
 
 No later ADR supersedes this decision as of 2026-07-21.
+
+## Amendments
+
+**2026-09-04 — the boundary enforces the law.**
+
+The forensic codebase audit (finding F-08) found that nothing enforced "all
+values are timezone-aware UTC": request contracts accepted naive datetimes,
+SQLite compared the stored ISO text lexically so a `+02:00` coordinate filed
+against its UTC neighbours in the wrong order, and the in-memory store raised a
+`TypeError` that retrieval swallowed into a FAILED receipt.
+
+`contracts.temporal.require_utc` now rejects naive values and normalises every
+aware value to UTC on `MemoryWriteRequest`, `MemorySearchRequest`,
+`HydrationRequest`, and `TemporalCoordinates`. `coerce_utc` reads a naive value
+already persisted as UTC on `MemoryRecord`, `MemoryStatusEvent`, `ConsentGrant`,
+`Provenance`, `EvidenceRef`, and `Confidence`, so rows written before the
+boundary existed stay readable. Normalising to UTC makes the stored ISO text
+lexically ordered, which is what the SQLite comparisons required all along.

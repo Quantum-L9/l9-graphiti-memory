@@ -29,14 +29,13 @@ from l9_graphite_memory.contracts import (
     MemoryPrincipal,
     MemoryRecord,
     MemoryState,
-    MemoryStatusEvent,
     MemoryWriteRequest,
     OperationStatus,
     Provenance,
     WriteStatus,
 )
 from l9_graphite_memory.curation import RetentionPolicy
-from l9_graphite_memory.errors import AuthorizationError, StoreError
+from l9_graphite_memory.errors import AdmissionError, AuthorizationError, StoreError
 from l9_graphite_memory.observability import get_logger
 from l9_graphite_memory.services import MemoryService
 from l9_graphite_memory.version import PACKAGE_VERSION
@@ -212,55 +211,45 @@ class MaintenanceService:
             )
         return action.model_copy(update={"applied": True, "result_record_id": receipt.record_id})
 
-    def _apply_supersede(
+    def _apply_transition(
         self,
         principal: MemoryPrincipal,
         action: MaintenanceAction,
         by_id: dict[UUID, MemoryRecord],
         *,
-        now: datetime,
+        namespace: str,
+        record_ids: tuple[UUID, ...],
+        new_state: MemoryState,
     ) -> MaintenanceAction:
-        for record_id in action.superseded_record_ids:
-            record = by_id.get(record_id)
-            if record is None:
-                raise StoreError(f"supersession target is unavailable: {record_id}")
-            if record.state is not MemoryState.ACTIVE:
-                continue
-            self.store.transition_state(
-                MemoryStatusEvent(
-                    record_id=record_id,
-                    previous_state=MemoryState.ACTIVE,
-                    new_state=MemoryState.SUPERSEDED,
-                    reason=action.reason,
-                    actor=principal.audit_subject,
-                    occurred_at=now,
-                )
-            )
-        return action.model_copy(update={"applied": True})
+        """Supersede or archive through the service, never the store.
 
-    def _apply_archive(
-        self,
-        principal: MemoryPrincipal,
-        action: MaintenanceAction,
-        by_id: dict[UUID, MemoryRecord],
-        *,
-        now: datetime,
-    ) -> MaintenanceAction:
-        for record_id in action.archived_record_ids:
+        The transition must commit together with the projection retirement it
+        implies, or the provider keeps serving a fact the canonical store has
+        already retired (ADR-074). ``MemoryService.transition_lifecycle`` owns
+        that atomicity and the receipt; maintenance only decides which records.
+        """
+
+        targets: list[UUID] = []
+        for record_id in record_ids:
             record = by_id.get(record_id)
             if record is None:
-                raise StoreError(f"archive target is unavailable: {record_id}")
+                raise StoreError(f"{new_state.value} target is unavailable: {record_id}")
             if record.state is not MemoryState.ACTIVE:
                 continue
-            self.store.transition_state(
-                MemoryStatusEvent(
-                    record_id=record_id,
-                    previous_state=MemoryState.ACTIVE,
-                    new_state=MemoryState.ARCHIVED,
-                    reason=action.reason,
-                    actor=principal.audit_subject,
-                    occurred_at=now,
-                )
+            targets.append(record_id)
+        if targets:
+            receipt = self.service.transition_lifecycle(
+                principal,
+                namespace,
+                record_ids=tuple(targets),
+                new_state=new_state,
+                reason=action.reason,
+            )
+            return action.model_copy(
+                update={
+                    "applied": True,
+                    "details": {**action.details, "lifecycle_receipt_id": str(receipt.receipt_id)},
+                }
             )
         return action.model_copy(update={"applied": True})
 
@@ -336,17 +325,24 @@ class MaintenanceService:
                     )
                 elif action.operation is MaintenanceOperation.SUPERSEDE:
                     applied.append(
-                        self._apply_supersede(
-                            principal, action, by_id, now=self.service.clock.now()
+                        self._apply_transition(
+                            principal,
+                            action,
+                            by_id,
+                            namespace=request.namespace,
+                            record_ids=action.superseded_record_ids,
+                            new_state=MemoryState.SUPERSEDED,
                         )
                     )
                 elif action.operation is MaintenanceOperation.ARCHIVE:
                     applied.append(
-                        self._apply_archive(
+                        self._apply_transition(
                             principal,
                             action,
                             by_id,
-                            now=self.service.clock.now(),
+                            namespace=request.namespace,
+                            record_ids=action.archived_record_ids,
+                            new_state=MemoryState.ARCHIVED,
                         )
                     )
                 else:
@@ -357,7 +353,7 @@ class MaintenanceService:
                     # it, rather than being silently suppressed after the first
                     # sighting.
                     applied.append(action)
-            except (StoreError, AuthorizationError) as exc:
+            except (StoreError, AuthorizationError, AdmissionError) as exc:
                 failures.append(f"{action.operation.value}: {exc}")
                 log.warning(
                     "maintenance_action_failed",

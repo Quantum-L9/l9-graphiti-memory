@@ -40,6 +40,29 @@ def test_token_authenticator_uses_server_claims() -> None:
     assert principal.auth_method == "bearer"
 
 
+def test_token_authenticator_carries_every_configured_grant() -> None:
+    """F-01: a bearer principal must not lose a configured grant in transit."""
+
+    config = TokenPrincipalConfig(
+        principal_id="nightly",
+        tenant_id="tenant",
+        read_namespaces=("repo-a",),
+        write_namespaces=("repo-w",),
+        promote_namespaces=("repo-p",),
+        maintain_namespaces=("repo-a",),
+    )
+    principal = TokenAuthenticator({"tok": config}).authenticate("Bearer tok")
+
+    for field in (
+        "read_namespaces",
+        "write_namespaces",
+        "promote_namespaces",
+        "maintain_namespaces",
+    ):
+        assert getattr(principal, field) == getattr(config, field), field
+    assert NamespacePolicy().evaluate(principal, AuthorizationAction.MAINTAIN, "repo-a").allowed
+
+
 def test_token_authenticator_rejects_invalid_token() -> None:
     auth = TokenAuthenticator({})
     with pytest.raises(AuthenticationError):

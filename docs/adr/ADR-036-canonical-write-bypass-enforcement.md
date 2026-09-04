@@ -7,8 +7,8 @@ path: docs/adr/ADR-036-canonical-write-bypass-enforcement.md
 layer: adr
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-09-04
 /L9_META -->
 
 
@@ -80,3 +80,17 @@ Disable a false-positive rule with a narrow manifest entry; do not delete the en
 Harvests GMP-129 bypass detection and strengthens it.
 
 No later ADR supersedes this decision as of 2026-07-21.
+
+## Amendments
+
+**2026-09-04 — the capability covers every canonical mutation.**
+
+The forensic codebase audit (finding F-05) found that `RecordStore.transition_state`
+mutated a record's lifecycle state without presenting the capability, and that
+the bypass scanner allowed the maintenance package to call it. Both gaps are
+closed: `transition_state` and the new `commit_lifecycle` take the
+`ServiceWriteCapability` like every other mutation, the scanner guards both
+names, and the only callers it permits are `MemoryService` and the three store
+adapters. The list of guarded methods in the Decision above therefore reads
+`commit_write`, `commit_deletion`, `commit_archive`, `commit_lifecycle`,
+`transition_state`, `save_phase_lock`.
