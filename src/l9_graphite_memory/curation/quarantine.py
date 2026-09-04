@@ -49,7 +49,8 @@ class StructuredReviewProvider(Protocol):
     ``blockers`` (list of strings), ``model`` (string).
     """
 
-    def review(self, payload: dict[str, Any]) -> dict[str, Any]: ...
+    def review(self, payload: dict[str, Any]) -> dict[str, Any]:
+        raise NotImplementedError
 
 
 def review_payload(record: MemoryRecord) -> dict[str, Any]:

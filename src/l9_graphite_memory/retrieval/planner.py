@@ -73,7 +73,7 @@ class RetrievalPlanner:
             allowed_states.add(MemoryState.SUPERSEDED)
         if request.include_archived:
             allowed_states.add(MemoryState.ARCHIVED)
-        recorded_before = request.recorded_before or now
+        recorded_before = request.recorded_before or request.valid_at or now
         hydrated = list(records)
         for record_id in projection_scores:
             if record_id in known:

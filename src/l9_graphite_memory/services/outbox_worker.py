@@ -142,19 +142,42 @@ class OutboxWorker:
                                 f"projection {self.projection.name} did not return a stable "
                                 f"locator for record {record.record_id}"
                             )
-                        self.store.save_projection_link(
-                            ProjectionLink(
-                                record_id=record.record_id,
-                                namespace=record.namespace,
-                                projection_name=self.projection.name,
-                                locator=locator,
-                                metadata={
-                                    "transport_result": result,
-                                    "outbox_event_id": str(event.event_id),
+                        # Re-read canonical state after the external provider
+                        # call to close the concurrent-deletion race: another
+                        # worker may have deleted or superseded the record
+                        # while the projection was being written (ADR-074).
+                        fresh = self.store.get_record(record.record_id)
+                        if fresh is None or fresh.state is not MemoryState.ACTIVE:
+                            log.info(
+                                "projection_post_project_stale",
+                                extra={
+                                    "event_id": str(event.event_id),
+                                    "record_id": str(record.record_id),
+                                    "fresh_state": (
+                                        fresh.state.value if fresh is not None else "deleted"
+                                    ),
                                 },
-                                created_at=now,
                             )
-                        )
+                            self.projection.retire(
+                                record.record_id,
+                                record.namespace,
+                                locator=locator,
+                                reason="post-project-race-stale",
+                            )
+                        else:
+                            self.store.save_projection_link(
+                                ProjectionLink(
+                                    record_id=record.record_id,
+                                    namespace=record.namespace,
+                                    projection_name=self.projection.name,
+                                    locator=locator,
+                                    metadata={
+                                        "transport_result": result,
+                                        "outbox_event_id": str(event.event_id),
+                                    },
+                                    created_at=now,
+                                )
+                            )
                 elif event.event_type == "memory.record.retire":
                     # Withdraw a superseded or archived projection. This path
                     # must never touch canonical state: the record keeps its

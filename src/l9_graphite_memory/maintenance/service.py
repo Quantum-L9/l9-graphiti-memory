@@ -83,17 +83,30 @@ class MaintenanceService:
     def _load(
         self, principal: MemoryPrincipal, request: MaintenanceRequest, watermark: datetime
     ) -> list[MemoryRecord]:
-        states: tuple[MemoryState, ...] = (MemoryState.ACTIVE,)
         if MaintenanceOperation.REVIEW_QUARANTINE in request.operations:
-            # Quarantined records are out of scope for every other operation
-            # and are only loaded when the run is asked to review them.
-            states = (MemoryState.ACTIVE, MemoryState.QUARANTINED)
-        records = self.store.list_records(
-            principal.tenant_id,
-            request.namespace,
-            states=states,
-            limit=request.max_records,
-        )
+            # Load quarantined and active records in separate queries so that
+            # a namespace with many active records cannot fill the max_records
+            # window and starve quarantined candidates (ADR-080).
+            active_records = self.store.list_records(
+                principal.tenant_id,
+                request.namespace,
+                states=(MemoryState.ACTIVE,),
+                limit=request.max_records,
+            )
+            quarantine_records = self.store.list_records(
+                principal.tenant_id,
+                request.namespace,
+                states=(MemoryState.QUARANTINED,),
+                limit=request.max_records,
+            )
+            records = active_records + quarantine_records
+        else:
+            records = self.store.list_records(
+                principal.tenant_id,
+                request.namespace,
+                states=(MemoryState.ACTIVE,),
+                limit=request.max_records,
+            )
         return [record for record in records if record.temporal.recorded_at <= watermark]
 
     @staticmethod

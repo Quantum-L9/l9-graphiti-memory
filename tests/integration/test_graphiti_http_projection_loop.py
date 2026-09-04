@@ -123,7 +123,9 @@ def _handler(state: FakeGraphitiState) -> type[BaseHTTPRequestHandler]:
         def _reply(self, status: int, body: dict[str, Any] | None, *, session: str | None) -> None:
             self.send_response(status)
             if session:
-                self.send_header("mcp-session-id", session)
+                # Strip CR/LF to prevent HTTP response splitting (CWE-113).
+                safe_session = session.replace("\r", "").replace("\n", "")
+                self.send_header("mcp-session-id", safe_session)
             if body is None:
                 self.send_header("content-length", "0")
                 self.end_headers()

@@ -105,7 +105,6 @@ class RecordStore(Protocol):
         able to read the same set the store re-verifies in-transaction; a
         bounded listing there would make the two digests disagree (ADR-079).
         """
-        ...
 
     def transition_state(
         self, capability: ServiceWriteCapability, event: MemoryStatusEvent
@@ -118,7 +117,6 @@ class RecordStore(Protocol):
         its receipt and projection intent; this single-event primitive exists
         for the adapters' own composition and for conformance work.
         """
-        ...
 
     def commit_lifecycle(
         self,
@@ -135,7 +133,6 @@ class RecordStore(Protocol):
         reactivation) commit together or not at all, so the projection can
         never disagree with canonical state about what is current (ADR-074).
         """
-        ...
 
     def save_phase_lock(
         self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
@@ -256,7 +253,6 @@ class RecordStore(Protocol):
         a later supersession or archive of one side, never by removing it
         (ADR-081).
         """
-        ...
 
     def commit_deletion(
         self,
@@ -273,7 +269,6 @@ class RecordStore(Protocol):
         DELETION_PENDING or DELETED; the append-only ledger must record privacy
         deletions like every other transition (ADR-024, ADR-057).
         """
-        ...
 
     def complete_deletion(
         self,
@@ -288,4 +283,3 @@ class RecordStore(Protocol):
         Appends the DELETED lifecycle event attributed to ``actor`` and marks
         the deletion receipt COMPLETE. Idempotent for an already-DELETED record.
         """
-        ...

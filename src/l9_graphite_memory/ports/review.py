@@ -30,4 +30,5 @@ class QuarantineReviewer(Protocol):
     name: str
     policy_version: str
 
-    def review(self, record: MemoryRecord) -> QuarantineReviewVerdict: ...
+    def review(self, record: MemoryRecord) -> QuarantineReviewVerdict:
+        raise NotImplementedError
