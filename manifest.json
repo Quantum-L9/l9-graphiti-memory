@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "13f2407d1fcb816621a98f536cc094e1a0f2a32e4f9c6ed57a55145c21f701f8",
+      "sha256": "93e38a6488d779d20cb43b80b44db0dd01f33ce21c0087d36b086dac7e0fed4e",
       "size_bytes": 124383
     },
     {
@@ -4334,8 +4334,8 @@
         "version": "2.2.0"
       },
       "path": "docs/audits/L9_GRAPHITI_MEMORY_REPAIR_HANDOFF.md",
-      "sha256": "3e89dd4b25f95404899801b2b5bf056d95b1ec50b9b2d78526430661f8b1c7d5",
-      "size_bytes": 15144
+      "sha256": "dab9e3be3fbd1c08e56b67f0f6542f7581c66b54adc45dc4cffd3c760d2da08c",
+      "size_bytes": 15811
     },
     {
       "category": "documentation",

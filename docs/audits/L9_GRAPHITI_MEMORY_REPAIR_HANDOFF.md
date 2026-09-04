@@ -41,7 +41,7 @@ outbox worker, and SQLite store across the whole projection loop.
 | Default branch | `main` |
 | Working branch | `claude/l9-graphiti-memory-audit-repair-iheilz` |
 | Initial HEAD | `ef8c986c76cf48199ffb71d9127d182c421e3eee` |
-| Final SHA | recorded in the attestation section below after publication |
+| Final SHA (repair commit) | `c07a9c977be8d32798e4d7146451648743e69a1e` |
 | Package version | `l9-graphite-memory` 2.2.0 (unchanged; no release cut) |
 
 ## Scope
@@ -164,7 +164,7 @@ shared-backend matrix runs as it does in CI):
 | `validate_adrs.py` | PASS: 79 ADRs complete and indexed |
 | `check_l9_meta.py` | PASS |
 | `check_recursive_alignment.py` | PASS: ten passes |
-| `bash scripts/validate_release.sh` | PASS: 22 local checks evidenced, 5 external blockers recorded; 725 manifested files verified (first run); second run after F-17 recorded below |
+| `bash scripts/validate_release.sh` | PASS on three consecutive runs: before F-17 (725 manifested files), after F-17, and on the exact staged tree that was committed (734 manifested files, 22 local checks evidenced, 5 external blockers recorded) |
 
 Python 3.10.20 leg (a separate `uv sync --frozen` environment matching the
 CI matrix, `--no-install-project`, `PYTHONPATH=src`):
@@ -231,8 +231,19 @@ artifact.
 
 ## Remote attestation
 
-Filled in after `git push -u origin claude/l9-graphiti-memory-audit-repair-iheilz`
-and a fresh `git fetch` of the same branch: see the final section.
+`git push -u origin claude/l9-graphiti-memory-audit-repair-iheilz` created the
+remote branch on the first attempt. A fresh `git fetch` of that branch and a
+`git ls-remote` against `origin` both returned
+`c07a9c977be8d32798e4d7146451648743e69a1e` for
+`refs/heads/claude/l9-graphiti-memory-audit-repair-iheilz`, equal to the local
+HEAD at push time. The worktree was clean (`git status --short` empty) at that
+commit.
+
+This attestation is itself committed after the repair commit, so the branch
+head at the time of reading is the attestation commit whose parent is the SHA
+above; `manifest.json` and `MANIFEST.md` were regenerated with
+`tools/assurance/generate_manifest.py` and re-verified with
+`tools/assurance/validate_manifest.py` to cover this edit.
 
 ## Remaining debt
 

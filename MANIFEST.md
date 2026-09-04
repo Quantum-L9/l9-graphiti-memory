@@ -325,7 +325,7 @@ updated: 2026-07-22
 | `docs/adr/README.md` | `architecture_decisions` | `architecture_decisions` | 9935 | `b28a806cfde1ca976ac6b4ba67cf7c7f750ba84f2101d90fa944b48f7c057b8d` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/L9_GRAPHITI_MEMORY_FORENSIC_CODEBASE_AUDIT.md` | `documentation` | `documentation` | 23260 | `d67bc769a3d01e38ba37c686ef29a4e249fbf44c9f5e3e86e8146a6b948d6993` |
-| `docs/audits/L9_GRAPHITI_MEMORY_REPAIR_HANDOFF.md` | `documentation` | `documentation` | 15144 | `3e89dd4b25f95404899801b2b5bf056d95b1ec50b9b2d78526430661f8b1c7d5` |
+| `docs/audits/L9_GRAPHITI_MEMORY_REPAIR_HANDOFF.md` | `documentation` | `documentation` | 15811 | `dab9e3be3fbd1c08e56b67f0f6542f7581c66b54adc45dc4cffd3c760d2da08c` |
 | `docs/generated-data-waves/handoff.md` | `documentation` | `documentation` | 26187 | `9ae5d715cbf4dee0f679cfe679486ce5272595dd7084a66be50b71504e6c6611` |
 | `docs/generated-data-waves/wave 1.md` | `documentation` | `documentation` | 71598 | `9d607fb1b075643a3a737c48d5a0e08c0f96e1203bef1c4ad2d6d317ed2b1988` |
 | `docs/generated-data-waves/wave 2.md` | `documentation` | `documentation` | 61070 | `9f7ba89e15ee469d9092bf2b111a05f512434bd72c4dba6733b7ab3e0d48bde7` |
