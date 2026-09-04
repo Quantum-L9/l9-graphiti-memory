@@ -37,6 +37,7 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_WRITE_GATES": "write_gates_enabled",
     "L9_MEMORY_GATE_TTL_MINUTES": "gate_ttl_minutes",
     "L9_MEMORY_PROJECTION_BACKEND": "projection_backend",
+    "L9_MEMORY_QUARANTINE_REVIEW_PROVIDER": "quarantine_review_provider",
     "GRAPHITI_MCP_URL": "graphiti_mcp_url",
     "GRAPHITI_MCP_TOKEN": "graphiti_mcp_token",
     "ZEP_API_KEY": "zep_api_key",

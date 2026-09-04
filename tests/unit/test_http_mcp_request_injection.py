@@ -28,7 +28,7 @@ from l9_graphite_memory.server import create_http_app
 from l9_graphite_memory.services import MemoryService
 
 pytest.importorskip("fastapi", reason="HTTP transport requires the [server] extra")
-pytest.importorskip("httpx", reason="fastapi TestClient requires httpx")
+pytest.importorskip("httpx2", reason="fastapi TestClient requires httpx2")
 
 
 @pytest.fixture

@@ -2,25 +2,25 @@
   "iterations": 40,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.74,
-      "p50_ms": 0.6153,
-      "p95_ms": 0.74,
+      "max_ms": 0.6481,
+      "p50_ms": 0.518,
+      "p95_ms": 0.6481,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.6796,
-      "p50_ms": 0.4464,
-      "p95_ms": 0.5105,
+      "max_ms": 0.9258,
+      "p50_ms": 0.44,
+      "p95_ms": 0.5617,
       "passed": true,
       "samples": 40,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 3.5616,
-      "p50_ms": 0.077,
-      "p95_ms": 0.3169,
+      "max_ms": 4.1361,
+      "p50_ms": 0.0822,
+      "p95_ms": 0.2007,
       "passed": true,
       "samples": 40,
       "threshold_p95_ms": 100.0

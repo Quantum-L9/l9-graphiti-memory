@@ -18,6 +18,7 @@ from uuid import UUID
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
+    ConflictLinkReceipt,
     DeletionReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
@@ -240,6 +241,22 @@ class RecordStore(Protocol):
         status_events: tuple[MemoryStatusEvent, ...],
         outbox_events: tuple[OutboxEvent, ...] = (),
     ) -> None: ...
+
+    def commit_conflict_links(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ConflictLinkReceipt,
+    ) -> None:
+        """Atomically record that pairs of records contradict each other.
+
+        Every link in the receipt is written to ``conflicts_with`` on both
+        records, and the receipt is persisted, in one transaction. A link that
+        already exists on a record is left as is. The link is what the
+        conflict report, phase locks, and promotion consult; it is resolved by
+        a later supersession or archive of one side, never by removing it
+        (ADR-081).
+        """
+        ...
 
     def commit_deletion(
         self,

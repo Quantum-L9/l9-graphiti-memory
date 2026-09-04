@@ -103,6 +103,9 @@ class MaintenanceRunReceipt(BaseModel):
     considered_record_count: int = Field(default=0, ge=0)
     actions: tuple[MaintenanceAction, ...] = ()
     skipped_action_digests: tuple[str, ...] = ()
+    #: Quarantined records the reviewer could not clear on its own: a person
+    #: has to decide these. Everything else in the run needed nobody (ADR-080).
+    escalated_record_ids: tuple[UUID, ...] = ()
     authorization: AuthorizationReceipt
     actor: str = Field(min_length=1, max_length=400)
     reason: str = Field(min_length=1, max_length=2_000)

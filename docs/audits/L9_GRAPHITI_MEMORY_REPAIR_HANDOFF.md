@@ -247,27 +247,48 @@ above; `manifest.json` and `MANIFEST.md` were regenerated with
 
 ## Remaining debt
 
-- Redis active-store adapter (F-14/F-15 Redis leg): repaired by reading, not
-  executed — the optional `redis` dependency is absent here and the adapter
-  refuses to construct without it. The shared conformance suite now encodes
-  the required behaviour; run it against a Redis-backed fixture when one is
-  available.
+- Redis active-store adapter (F-14/F-15 Redis leg): **closed by GMP-001**
+  (below). The conformance suite now runs against a real Redis 7 in CI and
+  locally, and the adapter reads its own recorded expiries against the
+  injected clock so both adapters share one contract.
 - Graphiti "episode not found" on retire/erase still dead-letters rather than
   being treated as already withdrawn; provider error strings are not parsed.
+  The official server answers `Error deleting episode: <message>`; the
+  message for a missing episode comes from `graphiti_core` and should be
+  confirmed against a live server before the adapter matches on it.
 - `GeneratedDataService.invalidate_by_source` records an event only and falls
   back to namespace `"default"`.
 - `MaintenanceService` calls `MemoryService._admit` (private); accepted and
   documented.
-- The `StarletteDeprecationWarning` from `fastapi.testclient` is pre-existing
-  and unrelated.
+- The `StarletteDeprecationWarning` from `fastapi.testclient`: **closed by
+  GMP-001** (`httpx2`, and the warning is now an error in the test run).
 
 ## UNKNOWNs
 
-- Whether quarantine is intended to have an approval transition beyond admin
-  promotion or deletion; `transition_lifecycle` deliberately refuses it.
-- Whether `MemoryRecord.conflicts_with` is meant to be producer-populated.
+- Quarantine exit and `conflicts_with` population: **decided 2026-09-04**,
+  see ADR-080 and ADR-081 and the GMP-001 report beside this file.
 - The real provider's behaviour on the paths listed under "what this does not
   prove".
+
+## Follow-up 2026-09-04 (GMP-001)
+
+Four operator-approved follow-ups were executed under a locked plan; the
+evidence report is `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md`.
+
+- **httpx → httpx2** for the Starlette test client; the deprecation is now a
+  hard error in the test configuration.
+- **Redis CI leg**: `redis:7` service, `--extra active`, and the active-store
+  conformance fixture parameterized over the in-memory and Redis adapters.
+- **Automated quarantine review** (ADR-080): a `REVIEW_QUARANTINE`
+  maintenance operation, an injected reviewer behind an evidence-bound
+  validator, a policy that releases confident verdicts under MAINTAIN with the
+  verdict as receipt evidence and escalates only credential-shaped values,
+  exfiltration signals, or malformed reviewer output to a person.
+- **Canonical conflict links** (ADR-081): reconciliation writes
+  `conflicts_with` on both records under a receipt; the conflict report,
+  phase locks, and promotion read the links. The report is therefore as
+  current as the last reconciliation pass, stated as a deliberate trade in
+  the ADR.
 
 ## Final status
 

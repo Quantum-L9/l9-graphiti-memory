@@ -407,5 +407,8 @@ and 3.13 against PostgreSQL 16.
   in-process fake of the official Graphiti MCP Streamable-HTTP dialect driven
   through the real transport, adapter, worker, and SQLite store.
 - Whether quarantine is meant to have an approval transition beyond admin
-  promotion.
-- Whether `conflicts_with` is meant to be producer-populated.
+  promotion. **Resolved 2026-09-04 (ADR-080):** automated review under a
+  policy, escalating only serious findings to a person.
+- Whether `conflicts_with` is meant to be producer-populated. **Resolved
+  2026-09-04 (ADR-081):** populated by governed reconciliation; the conflict
+  report reads the links.

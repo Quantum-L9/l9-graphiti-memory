@@ -94,7 +94,11 @@ The write is canonical when step 8 commits, or it raises. No provider call, loca
 
 ## Scheduled maintenance
 
-Semantic consolidation happens after admission, not during it (ADR-071). A scheduled pass under `MAINTAIN` authority plans and applies five bounded operations over records the store already holds: dedupe, refine, supersede, archive, and reconcile. Planning is pure and reproducible; consolidation derives a new record citing its sources and supersedes them, never rewriting canonical state in place. Runs are watermarked and digest-idempotent, so a rerun is a no-op and a concurrent live write is out of scope rather than half-processed. Contradictions are reported for governance, never auto-resolved (ADR-075).
+Semantic consolidation happens after admission, not during it (ADR-071). A scheduled pass under `MAINTAIN` authority plans and applies six bounded operations over records the store already holds: dedupe, refine, supersede, archive, reconcile, and quarantine review. Planning is pure and reproducible; consolidation derives a new record citing its sources and supersedes them, never rewriting canonical state in place. Runs are watermarked and digest-idempotent, so a rerun is a no-op and a concurrent live write is out of scope rather than half-processed (ADR-075).
+
+Reconciliation never resolves a contradiction; it records one. Two active records asserting different objects for one subject and predicate over the same validity are linked on both records' `conflicts_with` through `MemoryService.link_conflicts`, under a `ConflictLinkReceipt`. The conflict report that guards phase locks and promotion reads those links between records that are both still active, so it costs a read rather than a namespace scan and is as current as the last reconciliation pass; superseding or archiving either side resolves the conflict (ADR-081).
+
+Quarantine review consults an injected `QuarantineReviewer` for each record admission held, under a `QuarantineReviewPolicy`. A RELEASE that clears the policy moves the record to active through `MemoryService.transition_lifecycle` with the verdict as evidence on the lifecycle receipt; HOLD leaves it for the next run; ESCALATE, forced for any credential-shaped value or exfiltration signal, leaves it quarantined and lists it on the run receipt for a person. The model binding is injected by configuration, and with none every quarantined record is reported as unreviewed (ADR-080).
 
 ## Extraction and source ingestion
 

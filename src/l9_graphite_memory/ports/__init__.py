@@ -20,6 +20,7 @@ from .constellation import (
 from .phase_lock import PhaseLockPrecondition, snapshot_digest
 from .projection import ProjectionAdapter, ProjectionHit
 from .record_store import RecordStore
+from .review import QuarantineReviewer
 from .service_capability import (
     SERVICE_WRITE_CAPABILITY,
     ServiceWriteCapability,
@@ -36,6 +37,7 @@ __all__ = [
     "ProceduralSynthesizer",
     "ProjectionAdapter",
     "ProjectionHit",
+    "QuarantineReviewer",
     "RecordStore",
     "ServiceWriteCapability",
     "SynthesizedProcedure",

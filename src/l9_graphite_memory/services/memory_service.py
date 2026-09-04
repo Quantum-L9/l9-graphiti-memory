@@ -31,6 +31,7 @@ from l9_graphite_memory.contracts import (
     CloseRequest,
     Confidence,
     ConflictItem,
+    ConflictLinkReceipt,
     ConflictReport,
     DeletionReceipt,
     DeletionRequest,
@@ -57,6 +58,8 @@ from l9_graphite_memory.contracts import (
     ProjectionRebuildReceipt,
     PromotionRequest,
     Provenance,
+    QuarantineReviewVerdict,
+    QuarantineVerdict,
     RetentionReceipt,
     SearchReceipt,
     TemporalCoordinates,
@@ -95,15 +98,18 @@ _SUPERSEDABLE_STATES: frozenset[MemoryState] = frozenset(
 )
 
 #: Governed lifecycle transitions and the least authority each requires.
-#: Anything not listed is refused: quarantine review, deletion, and rejection
-#: have their own paths and receipts, and this method must not become a
-#: back door around them.
+#: Anything not listed is refused: deletion and rejection have their own
+#: paths and receipts, and this method must not become a back door around
+#: them. Releasing a quarantined record needs ADMIN unless a review verdict
+#: that clears the review policy accompanies it, in which case MAINTAIN
+#: suffices and the verdict is recorded as evidence (ADR-080).
 _LIFECYCLE_TRANSITIONS: dict[tuple[MemoryState, MemoryState], AuthorizationAction] = {
     (MemoryState.ACTIVE, MemoryState.SUPERSEDED): AuthorizationAction.MAINTAIN,
     (MemoryState.ACTIVE, MemoryState.ARCHIVED): AuthorizationAction.MAINTAIN,
     (MemoryState.SUPERSEDED, MemoryState.ARCHIVED): AuthorizationAction.MAINTAIN,
     (MemoryState.SUPERSEDED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
     (MemoryState.ARCHIVED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
+    (MemoryState.QUARANTINED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
 }
 
 
@@ -263,6 +269,7 @@ class MemoryService:
             metadata={
                 **request.metadata,
                 "pii_redacted": bool(normalization.pii_types),
+                "pii_types": list(normalization.pii_types),
                 "safety_signals": list(normalization.safety_signals),
             },
             normalized_digest=normalization.normalized_digest,
@@ -465,6 +472,8 @@ class MemoryService:
         record_ids: tuple[UUID, ...],
         new_state: MemoryState,
         reason: str,
+        review: QuarantineReviewVerdict | None = None,
+        evidence: tuple[EvidenceRef, ...] = (),
     ) -> LifecycleTransitionReceipt:
         """Move already-canonical records between lifecycle states, with receipt.
 
@@ -476,6 +485,12 @@ class MemoryService:
         status events, the receipt, and the projection intent the transition
         implies -- retirement when a record stops being current, projection when
         it becomes current again -- commit in one transaction (ADR-074).
+
+        Releasing a quarantined record is governance unless ``review`` carries
+        a RELEASE verdict for that exact record with no blocker, in which case
+        the release is a maintenance act and the verdict is recorded as
+        evidence on the receipt (ADR-080). A verdict that is anything but a
+        clean RELEASE never lowers the authority required.
         """
 
         if not record_ids:
@@ -484,6 +499,7 @@ class MemoryService:
         transitions: list[LifecycleTransition] = []
         status_events: list[MemoryStatusEvent] = []
         required: set[AuthorizationAction] = set()
+        evidence_items: list[EvidenceRef] = list(evidence)
         for record_id in dict.fromkeys(record_ids):
             record = self.store.get_record(record_id)
             if record is None:
@@ -497,6 +513,25 @@ class MemoryService:
                 raise AdmissionError(
                     f"lifecycle transition {record.state.value} -> {new_state.value} is not "
                     f"governed by this path: {record_id}"
+                )
+            if record.state is MemoryState.QUARANTINED and review is not None:
+                if review.record_id != record_id:
+                    raise AdmissionError(
+                        f"review verdict is for record {review.record_id}, not {record_id}"
+                    )
+                if review.verdict is not QuarantineVerdict.RELEASE or review.requires_human:
+                    raise AdmissionError(
+                        f"review verdict {review.verdict.value} does not authorize releasing "
+                        f"{record_id} from quarantine"
+                    )
+                action = AuthorizationAction.MAINTAIN
+                evidence_items.append(
+                    EvidenceRef(
+                        kind=EvidenceKind.INFERENCE,
+                        description=review.summary()[:2_000],
+                        source_id=review.reviewer,
+                        observed_at=review.reviewed_at,
+                    )
                 )
             required.add(action)
             transitions.append(
@@ -557,6 +592,7 @@ class MemoryService:
             outbox_event_ids=tuple(event.event_id for event in outbox_events),
             reason=reason,
             actor=principal.audit_subject,
+            evidence=tuple(evidence_items),
             created_at=now,
         )
         self.store.commit_lifecycle(
@@ -744,32 +780,34 @@ class MemoryService:
             states=(MemoryState.ACTIVE,),
             limit=None,
         )
-        structured = [
-            record for record in records if record.assertion and record.assertion.is_structured
-        ]
+        # A conflict is a link that governed reconciliation wrote onto both
+        # records (ADR-081). Reading the links is the whole cost of the report,
+        # so a phase lock or a promotion check does not re-derive every
+        # contradiction in the namespace on each call. A link is live only
+        # while both sides are active: superseding or archiving either side
+        # resolves it without anyone editing the link.
+        active_by_id = {record.record_id: record for record in records}
         conflicts: list[ConflictItem] = []
-        for index, left in enumerate(structured):
-            assert left.assertion is not None
-            for right in structured[index + 1 :]:
-                assert right.assertion is not None
-                same_key = (left.assertion.subject or "").casefold() == (
-                    right.assertion.subject or ""
-                ).casefold() and (left.assertion.predicate or "").casefold() == (
-                    right.assertion.predicate or ""
-                ).casefold()
-                different_value = (left.assertion.object or "").casefold() != (
-                    right.assertion.object or ""
-                ).casefold()
-                if same_key and different_value and self._overlaps(left, right):
-                    conflicts.append(
-                        ConflictItem(
-                            left_record_id=left.record_id,
-                            right_record_id=right.record_id,
-                            subject=left.assertion.subject,
-                            predicate=left.assertion.predicate,
-                            reason="overlapping valid-time assertions have different objects",
-                        )
+        seen: set[tuple[UUID, UUID]] = set()
+        for left in sorted(records, key=lambda item: str(item.record_id)):
+            for right_id in left.conflicts_with:
+                right = active_by_id.get(right_id)
+                if right is None:
+                    continue
+                pair = tuple(sorted((left.record_id, right_id), key=str))
+                if pair in seen:
+                    continue
+                seen.add((pair[0], pair[1]))
+                assertion = left.assertion or right.assertion
+                conflicts.append(
+                    ConflictItem(
+                        left_record_id=pair[0],
+                        right_record_id=pair[1],
+                        subject=assertion.subject if assertion else None,
+                        predicate=assertion.predicate if assertion else None,
+                        reason="records are linked as contradicting by governed reconciliation",
                     )
+                )
         return ConflictReport(
             namespace=namespace,
             conflicts=tuple(conflicts),
@@ -777,6 +815,65 @@ class MemoryService:
             snapshot_digest=self._snapshot_digest(records),
             checked_at=self.clock.now(),
         )
+
+    def link_conflicts(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        links: tuple[ConflictItem, ...],
+        reason: str,
+    ) -> ConflictLinkReceipt:
+        """Record that pairs of active records contradict each other (ADR-081).
+
+        Reconciliation identifies contradictions it must not resolve; this is
+        how it makes them durable. Both sides of every link must be active
+        records of this tenant and namespace. Pairs already linked are not
+        written again, so a rerun is a no-op that still returns a receipt.
+        """
+
+        authorization = self.namespace_policy.require(
+            principal, AuthorizationAction.MAINTAIN, namespace
+        )
+        fresh: list[ConflictItem] = []
+        seen: set[tuple[UUID, UUID]] = set()
+        for link in links:
+            if link.left_record_id == link.right_record_id:
+                raise AdmissionError(f"a record cannot conflict with itself: {link.left_record_id}")
+            pair = tuple(sorted((link.left_record_id, link.right_record_id), key=str))
+            if pair in seen:
+                continue
+            seen.add((pair[0], pair[1]))
+            sides = []
+            for record_id in pair:
+                record = self.store.get_record(record_id)
+                if record is None:
+                    raise StoreError(f"conflict link target not found: {record_id}")
+                if record.tenant_id != principal.tenant_id or record.namespace != namespace:
+                    raise AuthorizationError(
+                        "conflict link target is outside the authorized tenant or namespace"
+                    )
+                if record.state is not MemoryState.ACTIVE:
+                    raise AdmissionError(
+                        f"only active records can be linked as conflicting; {record_id} is "
+                        f"{record.state.value}"
+                    )
+                sides.append(record)
+            if pair[1] in sides[0].conflicts_with and pair[0] in sides[1].conflicts_with:
+                continue
+            fresh.append(link)
+        now = self.clock.now()
+        receipt = ConflictLinkReceipt(
+            namespace=namespace,
+            links=tuple(fresh),
+            authorization=authorization,
+            reason=reason,
+            actor=principal.audit_subject,
+            created_at=now,
+        )
+        if fresh:
+            self.store.commit_conflict_links(SERVICE_WRITE_CAPABILITY, receipt)
+        return receipt
 
     def phase_lock(self, principal: MemoryPrincipal, request: PhaseLockRequest) -> PhaseLockReceipt:
         self.namespace_policy.require(principal, AuthorizationAction.WRITE, request.namespace)

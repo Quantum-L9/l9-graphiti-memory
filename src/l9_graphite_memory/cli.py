@@ -47,6 +47,7 @@ from l9_graphite_memory.contracts import (
     PromotionRequest,
     Provenance,
 )
+from l9_graphite_memory.curation import EvidenceBoundProviderReviewer, load_review_provider
 from l9_graphite_memory.curation.procedural import (
     PatternProceduralSynthesizer,
     ProceduralSynthesisWorker,
@@ -644,7 +645,11 @@ def cmd_maintain(args: argparse.Namespace) -> int:
             dry_run=not args.apply,
             reason=args.reason,
         )
-        receipt = MaintenanceService(runtime.service).run(principal, request)
+        reviewer = None
+        provider_spec = runtime.settings.quarantine_review_provider
+        if provider_spec:
+            reviewer = EvidenceBoundProviderReviewer(load_review_provider(provider_spec))
+        receipt = MaintenanceService(runtime.service, reviewer=reviewer).run(principal, request)
         _print(receipt)
         return 0 if not receipt.failures else 2
     finally:

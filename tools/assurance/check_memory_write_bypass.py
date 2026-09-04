@@ -73,6 +73,8 @@ _GUARDED_STORE_METHODS = {
     # them move records between states; both carry the capability (ADR-074).
     "commit_lifecycle",
     "transition_state",
+    # Writes conflict links onto canonical records under a receipt (ADR-081).
+    "commit_conflict_links",
 }
 # Only these modules may reference the service write capability. Anything else
 # forwarding it would be minting proof-of-service for a bypass.

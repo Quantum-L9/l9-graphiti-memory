@@ -19,6 +19,7 @@ from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
+    ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
     LifecycleTransitionReceipt,
@@ -64,6 +65,7 @@ class InMemoryRecordStore:
         self.projection_retirements: list[ProjectionRetirementReceipt] = []
         self.projection_rebuilds: list[ProjectionRebuildReceipt] = []
         self.lifecycle_receipts: dict[UUID, LifecycleTransitionReceipt] = {}
+        self.conflict_receipts: dict[UUID, ConflictLinkReceipt] = {}
         self.initialized = False
         self._write_lock = threading.RLock()
 
@@ -253,6 +255,30 @@ class InMemoryRecordStore:
             for outbox_event in outbox_events:
                 self.outbox[outbox_event.event_id] = outbox_event
 
+    def commit_conflict_links(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ConflictLinkReceipt,
+    ) -> None:
+        require_service_write_capability(capability)
+        with self._write_lock:
+            for link in receipt.links:
+                for record_id in (link.left_record_id, link.right_record_id):
+                    if record_id not in self.records:
+                        raise StoreError(f"conflict link target not found: {record_id}")
+            for link in receipt.links:
+                self._add_conflict_link(link.left_record_id, link.right_record_id)
+                self._add_conflict_link(link.right_record_id, link.left_record_id)
+            self.conflict_receipts[receipt.receipt_id] = receipt
+
+    def _add_conflict_link(self, record_id: UUID, other_id: UUID) -> None:
+        record = self.records[record_id]
+        if other_id in record.conflicts_with:
+            return
+        self.records[record_id] = record.model_copy(
+            update={"conflicts_with": (*record.conflicts_with, other_id)}
+        )
+
     def save_phase_lock(
         self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
     ) -> None:
@@ -357,7 +383,8 @@ class InMemoryRecordStore:
             "records": len(self.records),
             "receipts": len(self.receipts)
             + len(self.archive_receipts)
-            + len(self.lifecycle_receipts),
+            + len(self.lifecycle_receipts)
+            + len(self.conflict_receipts),
             "outbox_backlog": self.outbox_backlog(),
             "by_state": by_state,
             "by_class": by_class,

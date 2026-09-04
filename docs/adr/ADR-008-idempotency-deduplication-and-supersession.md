@@ -93,3 +93,9 @@ this decision:
   candidate, or a record already pending deletion could be "corrected".
   Only `ACTIVE`, `SUPERSEDED`, and `ARCHIVED` records can be superseded; any
   other target is an `AdmissionError`.
+
+**2026-09-04 — conflicts are recorded links.** ADR-081 populates
+`conflicts_with` through governed reconciliation; the conflict report that
+guards phase locks and promotion now reads those links instead of recomputing
+assertion overlaps on every call, and supersession of either side resolves
+the conflict.

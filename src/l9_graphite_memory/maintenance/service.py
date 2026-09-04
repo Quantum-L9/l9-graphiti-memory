@@ -13,12 +13,14 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from l9_graphite_memory.contracts import (
     AuthorizationAction,
     Confidence,
     ConfidenceMethod,
+    ConflictItem,
     EvidenceKind,
     EvidenceRef,
     MaintenanceAction,
@@ -32,11 +34,14 @@ from l9_graphite_memory.contracts import (
     MemoryWriteRequest,
     OperationStatus,
     Provenance,
+    QuarantineReviewPolicy,
+    QuarantineVerdict,
     WriteStatus,
 )
-from l9_graphite_memory.curation import RetentionPolicy
+from l9_graphite_memory.curation import NullQuarantineReviewer, RetentionPolicy, apply_policy
 from l9_graphite_memory.errors import AdmissionError, AuthorizationError, StoreError
 from l9_graphite_memory.observability import get_logger
+from l9_graphite_memory.ports import QuarantineReviewer
 from l9_graphite_memory.services import MemoryService
 from l9_graphite_memory.version import PACKAGE_VERSION
 
@@ -62,20 +67,31 @@ class MaintenanceService:
         *,
         planner: MaintenancePlanner | None = None,
         retention_policy: RetentionPolicy | None = None,
+        reviewer: QuarantineReviewer | None = None,
+        review_policy: QuarantineReviewPolicy | None = None,
     ) -> None:
         self.service = service
         self.store = service.store
         self.planner = planner or MaintenancePlanner(retention_policy)
+        # No reviewer means every quarantined record is reported as unreviewed
+        # rather than silently left in place (ADR-080).
+        self.reviewer: QuarantineReviewer = reviewer or NullQuarantineReviewer()
+        self.review_policy = review_policy or QuarantineReviewPolicy()
 
     # -- helpers --------------------------------------------------------------
 
     def _load(
         self, principal: MemoryPrincipal, request: MaintenanceRequest, watermark: datetime
     ) -> list[MemoryRecord]:
+        states: tuple[MemoryState, ...] = (MemoryState.ACTIVE,)
+        if MaintenanceOperation.REVIEW_QUARANTINE in request.operations:
+            # Quarantined records are out of scope for every other operation
+            # and are only loaded when the run is asked to review them.
+            states = (MemoryState.ACTIVE, MemoryState.QUARANTINED)
         records = self.store.list_records(
             principal.tenant_id,
             request.namespace,
-            states=(MemoryState.ACTIVE,),
+            states=states,
             limit=request.max_records,
         )
         return [record for record in records if record.temporal.recorded_at <= watermark]
@@ -253,6 +269,106 @@ class MaintenanceService:
             )
         return action.model_copy(update={"applied": True})
 
+    def _apply_reconcile(
+        self,
+        principal: MemoryPrincipal,
+        action: MaintenanceAction,
+        *,
+        namespace: str,
+    ) -> MaintenanceAction:
+        """Make a contradiction durable without resolving it (ADR-081).
+
+        The pair is linked on both records through the service, under a
+        receipt. Resolution -- superseding or archiving one side -- is a
+        governance decision; until it is taken the link keeps the conflict
+        visible to phase locks and promotion without recomputation.
+        """
+
+        left_id, right_id = action.source_record_ids[0], action.source_record_ids[1]
+        receipt = self.service.link_conflicts(
+            principal,
+            namespace,
+            links=(
+                ConflictItem(
+                    left_record_id=left_id,
+                    right_record_id=right_id,
+                    subject=str(action.details.get("subject") or "") or None,
+                    predicate=str(action.details.get("predicate") or "") or None,
+                    reason=action.reason,
+                ),
+            ),
+            reason=action.reason,
+        )
+        return action.model_copy(
+            update={
+                "applied": True,
+                "details": {
+                    **action.details,
+                    "conflict_link_receipt_id": str(receipt.receipt_id),
+                    "linked": bool(receipt.links),
+                },
+            }
+        )
+
+    def _apply_review(
+        self,
+        principal: MemoryPrincipal,
+        action: MaintenanceAction,
+        by_id: dict[UUID, MemoryRecord],
+        *,
+        namespace: str,
+    ) -> MaintenanceAction:
+        """Ask the reviewer about one quarantined record and act on the policy.
+
+        RELEASE that clears the policy moves the record to active through the
+        service, with the verdict as evidence on the lifecycle receipt.
+        ESCALATE is applied without a transition: the digest is recorded so the
+        reviewer is not asked again, and the record id is reported for a
+        person. HOLD stays unapplied so the next run reviews it again
+        (ADR-080).
+        """
+
+        record_id = action.source_record_ids[0]
+        record = by_id.get(record_id)
+        if record is None:
+            raise StoreError(f"review target is unavailable: {record_id}")
+        if record.state is not MemoryState.QUARANTINED:
+            return action.model_copy(
+                update={
+                    "applied": True,
+                    "details": {**action.details, "outcome": "not_quarantined"},
+                }
+            )
+        verdict = apply_policy(self.reviewer.review(record), record, self.review_policy)
+        details: dict[str, Any] = {
+            **action.details,
+            "verdict": verdict.verdict.value,
+            "confidence": verdict.confidence,
+            "reasons": list(verdict.reasons),
+            "blockers": list(verdict.blockers),
+            "reviewer": verdict.reviewer,
+            "model": verdict.model,
+            "review_policy_version": verdict.policy_version,
+            "requires_human": verdict.requires_human,
+        }
+        if verdict.verdict is QuarantineVerdict.RELEASE:
+            receipt = self.service.transition_lifecycle(
+                principal,
+                namespace,
+                record_ids=(record_id,),
+                new_state=MemoryState.ACTIVE,
+                reason=f"released from quarantine: {verdict.summary()}"[:2_000],
+                review=verdict,
+            )
+            details["outcome"] = "released"
+            details["lifecycle_receipt_id"] = str(receipt.receipt_id)
+            return action.model_copy(update={"applied": True, "details": details})
+        if verdict.verdict is QuarantineVerdict.ESCALATE:
+            details["outcome"] = "escalated"
+            return action.model_copy(update={"applied": True, "details": details})
+        details["outcome"] = "held"
+        return action.model_copy(update={"details": details})
+
     # -- entry point ----------------------------------------------------------
 
     def run(self, principal: MemoryPrincipal, request: MaintenanceRequest) -> MaintenanceRunReceipt:
@@ -312,6 +428,8 @@ class MaintenanceService:
         by_id = {record.record_id: record for record in records}
         applied: list[MaintenanceAction] = []
         failures: list[str] = []
+        escalated: list[UUID] = []
+        reviews_performed = 0
         for action in plan.actions:
             try:
                 if action.operation in {
@@ -345,14 +463,34 @@ class MaintenanceService:
                             new_state=MemoryState.ARCHIVED,
                         )
                     )
+                elif action.operation is MaintenanceOperation.RECONCILE:
+                    applied.append(
+                        self._apply_reconcile(principal, action, namespace=request.namespace)
+                    )
+                elif action.operation is MaintenanceOperation.REVIEW_QUARANTINE:
+                    if reviews_performed >= self.review_policy.max_reviews_per_run:
+                        # Unapplied: no digest, reviewed on a later run.
+                        applied.append(
+                            action.model_copy(
+                                update={
+                                    "details": {
+                                        **action.details,
+                                        "outcome": "deferred",
+                                        "reason": "review budget for this run is spent",
+                                    }
+                                }
+                            )
+                        )
+                        continue
+                    reviews_performed += 1
+                    outcome = self._apply_review(
+                        principal, action, by_id, namespace=request.namespace
+                    )
+                    applied.append(outcome)
+                    if outcome.details.get("requires_human"):
+                        escalated.extend(outcome.source_record_ids)
                 else:
-                    # Reconciliation reports a conflict it must not resolve on
-                    # its own. It stays unapplied deliberately: an unapplied
-                    # action records no digest, so an unresolved contradiction
-                    # is surfaced again on every run until governance settles
-                    # it, rather than being silently suppressed after the first
-                    # sighting.
-                    applied.append(action)
+                    raise AdmissionError(f"unsupported maintenance operation {action.operation}")
             except (StoreError, AuthorizationError, AdmissionError) as exc:
                 failures.append(f"{action.operation.value}: {exc}")
                 log.warning(
@@ -379,6 +517,7 @@ class MaintenanceService:
             considered_record_count=plan.considered_record_count,
             actions=tuple(applied),
             skipped_action_digests=plan.skipped_action_digests,
+            escalated_record_ids=tuple(dict.fromkeys(escalated)),
             authorization=authorization,
             actor=principal.audit_subject,
             reason=request.reason,

@@ -197,17 +197,47 @@ class RedisActiveStore:
     def _lease_ttl_seconds(lease: AgentLease) -> int:
         return max(1, int((lease.expires_at - lease.issued_at).total_seconds()))
 
-    async def _require_lease(self, lease: AgentLease) -> None:
-        """Refuse a lease Redis does not hold, or holds for a different id.
+    def _lease_value(self, lease: AgentLease, now: datetime) -> str:
+        """Serialise the lease as held: its id and the instant it lapses.
 
-        The lease key expires on its own interval, so a session that stops
-        heartbeating loses it even while its presence key is still alive, and
-        a caller who knows only the agent and instance ids cannot act on the
-        registration without the issued lease id.
+        The expiry is recorded explicitly rather than left to the key's TTL so
+        every read judges it against the adapter's own clock, exactly as the
+        in-memory reference adapter does. The TTL stays on the key as garbage
+        collection, not as the source of truth.
+        """
+
+        expires_at = now + timedelta(seconds=self._lease_ttl_seconds(lease))
+        return json.dumps(
+            {"lease_id": lease.lease_id, "expires_at": expires_at.isoformat()},
+            separators=(",", ":"),
+        )
+
+    @staticmethod
+    def _parse_lease(stored: str) -> tuple[str, datetime | None]:
+        try:
+            data = json.loads(stored)
+        except ValueError:
+            # A value written before the expiry was recorded alongside the id.
+            return stored, None
+        if not isinstance(data, dict):
+            return stored, None
+        expires_raw = data.get("expires_at")
+        return str(data.get("lease_id", "")), _dt(expires_raw) if expires_raw else None
+
+    async def _require_lease(self, lease: AgentLease) -> None:
+        """Refuse a lease Redis does not hold, holds for a different id, or that lapsed.
+
+        A session that stops heartbeating loses its lease on its own interval
+        even while its presence key is still alive, and a caller who knows
+        only the agent and instance ids cannot act on the registration without
+        the issued lease id.
         """
 
         stored = await self._call(self._r.get, self._lease_key(lease.agent_id, lease.instance_id))
-        if not stored or stored != lease.lease_id:
+        if not stored:
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
+        lease_id, expires_at = self._parse_lease(stored)
+        if lease_id != lease.lease_id or (expires_at is not None and expires_at <= self._clock()):
             raise LeaseExpiredError(lease.agent_id, lease.instance_id)
 
     async def _call(self, method: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
@@ -248,7 +278,7 @@ class RedisActiveStore:
         await self._call(
             self._r.set,
             self._lease_key(identity.agent_id, identity.instance_id),
-            lease.lease_id,
+            self._lease_value(lease, now),
             ex=self._lease_ttl_seconds(lease),
         )
         await self._call(
@@ -260,15 +290,17 @@ class RedisActiveStore:
 
     async def renew(self, lease: AgentLease) -> AgentPresence:
         await self._require_lease(lease)
+        now = self._clock()
         raw = await self._call(self._r.get, self._presence_key(lease.agent_id, lease.instance_id))
         if not raw:
             raise LeaseExpiredError(lease.agent_id, lease.instance_id)
         old = _presence(json.loads(raw))
-        now = self._clock()
+        if old.is_expired(now):
+            raise LeaseExpiredError(lease.agent_id, lease.instance_id)
         await self._call(
             self._r.set,
             self._lease_key(lease.agent_id, lease.instance_id),
-            lease.lease_id,
+            self._lease_value(lease, now),
             ex=self._lease_ttl_seconds(lease),
         )
         presence = AgentPresence(
@@ -295,7 +327,7 @@ class RedisActiveStore:
 
     async def unregister(self, lease: AgentLease) -> None:
         stored = await self._call(self._r.get, self._lease_key(lease.agent_id, lease.instance_id))
-        if stored and stored != lease.lease_id:
+        if stored and self._parse_lease(stored)[0] != lease.lease_id:
             # Idempotent for the holder, inert for anyone else.
             return
         await self._call(
@@ -368,7 +400,13 @@ class RedisActiveStore:
         if instance_id is None:
             return None
         raw = await self._call(self._r.get, self._context_key(agent_id, instance_id))
-        return _context(json.loads(raw)) if raw else None
+        if not raw:
+            return None
+        context = _context(json.loads(raw))
+        # The key's TTL is garbage collection; the recorded expiry judged
+        # against this adapter's clock is the contract, as in the reference
+        # adapter, so a stale value never reads as live between sweeps.
+        return None if context.is_expired(self._clock()) else context
 
     async def get_presence(
         self, agent_id: str, instance_id: str | None = None
@@ -376,7 +414,10 @@ class RedisActiveStore:
         if instance_id is None:
             return None
         raw = await self._call(self._r.get, self._presence_key(agent_id, instance_id))
-        return _presence(json.loads(raw)) if raw else None
+        if not raw:
+            return None
+        presence = _presence(json.loads(raw))
+        return None if presence.is_expired(self._clock()) else presence
 
     async def list_active(self, scope: AgentScope, cursor: str | None, limit: int) -> RedisPage:
         if limit < 1:

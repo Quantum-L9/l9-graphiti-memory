@@ -24,6 +24,7 @@ from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
+    ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
     LifecycleTransitionReceipt,
@@ -676,6 +677,54 @@ class SQLiteRecordStore:
             ) from exc
         except sqlite3.Error as exc:
             raise StoreError(f"atomic lifecycle transition failed: {exc}") from exc
+
+    def commit_conflict_links(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ConflictLinkReceipt,
+    ) -> None:
+        require_service_write_capability(capability)
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "conflict_link",
+                        receipt.namespace,
+                        receipt.status.value,
+                        _dt(receipt.created_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for link in receipt.links:
+                    self._add_conflict_link(tx, link.left_record_id, link.right_record_id)
+                    self._add_conflict_link(tx, link.right_record_id, link.left_record_id)
+        except sqlite3.IntegrityError as exc:
+            raise StoreError(f"atomic conflict link violated store constraints: {exc}") from exc
+        except sqlite3.Error as exc:
+            raise StoreError(f"atomic conflict link failed: {exc}") from exc
+
+    @staticmethod
+    def _add_conflict_link(tx: sqlite3.Connection, record_id: UUID, other_id: UUID) -> None:
+        row = tx.execute(
+            "SELECT record_json FROM memory_records WHERE record_id = ?", (str(record_id),)
+        ).fetchone()
+        if row is None:
+            raise StoreError(f"conflict link target not found: {record_id}")
+        payload = json.loads(str(row["record_json"]))
+        links = [str(item) for item in payload.get("conflicts_with", [])]
+        if str(other_id) in links:
+            return
+        links.append(str(other_id))
+        payload["conflicts_with"] = links
+        tx.execute(
+            "UPDATE memory_records SET conflicts_with_json = ?, record_json = ? WHERE record_id = ?",
+            (_json(links), _json(payload), str(record_id)),
+        )
 
     def save_phase_lock(
         self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt

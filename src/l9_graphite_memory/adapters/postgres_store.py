@@ -22,6 +22,7 @@ from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
     ArchiveReceipt,
+    ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
     LifecycleTransitionReceipt,
@@ -750,6 +751,53 @@ class PostgresRecordStore:
             ) from exc
         except psycopg2.Error as exc:
             raise StoreError(f"atomic lifecycle transition failed: {exc}") from exc
+
+    def commit_conflict_links(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: ConflictLinkReceipt,
+    ) -> None:
+        require_service_write_capability(capability)
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="conflict_link",
+                    aggregate_id=receipt.namespace,
+                    status=receipt.status.value,
+                    created_at=receipt.created_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+                for link in receipt.links:
+                    self._add_conflict_link(tx, link.left_record_id, link.right_record_id)
+                    self._add_conflict_link(tx, link.right_record_id, link.left_record_id)
+        except psycopg2.IntegrityError as exc:
+            raise StoreError(f"atomic conflict link violated store constraints: {exc}") from exc
+        except psycopg2.Error as exc:
+            raise StoreError(f"atomic conflict link failed: {exc}") from exc
+
+    @staticmethod
+    def _add_conflict_link(tx: Any, record_id: UUID, other_id: UUID) -> None:
+        tx.execute(
+            "SELECT record_json FROM memory_records WHERE record_id = %s FOR UPDATE",
+            (str(record_id),),
+        )
+        row = tx.fetchone()
+        if row is None:
+            raise StoreError(f"conflict link target not found: {record_id}")
+        payload = json.loads(str(row["record_json"]))
+        links = [str(item) for item in payload.get("conflicts_with", [])]
+        if str(other_id) in links:
+            return
+        links.append(str(other_id))
+        payload["conflicts_with"] = links
+        tx.execute(
+            "UPDATE memory_records SET conflicts_with_json = %s, record_json = %s "
+            "WHERE record_id = %s",
+            (_json(links), _json(payload), str(record_id)),
+        )
 
     # -- phase locks ----------------------------------------------------------
 
