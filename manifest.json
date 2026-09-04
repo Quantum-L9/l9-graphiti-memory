@@ -446,7 +446,7 @@
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "992a858d1e36aefbb4213b526e9cf5c176fd6a7512ed0e751906190387080cf7",
+      "sha256": "504eae25ad5fe3437c4e95ccc9ad1f0a1d4ba221d1d2a903002b4166f51f1071",
       "size_bytes": 125866
     },
     {
@@ -4350,8 +4350,8 @@
         "version": "2.2.0"
       },
       "path": "docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md",
-      "sha256": "b7a3f5c187081a4ed036028d9cc7729a1c632f49677d285bd96e42cd3f1f24d0",
-      "size_bytes": 15111
+      "sha256": "7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2",
+      "size_bytes": 15609
     },
     {
       "category": "documentation",

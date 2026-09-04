@@ -184,6 +184,16 @@ Protected paths untouched: `publish.yml`, `nightly-maintenance.yml`, every
 Dockerfile and compose file. No file outside the modification lock changed.
 Status: VERIFIED.
 
+## PUBLICATION
+
+Commit `062f0894995ec3262aeaac29f4b8cb707e0e3e83` on
+`claude/l9-graphiti-memory-audit-repair-iheilz`, pushed with
+`git push -u origin` on the first attempt. A fresh `git fetch` of the branch
+and `git ls-remote origin refs/heads/claude/l9-graphiti-memory-audit-repair-iheilz`
+both returned that SHA, equal to the local HEAD at push time. No pull request
+was opened. This publication note is committed after that SHA, with the
+manifest regenerated and re-verified to cover the edit.
+
 ## DECLARATION
 
 GMP-001 executed Phases 0–6 under the locked plan. All four operator

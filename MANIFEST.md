@@ -326,7 +326,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-081-canonical-conflict-links.md` | `architecture_decisions` | `architecture_decisions` | 5596 | `fc99f0a340d20d663c6e9c579c6361f1da96396db35e470ab2eb2a407ca1003e` |
 | `docs/adr/README.md` | `architecture_decisions` | `architecture_decisions` | 10119 | `fd1f47ac45ce66d708279c1b179bfea1797d42f7269289171836b133652a6572` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
-| `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15111 | `b7a3f5c187081a4ed036028d9cc7729a1c632f49677d285bd96e42cd3f1f24d0` |
+| `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
 | `docs/audits/L9_GRAPHITI_MEMORY_FORENSIC_CODEBASE_AUDIT.md` | `documentation` | `documentation` | 23490 | `950dd757e835df18166726bead2d45269b2d9bdf82ded464f20e70bfbf78612f` |
 | `docs/audits/L9_GRAPHITI_MEMORY_REPAIR_HANDOFF.md` | `documentation` | `documentation` | 17076 | `ec1c80cd1e31d89d4322717671e22bee3a1b51211f036948fe27d0924071c4c5` |
 | `docs/generated-data-waves/handoff.md` | `documentation` | `documentation` | 26187 | `9ae5d715cbf4dee0f679cfe679486ce5272595dd7084a66be50b71504e6c6611` |
