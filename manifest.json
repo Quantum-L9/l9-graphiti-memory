@@ -138,7 +138,7 @@
         "path": ".gitignore",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
-        "updated": "2026-07-22",
+        "updated": "2026-09-05",
         "version": "2.2.0"
       },
       "path": ".gitignore",
@@ -442,11 +442,11 @@
         "path": "MANIFEST.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
-        "updated": "2026-07-22",
+        "updated": "2026-09-05",
         "version": "2.2.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "6fc1c30e687aad2e32917138e67323b2f190dc6cd0344085cc0044041eff39a3",
+      "sha256": "bc5c7675cacf98d500db55287a714f92366b8bd91f0d96673dc84e6930223c46",
       "size_bytes": 125866
     },
     {

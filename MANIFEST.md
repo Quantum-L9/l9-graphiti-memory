@@ -6,7 +6,7 @@ layer: repository_root
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-09-05
 /L9_META -->
 
 # Manifest
