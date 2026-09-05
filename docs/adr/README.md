@@ -106,6 +106,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-079 | [Governed Write Phase-Lock Atomicity](ADR-079-governed-write-phase-lock-atomicity.md) | Accepted |
 | ADR-080 | [Automated Quarantine Review](ADR-080-automated-quarantine-review.md) | Accepted |
 | ADR-081 | [Canonical Conflict Links](ADR-081-canonical-conflict-links.md) | Accepted |
+| ADR-082 | [Consumer Control-Plane Transport Parity](ADR-082-consumer-control-plane-transport-parity.md) | Accepted |
 
 ## Validation
 
@@ -115,4 +116,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-081 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-082 ledger and all mandatory sections.

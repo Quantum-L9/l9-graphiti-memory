@@ -24,6 +24,7 @@ from l9_graphite_memory.contracts import (
     CloseRequest,
     Confidence,
     ConsentGrant,
+    ControlPlaneCapabilities,
     DeletionRequest,
     EvidenceKind,
     EvidenceRef,
@@ -36,6 +37,7 @@ from l9_graphite_memory.contracts import (
     PhaseLockRequest,
     PromotionRequest,
     Provenance,
+    build_capabilities,
 )
 from l9_graphite_memory.curation.procedural import (
     PatternProceduralSynthesizer,
@@ -337,10 +339,16 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
                 "summary": {"type": "string"},
                 "session_id": {"type": "string"},
                 "capsule_digest": {"type": "string"},
+                "idempotency_key": {"type": "string"},
                 "dry_run": {"type": "boolean", "default": False},
             },
             ["namespace", "summary"],
         ),
+    },
+    {
+        "name": "memory.capabilities",
+        "description": "Report the control-plane contract, package, and lifecycle operations each transport exposes.",
+        "inputSchema": _object_schema({}),
     },
     {
         "name": "memory.ingest_governed_candidate",
@@ -375,6 +383,22 @@ ALIASES: dict[str, str] = {
     "graphiti.query": "memory.search",
     "graphiti.write_governed": "memory.write_governed",
 }
+
+
+def canonical_tool_names() -> tuple[str, ...]:
+    return tuple(item["name"] for item in CANONICAL_TOOLS)
+
+
+def mcp_capabilities() -> ControlPlaneCapabilities:
+    """Capability receipt as seen from the MCP transport.
+
+    The CLI inventory is taken from the CLI parser itself so this receipt and
+    the ``l9-memory capabilities`` command report one truth (ADR-082).
+    """
+
+    from l9_graphite_memory.cli import cli_command_names
+
+    return build_capabilities(cli_commands=cli_command_names(), mcp_tools=canonical_tool_names())
 
 
 def tool_definitions() -> list[dict[str, Any]]:
@@ -452,6 +476,7 @@ class MCPToolApplication:
             "memory.distill": self._distill,
             "memory.synthesize_procedures": self._synthesize_procedures,
             "memory.health": self._health,
+            "memory.capabilities": self._capabilities,
             "memory.close": self._close,
             "memory.ingest_governed_candidate": self._ingest_governed_candidate,
             "memory.record_reuse": self._record_reuse,
@@ -689,6 +714,9 @@ class MCPToolApplication:
     def _health(self, _principal: MemoryPrincipal, _args: dict[str, Any]) -> Any:
         return self.service.health()
 
+    def _capabilities(self, _principal: MemoryPrincipal, _args: dict[str, Any]) -> Any:
+        return mcp_capabilities()
+
     def _close(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         return self.service.close(
             principal,
@@ -697,6 +725,9 @@ class MCPToolApplication:
                 summary=str(args["summary"]),
                 session_id=str(args["session_id"]) if args.get("session_id") else None,
                 capsule_digest=str(args["capsule_digest"]) if args.get("capsule_digest") else None,
+                idempotency_key=(
+                    str(args["idempotency_key"]) if args.get("idempotency_key") else None
+                ),
                 dry_run=bool(args.get("dry_run", False)),
             ),
         )

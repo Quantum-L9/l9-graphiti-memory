@@ -24,3 +24,9 @@ PHASE_LOCK_POLICY_VERSION = "memory-phase-lock/v2"
 
 CONSTELLATION_BRIDGE_VERSION = "l9-memory-gate/v1"
 CLIENT_CONFIG_POLICY_VERSION = "client-config/v1"
+# The consumer-facing control-plane contract: which lifecycle operations the CLI
+# and MCP transports expose, their receipt shapes, and their exit semantics.
+# A consumer (Cursor-Governance) binds to this signal rather than inferring
+# compatibility from tool presence (ADR-082). Bump when a lifecycle operation
+# or its receipt changes incompatibly.
+CONTROL_PLANE_CONTRACT_VERSION = "memory-control-plane/v1"

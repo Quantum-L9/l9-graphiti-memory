@@ -95,6 +95,10 @@ class GeneratedDataService:
                 "visibility": candidate.source.visibility or candidate.governance.visibility,
                 "authority_class": candidate.governance.authority_class,
                 "source": source,
+                # Lossless structured artifact, when the producer supplied one.
+                "payload_schema": candidate.knowledge.payload_schema,
+                "structured_payload": candidate.knowledge.structured_payload,
+                "producer": candidate.provenance.producer,
             },
             idempotency_key=f"generated-data:{candidate.candidate_id}",
         )

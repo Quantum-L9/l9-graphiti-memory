@@ -60,3 +60,11 @@ Live provider, hosted CI, production migration, rollback, and credential-rotatio
 - Reclassified the local hook component as a receipt guard.
 - Added L9_META coverage, manifest v2, layer checks, and recursive alignment enforcement.
 - Removed deprecated transport references, camel-case hook aliases, print calls, and generated caches.
+
+## Unreleased — consumer control-plane transport parity (ADR-082)
+
+- Added `l9-memory close` with exit-code verdicts (`0` committed, `3` dry run, `2` failed)
+- Added `CloseRequest.idempotency_key` and `CloseReceipt.replayed`: a replayed close yields one logical close
+- Added `l9-memory capabilities`, `memory.capabilities`, and `HealthReport.contract_version` (`memory-control-plane/v1`)
+- Added `MemorySDK.write_governed`, `ingest_governed_candidate`, `conflicts`, `verify_phase_lock`, `close`, `health`
+- Extended the governed-candidate contract: `session_continuation` class, `namespace_local` visibility, lossless `structured_payload`

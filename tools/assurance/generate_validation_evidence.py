@@ -88,8 +88,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Same arithmetic: this branch collects 812, so 812 - 15 = 797. Export
         # both L9_MEMORY_TEST_POSTGRES_DSN and L9_MEMORY_TEST_REDIS_URL to
         # reproduce the CI figure locally.
-        "797 tests pass",
-        r"797 passed",
+        #
+        # Re-pinned 797 -> 813 for ADR-082 (consumer control-plane transport
+        # parity): 16 cases in test_control_plane_transport_parity.py, none
+        # backend-parameterized. Same arithmetic: this branch collects 828,
+        # so 828 - 15 = 813.
+        "813 tests pass",
+        r"813 passed",
     ),
     CheckSpec(
         "V-002",
@@ -108,8 +113,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/adr_validation.txt",
         # Re-pinned 79 -> 81 for GMP-001: ADR-080 (automated quarantine
         # review) and ADR-081 (canonical conflict links) join the ledger.
-        "81 ADRs complete and indexed",
-        r"PASS: 81 ADRs",
+        # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
+        # parity).
+        "82 ADRs complete and indexed",
+        r"PASS: 82 ADRs",
     ),
     CheckSpec(
         "V-004",

@@ -662,10 +662,20 @@ class MemoryService:
                     "capsule_digest": request.capsule_digest,
                     "graphiti_accepted": False,
                 },
+                idempotency_key=request.idempotency_key,
                 dry_run=request.dry_run,
             ),
         )
-        if write_receipt.status is not WriteStatus.ADMITTED:
+        replayed = False
+        if write_receipt.status is WriteStatus.DUPLICATE:
+            # The caller replayed a close it already committed under this
+            # key. Exactly one logical close exists; report it as complete
+            # and name the first record rather than failing the retry or
+            # minting a second close (ADR-082).
+            status = OperationStatus.COMPLETE
+            record_id = write_receipt.record_id
+            replayed = True
+        elif write_receipt.status is not WriteStatus.ADMITTED:
             status = OperationStatus.FAILED
             record_id = write_receipt.record_id
         elif request.dry_run:
@@ -684,6 +694,7 @@ class MemoryService:
             write_receipt_id=write_receipt.receipt_id,
             record_id=record_id,
             graphiti_accepted=False,
+            replayed=replayed,
             authorization=write_receipt.authorization,
         )
 

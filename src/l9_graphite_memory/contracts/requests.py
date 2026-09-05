@@ -154,4 +154,8 @@ class CloseRequest(BaseModel):
     summary: str = Field(min_length=1, max_length=8_000)
     session_id: str | None = Field(default=None, max_length=200)
     capsule_digest: str | None = Field(default=None, max_length=128)
+    # Retry identity of this close, supplied by the caller. A replay under the
+    # same key collapses onto the first close record instead of minting a
+    # second logical close (ADR-082). Absent, every call is a distinct close.
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=300)
     dry_run: bool = False
