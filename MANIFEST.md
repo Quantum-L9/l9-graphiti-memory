@@ -6,7 +6,7 @@ layer: repository_root
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-09-05
 /L9_META -->
 
 # Manifest
@@ -64,7 +64,7 @@ updated: 2026-07-22
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1439 | `a0020911d065fb943ffd8c2eda19f2fb21060ea782ffdf1830fbb9d5dffbc72b` |
 | `.github/workflows/typescript-client-publish.yml` | `ci` | `ci` | 1549 | `6e9febe7a4d4c57a954dcb2065d11c200ed6b0419e92f3e69a5f3bf771cd9319` |
 | `.github/workflows/typescript-client.yml` | `ci` | `ci` | 1147 | `c89466f9930d3d4628bc2d8ed3df9c0248a7d2e692fd2a34b4f288fa1b26cc5e` |
-| `.gitignore` | `repository_root` | `repository_root` | 1668 | `13c16211b3ecadbf11a89c4ddbe505db586f98782f692e6952dbbf0a4f868524` |
+| `.gitignore` | `repository_root` | `repository_root` | 1175 | `7f8eb0b806c149551eb074ceac48bc4e5bad84d1ef1271590019d79177426e10` |
 | `.l9/generated-data-bind-receipt.yaml` | `repository_root` | `repository_root` | 1083 | `c4ac97061efd3f9fc76785cdc5dce3e10ee19d38518c7bc31a12271c0d57831f` |
 | `.l9/generated-data-deployment-wave1-preflight.json` | `repository_root` | `repository_root` | 1881 | `18edd9f12c5d758f0cf737ee9af0c9aa34588a48313021712ddc0035cf83e650` |
 | `.l9/generated-data-repository-binding-preflight.json` | `repository_root` | `repository_root` | 1981 | `a5566fe67ad128fc0e2357f8945d3eaa3a8ff551b7dc14d8bcd1755d50d08dd2` |
