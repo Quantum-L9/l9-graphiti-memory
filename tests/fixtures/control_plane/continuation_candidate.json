@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.1.0",
+  "kind": "MemoryCandidate",
+  "candidate_id": "cursor-continuation:Quantum-L9/Cursor-Governance:session-42:0123456789abcdef",
+  "source": {
+    "repository": "Quantum-L9/Cursor-Governance",
+    "sha": "cccccccccccccccccccccccccccccccccccccccc",
+    "visibility": "namespace_local",
+    "namespace": "repo-a"
+  },
+  "knowledge": {
+    "primary_class": "session_continuation",
+    "statement": "Realign memory control plane | next: Wire runtime binding",
+    "confidence": 1.0,
+    "invalidation_conditions": [
+      {
+        "condition_type": "repository_state_changed",
+        "selector": "cccccccccccccccccccccccccccccccccccccccc"
+      }
+    ],
+    "payload_schema": "cursor.continuation/v2",
+    "structured_payload": {
+      "schema": "cursor.continuation/v2",
+      "session_id": "session-42",
+      "repository_identity": "Quantum-L9/Cursor-Governance",
+      "task_signature": "0123456789abcdef0123456789abcdef",
+      "objective": "Realign memory control plane",
+      "next_action": "Wire runtime binding",
+      "active_files": ["ops/memory/runtime_binding.py"],
+      "blockers": [],
+      "decisions": ["CLI is the hook transport"],
+      "unfinished_work": ["egress scanner"],
+      "repository_state_digest": "cccccccccccccccccccccccccccccccccccccccc",
+      "producer": "Cursor-Governance",
+      "producer_version": "2.0.0",
+      "created_at": "2026-09-05T00:00:00+00:00"
+    }
+  },
+  "governance": {
+    "authority_class": "advisory",
+    "route": "memory",
+    "promotion_decision": "promote",
+    "may_override_repository_state": false,
+    "may_override_canonical_authority": false
+  },
+  "provenance": {
+    "producer": "Cursor-Governance",
+    "source_agent_id": "cursor"
+  }
+}

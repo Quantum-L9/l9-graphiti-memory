@@ -6,7 +6,7 @@ layer: documentation
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-07-27
+updated: 2026-09-06
 /L9_META -->
 
 # Cursor Instantiation
@@ -36,7 +36,7 @@ The managed entry is secret-free by construction. It contains only a `command` (
 
 ## Proof of instantiation
 
-`l9-memory client cursor verify` is the only accepted proof that memory is actually on. It spawns the exact argv from the managed entry and drives the real line-delimited JSON-RPC handshake — `initialize`, `notifications/initialized`, `tools/list`, and `tools/call memory.health` — over the same stdio channel Cursor uses. The probe succeeds only when the protocol version and server identity are confirmed, all fifteen canonical tools are present, and `memory.health` reports a non-failed status. The resulting `ProbeReceipt` records each step, the tool count, the health status, redacted stderr evidence, and the exit code of the reaped process. A receipt with `"status": "complete"` is the closing evidence of the instantiation loop.
+`l9-memory client cursor verify` is the only accepted proof that memory is actually on. With `--path` it reads the managed entry back from that file and launches exactly what the file names (`ProbeReceipt.argv_source = "installed"`, `config_path` set); without `--path` it does the same against the default config when that file already carries the entry, and only a machine with no config at all falls back to the entry the configurator would generate (`argv_source = "generated"`). A file naming a missing, drifted, or symlinked entry therefore yields a `failed` receipt whose reasons say so, never a probe of a hypothetical command. Either way the probe spawns that argv and drives the real line-delimited JSON-RPC handshake — `initialize`, `notifications/initialized`, `tools/list`, and `tools/call memory.health` — over the same stdio channel Cursor uses. The probe succeeds only when the protocol version and server identity are confirmed, all fifteen canonical tools are present, and `memory.health` reports a non-failed status. The resulting `ProbeReceipt` records each step, the tool count, the health status, redacted stderr evidence, and the exit code of the reaped process. A receipt with `"status": "complete"` is the closing evidence of the instantiation loop.
 
 ## Typical sequence
 

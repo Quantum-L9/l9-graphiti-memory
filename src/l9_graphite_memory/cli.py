@@ -25,7 +25,9 @@ from uuid import UUID, uuid4
 from l9_graphite_memory.client_config import (
     ClientConfigStatus,
     CursorClientConfigurator,
+    default_cursor_config_path,
     probe_generated_server,
+    probe_installed_entry,
 )
 from l9_graphite_memory.contracts import (
     ALL_MAINTENANCE_OPERATIONS,
@@ -268,6 +270,7 @@ def cmd_search(args: argparse.Namespace) -> int:
             min_confidence=args.min_confidence,
             limit=args.limit,
             token_budget=args.token_budget,
+            tags=tuple(args.tag),
         )
         receipt = runtime.service.search(principal, request)
         _print(receipt)
@@ -293,6 +296,7 @@ def cmd_hydrate(args: argparse.Namespace) -> int:
                 memory_classes=tuple(args.memory_class),
                 token_budget=args.token_budget,
                 max_records=args.max_records,
+                tags=tuple(args.tag),
             ),
         )
         _print(result)
@@ -849,7 +853,17 @@ def cmd_client(args: argparse.Namespace) -> int:
         _print(receipt)
         return 0 if receipt.status != ClientConfigStatus.BLOCKED else 1
     if action == "verify":
-        probe = probe_generated_server(interpreter=args.interpreter, timeout_seconds=args.timeout)
+        # Verify proves what is on disk when a config exists: an explicit
+        # --path always, the default path when it already carries the entry.
+        # Only a fresh machine with no config falls back to the generated
+        # entry, and the receipt's argv_source says which one ran.
+        target = path or default_cursor_config_path()
+        if path is not None or (target.is_file() and not target.is_symlink()):
+            probe = probe_installed_entry(target, timeout_seconds=args.timeout)
+        else:
+            probe = probe_generated_server(
+                interpreter=args.interpreter, timeout_seconds=args.timeout
+            )
         _print(probe)
         return 0 if probe.status == ClientConfigStatus.COMPLETE else 1
     raise ValueError(f"unsupported cursor action: {action}")
@@ -1022,6 +1036,7 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument("--include-superseded", action="store_true")
     search.add_argument("--include-archived", action="store_true")
     search.add_argument("--include-workspace", action="store_true")
+    search.add_argument("--tag", action="append", default=[])
 
     hydrate = sub.add_parser("hydrate")
     hydrate.add_argument("task")
@@ -1032,6 +1047,7 @@ def build_parser() -> argparse.ArgumentParser:
     hydrate.add_argument("--memory-class", type=_memory_class, action="append", default=[])
     hydrate.add_argument("--token-budget", type=int, default=1_200)
     hydrate.add_argument("--max-records", type=int, default=40)
+    hydrate.add_argument("--tag", action="append", default=[])
 
     get_record = sub.add_parser("get")
     get_record.add_argument("record_id")

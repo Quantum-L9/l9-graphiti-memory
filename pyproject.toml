@@ -5,7 +5,7 @@
 #   layer: repository
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
+#   version: 2.3.0
 #   updated: 2026-07-22
 
 [build-system]
@@ -14,7 +14,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "l9-graphite-memory"
-version = "2.2.0"
+version = "2.3.0"
 description = "Contract-governed bi-temporal memory substrate for autonomous agents"
 readme = "README.md"
 license = { text = "Proprietary" }

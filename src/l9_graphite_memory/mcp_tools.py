@@ -158,6 +158,7 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
                     "maximum": 200,
                     "default": 20,
                 },
+                "tags": {"type": "array", "items": {"type": "string"}},
             },
             ["query", "namespaces"],
         ),
@@ -184,6 +185,7 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
                     "maximum": 200,
                     "default": 40,
                 },
+                "tags": {"type": "array", "items": {"type": "string"}},
             },
             ["task", "namespaces"],
         ),
@@ -573,6 +575,7 @@ class MCPToolApplication:
             include_archived=bool(args.get("include_archived", False)),
             min_confidence=float(args.get("min_confidence", 0.0)),
             limit=int(args.get("limit", 20)),
+            tags=tuple(str(value) for value in args.get("tags", [])),
         )
         return self.service.search(principal, request)
 
@@ -589,6 +592,7 @@ class MCPToolApplication:
                 ),
                 token_budget=int(args.get("token_budget", 1_200)),
                 max_records=int(args.get("max_records", 40)),
+                tags=tuple(str(value) for value in args.get("tags", [])),
             ),
         )
 

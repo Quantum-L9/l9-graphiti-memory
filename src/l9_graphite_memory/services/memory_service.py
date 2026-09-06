@@ -758,6 +758,7 @@ class MemoryService:
             valid_at=request.valid_at,
             limit=request.max_records,
             token_budget=request.token_budget,
+            tags=request.tags,
         )
         search = self.search(principal, search_request)
         return self.budget_allocator.allocate(

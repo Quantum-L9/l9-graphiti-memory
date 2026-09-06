@@ -176,3 +176,13 @@ ADR-063 with idempotency, a structured payload, and a requested namespace;
 the client-instantiation proof of ADR-064 is unchanged.
 
 No later ADR supersedes this decision as of 2026-09-05.
+
+## Amendment — 2.3.0 (campaign stage M2)
+
+Release `2.3.0` is the `MEMORY_TARGET_VERSION` the consumer binds. Beyond the
+M1 surface above it adds the tag selector on search and hydrate (the consumer's
+typed continuation retrieval), `client cursor verify --path` probing the entry
+as installed rather than as generated, the installed-wheel lifecycle proof, and
+the shared fixture under `tests/fixtures/control_plane/`. None of these change
+`CONTROL_PLANE_CONTRACT_VERSION`: every addition is optional on the request
+side and additive on the receipt side.

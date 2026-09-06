@@ -10,7 +10,7 @@
 
 """Package version and contract versions."""
 
-PACKAGE_VERSION = "2.2.0"
+PACKAGE_VERSION = "2.3.0"
 # 2.2.0 adds the optional structured source_locator to Provenance and
 # EvidenceRef (ADR-078). Records persisted at 2.1.0 upcast losslessly: the new
 # field is absent there and stays None.
