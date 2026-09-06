@@ -193,8 +193,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 121 -> 124 for GMP-001: contracts/review.py, ports/review.py,
         # and curation/quarantine.py carry the quarantine review contract, port,
         # and evidence-bound reviewer (ADR-080).
-        "124 production files pass",
-        r"PASS: 124 production Python files",
+        #
+        # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
+        # the control-plane capability receipt.
+        "125 production files pass",
+        r"PASS: 125 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -274,8 +277,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "installed MCP/resources/entrypoints",
         "installed smoke script",
         "logs/installed_mcp.txt",
-        "30 tools and required surfaces load",
-        r"30 tools loaded",
+        # Re-pinned 30 -> 31 for ADR-082: memory.capabilities joins the
+        # canonical tool inventory.
+        "31 tools and required surfaces load",
+        r"31 tools loaded",
     ),
     CheckSpec(
         "V-021",
