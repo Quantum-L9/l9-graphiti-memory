@@ -1,5 +1,5 @@
 {
-  "file_count": 746,
+  "file_count": 751,
   "files": [
     {
       "category": "ci",
@@ -446,8 +446,8 @@
         "version": "2.3.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "cef18b3f705333cec05a09266b2ccedf21fe580247f42f102fd01a83b7a81191",
-      "size_bytes": 126383
+      "sha256": "779a6a9db4477da578f0a10e48f614a8ffd00b847dd73245063536d7a3300d55",
+      "size_bytes": 127134
     },
     {
       "category": "repository_root",
@@ -5102,7 +5102,7 @@
         "version": "2.3.0"
       },
       "path": "scripts/preflight.sh",
-      "sha256": "a9c21d5cb5081802681642fedb975e80f7d6eae7cbe1f886209152db431d7154",
+      "sha256": "7622c195dc6a0eca533aa5732beb00c25f2b661d4ff1caf08bf0f4f87d616847",
       "size_bytes": 3751
     },
     {
@@ -7767,6 +7767,38 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/fixtures/control_plane/README.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.3.0"
+      },
+      "path": "tests/fixtures/control_plane/README.md",
+      "sha256": "fc185e65613639028a97d0c17fb5a70d4752ad4ff6e9605107a0a4f4f9344e0e",
+      "size_bytes": 783
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/fixtures/control_plane/continuation_candidate.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.3.0"
+      },
+      "path": "tests/fixtures/control_plane/continuation_candidate.json",
+      "sha256": "d1589bd7c3e6dae14f9d9563c5a59083acacbd4e85ed91bb566d8588fca538c5",
+      "size_bytes": 1735
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/fixtures/publication_identity/golden-vectors.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -8743,6 +8775,22 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/integration/test_installed_wheel_lifecycle.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.3.0"
+      },
+      "path": "tests/integration/test_installed_wheel_lifecycle.py",
+      "sha256": "2f79508823ba9d4a8dcb8caf442ad1ce554c47cf4f20f6c63560d0b2328042a2",
+      "size_bytes": 7771
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/integration/test_lifecycle_projection_consistency.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -9095,6 +9143,22 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/regression/test_release_version_consistency.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.3.0"
+      },
+      "path": "tests/regression/test_release_version_consistency.py",
+      "sha256": "8c4fd9ef16320c286d9f041d5ba2cd38819d834d9f9ac21c48eebc1ddb81d653",
+      "size_bytes": 3010
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/regression/test_skill_pack.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -9376,6 +9440,22 @@
       "path": "tests/unit/test_constellation_bridge.py",
       "sha256": "e6d63e6f1728d33bb86617a3ec278343b688f442b78258671cc9517d43a1e13f",
       "size_bytes": 3710
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_consumer_conformance.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.3.0"
+      },
+      "path": "tests/unit/test_consumer_conformance.py",
+      "sha256": "37601eb7e1545469c8e534697573b63121acf9ea447c2b5fbaf3b66a47add73c",
+      "size_bytes": 13707
     },
     {
       "category": "tests",
