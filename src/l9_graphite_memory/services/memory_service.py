@@ -667,14 +667,26 @@ class MemoryService:
             ),
         )
         replayed = False
+        replay_payload_matched: bool | None = None
+        stored_digest: str | None = None
         if write_receipt.status is WriteStatus.DUPLICATE:
             # The caller replayed a close it already committed under this
             # key. Exactly one logical close exists; report it as complete
             # and name the first record rather than failing the retry or
-            # minting a second close (ADR-082).
+            # minting a second close (ADR-082). Whether the replay carried
+            # the same payload is evidence the caller needs: the stored
+            # record stays authoritative either way, but a drifted retry
+            # means the retry identity was reused for a different operation.
             status = OperationStatus.COMPLETE
             record_id = write_receipt.record_id
             replayed = True
+            stored = self.store.get_record(record_id) if record_id is not None else None
+            stored_digest = stored.normalized_digest if stored is not None else None
+            replay_payload_matched = (
+                stored_digest == write_receipt.normalized_digest
+                if stored_digest is not None
+                else None
+            )
         elif write_receipt.status is not WriteStatus.ADMITTED:
             status = OperationStatus.FAILED
             record_id = write_receipt.record_id
@@ -695,6 +707,10 @@ class MemoryService:
             record_id=record_id,
             graphiti_accepted=False,
             replayed=replayed,
+            replay_payload_matched=replay_payload_matched,
+            stored_digest=stored_digest,
+            replay_digest=write_receipt.normalized_digest if replayed else None,
+            warnings=write_receipt.warnings,
             authorization=write_receipt.authorization,
         )
 

@@ -100,8 +100,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # test_cursor_mcp_instantiation.py, 2 in
         # test_release_version_consistency.py. Same arithmetic: this branch
         # collects 851, so 851 - 15 = 836.
-        "836 tests pass",
-        r"836 passed",
+        #
+        # Re-pinned 836 -> 840 for release 2.3.0 audit closure (ADR-082
+        # amendment: governed-candidate supersession and close replay
+        # forensics): 4 cases in test_control_plane_transport_parity.py.
+        # Same arithmetic: this branch collects 855, so 855 - 15 = 840.
+        "840 tests pass",
+        r"840 passed",
     ),
     CheckSpec(
         "V-002",

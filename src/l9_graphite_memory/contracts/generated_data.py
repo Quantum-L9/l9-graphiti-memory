@@ -145,6 +145,14 @@ class GovernedMemoryCandidate(BaseModel):
     knowledge: GovernedCandidateKnowledge
     governance: GovernedCandidateGovernance
     provenance: GovernedCandidateProvenance = Field(default_factory=GovernedCandidateProvenance)
+    # Canonical supersession reference (ADR-082 amendment, audit P1-03): the
+    # records this candidate replaces once admitted. Memory validates every
+    # target (same tenant, authorized namespace, exists, lifecycle transition
+    # legal) and applies the transition transactionally; a producer that
+    # refines a continuation names the prior record here instead of leaving
+    # two ACTIVE continuations behind. A refused supersession rejects the
+    # candidate and leaves the targets untouched.
+    supersedes: list[UUID] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_ingress(self) -> GovernedMemoryCandidate:
@@ -214,6 +222,9 @@ class MemoryCandidateIngestionResult(BaseModel):
     storage_committed: bool = False
     memory_state: str | None = None
     reason: str | None = None
+    # Records this admission superseded (empty unless the candidate named
+    # targets and memory applied the transition).
+    superseded_record_ids: list[UUID] = Field(default_factory=list)
 
 
 class MemoryReuseEvent(BaseModel):

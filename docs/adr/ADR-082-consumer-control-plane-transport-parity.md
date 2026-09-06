@@ -186,3 +186,39 @@ as installed rather than as generated, the installed-wheel lifecycle proof, and
 the shared fixture under `tests/fixtures/control_plane/`. None of these change
 `CONTROL_PLANE_CONTRACT_VERSION`: every addition is optional on the request
 side and additive on the receipt side.
+
+## Amendment — refinement supersession and replay forensics (audit closure, 2026-09-06)
+
+The paired-release audit of Cursor-Governance#509 and this PR found two
+lifecycle defects at the new seam, both closed here without changing
+`CONTROL_PLANE_CONTRACT_VERSION` (request side optional, receipt side additive).
+
+**Governed-candidate supersession (P1-03).** `GovernedMemoryCandidate` gains
+an optional `supersedes: [record_id, …]`. A producer that refines a
+continuation (Cursor's Phase B over its Phase A capsule) names the prior
+canonical record instead of leaving two ACTIVE continuations behind and
+relying on retrieval order. Memory owns the validation — same tenant,
+authorized namespace, target exists, lifecycle transition legal — and applies
+the transition transactionally through the existing
+`MemoryWriteRequest.supersedes` path; the ingestion result reports
+`superseded_record_ids`. A supersession memory refuses rejects the candidate
+before anything is committed and leaves the targets untouched, so a failed
+refinement keeps the Phase A record ACTIVE. The refinement keeps its own
+candidate id and idempotency key: the payload genuinely changed, and reusing
+the prior key would make memory keep the original body and hide the
+refinement as a duplicate.
+
+**Close replay forensics (P2-01).** `CloseReceipt` gains
+`replay_payload_matched`, `stored_digest`, `replay_digest` and `warnings`.
+A close replayed under an existing idempotency key still collapses onto the
+first close record, but the receipt now says whether the replay carried the
+same normalized payload; a drifted replay surfaces the write path's
+"replay payload differs" warning instead of reading as a clean `replayed`.
+The consumer's retry path replays the exact original close request from its
+local obligation and treats a mismatch as a finding.
+
+Tests: `tests/unit/test_control_plane_transport_parity.py` — refined
+continuation supersedes the prior record and is the only one tag-selected
+search returns; refused supersession rejects the refinement and keeps the
+prior ACTIVE; the CLI carries `supersedes`; close replay reports a matched
+payload and a drifted one.

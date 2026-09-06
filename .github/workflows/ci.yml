@@ -78,11 +78,26 @@ jobs:
       - name: Gate active-memory public API
         run: PYTHONPATH=src python tools/assurance/check_active_memory_public_api.py
       - run: bash scripts/validate_release.sh
+      # Release evidence (audit P2-03): a coverage report the release-analysis
+      # tooling can map to new code. Collected as a separate run against the
+      # full suite so the evidence generator's exact "N passed" pin above is
+      # untouched; coverage.xml is uploaded next to the validation manifest.
+      - name: Collect coverage report
+        run: >-
+          PYTHONPATH=src pytest -q -p no:cacheprovider
+          --cov=l9_graphite_memory --cov-branch
+          --cov-report=xml:coverage.xml --cov-report=term-missing:skip-covered
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: validation-py${{ matrix.python-version }}
           path: validation/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-py${{ matrix.python-version }}
+          path: coverage.xml
+          if-no-files-found: error
 
   # RP-001/RP-002 bind this package to the authoritative TransportPacket and
   # Gate client, but the `validate` matrix omits the `constellation` extra, so

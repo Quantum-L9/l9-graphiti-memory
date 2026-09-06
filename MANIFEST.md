@@ -58,7 +58,7 @@ updated: 2026-07-22
 |---|---|---|---:|---|
 | `.github/issues.json` | `ci` | `ci` | 5755 | `23cbdff3ae0c9491c419771321766af4f510cd954dc671404994e7c7e3771d28` |
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
-| `.github/workflows/ci.yml` | `ci` | `ci` | 6314 | `dd0c456d9226c056aae622db510fa28faef813509066eb4c0bc9a8a23b6d4c4c` |
+| `.github/workflows/ci.yml` | `ci` | `ci` | 7056 | `9183b3ad37249850715f292ac521010db32b374d734e11f6706d3cc94256adbf` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
 | `.github/workflows/nightly-maintenance.yml` | `ci` | `ci` | 5140 | `0626627b16523ced1bfdf6f13271a434e92a2c0138b862a2ff5ccfb15db41d48` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 1439 | `a0020911d065fb943ffd8c2eda19f2fb21060ea782ffdf1830fbb9d5dffbc72b` |
@@ -324,7 +324,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-079-governed-write-phase-lock-atomicity.md` | `architecture_decisions` | `architecture_decisions` | 8764 | `04886ad19084d6befd8de9c1fec1e90a4cfc3ba1187bc717d97ff8b27a37ef08` |
 | `docs/adr/ADR-080-automated-quarantine-review.md` | `architecture_decisions` | `architecture_decisions` | 7562 | `2db001d279649a83e9908186759e3ba8e6c4710a3dea60272eb107371652ef53` |
 | `docs/adr/ADR-081-canonical-conflict-links.md` | `architecture_decisions` | `architecture_decisions` | 5596 | `fc99f0a340d20d663c6e9c579c6361f1da96396db35e470ab2eb2a407ca1003e` |
-| `docs/adr/ADR-082-consumer-control-plane-transport-parity.md` | `architecture_decisions` | `architecture_decisions` | 8913 | `1d1261fa4e8274c256f604634e18049e0c936f5ea40715458c2da57cf477afa9` |
+| `docs/adr/ADR-082-consumer-control-plane-transport-parity.md` | `architecture_decisions` | `architecture_decisions` | 11067 | `bc051d5679ebfad9c8fc41fdebc5a4c144684bc74829312410301e600dff6f6b` |
 | `docs/adr/README.md` | `architecture_decisions` | `architecture_decisions` | 10238 | `256492644d0aa8a0eeacad2e383154917d923989eb7ae94a94523ec5ae092b8e` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
@@ -419,14 +419,14 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/contracts/capabilities.py` | `production_source` | `contract` | 5770 | `bc74a7d83603c4539ed42ed3f24989a44538066a1f3d2d97d60d8dcdac097c64` |
 | `src/l9_graphite_memory/contracts/enums.py` | `production_source` | `contract` | 3562 | `3b615650dec2e89e437a903d7aaf8abc3541331bfdf2a1c4ddaa44b0630478e9` |
 | `src/l9_graphite_memory/contracts/evidence.py` | `production_source` | `contract` | 9966 | `10370bdd3bc10ceb7355b29af26cb14f351d5c6c54102a533c8a620f9ca7cd1e` |
-| `src/l9_graphite_memory/contracts/generated_data.py` | `production_source` | `contract` | 9241 | `39845e5e3fa6236d4747c47ef3fa0eaf829a70e0f767531b616e051dd33dfd49` |
+| `src/l9_graphite_memory/contracts/generated_data.py` | `production_source` | `contract` | 9994 | `152a6bd6a67e528eb188755c8b3c9754b58dbae2b40150085c0bf3a9e22d4549` |
 | `src/l9_graphite_memory/contracts/identity.py` | `production_source` | `contract` | 1977 | `66375f00719a3402f1e8f391dadeb8b68b6ffbe89b310ddc805a9b228a9e5c80` |
 | `src/l9_graphite_memory/contracts/maintenance.py` | `production_source` | `contract` | 5023 | `6f443f034da3aa1aad27b6806ac914de323097734e10fcd6a63b300b007a4ce5` |
 | `src/l9_graphite_memory/contracts/memory.py` | `production_source` | `contract` | 3667 | `447e14f3d13ddd07337a7bbccd2bbc3328068b7e0edf64854cc78b40582b6a0b` |
 | `src/l9_graphite_memory/contracts/privacy.py` | `production_source` | `contract` | 2137 | `90c7d4f7b99f907d6b286dbb09de4a84cf79e297d9a73bdbe457fac0435e2d10` |
 | `src/l9_graphite_memory/contracts/profiles.py` | `production_source` | `contract` | 3235 | `ba1550aa91af50829129325fa14af66711f84ee57fdb09085e3859e33de18a54` |
 | `src/l9_graphite_memory/contracts/projection.py` | `production_source` | `contract` | 4404 | `9f57136a9247695a5a180c8c4388d815ab1901b4d4bef59c15da53d689446aab` |
-| `src/l9_graphite_memory/contracts/receipts.py` | `production_source` | `contract` | 12289 | `a95ae55fe6d78cf1a2fa77625880700666960b8d92a033d7b640c95147f269b3` |
+| `src/l9_graphite_memory/contracts/receipts.py` | `production_source` | `contract` | 12797 | `33f676cca911541356e030d03c4cbbbcca030a3c83606a6ab25bcb7c27b81aa3` |
 | `src/l9_graphite_memory/contracts/requests.py` | `production_source` | `contract` | 6935 | `78e680d776e5ac3813f21320f8e19ed34a2a5efa82aa56922e6d6bd845928933` |
 | `src/l9_graphite_memory/contracts/review.py` | `production_source` | `contract` | 4009 | `6166051ac7a29441f83eb6dc48708b53e2a3772977b26a790adf1ad2442c3134` |
 | `src/l9_graphite_memory/contracts/temporal.py` | `production_source` | `contract` | 3499 | `23c9aca1c27706c72d96a80181c0fd0d13c8e4e250af61cf6af0aeb87ab6275d` |
@@ -502,8 +502,8 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/secrets.py` | `production_source` | `production_source` | 6628 | `6004b2554719ec20254f07ca6b55c6cab25fa9786d7187c5e7aed608076f36fc` |
 | `src/l9_graphite_memory/server.py` | `production_source` | `production_source` | 11005 | `907f74485812c992f459a4f2a6b80f88f54d9485179bb39c7b552d6b46633506` |
 | `src/l9_graphite_memory/services/__init__.py` | `production_source` | `service` | 474 | `1c5499701993253acd4a359a336fd654ef53a28ac02953b1ccc4a0033ff42158` |
-| `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 13631 | `4edf726d84885278ae563b7eb0f3c8acb46cd25759eeb46a35b92b6b82d3b9d4` |
-| `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 56151 | `34aa60142744af1e5bfc1f57b7b0179815d669942955b9300a61462ee50f860c` |
+| `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 14723 | `67091d61a316be27602f4b09ef9e7d5d87f1a849fdab23a7bc95e2cecabaec93` |
+| `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 57081 | `d2708b86983cceeefa5ee318fbd6c088f2a7595f8b3a6e368cc1ea549b976555` |
 | `src/l9_graphite_memory/services/outbox_worker.py` | `production_source` | `service` | 15876 | `92b481ad5c9272a7cbdd4d3964bf9fcd137045e6e3af1a94ec10798725739938` |
 | `src/l9_graphite_memory/transport.py` | `production_source` | `production_source` | 13622 | `75643012b7b55852c86b1c0b5f7a7b8cccca8480037494d12c1e8c5fb111a351` |
 | `src/l9_graphite_memory/trust_boundary.py` | `production_source` | `production_source` | 2883 | `0204be3016103469ec5b41799400d6ce2f9d77e32eafc754f78f675f63b51089` |
@@ -532,7 +532,7 @@ updated: 2026-07-22
 | `tests/deployment/generated_data/test_migration_verifier.py` | `tests` | `tests` | 5041 | `234bb31a0e23614b3847223f9eef40868e6500ea735e4a198d60a98b930912e9` |
 | `tests/deployment/generated_data/test_namespace_mapping.py` | `tests` | `tests` | 3707 | `5a85ad42f134e2fc135ff4b9d1fa9f90fd113a45b4c8a3e3bb81e617e0691112` |
 | `tests/deployment/generated_data/test_principal_policy.py` | `tests` | `tests` | 3302 | `7c72cf65747965b408fd6f88670b45538057245b325e95979851033a4003fc5f` |
-| `tests/deployment/generated_data/test_runtime_status_protocol.py` | `tests` | `tests` | 6008 | `ab02bad1ba617aa9f7137727460d93c318585ea8a3ee10dcd8e57c2dc055242f` |
+| `tests/deployment/generated_data/test_runtime_status_protocol.py` | `tests` | `tests` | 6192 | `dded6bfa32f9a3a47dfc39338d236a27ec274e117efa9625d9bc32882abeb72d` |
 | `tests/deployment/generated_data/test_selector_indexes.py` | `tests` | `tests` | 6255 | `c4ea3829f53c9678d7a7c204fd8e4c97244988a9080fad29c0319013a90c1438` |
 | `tests/external_runtime/__init__.py` | `tests` | `tests` | 222 | `84b533a73a74a9270a46f15627d6b08e012953b137e9dfd65106d976551fcc03` |
 | `tests/external_runtime/conftest.py` | `tests` | `tests` | 2433 | `4d30d3eafb51622cbedae2217c3924a1f107010f2dfebdc2e9f26ecff827fc3b` |
@@ -647,7 +647,7 @@ updated: 2026-07-22
 | `tests/unit/test_constellation_bridge.py` | `tests` | `tests` | 3710 | `e6d63e6f1728d33bb86617a3ec278343b688f442b78258671cc9517d43a1e13f` |
 | `tests/unit/test_consumer_conformance.py` | `tests` | `tests` | 13707 | `37601eb7e1545469c8e534697573b63121acf9ea447c2b5fbaf3b66a47add73c` |
 | `tests/unit/test_contracts.py` | `tests` | `tests` | 1735 | `fb770ff175b1807a96e481a76fd7f0950a476f23a479796a343c099e2b329514` |
-| `tests/unit/test_control_plane_transport_parity.py` | `tests` | `tests` | 13176 | `4d7f1511c3ae6d5db3cc451a1c0f078750649eec23940b21577ee15d035dd890` |
+| `tests/unit/test_control_plane_transport_parity.py` | `tests` | `tests` | 18373 | `71863e1d3f8500a2e2026a12d14d49774b2674eeeca40679a75440d1b072c0e1` |
 | `tests/unit/test_cursor_client_config.py` | `tests` | `tests` | 10103 | `23cb000fe5c91e0f705fedebf8dead6b8762cceb5f36f94411ee88265cf8410d` |
 | `tests/unit/test_gate.py` | `tests` | `tests` | 3780 | `3ba0ef50fe9ebff296e6d37b92c0a5ac10a61179203e91286a9db91017840863` |
 | `tests/unit/test_group_resolver.py` | `tests` | `tests` | 3503 | `27b40124f42234a9d7c53cde89cab244b87503d9c685521ffa09c23338418896` |
@@ -695,7 +695,7 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 8677 | `1a33a7a5543ee70d6f8e41bcc2387319f63c7b9857b21ebc86334175d8ed020b` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 16521 | `329db6536a5ded931522e91144687964b2893205e991430970cbd38196ec7ba1` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 16818 | `b392c51ebcec280beb1295fa09c61916fcf44d95bec31283ca222e3bbaaf8d21` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `33e9005fded678f0086848a700998bf1c999fee81bb716ae5724d0e7e420d1da` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |

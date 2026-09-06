@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
@@ -34,6 +35,7 @@ from l9_graphite_memory.contracts import (
     CloseRequest,
     ControlPlaneCapabilities,
     MemorySearchRequest,
+    MemoryState,
     OperationStatus,
     PhaseLockRequest,
 )
@@ -326,3 +328,112 @@ def test_namespace_local_requires_namespace() -> None:
     del payload["source"]["namespace"]
     with pytest.raises(ValueError, match="namespace"):
         GovernedMemoryCandidate.model_validate(payload).namespace()
+
+
+# ---------------------------------------------------------------------------
+# Continuation refinement supersedes the prior record (audit P1-03)
+# ---------------------------------------------------------------------------
+
+
+def _refined_candidate(prior_record_id: str) -> dict[str, Any]:
+    refined = continuation_candidate()
+    refined["candidate_id"] = "cursor-continuation:session-42:refined01"
+    refined["knowledge"]["statement"] = (
+        "Realign memory control plane | next: Wire runtime binding, then prove it"
+    )
+    refined["knowledge"]["structured_payload"]["next_action"] = (
+        "Wire runtime binding, then prove it"
+    )
+    refined["supersedes"] = [prior_record_id]
+    return refined
+
+
+def test_refined_continuation_supersedes_the_prior_record(memory_service, principal) -> None:
+    """Phase A then Phase B leaves exactly one ACTIVE continuation."""
+
+    service = GeneratedDataService(memory_service)
+    first = service.ingest_governed_candidate(principal, continuation_candidate())
+    assert first.status is MemoryCandidateIngestionStatus.ADMITTED
+    second = service.ingest_governed_candidate(principal, _refined_candidate(str(first.record_id)))
+    assert second.status is MemoryCandidateIngestionStatus.ADMITTED
+    assert second.record_id != first.record_id
+    assert second.superseded_record_ids == [first.record_id]
+
+    prior = memory_service.get(principal, first.record_id)
+    refined = memory_service.get(principal, second.record_id)
+    assert prior is not None and prior.state is MemoryState.SUPERSEDED
+    assert refined is not None and refined.state is MemoryState.ACTIVE
+
+    # The tag-selected retrieval hydration uses sees the refinement only.
+    receipt = memory_service.search(
+        principal,
+        MemorySearchRequest(
+            query="Realign memory control plane",
+            namespaces=("repo-a",),
+            tags=("session_continuation",),
+        ),
+    )
+    visible = {hit.record.record_id for hit in receipt.hits}
+    assert second.record_id in visible
+    assert first.record_id not in visible
+
+
+def test_refused_supersession_rejects_the_refinement_and_keeps_the_prior_active(
+    memory_service, principal
+) -> None:
+    """A refinement naming a target memory cannot supersede changes nothing."""
+
+    service = GeneratedDataService(memory_service)
+    first = service.ingest_governed_candidate(principal, continuation_candidate())
+    refused = service.ingest_governed_candidate(principal, _refined_candidate(str(uuid4())))
+    assert refused.status is MemoryCandidateIngestionStatus.REJECTED
+    assert refused.record_id is None and refused.storage_committed is False
+    assert refused.reason and refused.reason.startswith("supersession refused")
+    prior = memory_service.get(principal, first.record_id)
+    assert prior is not None and prior.state is MemoryState.ACTIVE
+
+
+def test_cli_ingest_governed_candidate_carries_supersedes(cli_env, capsys) -> None:
+    first_path = cli_env / "first.json"
+    first_path.write_text(json.dumps(continuation_candidate()), encoding="utf-8")
+    code, first = _run(capsys, ["ingest-governed-candidate", "--file", str(first_path)])
+    assert code == 0 and first["status"] == "admitted"
+    refined_path = cli_env / "refined.json"
+    refined_path.write_text(json.dumps(_refined_candidate(first["record_id"])), encoding="utf-8")
+    code, refined = _run(capsys, ["ingest-governed-candidate", "--file", str(refined_path)])
+    assert code == 0 and refined["status"] == "admitted"
+    assert refined["superseded_record_ids"] == [first["record_id"]]
+    code, got = _run(capsys, ["get", first["record_id"], "--group-id", "repo-a"])
+    assert code == 0 and got["state"] == "superseded"
+
+
+# ---------------------------------------------------------------------------
+# Close replay forensics (audit P2-01)
+# ---------------------------------------------------------------------------
+
+
+def test_close_replay_reports_whether_the_payload_matched(memory_service, principal) -> None:
+    request = CloseRequest(namespace="repo-a", summary="session s close A", idempotency_key="k-a")
+    first = memory_service.close(principal, request)
+    assert first.status is OperationStatus.COMPLETE and first.replayed is False
+    assert first.replay_payload_matched is None and first.warnings == ()
+
+    same = memory_service.close(principal, request)
+    assert same.replayed is True and same.record_id == first.record_id
+    assert same.replay_payload_matched is True
+    assert same.stored_digest == same.replay_digest
+    assert same.warnings == ()
+
+    drifted = memory_service.close(
+        principal,
+        CloseRequest(
+            namespace="repo-a",
+            summary="session s close_retry: retry of interrupted close",
+            idempotency_key="k-a",
+        ),
+    )
+    assert drifted.status is OperationStatus.COMPLETE and drifted.replayed is True
+    assert drifted.record_id == first.record_id, "the first close stays authoritative"
+    assert drifted.replay_payload_matched is False
+    assert drifted.stored_digest != drifted.replay_digest
+    assert any("replay payload differs" in warning for warning in drifted.warnings)
