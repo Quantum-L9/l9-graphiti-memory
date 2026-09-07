@@ -77,6 +77,54 @@ def test_the_identity_covers_every_selector_the_planner_filters_on() -> None:
     assert identity["canonicalization"] == SEARCH_SELECTOR_CANONICALIZATION
 
 
+def test_a_new_request_field_cannot_be_added_without_deciding_about_it() -> None:
+    """The rule "a filter added to search is added to the identity" was a
+    comment, which is how MEM-P2-01 happened in the first place — ``tags``
+    was added to the request and nobody bound it.
+
+    So it is mechanical here: every field of MemorySearchRequest is either in
+    the identity or in the explicit exclusion list below. Adding a field makes
+    this fail until someone states which it is.
+    """
+    #: Fields that genuinely do not change which records come back. Each needs
+    #: a reason, not just a name.
+    not_result_affecting = {
+        # Shapes how a hydration allocator spends the hits, never which
+        # records the planner selects.
+        "token_budget",
+    }
+    identity = set(MemorySearchRequest(query="q").selector_identity())
+    identity.discard("canonicalization")
+    fields = set(MemorySearchRequest.model_fields)
+    unaccounted = fields - identity - not_result_affecting
+    assert not unaccounted, (
+        f"{sorted(unaccounted)} is on MemorySearchRequest but neither bound into "
+        "selector_identity() nor declared not-result-affecting — decide which"
+    )
+
+
+def test_an_unstated_selector_reads_as_absent_not_as_a_default() -> None:
+    """A receipt that never bound `limit` must not look like one CONTRADICTING
+    the limit that was asked for. Absence is None; a default is a value."""
+    from l9_graphite_memory.contracts import OperationStatus, SearchReceipt
+
+    bare = SearchReceipt(
+        status=OperationStatus.COMPLETE,
+        query="q",
+        namespaces_authorized=("repo-a",),
+        result_digest="x" * 64,
+    )
+    assert bare.limit is None
+    assert bare.request_digest is None
+    assert bare.min_confidence is None
+    assert bare.include_superseded is None
+    assert bare.include_archived is None
+    assert bare.selector_canonicalization is None
+    # An empty selector is a real value (unfiltered), not an absence.
+    assert bare.tags == ()
+    assert bare.memory_classes == ()
+
+
 def test_token_budget_is_not_part_of_the_identity() -> None:
     """It shapes how an allocator spends the hits, never which records the
     planner selects — binding it would make two identical searches look

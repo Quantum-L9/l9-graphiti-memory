@@ -1,5 +1,5 @@
 {
-  "file_count": 751,
+  "file_count": 752,
   "files": [
     {
       "category": "ci",
@@ -446,8 +446,8 @@
         "version": "2.3.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "f52293483612f7588e8230592a8cc9a86b22a33b5911c065d15a0de87e683a85",
-      "size_bytes": 127135
+      "sha256": "3c0ffdf92b99edb6c92f3550644e20f261fd19329ed529c07835f1da3a58bd29",
+      "size_bytes": 127281
     },
     {
       "category": "repository_root",
@@ -5774,8 +5774,8 @@
         "version": "2.3.0"
       },
       "path": "src/l9_graphite_memory/contracts/__init__.py",
-      "sha256": "cb7f4dc1e2b01eb714a932f7bf46f5eb4f116ecc860811254cd6d89025f72113",
-      "size_bytes": 4628
+      "sha256": "9f2bb63ff2cc935b85ebe3581ce3754fdb68cbfce848032907030d637a4d2344",
+      "size_bytes": 4706
     },
     {
       "category": "production_source",
@@ -5950,8 +5950,8 @@
         "version": "2.3.0"
       },
       "path": "src/l9_graphite_memory/contracts/receipts.py",
-      "sha256": "33f676cca911541356e030d03c4cbbbcca030a3c83606a6ab25bcb7c27b81aa3",
-      "size_bytes": 12797
+      "sha256": "7668fc859b5a9c450eab01bf53b2343837a14976a83cda350ab0a444eda856ad",
+      "size_bytes": 14298
     },
     {
       "category": "production_source",
@@ -5966,8 +5966,8 @@
         "version": "2.3.0"
       },
       "path": "src/l9_graphite_memory/contracts/requests.py",
-      "sha256": "78e680d776e5ac3813f21320f8e19ed34a2a5efa82aa56922e6d6bd845928933",
-      "size_bytes": 6935
+      "sha256": "e4f7f7413e3f7895b7b28e6ac6ddf87cd23e32e42fdaf540b9d25538de705044",
+      "size_bytes": 8990
     },
     {
       "category": "production_source",
@@ -6990,8 +6990,8 @@
         "version": "2.3.0"
       },
       "path": "src/l9_graphite_memory/retrieval/planner.py",
-      "sha256": "2a35d25019671eec39fe5ccdb38c0d510b0cd78c455bf58acc49cede5ede7fd3",
-      "size_bytes": 10367
+      "sha256": "95e35a13ff43df36ce151be78db140fe0ec12726f9acbdfa33176566652da9a1",
+      "size_bytes": 11563
     },
     {
       "category": "production_source",
@@ -9824,6 +9824,22 @@
       "path": "tests/unit/test_schema_registry.py",
       "sha256": "008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee",
       "size_bytes": 964
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_search_request_identity.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.3.0"
+      },
+      "path": "tests/unit/test_search_request_identity.py",
+      "sha256": "404b53b970e22673e799d3aba4b1deccef211f284094f766e74c8ae42e71559b",
+      "size_bytes": 12163
     },
     {
       "category": "tests",

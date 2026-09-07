@@ -17,6 +17,7 @@ from uuid import UUID
 
 from l9_graphite_memory.admission.normalization import canonical_json, sha256_text
 from l9_graphite_memory.contracts import (
+    SEARCH_SELECTOR_CANONICALIZATION,
     MemoryRecord,
     MemorySearchRequest,
     MemoryState,
@@ -269,6 +270,7 @@ class RetrievalPlanner:
             include_superseded=request.include_superseded,
             include_archived=request.include_archived,
             min_confidence=request.min_confidence,
+            selector_canonicalization=SEARCH_SELECTOR_CANONICALIZATION,
             request_digest=request_digest,
             hits=tuple(hits),
             query_pattern=classification.pattern,
