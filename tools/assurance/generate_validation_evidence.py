@@ -105,8 +105,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # amendment: governed-candidate supersession and close replay
         # forensics): 4 cases in test_control_plane_transport_parity.py.
         # Same arithmetic: this branch collects 855, so 855 - 15 = 840.
-        "840 tests pass",
-        r"840 passed",
+        #
+        # Re-pinned 840 -> 854 for MEM-P2-01 (search receipts bind every
+        # result-affecting selector and a request digest): 14 cases in
+        # test_search_request_identity.py. Same arithmetic: this branch
+        # collects 869, so 869 - 15 = 854.
+        "854 tests pass",
+        r"854 passed",
     ),
     CheckSpec(
         "V-002",
