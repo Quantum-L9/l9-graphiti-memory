@@ -127,3 +127,53 @@ def test_cli_client_cursor_lifecycle_round_trip(tmp_path: Path) -> None:
     assert removed["status"] == "complete"
     final = run("status", "--path", str(config_path))
     assert final["managed_entry_present"] is False
+
+
+def test_cli_client_cursor_verify_probes_the_installed_entry(tmp_path: Path) -> None:
+    """verify --path launches what the file names, and says so in the receipt."""
+
+    env = _isolated_env(tmp_path)
+    config_path = tmp_path / "cursor" / "mcp.json"
+
+    def run(*args: str, check: bool = True) -> tuple[int, dict]:
+        result = subprocess.run(
+            [sys.executable, "-m", "l9_graphite_memory.cli", "client", "cursor", *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        assert not check or result.returncode == 0, result.stderr
+        return result.returncode, json.loads(result.stdout)
+
+    # No entry yet: an explicit --path is a claim about the file, so it fails.
+    code, missing = run("verify", "--path", str(config_path), "--timeout", "20", check=False)
+    assert code == 1
+    assert missing["status"] == "failed" and missing["argv_source"] == "installed"
+    assert any("not installed" in reason for reason in missing["reasons"])
+
+    _, installed = run("install", "--path", str(config_path))
+    assert installed["status"] == "complete"
+    _, verified = run("verify", "--path", str(config_path), "--timeout", "60")
+    assert verified["status"] == "complete"
+    assert verified["argv_source"] == "installed"
+    assert verified["config_path"] == str(config_path)
+    assert list(verified["command_argv"]) == list(installed["command_argv"])
+
+
+def test_verify_without_a_config_falls_back_to_the_generated_entry(tmp_path: Path) -> None:
+    receipt = probe_generated_server(env=_isolated_env(tmp_path), timeout_seconds=60.0)
+    assert receipt.argv_source == "generated" and receipt.config_path is None
+
+
+def test_probe_installed_entry_refuses_a_symlinked_config(tmp_path: Path) -> None:
+    from l9_graphite_memory.client_config import probe_installed_entry
+
+    real = tmp_path / "real.json"
+    real.write_text('{"mcpServers": {}}', encoding="utf-8")
+    link = tmp_path / "mcp.json"
+    link.symlink_to(real)
+    receipt = probe_installed_entry(link, env=_isolated_env(tmp_path), timeout_seconds=5.0)
+    assert receipt.status == ClientConfigStatus.FAILED
+    assert receipt.command_argv == ()
+    assert "target path is a symlink" in receipt.reasons

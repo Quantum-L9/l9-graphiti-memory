@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.2.0"
+RELEASE: Final = "2.3.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,8 +88,25 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Same arithmetic: this branch collects 812, so 812 - 15 = 797. Export
         # both L9_MEMORY_TEST_POSTGRES_DSN and L9_MEMORY_TEST_REDIS_URL to
         # reproduce the CI figure locally.
-        "797 tests pass",
-        r"797 passed",
+        #
+        # Re-pinned 797 -> 813 for ADR-082 (consumer control-plane transport
+        # parity): 16 cases in test_control_plane_transport_parity.py, none
+        # backend-parameterized. Same arithmetic: this branch collects 828,
+        # so 828 - 15 = 813.
+        #
+        # Re-pinned 813 -> 836 for release 2.3.0 (campaign stage M2, consumer
+        # conformance hardening): 15 cases in test_consumer_conformance.py,
+        # 3 in test_installed_wheel_lifecycle.py, 3 more in
+        # test_cursor_mcp_instantiation.py, 2 in
+        # test_release_version_consistency.py. Same arithmetic: this branch
+        # collects 851, so 851 - 15 = 836.
+        #
+        # Re-pinned 836 -> 840 for release 2.3.0 audit closure (ADR-082
+        # amendment: governed-candidate supersession and close replay
+        # forensics): 4 cases in test_control_plane_transport_parity.py.
+        # Same arithmetic: this branch collects 855, so 855 - 15 = 840.
+        "840 tests pass",
+        r"840 passed",
     ),
     CheckSpec(
         "V-002",
@@ -108,8 +125,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/adr_validation.txt",
         # Re-pinned 79 -> 81 for GMP-001: ADR-080 (automated quarantine
         # review) and ADR-081 (canonical conflict links) join the ledger.
-        "81 ADRs complete and indexed",
-        r"PASS: 81 ADRs",
+        # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
+        # parity).
+        "82 ADRs complete and indexed",
+        r"PASS: 82 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -186,8 +205,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 121 -> 124 for GMP-001: contracts/review.py, ports/review.py,
         # and curation/quarantine.py carry the quarantine review contract, port,
         # and evidence-bound reviewer (ADR-080).
-        "124 production files pass",
-        r"PASS: 124 production Python files",
+        #
+        # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
+        # the control-plane capability receipt.
+        "125 production files pass",
+        r"PASS: 125 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -231,8 +253,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "Python wheel",
         "python -m build --wheel",
         "logs/wheel_build.txt",
-        "v2.2.0 wheel builds",
-        r"Successfully built l9_graphite_memory-2\.2\.0-py3-none-any\.whl",
+        "v2.3.0 wheel builds",
+        r"Successfully built l9_graphite_memory-2\.3\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -241,7 +263,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.2\.0",
+        r"l9-graphite-memory==2\.3\.0",
     ),
     CheckSpec(
         "V-018",
@@ -267,8 +289,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "installed MCP/resources/entrypoints",
         "installed smoke script",
         "logs/installed_mcp.txt",
-        "30 tools and required surfaces load",
-        r"30 tools loaded",
+        # Re-pinned 30 -> 31 for ADR-082: memory.capabilities joins the
+        # canonical tool inventory.
+        "31 tools and required surfaces load",
+        r"31 tools loaded",
     ),
     CheckSpec(
         "V-021",

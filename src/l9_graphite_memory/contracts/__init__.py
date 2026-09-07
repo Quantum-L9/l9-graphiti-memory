@@ -10,6 +10,15 @@
 
 """Versioned public contracts for L9 memory."""
 
+from .capabilities import (
+    CLI_EXIT_CODES,
+    CLI_OPERATION_COMMANDS,
+    LIFECYCLE_OPERATIONS,
+    MCP_OPERATION_TOOLS,
+    ControlPlaneCapabilities,
+    TransportSurface,
+    build_capabilities,
+)
 from .enums import (
     AuthorizationAction,
     ConfidenceMethod,
@@ -105,6 +114,10 @@ from .temporal import TemporalCoordinates, coerce_utc, require_utc, utc_now
 
 __all__ = [
     "ALL_MAINTENANCE_OPERATIONS",
+    "CLI_EXIT_CODES",
+    "CLI_OPERATION_COMMANDS",
+    "LIFECYCLE_OPERATIONS",
+    "MCP_OPERATION_TOOLS",
     "QUARANTINE_REVIEW_POLICY_VERSION",
     "AdmissionDecision",
     "ArchiveReceipt",
@@ -120,6 +133,7 @@ __all__ = [
     "ConflictReport",
     "ConsentGrant",
     "ContextSection",
+    "ControlPlaneCapabilities",
     "CsvSourceLocator",
     "DeletionReceipt",
     "DeletionRequest",
@@ -180,8 +194,10 @@ __all__ = [
     "SourceRange",
     "SpreadsheetSourceLocator",
     "TemporalCoordinates",
+    "TransportSurface",
     "WriteReceipt",
     "WriteStatus",
+    "build_capabilities",
     "coerce_utc",
     "require_utc",
     "utc_now",

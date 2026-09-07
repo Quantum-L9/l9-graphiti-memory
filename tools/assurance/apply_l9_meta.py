@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 
 REPOSITORY = "Quantum-L9/l9-graphiti-memory"
-VERSION = "2.2.0"
+VERSION = "2.3.0"
 COMMENT_EXTENSIONS = {
     ".py": "#",
     ".sh": "#",

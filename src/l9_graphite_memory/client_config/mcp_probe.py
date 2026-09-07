@@ -27,7 +27,10 @@ import re
 import selectors
 import subprocess
 import time
+from pathlib import Path
 from typing import Any
+
+from l9_graphite_memory.errors import ConfigurationError
 
 from .contracts import ClientConfigStatus, ProbeReceipt, ProbeStep
 from .cursor import managed_server_entry
@@ -162,10 +165,24 @@ def probe_generated_server(
     interpreter: str | None = None,
     env: dict[str, str] | None = None,
     timeout_seconds: float = 30.0,
+    argv: tuple[str, ...] | None = None,
+    config_path: str | None = None,
 ) -> ProbeReceipt:
-    """Run the full proof-of-instantiation handshake and return evidence."""
-    entry = managed_server_entry(interpreter)
-    argv = (entry.command, *entry.args)
+    """Run the full proof-of-instantiation handshake and return evidence.
+
+    With ``argv`` the probe launches exactly that command (the managed entry
+    read back from an installed config, named by ``config_path``); otherwise
+    it launches the entry the configurator would generate for ``interpreter``.
+    """
+    if argv is None:
+        entry = managed_server_entry(interpreter)
+        argv = (entry.command, *entry.args)
+        argv_source = "generated"
+    else:
+        if not argv or not str(argv[0]).strip():
+            raise ConfigurationError("installed managed entry has an empty command")
+        argv = tuple(str(item) for item in argv)
+        argv_source = "installed"
     run_env = dict(os.environ if env is None else env)
     deadline = time.monotonic() + timeout_seconds
     steps: list[ProbeStep] = []
@@ -236,6 +253,8 @@ def probe_generated_server(
     return ProbeReceipt(
         status=(ClientConfigStatus.COMPLETE if succeeded else ClientConfigStatus.FAILED),
         command_argv=argv,
+        argv_source=argv_source,
+        config_path=config_path,
         protocol_version=protocol_version,
         server_name=server_name,
         server_version=server_version,
@@ -248,6 +267,53 @@ def probe_generated_server(
         timed_out=timed_out,
         exit_code=exit_code,
         reasons=tuple(reasons),
+    )
+
+
+def probe_installed_entry(
+    path: Path,
+    *,
+    env: dict[str, str] | None = None,
+    timeout_seconds: float = 30.0,
+) -> ProbeReceipt:
+    """Probe the managed entry as it is actually written in ``path``.
+
+    A configuration entry existing on disk is not proof that memory is on;
+    this launches the argv the file names and drives the real handshake. A
+    blocked, missing, or non-current entry yields a ``failed`` receipt whose
+    reasons say why, never a probe of what *would* have been generated.
+    """
+    from .cursor import MANAGED_SERVER_KEY, CursorClientConfigurator
+
+    configurator = CursorClientConfigurator(path)
+    inspection = configurator.inspect()
+    reasons: list[str] = list(inspection.blockers)
+    argv: tuple[str, ...] | None = None
+    if not inspection.blockers:
+        if not inspection.managed_entry_present:
+            reasons.append(f"managed entry {MANAGED_SERVER_KEY!r} is not installed in {path}")
+        else:
+            decoded = json.loads(path.read_text(encoding="utf-8"))
+            servers = decoded.get("mcpServers") if isinstance(decoded, dict) else None
+            entry = servers.get(MANAGED_SERVER_KEY) if isinstance(servers, dict) else None
+            command = entry.get("command") if isinstance(entry, dict) else None
+            args = entry.get("args") if isinstance(entry, dict) else None
+            if not isinstance(command, str) or not command.strip():
+                reasons.append("installed managed entry has no command")
+            elif not isinstance(args, list):
+                reasons.append("installed managed entry has no args array")
+            else:
+                argv = (command, *(str(item) for item in args))
+    if argv is None:
+        return ProbeReceipt(
+            status=ClientConfigStatus.FAILED,
+            command_argv=(),
+            argv_source="installed",
+            config_path=str(path),
+            reasons=tuple(reasons),
+        )
+    return probe_generated_server(
+        env=env, timeout_seconds=timeout_seconds, argv=argv, config_path=str(path)
     )
 
 

@@ -90,11 +90,28 @@ class MemorySearchRequest(BaseModel):
     min_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     limit: int = Field(default=20, ge=1, le=200)
     token_budget: int | None = Field(default=None, ge=64, le=64_000)
+    # A selector, not a ranking signal: every requested tag must be present on
+    # a record for it to be returned. Lets a consumer retrieve typed records
+    # (a ``session_continuation`` capsule, ADR-082) without guessing at query
+    # text that happens to match their content.
+    tags: tuple[str, ...] = ()
 
     @field_validator("valid_at", "recorded_before")
     @classmethod
     def require_utc_coordinates(cls, value: datetime | None) -> datetime | None:
         return require_utc(value)
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_tags(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        return normalize_tag_selector(value)
+
+
+def normalize_tag_selector(value: tuple[str, ...]) -> tuple[str, ...]:
+    """Lower-case, strip, and dedupe a tag selector so it matches record tags."""
+
+    cleaned = {item.strip().lower() for item in value if item and item.strip()}
+    return tuple(sorted(cleaned))
 
 
 class HydrationRequest(BaseModel):
@@ -108,6 +125,12 @@ class HydrationRequest(BaseModel):
     valid_at: datetime = Field(default_factory=utc_now)
     token_budget: int = Field(default=1_200, ge=128, le=64_000)
     max_records: int = Field(default=40, ge=1, le=200)
+    tags: tuple[str, ...] = ()
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_tags(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        return normalize_tag_selector(value)
 
     @field_validator("valid_at")
     @classmethod
@@ -154,4 +177,8 @@ class CloseRequest(BaseModel):
     summary: str = Field(min_length=1, max_length=8_000)
     session_id: str | None = Field(default=None, max_length=200)
     capsule_digest: str | None = Field(default=None, max_length=128)
+    # Retry identity of this close, supplied by the caller. A replay under the
+    # same key collapses onto the first close record instead of minting a
+    # second logical close (ADR-082). Absent, every call is a distinct close.
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=300)
     dry_run: bool = False

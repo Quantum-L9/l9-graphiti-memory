@@ -75,6 +75,9 @@ class FakeMemory:
             status=SimpleNamespace(value=self.status),
             record_id=uuid4() if self.status != "rejected" else None,
             receipt_id=uuid4(),
+            # WriteReceipt carries the supersession outcome (ADR-082
+            # amendment); a candidate that names no targets supersedes none.
+            superseded_record_ids=(),
         )
 
 

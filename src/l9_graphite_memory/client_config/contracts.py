@@ -119,6 +119,12 @@ class ProbeReceipt(BaseModel):
     receipt_id: UUID = Field(default_factory=uuid4)
     status: ClientConfigStatus
     command_argv: tuple[str, ...]
+    #: ``generated`` when the probe launched the entry the configurator would
+    #: write; ``installed`` when it launched the entry read back from a real
+    #: config file, in which case ``config_path`` names that file. Only the
+    #: latter proves that what is on disk actually instantiates.
+    argv_source: str = "generated"
+    config_path: str | None = None
     protocol_version: str | None = None
     server_name: str | None = None
     server_version: str | None = None

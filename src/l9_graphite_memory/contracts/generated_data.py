@@ -26,6 +26,11 @@ SUPPORTED_CLASSES = frozenset(
         "rejected_approach",
         "context_requirement",
         "artifact_lineage",
+        # A Cursor-Governance session continuation capsule: the structured
+        # successor of the provider-only PICKUP episode (ADR-082). The capsule
+        # rides in ``knowledge.structured_payload`` losslessly; the statement
+        # is its human-readable summary for retrieval.
+        "session_continuation",
     }
 )
 VISIBILITY_TEMPLATES = {
@@ -34,6 +39,11 @@ VISIBILITY_TEMPLATES = {
     "project_group": "project-group/{project_group}",
     "constellation_internal": "constellation/internal",
     "restricted": "restricted/{policy_id}",
+    # The candidate names the exact namespace it requests. This is a request,
+    # never a grant: MemoryService authorizes the principal against it like
+    # any other write (INV-07). It exists so a session artifact lands in the
+    # repository namespace hydration reads, not a derived ``repository/…`` one.
+    "namespace_local": "{namespace}",
 }
 VISIBILITY_REQUIRED_FIELDS = {
     "campaign_local": ("campaign_id",),
@@ -41,6 +51,7 @@ VISIBILITY_REQUIRED_FIELDS = {
     "project_group": ("project_group",),
     "constellation_internal": (),
     "restricted": ("policy_id",),
+    "namespace_local": ("namespace",),
 }
 
 
@@ -73,6 +84,8 @@ class GovernedCandidateSource(BaseModel):
     campaign_id: str | None = None
     project_group: str | None = None
     policy_id: str | None = None
+    # Requested namespace for ``namespace_local`` visibility (ADR-082).
+    namespace: str | None = Field(default=None, min_length=1, max_length=300)
 
     def resolved_sha(self) -> str:
         value = self.sha or self.base_sha or self.freshness_sha
@@ -90,6 +103,18 @@ class GovernedCandidateKnowledge(BaseModel):
     observed_units: list[dict[str, Any]] = Field(default_factory=list)
     derived_units: list[dict[str, Any]] = Field(default_factory=list)
     invalidation_conditions: list[Any] = Field(default_factory=list)
+    # A structured artifact carried losslessly beside the statement, named by
+    # the producer-owned schema it conforms to (for example
+    # ``cursor.continuation/v2``). Memory stores it under record metadata and
+    # never interprets it; the producer owns the schema (ADR-082).
+    payload_schema: str | None = Field(default=None, min_length=1, max_length=200)
+    structured_payload: dict[str, Any] | None = None
+
+    @model_validator(mode="after")
+    def validate_structured_payload(self) -> GovernedCandidateKnowledge:
+        if (self.structured_payload is None) != (self.payload_schema is None):
+            raise ValueError("payload_schema and structured_payload must be supplied together")
+        return self
 
 
 class GovernedCandidateGovernance(BaseModel):
@@ -120,6 +145,14 @@ class GovernedMemoryCandidate(BaseModel):
     knowledge: GovernedCandidateKnowledge
     governance: GovernedCandidateGovernance
     provenance: GovernedCandidateProvenance = Field(default_factory=GovernedCandidateProvenance)
+    # Canonical supersession reference (ADR-082 amendment, audit P1-03): the
+    # records this candidate replaces once admitted. Memory validates every
+    # target (same tenant, authorized namespace, exists, lifecycle transition
+    # legal) and applies the transition transactionally; a producer that
+    # refines a continuation names the prior record here instead of leaving
+    # two ACTIVE continuations behind. A refused supersession rejects the
+    # candidate and leaves the targets untouched.
+    supersedes: list[UUID] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_ingress(self) -> GovernedMemoryCandidate:
@@ -168,6 +201,7 @@ class GovernedMemoryCandidate(BaseModel):
             "repository": self.source.repository,
             "project_group": self.source.project_group,
             "policy_id": self.source.policy_id,
+            "namespace": self.source.namespace,
         }
         missing = [
             field for field in VISIBILITY_REQUIRED_FIELDS[visibility] if not fields.get(field)
@@ -188,6 +222,9 @@ class MemoryCandidateIngestionResult(BaseModel):
     storage_committed: bool = False
     memory_state: str | None = None
     reason: str | None = None
+    # Records this admission superseded (empty unless the candidate named
+    # targets and memory applied the transition).
+    superseded_record_ids: list[UUID] = Field(default_factory=list)
 
 
 class MemoryReuseEvent(BaseModel):

@@ -36,6 +36,7 @@ from l9_graphite_memory.contracts.generated_data import (
     SourceInvalidationRequest,
     SourceInvalidationStatus,
 )
+from l9_graphite_memory.errors import AdmissionError, AuthorizationError, StoreError
 from l9_graphite_memory.services.memory_service import MemoryService
 
 WRITE_PATH = "l9_graphite_memory.services.MemoryService.write"
@@ -95,10 +96,33 @@ class GeneratedDataService:
                 "visibility": candidate.source.visibility or candidate.governance.visibility,
                 "authority_class": candidate.governance.authority_class,
                 "source": source,
+                # Lossless structured artifact, when the producer supplied one.
+                "payload_schema": candidate.knowledge.payload_schema,
+                "structured_payload": candidate.knowledge.structured_payload,
+                "producer": candidate.provenance.producer,
             },
             idempotency_key=f"generated-data:{candidate.candidate_id}",
+            supersedes=tuple(candidate.supersedes),
         )
-        receipt = self.memory.write(principal, request)
+        try:
+            receipt = self.memory.write(principal, request)
+        except (StoreError, AuthorizationError, AdmissionError) as exc:
+            if not candidate.supersedes:
+                raise
+            # A supersession memory refuses (unknown target, foreign tenant or
+            # namespace, illegal lifecycle transition) rejects the candidate
+            # before anything is committed: the prior records stay exactly as
+            # they were, and the producer sees why instead of a crash.
+            return MemoryCandidateIngestionResult(
+                status=MemoryCandidateIngestionStatus.REJECTED,
+                candidate_id=candidate.candidate_id,
+                namespace=namespace,
+                record_id=None,
+                write_receipt_id=None,
+                storage_committed=False,
+                memory_state="rejected",
+                reason=f"supersession refused: {exc}",
+            )
         raw_status = receipt.status.value
         if raw_status == "duplicate":
             status = MemoryCandidateIngestionStatus.DUPLICATE
@@ -115,6 +139,7 @@ class GeneratedDataService:
             record_id=receipt.record_id,
             write_receipt_id=str(receipt.receipt_id),
             storage_committed=raw_status != "rejected",
+            superseded_record_ids=list(receipt.superseded_record_ids),
             memory_state=(
                 "quarantined"
                 if status is MemoryCandidateIngestionStatus.QUARANTINED

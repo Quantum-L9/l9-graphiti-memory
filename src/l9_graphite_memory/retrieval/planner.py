@@ -30,6 +30,15 @@ from .query_classifier import QueryClassifier
 from .ranking import RankingPolicy
 
 
+def _matches_tags(record: MemoryRecord, tags: tuple[str, ...]) -> bool:
+    """True when every requested tag is on the record (tags are a selector)."""
+
+    if not tags:
+        return True
+    present = set(record.tags)
+    return all(tag in present for tag in tags)
+
+
 class RetrievalPlanner:
     def __init__(
         self,
@@ -87,6 +96,8 @@ class RetrievalPlanner:
                 continue
             if request.memory_classes and record.memory_class not in request.memory_classes:
                 continue
+            if not _matches_tags(record, request.tags):
+                continue
             if record.confidence.score < request.min_confidence:
                 continue
             if not record.temporal.is_valid_at(request.valid_at):
@@ -112,7 +123,11 @@ class RetrievalPlanner:
         strategies_succeeded: list[str] = []
         strategies_failed: dict[str, str] = {}
         try:
-            records = self.store.search_records(tenant_id, request, namespaces)
+            records = [
+                record
+                for record in self.store.search_records(tenant_id, request, namespaces)
+                if _matches_tags(record, request.tags)
+            ]
             stores_succeeded.append(self.store.name)
             strategies_succeeded.extend(
                 strategy
@@ -194,13 +209,18 @@ class RetrievalPlanner:
                     pattern=classification.pattern,
                     now=now,
                 )
-                if factors.relevance <= 0:
+                # A tag selector is an explicit match: a record the caller
+                # selected by tag is returned even when the query text shares
+                # no token with its content. Without tags, relevance decides.
+                if factors.relevance <= 0 and not request.tags:
                     continue
                 matched_by = ["canonical-store"]
                 if factors.lexical > 0:
                     matched_by.append("lexical")
                 if factors.projection > 0:
                     matched_by.append("projection")
+                if request.tags:
+                    matched_by.append("tag")
                 matched_by.append(f"pattern:{classification.pattern.value}")
                 hits.append(
                     SearchHit(

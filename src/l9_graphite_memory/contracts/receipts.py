@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from l9_graphite_memory.version import (
     ADMISSION_POLICY_VERSION,
     AUTHORIZATION_POLICY_VERSION,
+    CONTROL_PLANE_CONTRACT_VERSION,
     PHASE_LOCK_POLICY_VERSION,
     RANKING_POLICY_VERSION,
     RETENTION_POLICY_VERSION,
@@ -347,6 +348,8 @@ class HealthReport(BaseModel):
     status: OperationStatus
     package_version: str
     schema_version: str
+    # Consumers bind to this rather than to tool presence (ADR-082).
+    contract_version: str = CONTROL_PLANE_CONTRACT_VERSION
     store: dict[str, Any]
     projection: dict[str, Any]
     gate: dict[str, Any] = Field(default_factory=lambda: {"name": "gate", "configured": False})
@@ -364,5 +367,17 @@ class CloseReceipt(BaseModel):
     write_receipt_id: UUID
     record_id: UUID | None = None
     graphiti_accepted: bool = False
+    # True when the close was an idempotent replay: the record named is the
+    # one the first close committed, and no second close record exists.
+    replayed: bool = False
+    # Replay forensics (ADR-082 amendment, audit P2-01). A replay under the
+    # same key with a different payload keeps the first record authoritative;
+    # the caller must be told that its retry carried a different operation
+    # than the one that committed instead of reading ``replayed`` as "same".
+    # ``None`` unless the close was a replay.
+    replay_payload_matched: bool | None = None
+    stored_digest: str | None = None
+    replay_digest: str | None = None
+    warnings: tuple[str, ...] = ()
     authorization: AuthorizationReceipt
     created_at: datetime = Field(default_factory=utc_now)

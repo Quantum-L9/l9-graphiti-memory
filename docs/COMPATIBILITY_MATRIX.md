@@ -5,13 +5,13 @@ path: docs/COMPATIBILITY_MATRIX.md
 layer: documentation
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 2.3.0
+updated: 2026-09-06
 /L9_META -->
 
 # Compatibility Matrix
 
-| Surface | v0.2 behavior | v2.2 behavior | Status |
+| Surface | v0.2 behavior | v2.2 / v2.3 behavior | Status |
 |---|---|---|---|
 | repository name | `l9-graphiti-memory` | unchanged | preserved |
 | distribution/import | `l9-graphite-memory` / `l9_graphite_memory` | unchanged during compatibility window | preserved |
@@ -34,5 +34,8 @@ updated: 2026-07-22
 | sensitive profile memory | generic fact | purpose-bound consent contract | intentional privacy hardening |
 | deletion | undefined or destructive | redacted tombstone plus verified projection erasure | intentional privacy hardening |
 | package wheel | registry could be missing | installed-wheel resource and entrypoint smoke | repaired |
+| consumer control plane (2.3) | none; consumers spoke the provider dialect | `l9-memory close` / `capabilities`, `memory.close` idempotency, `HealthReport.contract_version = memory-control-plane/v1`, governed `session_continuation` candidates with lossless `structured_payload` (ADR-082) | additive |
+| tag selector (2.3) | none | `tags` on search and hydrate requests (`--tag`, MCP `tags`): a selector, every tag required, admits regardless of query relevance | additive |
+| `client cursor verify` (2.3) | probed the generated entry only | with `--path` (or an existing default config) probes the entry as written on disk; receipt carries `argv_source` and `config_path` | corrected |
 | TransportPacket | injected protocol only; shared package unknown | `constellation-node-sdk` from `Quantum-L9/Gate_SDK` `v1.0.1` (`>=1.0.1,<1.1.0`, Python `>=3.12` extra); upgrade by bumping the git tag and supported range together | RP-001 bound |
 | Gate client | injected protocol only; package unknown | same pin; `CanonicalGateClient` wraps `GateClient.send_to_gate` / `/v1/health`. Auth and node identity come from `GATE_URL` / `L9_NODE_NAME` / signing env. No peer URL, destination argument, retry, or circuit-breaker | RP-002 bound |

@@ -25,10 +25,13 @@ from uuid import UUID, uuid4
 from l9_graphite_memory.client_config import (
     ClientConfigStatus,
     CursorClientConfigurator,
+    default_cursor_config_path,
     probe_generated_server,
+    probe_installed_entry,
 )
 from l9_graphite_memory.contracts import (
     ALL_MAINTENANCE_OPERATIONS,
+    CloseRequest,
     Confidence,
     ConsentGrant,
     DeletionRequest,
@@ -42,10 +45,12 @@ from l9_graphite_memory.contracts import (
     MemoryPrincipal,
     MemorySearchRequest,
     MemoryWriteRequest,
+    OperationStatus,
     PhaseLockReceipt,
     PhaseLockRequest,
     PromotionRequest,
     Provenance,
+    build_capabilities,
 )
 from l9_graphite_memory.curation import EvidenceBoundProviderReviewer, load_review_provider
 from l9_graphite_memory.curation.procedural import (
@@ -265,6 +270,7 @@ def cmd_search(args: argparse.Namespace) -> int:
             min_confidence=args.min_confidence,
             limit=args.limit,
             token_budget=args.token_budget,
+            tags=tuple(args.tag),
         )
         receipt = runtime.service.search(principal, request)
         _print(receipt)
@@ -290,6 +296,7 @@ def cmd_hydrate(args: argparse.Namespace) -> int:
                 memory_classes=tuple(args.memory_class),
                 token_budget=args.token_budget,
                 max_records=args.max_records,
+                tags=tuple(args.tag),
             ),
         )
         _print(result)
@@ -378,6 +385,65 @@ def cmd_verify_phase_lock(args: argparse.Namespace) -> int:
         return 0 if verification.valid else 2
     finally:
         runtime.close()
+
+
+def cmd_close(args: argparse.Namespace) -> int:
+    """Commit session-close state through MemoryService.close (ADR-082).
+
+    Exit ``0`` only when a canonical close record is committed (or an
+    idempotent replay names the one already committed). A dry run passes
+    admission but commits nothing, so it exits ``3``; a failed or rejected
+    close exits ``2``. Nothing here consults a projection: a projection
+    outcome can never turn into a successful close.
+    """
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        receipt = runtime.service.close(
+            principal,
+            CloseRequest(
+                namespace=namespace,
+                summary=args.summary,
+                session_id=args.session_id
+                or os.environ.get("CURSOR_CONVERSATION_ID")
+                or os.environ.get("L9_SESSION_ID"),
+                capsule_digest=args.capsule_digest,
+                idempotency_key=args.idempotency_key,
+                dry_run=args.dry_run,
+            ),
+        )
+        _print(receipt)
+        if receipt.status is OperationStatus.COMPLETE:
+            return 0
+        if receipt.status is OperationStatus.PARTIAL and args.dry_run:
+            return 3
+        return 2
+    finally:
+        runtime.close()
+
+
+def cli_command_names() -> tuple[str, ...]:
+    """Every subcommand the parser registers, read from the parser itself."""
+
+    parser = build_parser()
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return tuple(sorted(action.choices))
+    return ()
+
+
+def cmd_capabilities(args: argparse.Namespace) -> int:
+    """Emit the control-plane capability receipt without touching a store."""
+
+    del args
+    from l9_graphite_memory.mcp_tools import canonical_tool_names
+
+    _print(build_capabilities(cli_commands=cli_command_names(), mcp_tools=canonical_tool_names()))
+    return 0
 
 
 def cmd_lineage(args: argparse.Namespace) -> int:
@@ -787,7 +853,17 @@ def cmd_client(args: argparse.Namespace) -> int:
         _print(receipt)
         return 0 if receipt.status != ClientConfigStatus.BLOCKED else 1
     if action == "verify":
-        probe = probe_generated_server(interpreter=args.interpreter, timeout_seconds=args.timeout)
+        # Verify proves what is on disk when a config exists: an explicit
+        # --path always, the default path when it already carries the entry.
+        # Only a fresh machine with no config falls back to the generated
+        # entry, and the receipt's argv_source says which one ran.
+        target = path or default_cursor_config_path()
+        if path is not None or (target.is_file() and not target.is_symlink()):
+            probe = probe_installed_entry(target, timeout_seconds=args.timeout)
+        else:
+            probe = probe_generated_server(
+                interpreter=args.interpreter, timeout_seconds=args.timeout
+            )
         _print(probe)
         return 0 if probe.status == ClientConfigStatus.COMPLETE else 1
     raise ValueError(f"unsupported cursor action: {action}")
@@ -960,6 +1036,7 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument("--include-superseded", action="store_true")
     search.add_argument("--include-archived", action="store_true")
     search.add_argument("--include-workspace", action="store_true")
+    search.add_argument("--tag", action="append", default=[])
 
     hydrate = sub.add_parser("hydrate")
     hydrate.add_argument("task")
@@ -970,6 +1047,7 @@ def build_parser() -> argparse.ArgumentParser:
     hydrate.add_argument("--memory-class", type=_memory_class, action="append", default=[])
     hydrate.add_argument("--token-budget", type=int, default=1_200)
     hydrate.add_argument("--max-records", type=int, default=40)
+    hydrate.add_argument("--tag", action="append", default=[])
 
     get_record = sub.add_parser("get")
     get_record.add_argument("record_id")
@@ -989,6 +1067,16 @@ def build_parser() -> argparse.ArgumentParser:
     verify_lock = sub.add_parser("verify-phase-lock")
     verify_lock.add_argument("task_signature")
     verify_lock.add_argument("--group-id", default=None)
+
+    close = sub.add_parser("close", help="Commit session-close state through MemoryService")
+    close.add_argument("--summary", required=True)
+    close.add_argument("--group-id", "--namespace", dest="group_id", default=None)
+    close.add_argument("--session-id", default=None)
+    close.add_argument("--capsule-digest", default=None)
+    close.add_argument("--idempotency-key", default=None)
+    close.add_argument("--dry-run", action="store_true")
+
+    sub.add_parser("capabilities", help="Control-plane capability receipt (no store access)")
 
     lineage = sub.add_parser("lineage")
     lineage.add_argument("record_id")
@@ -1159,6 +1247,8 @@ def main(argv: list[str] | None = None) -> int:
         "conflicts": cmd_conflicts,
         "phase-lock": cmd_phase_lock,
         "verify-phase-lock": cmd_verify_phase_lock,
+        "close": cmd_close,
+        "capabilities": cmd_capabilities,
         "lineage": cmd_lineage,
         "bootstrap": cmd_bootstrap,
         "import": cmd_import,

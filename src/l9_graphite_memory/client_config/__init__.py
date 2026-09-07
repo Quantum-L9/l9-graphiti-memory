@@ -35,7 +35,7 @@ from .cursor import (
     default_cursor_config_path,
     managed_server_entry,
 )
-from .mcp_probe import REQUIRED_TOOL_NAMES, probe_generated_server
+from .mcp_probe import REQUIRED_TOOL_NAMES, probe_generated_server, probe_installed_entry
 
 __all__ = [
     "MANAGED_SERVER_KEY",
@@ -51,4 +51,5 @@ __all__ = [
     "default_cursor_config_path",
     "managed_server_entry",
     "probe_generated_server",
+    "probe_installed_entry",
 ]
