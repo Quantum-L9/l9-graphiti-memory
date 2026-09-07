@@ -6,7 +6,7 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.3.0
-#   updated: 2026-08-04
+#   updated: 2026-09-07
 
 name: Publish
 on:
@@ -35,7 +35,25 @@ jobs:
       - run: ruff check .
       - run: mypy src/l9_graphite_memory
       - run: bash scripts/validate_release.sh
-      - run: python -m build --outdir dist
+      # Release evidence (audit P1-01): the published artifacts must be
+      # byte-identical to the wheel the consumer proved against this commit
+      # (Cursor-Governance ops/config/memory-binding.json release_evidence,
+      # built with `uv build --wheel` under the same epoch). setuptools takes
+      # zip timestamps from SOURCE_DATE_EPOCH; without it every build has a new
+      # digest and no consumer pin can assert the published wheel.
+      - name: Build release artifacts (reproducible)
+        env:
+          SOURCE_DATE_EPOCH: "1784592000"
+        run: python -m build --outdir dist
+      - name: Record artifact digests
+        run: |
+          {
+            echo "## Release artifacts (SOURCE_DATE_EPOCH=1784592000)"
+            echo
+            echo '```'
+            sha256sum dist/*
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: release-artifacts
