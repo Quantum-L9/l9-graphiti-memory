@@ -235,12 +235,21 @@ class RetrievalPlanner:
             reverse=True,
         )
         hits = hits[: request.limit]
+        # MEM-P2-01: identity of the request that produced these hits. Computed
+        # from the EFFECTIVE request the planner filtered on, over the one
+        # canonical serializer the rest of the package digests with, so a
+        # consumer comparing digests is comparing the same normalization.
+        request_digest = sha256_text(canonical_json(request.selector_identity()))
         digest = sha256_text(
             canonical_json(
                 {
                     "query": request.query,
                     "query_pattern": classification.pattern.value,
                     "namespaces": namespaces,
+                    # Binds the results to the selectors that produced them:
+                    # without it two searches differing only by tag filter
+                    # could share a result digest whenever their hits coincide.
+                    "request_digest": request_digest,
                     "hit_ids": [str(hit.record.record_id) for hit in hits],
                     "scores": [round(hit.score, 8) for hit in hits],
                     "failures": stores_failed,
@@ -252,6 +261,15 @@ class RetrievalPlanner:
             status=status,
             query=request.query,
             namespaces_authorized=namespaces,
+            tags=request.tags,
+            memory_classes=request.memory_classes,
+            limit=request.limit,
+            valid_at=request.valid_at,
+            recorded_before=request.recorded_before,
+            include_superseded=request.include_superseded,
+            include_archived=request.include_archived,
+            min_confidence=request.min_confidence,
+            request_digest=request_digest,
             hits=tuple(hits),
             query_pattern=classification.pattern,
             classification_reason=classification.reason,

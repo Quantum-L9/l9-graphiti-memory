@@ -39,6 +39,7 @@ from .enums import (
 )
 from .evidence import EvidenceRef
 from .memory import MemoryRecord
+from .requests import SEARCH_SELECTOR_CANONICALIZATION
 from .temporal import utc_now
 
 
@@ -184,6 +185,24 @@ class SearchReceipt(BaseModel):
     status: OperationStatus
     query: str
     namespaces_authorized: tuple[str, ...]
+    # MEM-P2-01: the query alone does not identify the search. Every selector
+    # below changes which records come back, so the receipt binds each one and
+    # carries a digest over the whole normalized set — a consumer can then
+    # prove these hits answer the request it made, rather than assuming it.
+    # Values are the EFFECTIVE ones the planner filtered on (recorded_before
+    # is resolved to the service clock when the caller left it open), because
+    # a receipt that echoed the caller's blanks would prove nothing about what
+    # actually ran.
+    tags: tuple[str, ...] = ()
+    memory_classes: tuple[MemoryClass, ...] = ()
+    limit: int = Field(default=0, ge=0)
+    valid_at: datetime | None = None
+    recorded_before: datetime | None = None
+    include_superseded: bool = False
+    include_archived: bool = False
+    min_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    selector_canonicalization: str = SEARCH_SELECTOR_CANONICALIZATION
+    request_digest: str = ""
     hits: tuple[SearchHit, ...] = ()
     query_pattern: QueryPattern = QueryPattern.DEFAULT
     classification_reason: str = ""
