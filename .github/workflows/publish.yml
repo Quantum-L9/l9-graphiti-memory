@@ -6,13 +6,18 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.3.0
-#   updated: 2026-08-04
+#   updated: 2026-09-07
 
 name: Publish
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Annotated v* tag to publish
+        required: true
+        type: string
   push:
-    tags: ['v*']
+    tags: ["v*"]
 permissions:
   contents: read
   id-token: write
@@ -20,14 +25,47 @@ jobs:
   validate-and-publish:
     runs-on: ubuntu-latest
     environment: release
+    # `validate_release.sh` records an exact test-count proof. Its expected
+    # count includes the PostgreSQL and Redis matrices, so a publish job must
+    # provision the same backends as CI.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: l9memtest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
+      L9_MEMORY_TEST_REDIS_URL: redis://localhost:6379/0
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Manual dispatches run this workflow from the default branch. Check
+          # out the immutable tag so validation and publication use its source.
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
-          python-version: '3.13'
+          python-version: "3.13"
       - name: Sync locked environment
-        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server
+        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres --extra active
       - name: Put uv venv on PATH
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Expose src on PYTHONPATH
@@ -46,4 +84,6 @@ jobs:
             MANIFEST.md
             VALIDATION.md
       - uses: pypa/gh-action-pypi-publish@release/v1
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: >-
+          startsWith(github.ref, 'refs/tags/v') ||
+          (github.event_name == 'workflow_dispatch' && startsWith(inputs.release_tag, 'v'))
