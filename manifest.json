@@ -46,8 +46,8 @@
         "version": "2.3.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "254341cdacbb95e8438fb7e0c916bbff4902cd9308579fc29a170e785962d987",
-      "size_bytes": 8449
+      "sha256": "f86bcecd13073d637a2c9084e1e9de4f35d5da451d121c1a520111433fa32b67",
+      "size_bytes": 9804
     },
     {
       "category": "ci",
@@ -446,7 +446,7 @@
         "version": "2.3.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "4f36306633c607db7a01263d537424d6ae0f40ad56d26593be3dbc744a0f076e",
+      "sha256": "e9fc3ccaa8a15f0609c8ade3a364b2ff3fb82a7ea436d65603dc9542e97a3ad7",
       "size_bytes": 127135
     },
     {

@@ -58,7 +58,7 @@ updated: 2026-07-22
 |---|---|---|---:|---|
 | `.github/issues.json` | `ci` | `ci` | 5755 | `23cbdff3ae0c9491c419771321766af4f510cd954dc671404994e7c7e3771d28` |
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
-| `.github/workflows/ci.yml` | `ci` | `ci` | 8449 | `254341cdacbb95e8438fb7e0c916bbff4902cd9308579fc29a170e785962d987` |
+| `.github/workflows/ci.yml` | `ci` | `ci` | 9804 | `f86bcecd13073d637a2c9084e1e9de4f35d5da451d121c1a520111433fa32b67` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
 | `.github/workflows/nightly-maintenance.yml` | `ci` | `ci` | 5140 | `0626627b16523ced1bfdf6f13271a434e92a2c0138b862a2ff5ccfb15db41d48` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 2268 | `559c430f80e11ba361e3f4286853bc11086aaa1a274e6a859dd605abcae4e851` |
