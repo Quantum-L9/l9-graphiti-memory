@@ -6,7 +6,7 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.3.0
-#   updated: 2026-08-27
+#   updated: 2026-09-07
 
 name: CI
 on:
@@ -59,8 +59,14 @@ jobs:
     env:
       L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
       L9_MEMORY_TEST_REDIS_URL: redis://localhost:6379/0
+      # Empty unless the repository holds the secret; gates the CI-based
+      # SonarQube Cloud step below. Never echoed, never written to a file.
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: SonarQube Cloud new-code detection and blame need it.
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
@@ -98,6 +104,24 @@ jobs:
           name: coverage-py${{ matrix.python-version }}
           path: coverage.xml
           if-no-files-found: error
+      # CI-based SonarQube Cloud analysis (audit P2-03): maps coverage.xml to
+      # new code, which Automatic Analysis cannot. Runs on one matrix leg and
+      # only when SONAR_TOKEN is present; SonarCloud refuses a CI scan while the
+      # project's Automatic Analysis is still enabled, so the operator switch
+      # (project Administration -> Analysis Method -> Automatic Analysis off,
+      # then add SONAR_TOKEN) is what turns this step on. Until then the
+      # SonarCloud GitHub App keeps reporting through Automatic Analysis.
+      - name: SonarQube Cloud analysis (CI-based, coverage-aware)
+        if: matrix.python-version == '3.13' && env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
+        with:
+          args: >
+            -Dsonar.organization=quantum-l9
+            -Dsonar.projectKey=Quantum-L9_l9-graphiti-memory
+            -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.python.version=3.10,3.13
+            -Dsonar.python.coverage.reportPaths=coverage.xml
 
   # RP-001/RP-002 bind this package to the authoritative TransportPacket and
   # Gate client, but the `validate` matrix omits the `constellation` extra, so
