@@ -54,6 +54,9 @@ jobs:
     env:
       L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
       L9_MEMORY_TEST_REDIS_URL: redis://localhost:6379/0
+      # Match scripts/validate_release.sh so the uploaded wheel is the same
+      # bytes the release proof hashed (SOURCE_DATE_EPOCH default there).
+      SOURCE_DATE_EPOCH: "1784592000"
     steps:
       - uses: actions/checkout@v4
         with:
