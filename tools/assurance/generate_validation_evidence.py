@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.3.0"
+RELEASE: Final = "2.3.1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,8 +105,12 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # amendment: governed-candidate supersession and close replay
         # forensics): 4 cases in test_control_plane_transport_parity.py.
         # Same arithmetic: this branch collects 855, so 855 - 15 = 840.
-        "840 tests pass",
-        r"840 passed",
+        #
+        # Re-pinned 840 -> 841 for 2.3.1: one new case in
+        # test_release_version_consistency.py (published extras must not
+        # carry a git/URL Requires-Dist). Same arithmetic: 856 - 15 = 841.
+        "841 tests pass",
+        r"841 passed",
     ),
     CheckSpec(
         "V-002",
@@ -253,8 +257,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "Python wheel",
         "python -m build --wheel",
         "logs/wheel_build.txt",
-        "v2.3.0 wheel builds",
-        r"Successfully built l9_graphite_memory-2\.3\.0-py3-none-any\.whl",
+        "v2.3.1 wheel builds",
+        r"Successfully built l9_graphite_memory-2\.3\.1-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -263,7 +267,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.3\.0",
+        r"l9-graphite-memory==2\.3\.1",
     ),
     CheckSpec(
         "V-018",

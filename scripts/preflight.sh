@@ -31,7 +31,7 @@ run_gate() {
 }
 
 run_gate "Python >= 3.10" python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)'
-run_gate "package import" python3 -c 'import l9_graphite_memory; assert l9_graphite_memory.__version__ == "2.3.0"'
+run_gate "package import" python3 -c 'import l9_graphite_memory; assert l9_graphite_memory.__version__ == "2.3.1"'
 run_gate "packaged registry" python3 -c 'from importlib.resources import files; assert files("l9_graphite_memory").joinpath("resources/group_registry.yaml").is_file()'
 run_gate "schema upcast" python3 -c 'from l9_graphite_memory.schema import schema_registry; r=schema_registry.read_record({"episode_body":"legacy","group_id":"l9-graphiti-memory","kind":"observation","reference_time":"2026-01-01T00:00:00+00:00"}); from l9_graphite_memory.version import MEMORY_SCHEMA_VERSION; assert r.schema_version==MEMORY_SCHEMA_VERSION'
 run_gate "SQLite service write/search" python3 - <<'PY'

@@ -76,3 +76,18 @@ def test_validation_evidence_pins_name_the_release_wheel() -> None:
     escaped = PACKAGE_VERSION.replace(".", r"\.")
     assert f"l9_graphite_memory-{escaped}-py3-none-any" in text
     assert f"l9-graphite-memory=={escaped}" in text
+
+
+def test_published_optional_dependencies_have_no_direct_url() -> None:
+    # PyPI rejects Requires-Dist that name a git/URL source, including extras.
+    # Gate_SDK stays a uv dependency-group + [tool.uv.sources], not an extra.
+    text = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    extras = re.search(
+        r"^\[project\.optional-dependencies\]\n(.*?)(?=^\[)",
+        text,
+        re.MULTILINE | re.DOTALL,
+    )
+    assert extras, "[project.optional-dependencies] not found"
+    body = extras.group(1)
+    assert "git+" not in body
+    assert not re.search(r"https?://", body)
