@@ -81,3 +81,7 @@ Live provider, hosted CI, production migration, rollback, and credential-rotatio
 - Added the cross-surface fixture `tests/fixtures/control_plane/continuation_candidate.json`, consumed verbatim by Cursor-Governance's cross-repo lifecycle test
 - Added `tests/regression/test_release_version_consistency.py`: `pyproject.toml`, `version.py`, the assurance stampers, and the evidence pins must name one release
 - Release `2.3.0` is `MEMORY_TARGET_VERSION` for the Cursor-Governance binding (`ops/config/memory-binding.json` there pins it); tag `v2.3.0` on the merge commit
+
+## 2.3.1 — PyPI metadata (no direct URL extra)
+
+`v2.3.0` built and validated but PyPI rejected the upload: the `constellation` extra declared `constellation-node-sdk` as a git URL, which becomes `Requires-Dist` and is a 400 (`Can't have direct dependency`). The extra is removed from published metadata. CI/dev still install Gate_SDK via a uv `dependency-groups.constellation` entry and `[tool.uv.sources]`. Tag `v2.3.0` stays immutable; this patch is the first uploadable release.

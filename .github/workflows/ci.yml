@@ -145,7 +145,7 @@ jobs:
             -Dsonar.python.coverage.reportPaths=coverage.xml
 
   # RP-001/RP-002 bind this package to the authoritative TransportPacket and
-  # Gate client, but the `validate` matrix omits the `constellation` extra, so
+  # Gate client, but the `validate` matrix omits the `constellation` group, so
   # every pytest.importorskip("constellation_node_sdk") case skipped on both
   # legs. An unavailable tag or an incompatible SDK API could still produce a
   # green release validation while the binding was marked bound: asserted,
@@ -163,16 +163,16 @@ jobs:
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
-          # The extra is gated `python_full_version >= '3.12'`, so the matrix's
+          # The group is gated `python_full_version >= '3.12'`, so the matrix's
           # 3.10 leg could never carry it. This job pins the supported leg.
           python-version: '3.13'
-      - name: Sync the constellation extra
+      - name: Sync the constellation group
         # No --no-build here, unlike `validate`: the SDK is a git source
         # distribution with no wheel, and --no-build refuses it outright with
         # "can't be installed because it is marked as `--no-build` but has no
         # binary distribution". uv.lock pins the exact commit behind the tag,
         # so building it is not fetching arbitrary code.
-        run: uv sync --frozen --no-install-project --extra dev --extra constellation
+        run: uv sync --frozen --no-install-project --extra dev --group constellation
       - name: Prove the SDK is importable
         # The failure this job exists to catch is a SILENT skip. Import it
         # explicitly first so a missing or broken SDK fails a step that names

@@ -22,7 +22,7 @@ from collections import Counter
 from pathlib import Path
 
 REPOSITORY = "Quantum-L9/l9-graphiti-memory"
-RELEASE = "2.3.0"
+RELEASE = "2.3.1"
 EXCLUDED_ANY_PARTS = {".git", ".pytest_cache", "__pycache__", ".venv"}
 EXCLUDED_TOP_LEVEL = {"build", "dist"}
 

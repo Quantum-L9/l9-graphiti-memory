@@ -217,7 +217,7 @@ wheels = [
 [[package]]
 name = "constellation-node-sdk"
 version = "1.0.1"
-source = { git = "https://github.com/Quantum-L9/Gate_SDK.git?rev=v1.0.1#a770e8531dc1c59ce01e1dbb0f4162785d9dda89" }
+source = { git = "https://github.com/Quantum-L9/Gate_SDK.git?tag=v1.0.1#a770e8531dc1c59ce01e1dbb0f4162785d9dda89" }
 dependencies = [
     { name = "cryptography", marker = "python_full_version >= '3.12'" },
     { name = "fastapi", marker = "python_full_version >= '3.12'" },
@@ -624,7 +624,7 @@ wheels = [
 
 [[package]]
 name = "l9-graphite-memory"
-version = "2.2.0"
+version = "2.3.1"
 source = { editable = "." }
 dependencies = [
     { name = "pydantic" },
@@ -642,9 +642,6 @@ all = [
     { name = "redis" },
     { name = "uvicorn" },
     { name = "zep-cloud" },
-]
-constellation = [
-    { name = "constellation-node-sdk", marker = "python_full_version >= '3.12'" },
 ]
 dev = [
     { name = "build" },
@@ -680,10 +677,14 @@ zep = [
     { name = "zep-cloud" },
 ]
 
+[package.dev-dependencies]
+constellation = [
+    { name = "constellation-node-sdk", marker = "python_full_version >= '3.12'" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2,<2" },
-    { name = "constellation-node-sdk", marker = "python_full_version >= '3.12' and extra == 'constellation'", git = "https://github.com/Quantum-L9/Gate_SDK.git?rev=v1.0.1" },
     { name = "cryptography", marker = "extra == 'dev'", specifier = ">=46.0,<47" },
     { name = "cryptography", marker = "extra == 'phase6'", specifier = ">=46.0,<47" },
     { name = "fastapi", marker = "extra == 'all'", specifier = ">=0.115,<1" },
@@ -714,7 +715,10 @@ requires-dist = [
     { name = "zep-cloud", marker = "extra == 'all'", specifier = ">=3.0,<4" },
     { name = "zep-cloud", marker = "extra == 'zep'", specifier = ">=3.0,<4" },
 ]
-provides-extras = ["server", "active", "postgres", "zep", "phase6", "infisical", "constellation", "all", "dev"]
+provides-extras = ["server", "active", "postgres", "zep", "phase6", "infisical", "all", "dev"]
+
+[package.metadata.requires-dev]
+constellation = [{ name = "constellation-node-sdk", marker = "python_full_version >= '3.12'", git = "https://github.com/Quantum-L9/Gate_SDK.git?tag=v1.0.1" }]
 
 [[package]]
 name = "librt"
