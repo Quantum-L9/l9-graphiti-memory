@@ -106,6 +106,48 @@ class MemorySearchRequest(BaseModel):
     def normalize_tags(cls, value: tuple[str, ...]) -> tuple[str, ...]:
         return normalize_tag_selector(value)
 
+    def selector_identity(self) -> dict[str, Any]:
+        """Every selector that changes *which records come back* (MEM-P2-01).
+
+        A receipt that echoes only the query cannot prove its hits answer the
+        request that was made: two searches differing solely in their tag
+        selector, their temporal coordinate, or their limit produce different
+        result sets under the same query string. This is the authoritative
+        list of what memory filtered on, and the receipt binds all of it.
+
+        ``token_budget`` is deliberately absent: it shapes how a hydration
+        allocator spends the hits, never which records the planner selects.
+        Anything that does reach the planner's filters belongs here — if a
+        filter is added to search, it is added here in the same change and
+        ``SEARCH_SELECTOR_CANONICALIZATION`` is bumped.
+
+        Ordering follows meaning, not convenience: tags and memory classes are
+        unordered *sets* (asking for ``(a, b)`` and ``(b, a)`` is one search),
+        while namespaces keep the caller's fan-in order because that order is
+        part of what was asked for.
+        """
+
+        return {
+            "canonicalization": SEARCH_SELECTOR_CANONICALIZATION,
+            "query": self.query,
+            "namespaces": list(self.namespaces),
+            "tags": sorted(set(self.tags)),
+            "memory_classes": sorted({item.value for item in self.memory_classes}),
+            "limit": self.limit,
+            "valid_at": self.valid_at.isoformat(),
+            "recorded_before": (
+                None if self.recorded_before is None else self.recorded_before.isoformat()
+            ),
+            "include_superseded": self.include_superseded,
+            "include_archived": self.include_archived,
+            "min_confidence": round(self.min_confidence, 8),
+        }
+
+
+#: Stamped into every selector identity so a change to *this* normalization can
+#: never be read as a change to the request itself.
+SEARCH_SELECTOR_CANONICALIZATION = "memory.search-selectors/v1"
+
 
 def normalize_tag_selector(value: tuple[str, ...]) -> tuple[str, ...]:
     """Lower-case, strip, and dedupe a tag selector so it matches record tags."""

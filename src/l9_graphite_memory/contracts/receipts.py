@@ -184,6 +184,31 @@ class SearchReceipt(BaseModel):
     status: OperationStatus
     query: str
     namespaces_authorized: tuple[str, ...]
+    # MEM-P2-01: the query alone does not identify the search. Every selector
+    # below changes which records come back, so the receipt binds each one and
+    # carries a digest over the whole normalized set — a consumer can then
+    # prove these hits answer the request it made, rather than assuming it.
+    # Values are the EFFECTIVE ones the planner filtered on (recorded_before
+    # is resolved to the service clock when the caller left it open), because
+    # a receipt that echoed the caller's blanks would prove nothing about what
+    # actually ran.
+    # Scalars are None when unstated, never a default that happens to look
+    # like an answer: a consumer must be able to tell "memory did not bind
+    # this" from "memory bound it, and it equals the default". Defaulting
+    # `limit` to 0 would be worse than useless — it would read to the consumer
+    # as a receipt CONTRADICTING the limit that was requested. Empty tuples
+    # are different: an empty tag or class selector is a real, unfiltered
+    # value, not an absence.
+    tags: tuple[str, ...] = ()
+    memory_classes: tuple[MemoryClass, ...] = ()
+    limit: int | None = Field(default=None, ge=1)
+    valid_at: datetime | None = None
+    recorded_before: datetime | None = None
+    include_superseded: bool | None = None
+    include_archived: bool | None = None
+    min_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+    selector_canonicalization: str | None = None
+    request_digest: str | None = None
     hits: tuple[SearchHit, ...] = ()
     query_pattern: QueryPattern = QueryPattern.DEFAULT
     classification_reason: str = ""

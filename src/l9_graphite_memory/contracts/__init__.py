@@ -97,6 +97,7 @@ from .receipts import (
     WriteReceipt,
 )
 from .requests import (
+    SEARCH_SELECTOR_CANONICALIZATION,
     CloseRequest,
     DeletionRequest,
     HydrationRequest,
@@ -119,6 +120,7 @@ __all__ = [
     "LIFECYCLE_OPERATIONS",
     "MCP_OPERATION_TOOLS",
     "QUARANTINE_REVIEW_POLICY_VERSION",
+    "SEARCH_SELECTOR_CANONICALIZATION",
     "AdmissionDecision",
     "ArchiveReceipt",
     "AuthorizationAction",

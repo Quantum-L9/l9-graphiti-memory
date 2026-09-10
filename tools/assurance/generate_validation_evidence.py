@@ -109,8 +109,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 840 -> 841 for 2.3.1: one new case in
         # test_release_version_consistency.py (published extras must not
         # carry a git/URL Requires-Dist). Same arithmetic: 856 - 15 = 841.
-        "841 tests pass",
-        r"841 passed",
+        #
+        # Re-pinned 841 -> 855 for MEM-P2-01 (search receipts bind every
+        # result-affecting selector and a request digest): 14 cases in
+        # test_search_request_identity.py stacked on 2.3.1. Same arithmetic:
+        # 856 + 14 = 870 collected, 870 - 15 = 855.
+        "855 tests pass",
+        r"855 passed",
     ),
     CheckSpec(
         "V-002",
