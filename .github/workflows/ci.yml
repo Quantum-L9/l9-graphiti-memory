@@ -6,7 +6,7 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.3.0
-#   updated: 2026-08-27
+#   updated: 2026-09-07
 
 name: CI
 on:
@@ -59,8 +59,14 @@ jobs:
     env:
       L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
       L9_MEMORY_TEST_REDIS_URL: redis://localhost:6379/0
+      # Empty unless the repository holds the secret; gates the CI-based
+      # SonarQube Cloud step below. Never echoed, never written to a file.
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: SonarQube Cloud new-code detection and blame need it.
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
@@ -98,6 +104,45 @@ jobs:
           name: coverage-py${{ matrix.python-version }}
           path: coverage.xml
           if-no-files-found: error
+      # CI-based SonarQube Cloud analysis (audit P2-03): maps coverage.xml to
+      # new code, which Automatic Analysis cannot. SonarCloud refuses a CI scan
+      # while the project's Automatic Analysis is enabled ("You are running CI
+      # analysis while Automatic Analysis is enabled", scanner exit 3), so the
+      # gate is SonarCloud's own analysis-method state, not the mere presence
+      # of the token: the probe reads `autoscanEnabled` for the project and the
+      # scan runs only when it is false. The operator switch (project
+      # Administration -> Analysis Method -> Automatic Analysis off) therefore
+      # turns this step on with no workflow change; until then the SonarCloud
+      # GitHub App keeps reporting through Automatic Analysis and the skip is
+      # printed as a warning rather than hidden.
+      - name: Probe SonarQube Cloud analysis method
+        id: sonar_mode
+        if: matrix.python-version == '3.13' && env.SONAR_TOKEN != ''
+        run: |
+          set -euo pipefail
+          url="https://sonarcloud.io/api/navigation/component?component=Quantum-L9_l9-graphiti-memory"
+          if ! resp="$(curl -sS --fail --max-time 30 -u "${SONAR_TOKEN}:" "$url")"; then
+            echo "ci_analysis=unknown" >> "$GITHUB_OUTPUT"
+            echo "::warning::SonarQube Cloud analysis-method probe failed; CI-based scan skipped this run"
+            exit 0
+          fi
+          if printf '%s' "$resp" | python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("autoscanEnabled") is False else 1)'; then
+            echo "ci_analysis=on" >> "$GITHUB_OUTPUT"
+          else
+            echo "ci_analysis=off" >> "$GITHUB_OUTPUT"
+            echo "::warning::SonarQube Cloud Automatic Analysis is still enabled for Quantum-L9_l9-graphiti-memory; CI-based scan skipped (project Administration -> Analysis Method -> Automatic Analysis off to switch)"
+          fi
+      - name: SonarQube Cloud analysis (CI-based, coverage-aware)
+        if: steps.sonar_mode.outputs.ci_analysis == 'on'
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
+        with:
+          args: >
+            -Dsonar.organization=quantum-l9
+            -Dsonar.projectKey=Quantum-L9_l9-graphiti-memory
+            -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.python.version=3.10,3.13
+            -Dsonar.python.coverage.reportPaths=coverage.xml
 
   # RP-001/RP-002 bind this package to the authoritative TransportPacket and
   # Gate client, but the `validate` matrix omits the `constellation` group, so
