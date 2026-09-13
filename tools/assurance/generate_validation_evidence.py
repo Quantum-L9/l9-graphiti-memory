@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.3.1"
+RELEASE: Final = "2.4.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -262,8 +262,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "Python wheel",
         "python -m build --wheel",
         "logs/wheel_build.txt",
-        "v2.3.1 wheel builds",
-        r"Successfully built l9_graphite_memory-2\.3\.1-py3-none-any\.whl",
+        "v2.4.0 wheel builds",
+        r"Successfully built l9_graphite_memory-2\.4\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -272,7 +272,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.3\.1",
+        r"l9-graphite-memory==2\.4\.0",
     ),
     CheckSpec(
         "V-018",

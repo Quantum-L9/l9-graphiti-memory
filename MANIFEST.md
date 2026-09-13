@@ -5,7 +5,7 @@ path: MANIFEST.md
 layer: repository_root
 owner: memory-control-plane
 status: active
-version: 2.3.1
+version: 2.4.0
 updated: 2026-07-22
 /L9_META -->
 
@@ -14,7 +14,7 @@ updated: 2026-07-22
 ## Identity
 
 - Repository: `Quantum-L9/l9-graphiti-memory`
-- Release: `2.3.1`
+- Release: `2.4.0`
 - Artifact class: dependency package with optional service and constellation adapters
 - Local validation outcome: `PASS`
 - Production release outcome: `BLOCKED_ON_EXTERNAL_VALIDATION`
