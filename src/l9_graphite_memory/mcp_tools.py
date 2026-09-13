@@ -119,6 +119,20 @@ def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
 
 CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     {
+        "name": "memory.write_agent",
+        "description": (
+            "Admit one memory record from a verified agent. "
+            "No phase-lock required. "
+            "Allowed memory_class values: insight, decision, observation, episodic, meta, "
+            "preference, semantic, constraint (aliases: lesson→insight, note→observation, "
+            "pickup→meta)."
+        ),
+        "inputSchema": _object_schema(
+            _write_properties(),
+            ["namespace", "content"],
+        ),
+    },
+    {
         "name": "memory.ingest",
         "description": "Admit one governed, evidence-bearing memory record.",
         "inputSchema": _object_schema(
@@ -376,6 +390,7 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
 
 ALIASES: dict[str, str] = {
     "write": "memory.ingest",
+    "write_agent": "memory.write_agent",
     "search": "memory.search",
     "health": "memory.health",
     "bootstrap": "memory.bootstrap",
@@ -463,6 +478,7 @@ class MCPToolApplication:
         canonical = ALIASES.get(name, name)
         handlers = {
             "memory.ingest": self._ingest,
+            "memory.write_agent": self._write_agent,
             "memory.write_governed": self._write_governed,
             "memory.search": self._search,
             "memory.hydrate": self._hydrate,
@@ -496,6 +512,31 @@ class MCPToolApplication:
     def _ingest(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         return self.service.write(
             principal, self._write_request(principal, args, tool="memory.ingest")
+        )
+
+    # Allowlisted classes and their aliases for memory.write_agent
+    _WRITE_AGENT_ALLOWED: frozenset[str] = frozenset({
+        "insight", "decision", "observation", "episodic", "meta",
+        "preference", "semantic", "constraint",
+    })
+    _WRITE_AGENT_ALIASES: dict[str, str] = {
+        "lesson": "insight",
+        "note": "observation",
+        "pickup": "meta",
+    }
+
+    def _write_agent(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
+        raw_class = str(args.get("memory_class", "observation"))
+        resolved = self._WRITE_AGENT_ALIASES.get(raw_class, raw_class)
+        if resolved not in self._WRITE_AGENT_ALLOWED:
+            raise ValueError(
+                f"memory.write_agent does not allow memory_class={raw_class!r}. "
+                f"Allowed: {sorted(self._WRITE_AGENT_ALLOWED)} "
+                f"(aliases: lesson→insight, note→observation, pickup→meta)"
+            )
+        patched_args = {**args, "memory_class": resolved}
+        return self.service.write(
+            principal, self._write_request(principal, patched_args, tool="memory.write_agent")
         )
 
     def _write_request(
