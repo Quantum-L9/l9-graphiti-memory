@@ -14,7 +14,13 @@ import pytest
 
 from l9_graphite_memory.contracts.enums import OperationStatus
 from l9_graphite_memory.errors import AuthorizationError
-from l9_graphite_memory.mcp_tools import ALIASES, MCPToolApplication, tool_definitions
+from l9_graphite_memory.mcp_tools import (
+    ALIASES,
+    MCPToolApplication,
+    canonical_handler_names,
+    canonical_tool_names,
+    tool_definitions,
+)
 from l9_graphite_memory.trust_boundary import model_process_trust_boundary
 
 
@@ -31,6 +37,20 @@ def test_five_canonical_operations_are_registered() -> None:
     } <= names
     assert ALIASES["graphiti.query"] == "memory.search"
     assert ALIASES["graphiti.write_governed"] == "memory.write_governed"
+
+
+def test_every_advertised_canonical_tool_has_one_live_handler() -> None:
+    assert set(canonical_handler_names()) == set(canonical_tool_names())
+
+
+def test_every_alias_targets_a_canonical_handler_with_the_same_schema() -> None:
+    definitions = {item["name"]: item for item in tool_definitions()}
+    canonical_names = set(canonical_tool_names())
+
+    assert set(definitions) == canonical_names | set(ALIASES)
+    for alias, canonical in ALIASES.items():
+        assert canonical in canonical_names
+        assert definitions[alias]["inputSchema"] == definitions[canonical]["inputSchema"]
 
 
 def test_model_process_has_no_graphiti_secret_side_doors(monkeypatch) -> None:

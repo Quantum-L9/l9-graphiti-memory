@@ -446,7 +446,7 @@
         "version": "2.3.1"
       },
       "path": "MANIFEST.md",
-      "sha256": "b3beb845756bea2ab4cbcc998d4258c0079d0551d2aad317aa2f69a12b101dc4",
+      "sha256": "0e8f672536e539c669fffa939ed50eb3e9b68171502e02b64ff9dbf544679730",
       "size_bytes": 127281
     },
     {
@@ -6510,8 +6510,8 @@
         "version": "2.3.1"
       },
       "path": "src/l9_graphite_memory/mcp_tools.py",
-      "sha256": "232684b2660fab36eb39ef9c6ce3fdf2a1684da7c930178126d400998756373e",
-      "size_bytes": 29958
+      "sha256": "ab8560a53dd0df6e587a57a0ae6a7ee7883d8729c206bdcb9db6ee3040c88fd8",
+      "size_bytes": 29980
     },
     {
       "category": "production_source",
@@ -9790,8 +9790,8 @@
         "version": "2.3.1"
       },
       "path": "tests/unit/test_release_b_capability.py",
-      "sha256": "12ab452ffaaec1fdf14f78098ad42355bb1a8f9c659036447321f68f5f0afd96",
-      "size_bytes": 4269
+      "sha256": "f67f001bc7bfa532e45070e1f6f00afd3a66507ceb63a2bb1a39df438e3ffe71",
+      "size_bytes": 4934
     },
     {
       "category": "tests",

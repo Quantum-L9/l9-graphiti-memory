@@ -461,7 +461,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/maintenance/__init__.py` | `production_source` | `production_source` | 508 | `cf495dcbad16b8efee2c9af07e74388ec2d796b5c491463d8efe7cdb623a7f78` |
 | `src/l9_graphite_memory/maintenance/planner.py` | `production_source` | `production_source` | 22368 | `4488c95a2447dedc52e83bdf9ba452729dd94634d09ad17be3d206d70d6dbfc7` |
 | `src/l9_graphite_memory/maintenance/service.py` | `production_source` | `production_source` | 22065 | `087556d528b266486c3731996ed00c48a2ee851f26ceca1aa7ca18a038d49355` |
-| `src/l9_graphite_memory/mcp_tools.py` | `production_source` | `production_source` | 29958 | `232684b2660fab36eb39ef9c6ce3fdf2a1684da7c930178126d400998756373e` |
+| `src/l9_graphite_memory/mcp_tools.py` | `production_source` | `production_source` | 29980 | `ab8560a53dd0df6e587a57a0ae6a7ee7883d8729c206bdcb9db6ee3040c88fd8` |
 | `src/l9_graphite_memory/memory_guard.py` | `production_source` | `production_source` | 8060 | `ef7e3e26d7073a9cb73753be27f31d3e1eee08d5768daf59d06d6b8ecbf3df8a` |
 | `src/l9_graphite_memory/migration/__init__.py` | `production_source` | `production_source` | 794 | `89f56ba52ee6f769b9b59572561b8aca46e62f9e0871a7150513007d6e6d576e` |
 | `src/l9_graphite_memory/migration/backend_transition.py` | `production_source` | `production_source` | 6241 | `127e5b87034c98d68e735a8c95bc2c87c9f7dc7cd839fe65a1d45f7f88271a8b` |
@@ -666,7 +666,7 @@ updated: 2026-07-22
 | `tests/unit/test_projection_strategies.py` | `tests` | `tests` | 5046 | `ec6de109f52e5c94cfda7681e2f5efcdb0de52ce4c469ed69d4aa5efc0db6fc6` |
 | `tests/unit/test_quarantine_review.py` | `tests` | `tests` | 7251 | `ce81faecc12f0ec031e45720f4be7ec83597f6cbf711576cab32dde0c75d7aa8` |
 | `tests/unit/test_query_classifier.py` | `tests` | `tests` | 1133 | `69a8f10343af4f7374db596db852b1b2f0782acbaa1b3eca6feb7249fa3b8cfe` |
-| `tests/unit/test_release_b_capability.py` | `tests` | `tests` | 4269 | `12ab452ffaaec1fdf14f78098ad42355bb1a8f9c659036447321f68f5f0afd96` |
+| `tests/unit/test_release_b_capability.py` | `tests` | `tests` | 4934 | `f67f001bc7bfa532e45070e1f6f00afd3a66507ceb63a2bb1a39df438e3ffe71` |
 | `tests/unit/test_retrieval_projection_hydration.py` | `tests` | `tests` | 5362 | `b6799168b8d1d4c6bf2edecde00d0c1cae994ef5168bb09bc2f907637844c7a3` |
 | `tests/unit/test_schema_registry.py` | `tests` | `tests` | 964 | `008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee` |
 | `tests/unit/test_search_request_identity.py` | `tests` | `tests` | 12163 | `404b53b970e22673e799d3aba4b1deccef211f284094f766e74c8ae42e71559b` |
