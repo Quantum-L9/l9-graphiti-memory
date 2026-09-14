@@ -666,7 +666,7 @@ updated: 2026-07-22
 | `tests/unit/test_projection_strategies.py` | `tests` | `tests` | 5046 | `ec6de109f52e5c94cfda7681e2f5efcdb0de52ce4c469ed69d4aa5efc0db6fc6` |
 | `tests/unit/test_quarantine_review.py` | `tests` | `tests` | 7251 | `ce81faecc12f0ec031e45720f4be7ec83597f6cbf711576cab32dde0c75d7aa8` |
 | `tests/unit/test_query_classifier.py` | `tests` | `tests` | 1133 | `69a8f10343af4f7374db596db852b1b2f0782acbaa1b3eca6feb7249fa3b8cfe` |
-| `tests/unit/test_release_b_capability.py` | `tests` | `tests` | 4934 | `f67f001bc7bfa532e45070e1f6f00afd3a66507ceb63a2bb1a39df438e3ffe71` |
+| `tests/unit/test_release_b_capability.py` | `tests` | `tests` | 6214 | `e3d946e140eafc3e61e2c068166ecfc4a24de629fb153d59363cc5c033e8ef3a` |
 | `tests/unit/test_retrieval_projection_hydration.py` | `tests` | `tests` | 5362 | `b6799168b8d1d4c6bf2edecde00d0c1cae994ef5168bb09bc2f907637844c7a3` |
 | `tests/unit/test_schema_registry.py` | `tests` | `tests` | 964 | `008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee` |
 | `tests/unit/test_search_request_identity.py` | `tests` | `tests` | 12163 | `404b53b970e22673e799d3aba4b1deccef211f284094f766e74c8ae42e71559b` |
@@ -696,7 +696,7 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 8677 | `b669caae7f6227c02a2d269d1aa27ed9a630a0336da76c9f0f25998fd2ee7622` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 17317 | `138ba5eb66a384f1b7f9fa7db99242d6fa472f77457b322b967693b4e218a94c` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 17669 | `fc9c5a11f09ada9c122ea52388d6afb8dcd1728d435403d2d168cc31445f4555` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `33e9005fded678f0086848a700998bf1c999fee81bb716ae5724d0e7e420d1da` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |

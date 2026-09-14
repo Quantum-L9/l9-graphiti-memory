@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import pytest
 
+from l9_graphite_memory.client_config.mcp_probe import REQUIRED_TOOL_NAMES
 from l9_graphite_memory.contracts.enums import OperationStatus
 from l9_graphite_memory.errors import AuthorizationError
 from l9_graphite_memory.mcp_tools import (
@@ -41,6 +42,32 @@ def test_five_canonical_operations_are_registered() -> None:
 
 def test_every_advertised_canonical_tool_has_one_live_handler() -> None:
     assert set(canonical_handler_names()) == set(canonical_tool_names())
+
+
+def test_every_canonical_handler_name_resolves_to_a_callable_method() -> None:
+    # The dispatcher resolves handler names with getattr at call time, so a
+    # misspelled method name is invisible to mypy and to the inventory parity
+    # test above. Bind every name to a real method on the class here.
+    from l9_graphite_memory.mcp_tools import _CANONICAL_HANDLER_METHODS
+
+    for tool, method_name in _CANONICAL_HANDLER_METHODS.items():
+        method = getattr(MCPToolApplication, method_name, None)
+        assert callable(method), f"{tool} -> {method_name} is not a method"
+
+
+def test_unknown_tool_raises_before_any_handler_runs() -> None:
+    class _NoService:
+        def __getattr__(self, name: str) -> object:
+            raise AssertionError(f"MemoryService.{name} must not be reached")
+
+    app = MCPToolApplication(_NoService())  # type: ignore[arg-type]
+    with pytest.raises(KeyError, match="unknown tool: memory.nope"):
+        app.call(None, "memory.nope", {})  # type: ignore[arg-type]
+
+
+def test_probe_required_tools_are_a_subset_of_the_advertised_inventory() -> None:
+    advertised = {item["name"] for item in tool_definitions()}
+    assert set(REQUIRED_TOOL_NAMES) <= advertised
 
 
 def test_every_alias_targets_a_canonical_handler_with_the_same_schema() -> None:

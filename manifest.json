@@ -446,7 +446,7 @@
         "version": "2.3.1"
       },
       "path": "MANIFEST.md",
-      "sha256": "0e8f672536e539c669fffa939ed50eb3e9b68171502e02b64ff9dbf544679730",
+      "sha256": "04982a911845c12d9e670848806a557cd3387a4080e648819d419f13696cd054",
       "size_bytes": 127281
     },
     {
@@ -9790,8 +9790,8 @@
         "version": "2.3.1"
       },
       "path": "tests/unit/test_release_b_capability.py",
-      "sha256": "f67f001bc7bfa532e45070e1f6f00afd3a66507ceb63a2bb1a39df438e3ffe71",
-      "size_bytes": 4934
+      "sha256": "e3d946e140eafc3e61e2c068166ecfc4a24de629fb153d59363cc5c033e8ef3a",
+      "size_bytes": 6214
     },
     {
       "category": "tests",
@@ -10270,8 +10270,8 @@
         "version": "2.3.1"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "138ba5eb66a384f1b7f9fa7db99242d6fa472f77457b322b967693b4e218a94c",
-      "size_bytes": 17317
+      "sha256": "fc9c5a11f09ada9c122ea52388d6afb8dcd1728d435403d2d168cc31445f4555",
+      "size_bytes": 17669
     },
     {
       "category": "assurance",
