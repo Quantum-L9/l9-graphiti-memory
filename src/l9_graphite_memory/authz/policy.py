@@ -60,11 +60,19 @@ class NamespacePolicy:
             )
         patterns = self._patterns_for(principal, action)
         allowed = self._matches(namespace, patterns)
-        reason = (
-            f"namespace matched {action.value} grant"
-            if allowed
-            else f"namespace did not match any {action.value} grant"
-        )
+        if allowed:
+            reason = f"namespace matched {action.value} grant"
+        else:
+            # Name the grant set and the door the principal came through. A
+            # bare "did not match any grant" reads like a malformed argument,
+            # which is how a scope limit once cost an entire diagnosis: the
+            # caller cannot tell "you may not write here" from "you spelled
+            # the namespace wrong" without seeing what was actually granted.
+            granted = ", ".join(patterns) if patterns else "none"
+            reason = (
+                f"namespace did not match any {action.value} grant "
+                f"(auth_method={principal.auth_method}, granted={granted})"
+            )
         return AuthorizationReceipt(
             principal_id=principal.principal_id,
             action=action,

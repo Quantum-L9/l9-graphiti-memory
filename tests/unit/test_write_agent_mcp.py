@@ -13,16 +13,15 @@
 from __future__ import annotations
 
 import json
-import os
 
 import pytest
 
 from l9_graphite_memory.authz.signed_assertion import mint_assertion
 from l9_graphite_memory.config import MemorySettings
+from l9_graphite_memory.contracts import MemoryClass
 from l9_graphite_memory.errors import AuthenticationError
 from l9_graphite_memory.mcp_tools import ALIASES, MCPToolApplication, tool_definitions
 from l9_graphite_memory.server import _stdio_principal
-
 
 # ---------------------------------------------------------------------------
 # memory.write_agent tool — discovery
@@ -53,9 +52,14 @@ def test_write_agent_alias_registered() -> None:
         "meta",
         "semantic",
         "constraint",
-        "lesson",    # alias → insight
-        "note",      # alias → observation
-        "pickup",    # alias → meta
+        "procedural",       # the class every lesson resolves to
+        "lesson",           # alias → procedural
+        "note",             # alias → observation
+        "pickup",           # alias → meta
+        "pickup_context",   # alias → meta (the operator lane's spelling)
+        "session_summary",  # alias → episodic
+        "fact",             # alias → semantic
+        "manifest",         # alias → meta
     ],
 )
 def test_write_agent_allowed_class_succeeds(memory_class, memory_service, principal) -> None:
@@ -99,7 +103,15 @@ def test_write_agent_default_class_is_observation(memory_service, principal) -> 
     assert receipt.record_id is not None
 
 
-def test_write_agent_alias_lesson_maps_to_insight(memory_service, principal) -> None:
+def test_write_agent_alias_lesson_is_stored_as_procedural(memory_service, principal) -> None:
+    """The class the record actually lands in, not merely that it landed.
+
+    This test previously asserted only ``record_id is not None`` under the name
+    ``..._maps_to_insight``, so it passed either way and the lane divergence it
+    was named for went unnoticed. ``procedural`` is the operator lane's
+    long-standing resolution for ``lesson``; both lanes now agree.
+    """
+
     app = MCPToolApplication(memory_service)
     receipt = app.call(
         principal,
@@ -107,6 +119,26 @@ def test_write_agent_alias_lesson_maps_to_insight(memory_service, principal) -> 
         {"namespace": "repo-a", "content": "lesson write", "memory_class": "lesson"},
     )
     assert receipt.record_id is not None
+
+    stored = app.call(
+        principal,
+        "memory.get",
+        {"namespace": "repo-a", "record_id": str(receipt.record_id)},
+    )
+    assert stored["found"] is True
+    assert stored["record"]["memory_class"] == MemoryClass.PROCEDURAL.value
+
+
+def test_write_agent_refuses_identity_class(memory_service, principal) -> None:
+    """An identity claim is not one an agent may assert on the ungated lane."""
+
+    app = MCPToolApplication(memory_service)
+    with pytest.raises(ValueError, match="does not accept"):
+        app.call(
+            principal,
+            "memory.write_agent",
+            {"namespace": "repo-a", "content": "who I am", "memory_class": "identity"},
+        )
 
 
 # ---------------------------------------------------------------------------

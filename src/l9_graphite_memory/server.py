@@ -47,6 +47,7 @@ from l9_graphite_memory.runtime import (
     MemoryRuntime,
     build_runtime,
     resolve_local_context,
+    resolve_local_context_for_namespace,
 )
 from l9_graphite_memory.secrets import load_secrets_sync
 from l9_graphite_memory.version import MCP_PROTOCOL_VERSION, PACKAGE_VERSION
@@ -147,8 +148,8 @@ class MCPServer:
         return self.error(request_id, -32601, f"method not found: {method}")
 
 
-def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
-    """Resolve the stdio principal using the trust-model-2 three-tier hierarchy.
+def _door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
+    """The principal from a configured door, or ``None`` to fall through.
 
     Tier 1 — Human door (admin):
         ``L9_MEMORY_HUMAN_DOOR_SECRET`` is set and its value is non-empty.
@@ -160,8 +161,10 @@ def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
         a key in ``L9_MEMORY_AGENT_SIGNING_KEYS_JSON``.
         Grants come from ``L9_MEMORY_AGENT_GRANTS_JSON``.
 
-    Tier 3 — Operator CLI fallback (existing behaviour):
-        No door secrets configured; uses ``resolve_local_context``.
+    Both tiers read their claims from the environment, so they are resolved
+    once and do not vary per request. ``None`` means Tier 3 — the local
+    operator fallback, whose claims come from repository identity and are
+    therefore resolved per request by :class:`StdioPrincipalResolver`.
     """
     human_secret = os.environ.get("L9_MEMORY_HUMAN_DOOR_SECRET", "").strip()
     if human_secret:
@@ -243,9 +246,74 @@ def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
             auth_method="stdio-agent-assertion",
         )
 
-    # Tier 3: operator CLI fallback (original behaviour)
-    _, principal = resolve_local_context(settings)
-    return principal.model_copy(update={"auth_method": "stdio-local"})
+    return None
+
+
+def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
+    """The stdio principal with no request in hand (Tier 3 resolves from cwd).
+
+    Kept as the module's stable entry point. A transport serving requests
+    should use :class:`StdioPrincipalResolver`, which resolves Tier 3 against
+    the namespace each request names.
+    """
+
+    principal = _door_principal(settings)
+    if principal is not None:
+        return principal
+    _, local = resolve_local_context(settings)
+    return local.model_copy(update={"auth_method": "stdio-local"})
+
+
+def _requested_namespace(request: dict[str, Any]) -> str | None:
+    """The namespace a ``tools/call`` request addresses, if it names one."""
+
+    if request.get("method") != "tools/call":
+        return None
+    params = request.get("params")
+    if not isinstance(params, dict):
+        return None
+    arguments = params.get("arguments")
+    if not isinstance(arguments, dict):
+        return None
+    namespace = arguments.get("namespace")
+    return namespace if isinstance(namespace, str) else None
+
+
+class StdioPrincipalResolver:
+    """Resolve the principal for each request on a local transport.
+
+    Tiers 1 and 2 are static for the life of the process: their claims come
+    from the environment, are verified once, and do not depend on which
+    namespace a request addresses. Tier 3 derives its claims from *repository
+    identity*, which is a property of the namespace being addressed — so it is
+    resolved per request.
+
+    Resolving it once at spawn is what made ``memory.write_agent``'s
+    ``namespace`` argument unusable for every root except the one the host
+    launched the server in, while the operator CLI — which resolves per
+    ``--workspace`` invocation — could address them all. The governed lane
+    could not reach what the fallback could.
+    """
+
+    def __init__(self, settings: MemorySettings) -> None:
+        self._settings = settings
+        # Verified eagerly: a misconfigured door must fail at startup rather
+        # than on the first request that happens to need it.
+        self._door = _door_principal(settings)
+
+    @property
+    def door_principal(self) -> MemoryPrincipal | None:
+        """The static Tier 1/Tier 2 principal, or ``None`` when on Tier 3."""
+
+        return self._door
+
+    def for_request(self, request: dict[str, Any]) -> MemoryPrincipal:
+        if self._door is not None:
+            return self._door
+        _, principal = resolve_local_context_for_namespace(
+            self._settings, _requested_namespace(request)
+        )
+        return principal.model_copy(update={"auth_method": "stdio-local"})
 
 
 def _write_json_line(obj: Any) -> None:
@@ -256,7 +324,7 @@ def _write_json_line(obj: Any) -> None:
 
 def run_stdio(runtime: MemoryRuntime) -> int:
     server = MCPServer(runtime)
-    principal = _stdio_principal(runtime.settings)
+    principals = StdioPrincipalResolver(runtime.settings)
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -268,6 +336,11 @@ def run_stdio(runtime: MemoryRuntime) -> int:
             continue
         if not isinstance(decoded, dict):
             _write_json_line(server.error(None, -32600, "batch requests are not supported"))
+            continue
+        try:
+            principal = principals.for_request(decoded)
+        except AuthenticationError as exc:
+            _write_json_line(server.error(decoded.get("id"), -32001, str(exc)))
             continue
         response = server.handle(decoded, principal)
         if response is not None:
@@ -286,20 +359,23 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
     settings = runtime.settings
     authenticator = TokenAuthenticator(settings.auth_tokens)
     server = MCPServer(runtime)
+    principals = StdioPrincipalResolver(settings)
     app = FastAPI(title="L9 Graphite Memory", version=PACKAGE_VERSION)
 
-    def principal_for(request: Request) -> MemoryPrincipal:
+    def principal_for(request: Request, body: dict[str, Any]) -> MemoryPrincipal:
         if settings.http_auth_required:
             return authenticator.authenticate(request.headers.get("Authorization"))
-        return _stdio_principal(settings).model_copy(update={"auth_method": "http-auth-disabled"})
+        # Auth-disabled HTTP is the same local trust model as stdio, so it
+        # resolves per request against the namespace the body names too.
+        return principals.for_request(body).model_copy(
+            update={"auth_method": "http-auth-disabled"}
+        )
 
     @app.post("/mcp")
     @app.post("/mcp/")
     async def mcp_endpoint(request: Request) -> JSONResponse:
-        try:
-            principal = principal_for(request)
-        except AuthenticationError as exc:
-            return JSONResponse(status_code=401, content=server.error(None, -32001, str(exc)))
+        # The body is parsed first because the principal now depends on the
+        # namespace the request names.
         try:
             body = await request.json()
         except Exception as exc:  # noqa: BLE001
@@ -312,6 +388,10 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
                 status_code=400,
                 content=server.error(None, -32600, "batch requests are not supported"),
             )
+        try:
+            principal = principal_for(request, body)
+        except AuthenticationError as exc:
+            return JSONResponse(status_code=401, content=server.error(None, -32001, str(exc)))
         response = server.handle(body, principal)
         return JSONResponse(content=response or {"status": "ok"})
 

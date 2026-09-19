@@ -21,7 +21,7 @@ import hashlib
 import hmac
 import os
 import time
-from typing import Mapping
+from collections.abc import Mapping
 
 from l9_graphite_memory.errors import AuthenticationError
 

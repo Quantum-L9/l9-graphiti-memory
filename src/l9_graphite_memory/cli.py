@@ -17,6 +17,7 @@ import hashlib
 import json
 import os
 import sys
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -52,6 +53,12 @@ from l9_graphite_memory.contracts import (
     Provenance,
     build_capabilities,
 )
+from l9_graphite_memory.contracts.class_vocabulary import (
+    CLASS_ALIASES,
+    alias_summary,
+    known_class_spellings,
+    resolve_memory_class,
+)
 from l9_graphite_memory.curation import EvidenceBoundProviderReviewer, load_review_provider
 from l9_graphite_memory.curation.procedural import (
     PatternProceduralSynthesizer,
@@ -78,18 +85,11 @@ from l9_graphite_memory.runtime import (
 from l9_graphite_memory.secrets import load_secrets_sync
 from l9_graphite_memory.services import GeneratedDataService, OutboxWorker
 
-_LEGACY_KIND_MAP = {
-    "lesson": MemoryClass.PROCEDURAL,
-    "decision": MemoryClass.DECISION,
-    "preference": MemoryClass.PREFERENCE,
-    "constraint": MemoryClass.CONSTRAINT,
-    "manifest": MemoryClass.META,
-    "session": MemoryClass.EPISODIC,
-    "session_summary": MemoryClass.EPISODIC,
-    "observation": MemoryClass.OBSERVATION,
-    "insight": MemoryClass.INSIGHT,
-    "fact": MemoryClass.SEMANTIC,
-}
+#: Retained as the public name this module has always exported. The table it
+#: used to own now lives in ``contracts.class_vocabulary`` so the CLI and the
+#: MCP agent door cannot drift apart again; the canonical spellings it used to
+#: list redundantly are resolved by the enum itself.
+_LEGACY_KIND_MAP: Mapping[str, MemoryClass] = CLASS_ALIASES
 
 
 def _json(value: Any) -> str:
@@ -108,15 +108,9 @@ def _parse_datetime(value: str | None) -> datetime | None:
 
 def _memory_class(value: str) -> MemoryClass:
     try:
-        return MemoryClass(value)
-    except ValueError:
-        mapped = _LEGACY_KIND_MAP.get(value)
-        if mapped is None:
-            allowed = ", ".join(item.value for item in MemoryClass)
-            raise argparse.ArgumentTypeError(
-                f"unknown memory class {value!r}; choose from {allowed}"
-            ) from None
-        return mapped
+        return resolve_memory_class(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from None
 
 
 def _runtime(args: argparse.Namespace) -> MemoryRuntime:
@@ -1001,7 +995,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     write = sub.add_parser("write")
     write.add_argument("body")
-    write.add_argument("--kind", type=_memory_class, default=MemoryClass.OBSERVATION)
+    write.add_argument(
+        "--kind",
+        type=_memory_class,
+        default=MemoryClass.OBSERVATION,
+        # Generated from the one vocabulary table, so this help text cannot
+        # describe a mapping the resolver does not perform.
+        help=(
+            f"memory class; one of {', '.join(known_class_spellings())} "
+            f"(aliases: {alias_summary()})"
+        ),
+    )
     write.add_argument("--group-id", default=None)
     write.add_argument("--subject", default=None)
     write.add_argument("--predicate", default=None)
