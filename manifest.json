@@ -446,8 +446,8 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "2eed3249d4330337d73399aff773de1bd6c6feb02da587f594c1cc6cc9ffb8c6",
-      "size_bytes": 128403
+      "sha256": "b4018702f8c7d72e1533d1e9400cd3e9d726597e101a31994af8cd016e896d65",
+      "size_bytes": 128404
     },
     {
       "category": "repository_root",
@@ -11678,7 +11678,7 @@
         "version": "2.5.0"
       },
       "path": "validation/SHA256SUMS",
-      "sha256": "6ffa02958f28934e188542a66cd9cf2b96844ee737dc94963655e817f6b3b371",
+      "sha256": "7403a2d4c8828751ba6bef974fbfe0ef0316facd0e3a7a7328208e3c32221b4d",
       "size_bytes": 108
     },
     {
@@ -11694,7 +11694,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/adr_validation.txt",
-      "sha256": "7b99b35cef2e95670a23e434691d4f66d977b32401292fc8d538c1b447aa4b7c",
+      "sha256": "af4b4ccb3b1ae46510b9cb8fd6ff620912e8c38f2150c73b1bed43055e492c62",
       "size_bytes": 35
     },
     {
@@ -11790,8 +11790,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "09c1b18ade3efbeb7154abfc28a6297a8e1d4be38a38c38755d15f275aca4477",
-      "size_bytes": 1355
+      "sha256": "c1db977c7ff043eed2a693bcfd8e9afaef1ea8d70832f58b6c7b9bdfb4522778",
+      "size_bytes": 1497
     },
     {
       "category": "validation_evidence",
@@ -11806,8 +11806,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "0ff62b642d45b5c4dd4b488dcf80add81dd350b8b8e694463d1ab289236e9e99",
-      "size_bytes": 993
+      "sha256": "c10b2beede5ab55d26ee338e0c7c2e6664d5221eafc578711b8450ed918bd938",
+      "size_bytes": 1172
     },
     {
       "category": "validation_evidence",
@@ -11822,8 +11822,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "0edd4fddc3b8390ecb44b337f8c43836df57ef1bbec2691e08c41604bb525ee5",
-      "size_bytes": 502
+      "sha256": "32c33d1d136fa7cde04bc21bc231a25aa53ab14fe7921f99187f12d8fc116432",
+      "size_bytes": 551
     },
     {
       "category": "validation_evidence",
@@ -11838,7 +11838,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_mcp.txt",
-      "sha256": "89799fd6eed4cc1f67f9ea3e01ce9e2cfa54827c84f359f4bea3cc646d56c8e3",
+      "sha256": "c532528a835d0fce6a73ca3df70329345f00e75b86c1a1213a4131dbd0021afd",
       "size_bytes": 74
     },
     {
@@ -11918,8 +11918,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "8f19767c393e566fc949dd33122308e1b0f21d72ad2c51946225a136d7ae2ae9",
-      "size_bytes": 656
+      "sha256": "2505771dccc8b4a1769708128e6cf6d2c64f84097dfd905ca99fb382a3f577a8",
+      "size_bytes": 659
     },
     {
       "category": "validation_evidence",
@@ -11934,7 +11934,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/manifest_validation.txt",
-      "sha256": "5099d59ddd63f6ecd3e212b7b2ef4ae15ef019557790e87b1126095d47e1605a",
+      "sha256": "53f596fc7464929b4b464c3da0cf85f0c2c0150c9e2104163bd34d8ed61ef81b",
       "size_bytes": 64
     },
     {
@@ -11950,8 +11950,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "550596a35b1e7c170c273775d026268ca365fd4714c77a0c5dfa7e319fc7b350",
-      "size_bytes": 4016
+      "sha256": "2f0e99c5b6dc9845cc252bd382bfd060efce4104593e2323d700471c4f97ce1d",
+      "size_bytes": 4214
     },
     {
       "category": "validation_evidence",
@@ -11982,8 +11982,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "fecdfed6e395fdfe20a3de57711863d37b1556e3368a8147a242e35941925031",
-      "size_bytes": 2741
+      "sha256": "3d2c363723cdf1da6d43de47418c0e2ecdbc9d74a2fae2fe4c0ea6a3cf1bcc1a",
+      "size_bytes": 3128
     },
     {
       "category": "validation_evidence",
@@ -12030,7 +12030,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/source_quality.txt",
-      "sha256": "4adf3e51ad419e4e0e69453650c3adc2ec9bcdb14cbebebb9b2146cdfa8c6d41",
+      "sha256": "74600cc1736cb1e1aff0f60745120d216ce552231d0d6bc908c6effcceedc176",
       "size_bytes": 67
     },
     {
@@ -12062,8 +12062,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "971832625461aef9db84ee0b0877ab4556e3dea68af12a545c2118e738798644",
-      "size_bytes": 41236
+      "sha256": "990a866a9a9576ac3f23114a6d8cc4f0913a3f77a9f05679a69760bbc39406ee",
+      "size_bytes": 28625
     },
     {
       "category": "validation_evidence",
@@ -12078,8 +12078,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_install.txt",
-      "sha256": "9453a2fac40cfdc5150ea105bf1a5f04024fd0c46e8c835a546cb84d0305fde6",
-      "size_bytes": 267
+      "sha256": "02be53a2fc0c3caa59f1029b15f53c2ad20796161f54bf12b6b92d48025cf722",
+      "size_bytes": 337
     },
     {
       "category": "validation_evidence",
@@ -12094,7 +12094,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wiring_audit.txt",
-      "sha256": "92e2e3ec085417f5dbc37de7d4d531a323651a5b219e47e79315f78bedaf4a64",
+      "sha256": "bac2d8e53342ee1a987f919280598ca67d948a9e15f3ee6ead69f5dc8cb5f5a9",
       "size_bytes": 35
     },
     {
@@ -12110,8 +12110,8 @@
         "version": "2.5.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "df830f83cc9e1c3397d0a54cb82711f2a00bc032871872e56afdd96aa7e29479",
-      "size_bytes": 11387
+      "sha256": "9fbea02a90b7d87158a25ea66ae9a152a92b96141d124511f64eb1a4ff9e89e3",
+      "size_bytes": 11388
     },
     {
       "category": "validation_evidence",
@@ -12142,7 +12142,7 @@
         "version": "2.5.0"
       },
       "path": "validation/validation_report.yaml",
-      "sha256": "edfe4c42452a880dba112f7c178e22c27e5172bd3f2777eefb063b8ea80cdc96",
+      "sha256": "74c0d718ec3cdc3ac8efcb85c3bc0ccf3781176531b8672e5a835ae2d22d9ef1",
       "size_bytes": 474
     }
   ],

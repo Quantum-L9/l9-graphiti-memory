@@ -1,22 +1,24 @@
 {
+  "argv_source": "installed",
   "command_argv": [
-    "/home/user/l9-graphiti-memory/.venv/bin/python3",
+    "/tmp/claude-0/-home-user/0917975b-082e-548d-92fc-294d91662372/scratchpad/ci-equiv/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-04T15:39:02.235822Z",
+  "config_path": "/tmp/tmp.lwlfHnqt8U/installed-smoke/home/.cursor/mcp.json",
+  "created_at": "2026-09-19T22:29:40.991284Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "547da3e9-c30c-4c84-9947-2ffed23c202f",
+  "receipt_id": "effd7c38-1cda-4bef-a78a-16211857539f",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
-  "server_version": "2.2.0",
+  "server_version": "2.5.0",
   "status": "complete",
   "stderr_excerpt": "",
   "steps": [
@@ -42,5 +44,5 @@
     }
   ],
   "timed_out": false,
-  "tool_count": 30
+  "tool_count": 33
 }
