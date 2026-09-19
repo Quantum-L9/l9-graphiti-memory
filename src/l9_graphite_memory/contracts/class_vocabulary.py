@@ -42,8 +42,14 @@ CLASS_ALIASES: Mapping[str, MemoryClass] = MappingProxyType(
         "note": MemoryClass.OBSERVATION,
         "fact": MemoryClass.SEMANTIC,
         "manifest": MemoryClass.META,
-        "pickup": MemoryClass.META,
-        "pickup_context": MemoryClass.META,
+        # A pickup/continuation record is what a session resumes from, which is
+        # episodic. The consumer has resolved `pickup_context` that way for as
+        # long as it has had a kind table, and its continuation capsule is
+        # written as an episodic record; the agent door's own table said `meta`,
+        # which is the same divergence this module exists to remove. The
+        # established meaning wins.
+        "pickup": MemoryClass.EPISODIC,
+        "pickup_context": MemoryClass.EPISODIC,
         "session": MemoryClass.EPISODIC,
         "session_summary": MemoryClass.EPISODIC,
     }

@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-09-19T18:45:29.818932Z",
+  "checked_at": "2026-09-19T18:54:08.231106Z",
   "contract_version": "memory-control-plane/v1",
   "degraded_reasons": [],
   "gate": {
@@ -18,7 +18,7 @@
   "store": {
     "healthy": true,
     "name": "sqlite",
-    "path": "/tmp/tmp.QxDrsZ1Org/installed-smoke/data/memory.sqlite3",
+    "path": "/tmp/tmp.e7Fhk0hrgS/installed-smoke/data/memory.sqlite3",
     "records": 0,
     "schema_version": 7
   }

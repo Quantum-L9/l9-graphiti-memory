@@ -127,12 +127,18 @@ def test_cli_legacy_map_is_the_shared_table() -> None:
 
 
 @pytest.mark.parametrize("spelling", ["pickup", "pickup_context"])
-def test_both_pickup_spellings_are_accepted_everywhere(spelling: str) -> None:
-    """One lane spelled it ``pickup`` and the other rejected it outright."""
+def test_both_pickup_spellings_are_episodic_everywhere(spelling: str) -> None:
+    """One lane spelled it ``pickup`` and the other rejected it outright.
 
-    assert resolve_memory_class(spelling) is MemoryClass.META
-    assert _memory_class(spelling) is MemoryClass.META
-    assert agent_writable_class(spelling) is MemoryClass.META
+    ``episodic`` rather than ``meta``: a continuation record is what a session
+    resumes from, and the consumer has resolved ``pickup_context`` that way
+    throughout. Taking the agent door's ``meta`` instead would have replaced
+    one cross-lane divergence with another.
+    """
+
+    assert resolve_memory_class(spelling) is MemoryClass.EPISODIC
+    assert _memory_class(spelling) is MemoryClass.EPISODIC
+    assert agent_writable_class(spelling) is MemoryClass.EPISODIC
 
 
 # ---------------------------------------------------------------------------

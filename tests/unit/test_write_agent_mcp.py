@@ -55,8 +55,8 @@ def test_write_agent_alias_registered() -> None:
         "procedural",  # the class every lesson resolves to
         "lesson",  # alias → procedural
         "note",  # alias → observation
-        "pickup",  # alias → meta
-        "pickup_context",  # alias → meta (the operator lane's spelling)
+        "pickup",  # alias -> episodic
+        "pickup_context",  # alias -> episodic (the consumer lane's spelling)
         "session_summary",  # alias → episodic
         "fact",  # alias → semantic
         "manifest",  # alias → meta
