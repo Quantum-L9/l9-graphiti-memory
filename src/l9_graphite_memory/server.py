@@ -367,9 +367,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
             return authenticator.authenticate(request.headers.get("Authorization"))
         # Auth-disabled HTTP is the same local trust model as stdio, so it
         # resolves per request against the namespace the body names too.
-        return principals.for_request(body).model_copy(
-            update={"auth_method": "http-auth-disabled"}
-        )
+        return principals.for_request(body).model_copy(update={"auth_method": "http-auth-disabled"})
 
     @app.post("/mcp")
     @app.post("/mcp/")

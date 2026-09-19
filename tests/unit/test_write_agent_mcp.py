@@ -52,14 +52,14 @@ def test_write_agent_alias_registered() -> None:
         "meta",
         "semantic",
         "constraint",
-        "procedural",       # the class every lesson resolves to
-        "lesson",           # alias → procedural
-        "note",             # alias → observation
-        "pickup",           # alias → meta
-        "pickup_context",   # alias → meta (the operator lane's spelling)
+        "procedural",  # the class every lesson resolves to
+        "lesson",  # alias → procedural
+        "note",  # alias → observation
+        "pickup",  # alias → meta
+        "pickup_context",  # alias → meta (the operator lane's spelling)
         "session_summary",  # alias → episodic
-        "fact",             # alias → semantic
-        "manifest",         # alias → meta
+        "fact",  # alias → semantic
+        "manifest",  # alias → meta
     ],
 )
 def test_write_agent_allowed_class_succeeds(memory_class, memory_service, principal) -> None:
@@ -226,17 +226,19 @@ def _agent_env(monkeypatch, *, agent_id: str, signing_key: str, token: str | Non
     )
     monkeypatch.setenv(
         "L9_MEMORY_AGENT_GRANTS_JSON",
-        json.dumps({
-            agent_id: {
-                "user_id": "igor",
-                "principal_id": agent_id,
-                "roles": ["agent"],
-                "read_namespaces": ["repo-a"],
-                "write_namespaces": ["repo-a"],
-                "promote_namespaces": [],
-                "is_admin": False,
+        json.dumps(
+            {
+                agent_id: {
+                    "user_id": "igor",
+                    "principal_id": agent_id,
+                    "roles": ["agent"],
+                    "read_namespaces": ["repo-a"],
+                    "write_namespaces": ["repo-a"],
+                    "promote_namespaces": [],
+                    "is_admin": False,
+                }
             }
-        }),
+        ),
     )
     if token is not None:
         monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", token)

@@ -151,8 +151,7 @@ def test_every_alias_target_is_writable_on_the_agent_lane() -> None:
 
     for spelling, target in CLASS_ALIASES.items():
         assert target in AGENT_WRITABLE_CLASSES, (
-            f"alias {spelling!r} resolves to {target.value!r}, "
-            "which the agent lane refuses"
+            f"alias {spelling!r} resolves to {target.value!r}, which the agent lane refuses"
         )
 
 
