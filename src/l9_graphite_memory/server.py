@@ -148,105 +148,113 @@ class MCPServer:
         return self.error(request_id, -32601, f"method not found: {method}")
 
 
+def _agents_door_env(name: str) -> str:
+    """A variable the agents door requires once its secret is set."""
+
+    value = os.environ.get(name, "").strip()
+    if not value:
+        raise AuthenticationError(f"L9_MEMORY_AGENTS_DOOR_SECRET is set but {name} is missing")
+    return value
+
+
+def _json_object(raw: str, name: str) -> dict[str, Any]:
+    """Decode a JSON object from an environment variable, or refuse."""
+
+    try:
+        decoded = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise AuthenticationError(f"{name} is not valid JSON: {exc}") from exc
+    if not isinstance(decoded, dict):
+        raise AuthenticationError(f"{name} must be a JSON object")
+    return decoded
+
+
+def _granted_namespaces(grants: dict[str, Any], field: str) -> tuple[str, ...]:
+    raw = grants.get(field, [])
+    return tuple(str(value) for value in raw) if isinstance(raw, list) else ()
+
+
+def _human_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
+    """Tier 1 — ``L9_MEMORY_HUMAN_DOOR_SECRET`` set and non-empty grants admin."""
+
+    if not os.environ.get("L9_MEMORY_HUMAN_DOOR_SECRET", "").strip():
+        return None
+    return MemoryPrincipal(
+        principal_id="human",
+        tenant_id=settings.local_tenant_id,
+        organization_id=settings.local_organization_id,
+        workspace_id=settings.local_workspace_id,
+        user_id=settings.local_user_id or "human",
+        agent_id="human",
+        roles=("admin", "local-operator"),
+        read_namespaces=("*",),
+        write_namespaces=("*",),
+        promote_namespaces=("*",),
+        is_admin=True,
+        auth_method="stdio-human-door",
+    )
+
+
+def _agent_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
+    """Tier 2 — a signed agent assertion verified against a configured key.
+
+    ``L9_MEMORY_AGENTS_DOOR_SECRET`` being set makes every other variable
+    mandatory: a half-configured door fails loudly rather than falling through
+    to the weaker local fallback, which would be a silent downgrade of the
+    trust model.
+    """
+
+    if not os.environ.get("L9_MEMORY_AGENTS_DOOR_SECRET", "").strip():
+        return None
+
+    assertion = _agents_door_env("L9_MEMORY_AGENT_ASSERTION")
+    keys_by_agent_id = _json_object(
+        _agents_door_env("L9_MEMORY_AGENT_SIGNING_KEYS_JSON"),
+        "L9_MEMORY_AGENT_SIGNING_KEYS_JSON",
+    )
+    agent_id = verify_assertion(assertion, keys_by_agent_id)
+
+    grants_map = _json_object(
+        _agents_door_env("L9_MEMORY_AGENT_GRANTS_JSON"),
+        "L9_MEMORY_AGENT_GRANTS_JSON",
+    )
+    grants = grants_map.get(agent_id)
+    if not grants or not isinstance(grants, dict):
+        raise AuthenticationError(
+            f"no grants configured for agent_id={agent_id!r} in L9_MEMORY_AGENT_GRANTS_JSON"
+        )
+
+    return MemoryPrincipal(
+        principal_id=str(grants.get("principal_id", agent_id)),
+        tenant_id=settings.local_tenant_id,
+        organization_id=settings.local_organization_id,
+        workspace_id=settings.local_workspace_id,
+        user_id=str(grants["user_id"]) if grants.get("user_id") else None,
+        agent_id=agent_id,
+        roles=tuple(str(role) for role in grants.get("roles", [])),
+        read_namespaces=_granted_namespaces(grants, "read_namespaces"),
+        write_namespaces=_granted_namespaces(grants, "write_namespaces"),
+        promote_namespaces=_granted_namespaces(grants, "promote_namespaces"),
+        is_admin=bool(grants.get("is_admin", False)),
+        auth_method="stdio-agent-assertion",
+    )
+
+
 def _door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
     """The principal from a configured door, or ``None`` to fall through.
 
-    Tier 1 — Human door (admin):
-        ``L9_MEMORY_HUMAN_DOOR_SECRET`` is set and its value is non-empty.
-        The caller is granted admin authority (agent_id=``human``).
-
-    Tier 2 — Agent assertion door:
-        ``L9_MEMORY_AGENTS_DOOR_SECRET`` is set (non-empty).
-        ``L9_MEMORY_AGENT_ASSERTION`` must be present and must verify against
-        a key in ``L9_MEMORY_AGENT_SIGNING_KEYS_JSON``.
-        Grants come from ``L9_MEMORY_AGENT_GRANTS_JSON``.
+    Tier 1 is the human door, Tier 2 the signed agent door; each is a function
+    above, because one body doing environment parsing, JSON decoding,
+    signature verification and grant construction for two trust tiers is hard
+    to read in exactly the place where reading it matters most.
 
     Both tiers read their claims from the environment, so they are resolved
     once and do not vary per request. ``None`` means Tier 3 — the local
     operator fallback, whose claims come from repository identity and are
     therefore resolved per request by :class:`StdioPrincipalResolver`.
     """
-    human_secret = os.environ.get("L9_MEMORY_HUMAN_DOOR_SECRET", "").strip()
-    if human_secret:
-        return MemoryPrincipal(
-            principal_id="human",
-            tenant_id=settings.local_tenant_id,
-            organization_id=settings.local_organization_id,
-            workspace_id=settings.local_workspace_id,
-            user_id=settings.local_user_id or "human",
-            agent_id="human",
-            roles=("admin", "local-operator"),
-            read_namespaces=("*",),
-            write_namespaces=("*",),
-            promote_namespaces=("*",),
-            is_admin=True,
-            auth_method="stdio-human-door",
-        )
 
-    agents_door_secret = os.environ.get("L9_MEMORY_AGENTS_DOOR_SECRET", "").strip()
-    if agents_door_secret:
-        assertion = os.environ.get("L9_MEMORY_AGENT_ASSERTION", "").strip()
-        if not assertion:
-            raise AuthenticationError(
-                "L9_MEMORY_AGENTS_DOOR_SECRET is set but L9_MEMORY_AGENT_ASSERTION is missing"
-            )
-
-        raw_keys = os.environ.get("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", "").strip()
-        if not raw_keys:
-            raise AuthenticationError(
-                "L9_MEMORY_AGENTS_DOOR_SECRET is set but L9_MEMORY_AGENT_SIGNING_KEYS_JSON is missing"
-            )
-        try:
-            keys_by_agent_id: dict[str, str] = json.loads(raw_keys)
-        except json.JSONDecodeError as exc:
-            raise AuthenticationError(
-                f"L9_MEMORY_AGENT_SIGNING_KEYS_JSON is not valid JSON: {exc}"
-            ) from exc
-        if not isinstance(keys_by_agent_id, dict):
-            raise AuthenticationError("L9_MEMORY_AGENT_SIGNING_KEYS_JSON must be a JSON object")
-
-        agent_id = verify_assertion(assertion, keys_by_agent_id)
-
-        raw_grants = os.environ.get("L9_MEMORY_AGENT_GRANTS_JSON", "").strip()
-        if not raw_grants:
-            raise AuthenticationError(
-                "L9_MEMORY_AGENTS_DOOR_SECRET is set but L9_MEMORY_AGENT_GRANTS_JSON is missing"
-            )
-        try:
-            grants_map: dict[str, dict] = json.loads(raw_grants)
-        except json.JSONDecodeError as exc:
-            raise AuthenticationError(
-                f"L9_MEMORY_AGENT_GRANTS_JSON is not valid JSON: {exc}"
-            ) from exc
-        if not isinstance(grants_map, dict):
-            raise AuthenticationError("L9_MEMORY_AGENT_GRANTS_JSON must be a JSON object")
-
-        grants = grants_map.get(agent_id)
-        if not grants or not isinstance(grants, dict):
-            raise AuthenticationError(
-                f"no grants configured for agent_id={agent_id!r} in L9_MEMORY_AGENT_GRANTS_JSON"
-            )
-
-        def _ns(field: str) -> tuple[str, ...]:
-            raw = grants.get(field, [])
-            return tuple(str(v) for v in raw) if isinstance(raw, list) else ()
-
-        return MemoryPrincipal(
-            principal_id=str(grants.get("principal_id", agent_id)),
-            tenant_id=settings.local_tenant_id,
-            organization_id=settings.local_organization_id,
-            workspace_id=settings.local_workspace_id,
-            user_id=str(grants["user_id"]) if grants.get("user_id") else None,
-            agent_id=agent_id,
-            roles=tuple(str(r) for r in grants.get("roles", [])),
-            read_namespaces=_ns("read_namespaces"),
-            write_namespaces=_ns("write_namespaces"),
-            promote_namespaces=_ns("promote_namespaces"),
-            is_admin=bool(grants.get("is_admin", False)),
-            auth_method="stdio-agent-assertion",
-        )
-
-    return None
+    return _human_door_principal(settings) or _agent_door_principal(settings)
 
 
 def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:

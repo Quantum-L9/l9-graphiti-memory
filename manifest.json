@@ -446,7 +446,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "974f11275b82b9d3cd8a0da216810a610ee7379983739887e4d12974617102a7",
+      "sha256": "c24e54130ca70898697746520c7e58f2c67aee99140e0026a174d5ebe5ae7c9b",
       "size_bytes": 128403
     },
     {
@@ -7182,8 +7182,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/server.py",
-      "sha256": "86226f5f330153999c723e7fa61b14387e2823c04119d710725b12fe170b87e9",
-      "size_bytes": 18466
+      "sha256": "c85e8588182c458fda10d5ca8d0d9988e40267593b5a4a810dc417bc0b740bfc",
+      "size_bytes": 18345
     },
     {
       "category": "production_source",
