@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.4.0"
+RELEASE: Final = "2.5.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,8 +114,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # result-affecting selector and a request digest): 14 cases in
         # test_search_request_identity.py stacked on 2.3.1. Same arithmetic:
         # 856 + 14 = 870 collected, 870 - 15 = 855.
-        "855 tests pass",
-        r"855 passed",
+        #
+        # Re-pinned 855 -> 866 for 2.5.0. The signed-agent door (ADR-0031)
+        # added test_write_agent_mcp.py and test_signed_assertion.py without
+        # re-pinning here; ADR-083 adds test_class_vocabulary.py and
+        # test_stdio_namespace_resolution.py. 866 is the observed pass count
+        # for the two together.
+        "866 tests pass",
+        r"866 passed",
     ),
     CheckSpec(
         "V-002",
@@ -136,8 +142,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
         # parity).
-        "82 ADRs complete and indexed",
-        r"PASS: 82 ADRs",
+        "83 ADRs complete and indexed",
+        r"PASS: 83 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -217,8 +223,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         #
         # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
         # the control-plane capability receipt.
-        "125 production files pass",
-        r"PASS: 125 production Python files",
+        "127 production files pass",
+        r"PASS: 127 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -262,8 +268,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "Python wheel",
         "python -m build --wheel",
         "logs/wheel_build.txt",
-        "v2.4.0 wheel builds",
-        r"Successfully built l9_graphite_memory-2\.4\.0-py3-none-any\.whl",
+        "v2.5.0 wheel builds",
+        r"Successfully built l9_graphite_memory-2\.5\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -272,7 +278,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.4\.0",
+        r"l9-graphite-memory==2\.5\.0",
     ),
     CheckSpec(
         "V-018",
@@ -300,8 +306,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/installed_mcp.txt",
         # Re-pinned 30 -> 31 for ADR-082: memory.capabilities joins the
         # canonical tool inventory.
-        "31 tools and required surfaces load",
-        r"31 tools loaded",
+        "33 tools and required surfaces load",
+        r"33 tools loaded",
     ),
     CheckSpec(
         "V-021",

@@ -1,18 +1,105 @@
-........................................................................ [  8%]
-..............................................ssss...................... [ 17%]
-......s................................................................. [ 26%]
-........................................................................ [ 35%]
-........................................................................ [ 44%]
-........................................................................ [ 53%]
-........................................................................ [ 62%]
-.........sssssss.sss.................................................... [ 70%]
-........................................................................ [ 79%]
+.......s.s.s.s.s.s.s.s.s.s.s.s.s.s.s.s.s.s.s.s..s..s..s..s..s..s..s..s.. [  7%]
+s..s..s.....s..s...s..s..s..s........................................... [ 14%]
+......s.....................s..s..s..s..s..s............................ [ 22%]
+..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s [ 29%]
+..s..s..s..s..............................s..s..s..s..s..ss............. [ 36%]
+s...s..s..s..s..s..s..s..s..s..s..s..s..s..s..s..s...................... [ 44%]
+........................................................................ [ 51%]
+..................sssssss.sss................s.......................... [ 59%]
+........................................................................ [ 66%]
+........................................................................ [ 73%]
+........................................................................ [ 81%]
 ........................................................................ [ 88%]
-........................................................................ [ 97%]
-....................                                                     [100%]
+........................................................................ [ 96%]
+.....................................                                    [100%]
 =========================== short test summary info ============================
-SKIPPED [4] .venv/lib/python3.13/site-packages/_pytest/unittest.py:385: Cursor-Governance checkout unavailable
-SKIPPED [1] tests/deployment/generated_data/test_runtime_status_protocol.py:115: CURSOR_GOVERNANCE_ROOT is not configured
+SKIPPED [1] tests/conformance/active/test_store_contract.py:59: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:68: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:78: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:88: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:104: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:128: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:146: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:158: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:166: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:175: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:185: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:196: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:208: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:220: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:230: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:243: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:254: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:278: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:284: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/active/test_store_contract.py:294: L9_MEMORY_TEST_REDIS_URL is not set; the Redis leg of the active-store conformance matrix requires a throwaway Redis server
+SKIPPED [1] tests/conformance/test_maintenance_ledger.py:78: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/conformance/test_maintenance_ledger.py:83: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/conformance/test_maintenance_ledger.py:89: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/conformance/test_maintenance_ledger.py:97: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/conformance/test_maintenance_ledger.py:105: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/conformance/test_maintenance_ledger.py:112: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/conformance/test_maintenance_ledger.py:119: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/conformance/test_maintenance_ledger.py:130: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [10] tests/conftest.py:40: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/deployment/generated_data/test_runtime_status_protocol.py:118: CURSOR_GOVERNANCE_ROOT is not configured
+SKIPPED [1] tests/integration/test_conflict_links.py:100: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_conflict_links.py:125: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_conflict_links.py:135: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_conflict_links.py:158: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_conflict_links.py:176: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_conflict_links.py:220: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:219: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:235: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:254: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:282: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:319: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:348: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:364: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:411: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:434: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:445: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:455: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_lifecycle_projection_consistency.py:473: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:139: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:175: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:192: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:197: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:211: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:240: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:276: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:320: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:346: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:376: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:399: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:420: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:435: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:467: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:476: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_maintenance_engine.py:498: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_outbox_leases.py:86: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_outbox_leases.py:100: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_outbox_leases.py:113: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_outbox_leases.py:143: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_outbox_leases.py:181: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_outbox_leases.py:200: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_projection_retirement_recovery.py:145: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_projection_retirement_recovery.py:186: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_projection_retirement_recovery.py:233: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_projection_retirement_recovery.py:282: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_projection_retirement_recovery.py:302: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_projection_retirement_recovery.py:314: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_projection_retirement_recovery.py:325: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:170: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:197: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:213: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:225: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:244: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:255: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:267: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:276: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:296: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
+SKIPPED [1] tests/integration/test_quarantine_review_maintenance.py:328: L9_MEMORY_TEST_POSTGRES_DSN is not set; the shared-backend matrix requires a PostgreSQL test database
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:136: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:156: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:180: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
@@ -23,4 +110,5 @@ SKIPPED [1] tests/unit/test_canonical_gate_client.py:255: could not import 'cons
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:76: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:110: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_transport_packet.py:129: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
-797 passed, 15 skipped in 34.20s
+SKIPPED [1] tests/unit/test_class_vocabulary.py:105: identity is not writable on the agent lane
+866 passed, 107 skipped in 40.54s
