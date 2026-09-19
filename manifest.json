@@ -446,7 +446,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "c24e54130ca70898697746520c7e58f2c67aee99140e0026a174d5ebe5ae7c9b",
+      "sha256": "2eed3249d4330337d73399aff773de1bd6c6feb02da587f594c1cc6cc9ffb8c6",
       "size_bytes": 128403
     },
     {
@@ -5646,8 +5646,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/authz/signed_assertion.py",
-      "sha256": "138c1ae190872c8f67634cabe1a4869bff421bd0e07d19c89ecd9274a09d8b80",
-      "size_bytes": 2845
+      "sha256": "00b3bf5b0126d8ab37905f0c9fe4afbde6355be3117bca20a1e6eaa0fc899ec0",
+      "size_bytes": 6442
     },
     {
       "category": "production_source",
@@ -7182,8 +7182,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/server.py",
-      "sha256": "c85e8588182c458fda10d5ca8d0d9988e40267593b5a4a810dc417bc0b740bfc",
-      "size_bytes": 18345
+      "sha256": "c4158c2f04f039f2c6e18be0e945eede969f0f043e549c01ad9219906eee916e",
+      "size_bytes": 18491
     },
     {
       "category": "production_source",
@@ -9934,8 +9934,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_signed_assertion.py",
-      "sha256": "9972a0b56922697e95c0fed99ac8fd346022feba3a3ba172a3f28737731d89e6",
-      "size_bytes": 3308
+      "sha256": "fe873db4f9295f3c4c3185cc6cce6b541c8d8a0ebf086397279e2f4f84f47c8e",
+      "size_bytes": 8565
     },
     {
       "category": "tests",
@@ -9998,8 +9998,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_write_agent_mcp.py",
-      "sha256": "cc9a9801c9f913d3489c9157427cecc9845fd263eeda0ab7ecb33b6971a97536",
-      "size_bytes": 10791
+      "sha256": "f4ceb6ac948d49e8fa3314da6f2c279b6ab22916e897283aff42c50127105c3a",
+      "size_bytes": 13233
     },
     {
       "category": "tests",
@@ -10382,8 +10382,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "18778d8e1a36712aaff116d5011233c78fa6f3144a14d4206833d318abb9e19d",
-      "size_bytes": 18169
+      "sha256": "4cffb8c5682576af9ba692d539178a58f1907f85eeeb0384874b21de1fd245e0",
+      "size_bytes": 18549
     },
     {
       "category": "assurance",

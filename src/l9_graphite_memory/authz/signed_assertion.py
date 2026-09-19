@@ -22,11 +22,93 @@ import hmac
 import os
 import time
 from collections.abc import Mapping
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from l9_graphite_memory.errors import AuthenticationError
 
 _SEP = "."
 _PAYLOAD_SEP = "|"
+
+
+class AgentDoorGrant(BaseModel):
+    """Typed principal claims for one agent id in ``L9_MEMORY_AGENT_GRANTS_JSON``.
+
+    The bearer door has validated its claims at the trust boundary since
+    :class:`~l9_graphite_memory.config.TokenPrincipalConfig`; this is the same
+    kind of boundary and now resolves the same way. Hand-coercing the decoded
+    JSON instead is how ``is_admin`` became reachable from a string: Python's
+    ``bool("false")`` is ``True``, so a quoted flag in trusted configuration
+    silently produced a tenant administrator. Pydantic parses ``"false"`` as
+    ``False`` and refuses anything that is not a boolean at all.
+
+    ``extra="forbid"`` matches the precedent and is deliberate rather than
+    incidental: an unrecognised key in this blob is malformed trusted
+    configuration, and the door has no way to honour it. ``maintain_namespaces``
+    is one such key — the door has never granted maintain authority, so a
+    config carrying it was silently having it dropped. It is now an error that
+    says so, which is fail-closed and grants nothing new.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    principal_id: str | None = Field(default=None, min_length=1, max_length=200)
+    user_id: str | None = Field(default=None, max_length=200)
+    roles: tuple[str, ...] = ()
+    read_namespaces: tuple[str, ...] = ()
+    write_namespaces: tuple[str, ...] = ()
+    promote_namespaces: tuple[str, ...] = ()
+    is_admin: bool = False
+
+
+def signing_keys_from_config(raw: Mapping[str, Any]) -> dict[str, str]:
+    """Validate decoded ``L9_MEMORY_AGENT_SIGNING_KEYS_JSON`` key material.
+
+    :func:`verify_assertion` passes whatever it is given to ``hmac.new``, which
+    raises ``TypeError`` for a non-string, non-bytes key. That is not an
+    authentication outcome and escapes the door as an unhandled error, so key
+    material is typed here instead — before any assertion is checked against it.
+    """
+
+    validated: dict[str, str] = {}
+    for agent_id, key_material in raw.items():
+        if not isinstance(agent_id, str) or not agent_id:
+            raise AuthenticationError(
+                "L9_MEMORY_AGENT_SIGNING_KEYS_JSON keys must be non-empty agent ids"
+            )
+        if not isinstance(key_material, str) or not key_material:
+            raise AuthenticationError(
+                "L9_MEMORY_AGENT_SIGNING_KEYS_JSON key material for "
+                f"agent_id={agent_id!r} must be a non-empty string"
+            )
+        validated[agent_id] = key_material
+    return validated
+
+
+def agent_grant_from_config(agent_id: str, raw: Any) -> AgentDoorGrant:
+    """Validate one agent's decoded grant object, or fail closed.
+
+    An absent, empty, or non-object grant keeps the door's existing message;
+    a present but malformed one is reported per offending field rather than
+    coerced into a principal.
+    """
+
+    if not raw or not isinstance(raw, dict):
+        raise AuthenticationError(
+            f"no grants configured for agent_id={agent_id!r} in L9_MEMORY_AGENT_GRANTS_JSON"
+        )
+    try:
+        return AgentDoorGrant.model_validate(raw)
+    except ValidationError as exc:
+        details = "; ".join(
+            f"{'.'.join(str(part) for part in error['loc']) or '<root>'}: {error['msg']}"
+            for error in exc.errors()
+        )
+        raise AuthenticationError(
+            f"malformed signed-agent grant for agent_id={agent_id!r} in "
+            f"L9_MEMORY_AGENT_GRANTS_JSON: {details}"
+        ) from exc
 
 
 def mint_assertion(

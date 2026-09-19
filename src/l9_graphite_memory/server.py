@@ -33,7 +33,11 @@ except ModuleNotFoundError:  # [server] extra not installed; create_http_app() w
     JSONResponse = None  # type: ignore[assignment,misc]
 
 from l9_graphite_memory.authz import TokenAuthenticator
-from l9_graphite_memory.authz.signed_assertion import verify_assertion
+from l9_graphite_memory.authz.signed_assertion import (
+    agent_grant_from_config,
+    signing_keys_from_config,
+    verify_assertion,
+)
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
 from l9_graphite_memory.errors import (
@@ -169,11 +173,6 @@ def _json_object(raw: str, name: str) -> dict[str, Any]:
     return decoded
 
 
-def _granted_namespaces(grants: dict[str, Any], field: str) -> tuple[str, ...]:
-    raw = grants.get(field, [])
-    return tuple(str(value) for value in raw) if isinstance(raw, list) else ()
-
-
 def _human_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
     """Tier 1 — ``L9_MEMORY_HUMAN_DOOR_SECRET`` set and non-empty grants admin."""
 
@@ -208,9 +207,14 @@ def _agent_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
         return None
 
     assertion = _agents_door_env("L9_MEMORY_AGENT_ASSERTION")
-    keys_by_agent_id = _json_object(
-        _agents_door_env("L9_MEMORY_AGENT_SIGNING_KEYS_JSON"),
-        "L9_MEMORY_AGENT_SIGNING_KEYS_JSON",
+    # Key material is typed before any assertion is checked against it: hmac
+    # raises TypeError for a non-string key, which is not an authentication
+    # outcome and would leave the door as an unhandled error.
+    keys_by_agent_id = signing_keys_from_config(
+        _json_object(
+            _agents_door_env("L9_MEMORY_AGENT_SIGNING_KEYS_JSON"),
+            "L9_MEMORY_AGENT_SIGNING_KEYS_JSON",
+        )
     )
     agent_id = verify_assertion(assertion, keys_by_agent_id)
 
@@ -218,24 +222,25 @@ def _agent_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
         _agents_door_env("L9_MEMORY_AGENT_GRANTS_JSON"),
         "L9_MEMORY_AGENT_GRANTS_JSON",
     )
-    grants = grants_map.get(agent_id)
-    if not grants or not isinstance(grants, dict):
-        raise AuthenticationError(
-            f"no grants configured for agent_id={agent_id!r} in L9_MEMORY_AGENT_GRANTS_JSON"
-        )
+    # Typed at the trust boundary rather than coerced. Every claim below is now
+    # a validated field: `is_admin` can only become True from a real boolean,
+    # where `bool(grants.get("is_admin"))` made the string "false" an
+    # administrator, and a malformed namespace or roles value is an error
+    # instead of a silently empty grant.
+    grant = agent_grant_from_config(agent_id, grants_map.get(agent_id))
 
     return MemoryPrincipal(
-        principal_id=str(grants.get("principal_id", agent_id)),
+        principal_id=grant.principal_id or agent_id,
         tenant_id=settings.local_tenant_id,
         organization_id=settings.local_organization_id,
         workspace_id=settings.local_workspace_id,
-        user_id=str(grants["user_id"]) if grants.get("user_id") else None,
+        user_id=grant.user_id or None,
         agent_id=agent_id,
-        roles=tuple(str(role) for role in grants.get("roles", [])),
-        read_namespaces=_granted_namespaces(grants, "read_namespaces"),
-        write_namespaces=_granted_namespaces(grants, "write_namespaces"),
-        promote_namespaces=_granted_namespaces(grants, "promote_namespaces"),
-        is_admin=bool(grants.get("is_admin", False)),
+        roles=grant.roles,
+        read_namespaces=grant.read_namespaces,
+        write_namespaces=grant.write_namespaces,
+        promote_namespaces=grant.promote_namespaces,
+        is_admin=grant.is_admin,
         auth_method="stdio-agent-assertion",
     )
 

@@ -115,21 +115,27 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # test_search_request_identity.py stacked on 2.3.1. Same arithmetic:
         # 856 + 14 = 870 collected, 870 - 15 = 855.
         #
-        # Re-pinned 855 -> 958 for 2.5.0, by the arithmetic above and NOT from
-        # a local run. The signed-agent door (ADR-0031) added
-        # test_write_agent_mcp.py and test_signed_assertion.py without
-        # re-pinning here; ADR-083 adds test_class_vocabulary.py and
-        # test_stdio_namespace_resolution.py. 974 collected, CI skips 16, so
-        # 974 - 16 = 958.
+        # Re-pinned 855 -> 1014 for 2.5.0. Both terms are measured, not
+        # estimated: 1030 collected, and CI skips 16 (10 constellation_node_sdk,
+        # 4 "Cursor-Governance checkout unavailable", 1 CURSOR_GOVERNANCE_ROOT,
+        # 1 agent-lane identity), so 1030 - 16 = 1014. The added cases are the
+        # signed-agent door's (ADR-0031), ADR-083's vocabulary and namespace
+        # suites, and F-AUTH-1's typed-grant negative cases.
         #
-        # This pin is CI's number. A container without the postgres and redis
-        # services skips 107 instead of 16 and reports 867 passed, so V-001
-        # fails locally by exactly that gap and is expected to. Do not "fix" a
-        # local V-001 miss by pinning the local count -- that is what broke it
-        # here, and the miss being exactly the service gap is what shows the
-        # arithmetic is right rather than the environment.
-        "958 tests pass",
-        r"958 passed",
+        # This pin is CI's number, and the count is a property of the
+        # ENVIRONMENT as much as of the suite. Three environments, all observed:
+        #
+        #   no postgres/redis                       867 passed, 107 skipped
+        #   postgres + redis, governance sibling   1018 passed,  12 skipped
+        #   CI (services, no governance sibling)   1014 passed,  16 skipped
+        #
+        # Only `collected` (1030) is invariant. So do not "fix" a local V-001
+        # miss by pinning the local count: bring the environment to CI's shape
+        # instead -- start postgres and redis, and run from a checkout with no
+        # Cursor-Governance sibling, which is what makes the four cross-repo
+        # contract tests skip as they do in CI.
+        "1014 tests pass",
+        r"1014 passed",
     ),
     CheckSpec(
         "V-002",

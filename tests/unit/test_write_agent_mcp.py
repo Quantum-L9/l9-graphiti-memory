@@ -300,3 +300,59 @@ def test_stdio_principal_local_fallback(monkeypatch) -> None:
     p = _stdio_principal(settings)
     assert p.auth_method == "stdio-local"
     assert p.is_admin is False
+
+
+# ---------------------------------------------------------------------------
+# _stdio_principal tier 2 — malformed trusted configuration (F-AUTH-1)
+# ---------------------------------------------------------------------------
+
+
+def test_stringy_false_admin_claim_does_not_grant_admin_through_the_door(monkeypatch) -> None:
+    """End to end through the real door, not just the grant model.
+
+    A quoted `is_admin` used to reach `bool("false")` and return a principal
+    with `is_admin=True` — tenant-administrator authority from a trusted
+    config typo.
+    """
+
+    key, agent_id = "agent-signing-key", "cursor"
+    token = mint_assertion(agent_id, key)
+    monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "open-sesame")
+    monkeypatch.setenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", json.dumps({agent_id: key}))
+    monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", token)
+    monkeypatch.setenv(
+        "L9_MEMORY_AGENT_GRANTS_JSON",
+        json.dumps({agent_id: {"is_admin": "false", "write_namespaces": ["repo-a"]}}),
+    )
+
+    principal = _stdio_principal(MemorySettings())
+
+    assert principal.is_admin is False
+    assert principal.write_namespaces == ("repo-a",)
+
+
+def test_malformed_grant_field_denies_the_door(monkeypatch) -> None:
+    key, agent_id = "agent-signing-key", "cursor"
+    monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "open-sesame")
+    monkeypatch.setenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", json.dumps({agent_id: key}))
+    monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", mint_assertion(agent_id, key))
+    monkeypatch.setenv(
+        "L9_MEMORY_AGENT_GRANTS_JSON",
+        json.dumps({agent_id: {"write_namespaces": {"repo-a": True}}}),
+    )
+
+    with pytest.raises(AuthenticationError, match="malformed signed-agent grant"):
+        _stdio_principal(MemorySettings())
+
+
+def test_malformed_signing_key_denies_the_door(monkeypatch) -> None:
+    """Previously a TypeError from hmac.new, not an authentication failure."""
+
+    agent_id = "cursor"
+    monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "open-sesame")
+    monkeypatch.setenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", json.dumps({agent_id: 12345}))
+    monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", mint_assertion(agent_id, "k"))
+    monkeypatch.setenv("L9_MEMORY_AGENT_GRANTS_JSON", json.dumps({agent_id: {}}))
+
+    with pytest.raises(AuthenticationError, match="must be a non-empty string"):
+        _stdio_principal(MemorySettings())
