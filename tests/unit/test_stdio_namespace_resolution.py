@@ -111,6 +111,32 @@ def test_namespace_request_refuses_unregistered() -> None:
     assert "not a registered repository" in resolution.error
 
 
+def test_namespace_request_reads_the_registry_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """One YAML parse per request, not two.
+
+    This resolution now runs on every request, so reading and parsing the
+    registry twice per call is overhead paid on every agent write. Asserted
+    rather than commented, because the second read was invisible at the call
+    site — it was inside a helper that loaded the registry for itself.
+    """
+
+    from l9_graphite_memory import group_resolver
+
+    real = group_resolver.load_registry
+    calls = 0
+
+    def counting(settings: object = None) -> dict:
+        nonlocal calls
+        calls += 1
+        return real(settings)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(group_resolver, "load_registry", counting)
+    resolution = group_resolver.resolve_namespace_request(OTHER_REPO)
+
+    assert resolution.group_id == OTHER_REPO
+    assert calls == 1
+
+
 def test_namespace_request_resolves_registered_slug_without_cwd(unresolvable_cwd: Path) -> None:
     resolution = resolve_namespace_request(OTHER_REPO)
     assert resolution.group_id == OTHER_REPO

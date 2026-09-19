@@ -115,21 +115,21 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # test_search_request_identity.py stacked on 2.3.1. Same arithmetic:
         # 856 + 14 = 870 collected, 870 - 15 = 855.
         #
-        # Re-pinned 855 -> 957 for 2.5.0, by the arithmetic above and NOT from
+        # Re-pinned 855 -> 958 for 2.5.0, by the arithmetic above and NOT from
         # a local run. The signed-agent door (ADR-0031) added
         # test_write_agent_mcp.py and test_signed_assertion.py without
         # re-pinning here; ADR-083 adds test_class_vocabulary.py and
-        # test_stdio_namespace_resolution.py. 973 collected, CI skips 16, so
-        # 973 - 16 = 957.
+        # test_stdio_namespace_resolution.py. 974 collected, CI skips 16, so
+        # 974 - 16 = 958.
         #
         # This pin is CI's number. A container without the postgres and redis
-        # services skips 107 instead of 16 and reports 866 passed, so V-001
+        # services skips 107 instead of 16 and reports 867 passed, so V-001
         # fails locally by exactly that gap and is expected to. Do not "fix" a
         # local V-001 miss by pinning the local count -- that is what broke it
         # here, and the miss being exactly the service gap is what shows the
         # arithmetic is right rather than the environment.
-        "957 tests pass",
-        r"957 passed",
+        "958 tests pass",
+        r"958 passed",
     ),
     CheckSpec(
         "V-002",

@@ -145,6 +145,21 @@ def resolve_group(
     )
 
 
+def _registered_in(registry: dict[str, Any]) -> frozenset[str]:
+    """Registered, non-forbidden slugs of an already-loaded registry.
+
+    Takes the loaded mapping rather than settings so a caller that has already
+    read the registry does not read and parse the YAML a second time — which
+    matters now that :func:`resolve_namespace_request` runs per request.
+    """
+
+    repositories = registry.get("repos") or {}
+    if not isinstance(repositories, dict):
+        raise ConfigurationError("registry repos must be a mapping")
+    forbidden = {str(value) for value in registry.get("forbidden_groups") or []}
+    return frozenset(str(slug) for slug in repositories if str(slug) not in forbidden)
+
+
 def registered_namespaces(settings: MemorySettings | None = None) -> frozenset[str]:
     """Namespace slugs the registry registers as repositories.
 
@@ -153,12 +168,7 @@ def registered_namespaces(settings: MemorySettings | None = None) -> frozenset[s
     without needing that repository to be the process's working directory.
     """
 
-    registry = load_registry(settings)
-    repositories = registry.get("repos") or {}
-    if not isinstance(repositories, dict):
-        raise ConfigurationError("registry repos must be a mapping")
-    forbidden = {str(value) for value in registry.get("forbidden_groups") or []}
-    return frozenset(str(slug) for slug in repositories if str(slug) not in forbidden)
+    return _registered_in(load_registry(settings))
 
 
 def resolve_namespace_request(
@@ -200,7 +210,7 @@ def resolve_namespace_request(
             error=f"forbidden namespace: {candidate}",
         )
 
-    if candidate not in registered_namespaces(settings):
+    if candidate not in _registered_in(registry):
         return GroupResolution(
             group_id=None,
             method="namespace_request",

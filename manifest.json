@@ -446,7 +446,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "c66fb8972d0492ee3fd2f7e80928f4dea93190b6f9f4c36d2592ad6716792bbd",
+      "sha256": "974f11275b82b9d3cd8a0da216810a610ee7379983739887e4d12974617102a7",
       "size_bytes": 128403
     },
     {
@@ -6254,8 +6254,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/group_resolver.py",
-      "sha256": "89721a2653bf5abbebd8d95c11a9e33e2b3e610b3833667ce4a157f48839c5a0",
-      "size_bytes": 7734
+      "sha256": "45da13bf2d011a17d1c5d25bfc4bfc7fe5488d72d16d445297e86575468168e4",
+      "size_bytes": 8116
     },
     {
       "category": "production_source",
@@ -9966,8 +9966,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_stdio_namespace_resolution.py",
-      "sha256": "96105ff0db7b02981b2c5cbd7900757df056f26b48e7d0303c8ad8c702dfa3b5",
-      "size_bytes": 10055
+      "sha256": "2a36a0c2b33fb4f4b944d1c575f79bbbbe9127e7bd99a39c95d3677c7ee84fe2",
+      "size_bytes": 10965
     },
     {
       "category": "tests",
@@ -10382,7 +10382,7 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "a349e436d8b26a9da7dd0744206ec2e2710a649e852384080c13df2d38c6e720",
+      "sha256": "18778d8e1a36712aaff116d5011233c78fa6f3144a14d4206833d318abb9e19d",
       "size_bytes": 18169
     },
     {
