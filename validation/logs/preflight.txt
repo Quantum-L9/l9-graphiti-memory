@@ -10,15 +10,15 @@ PASS  MCP inventory
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/tmp/claude-0/-home-user/0917975b-082e-548d-92fc-294d91662372/scratchpad/ci-equiv/l9-graphiti-memory/.venv/bin/python3",
+    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-19T22:29:28.958002Z",
+  "created_at": "2026-09-24T18:37:37.041069Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.lSyP9wZm4g/cursor/mcp.json",
+  "path": "/tmp/tmp.oNXLI77Ftu/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,7 +26,7 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "859397a1-b4bb-4ad5-ab6b-9820897c5690",
+  "receipt_id": "53b7b7b1-742e-4d3b-b533-4dcc5c4a783d",
   "status": "dry_run",
   "warnings": []
 }
@@ -34,21 +34,21 @@ PASS  cursor client dry-run
 {
   "argv_source": "generated",
   "command_argv": [
-    "/tmp/claude-0/-home-user/0917975b-082e-548d-92fc-294d91662372/scratchpad/ci-equiv/l9-graphiti-memory/.venv/bin/python3",
+    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
   "config_path": null,
-  "created_at": "2026-09-19T22:29:30.213438Z",
+  "created_at": "2026-09-24T18:37:38.473166Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "b3d67573-93e3-4a25-b1c1-411e57f22179",
+  "receipt_id": "620199f9-7392-4a18-ada6-11cc9edc1ff6",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.5.0",
@@ -125,25 +125,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.4855,
-      "p50_ms": 0.3741,
-      "p95_ms": 0.4855,
+      "max_ms": 0.5221,
+      "p50_ms": 0.4518,
+      "p95_ms": 0.5221,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.4913,
-      "p50_ms": 0.2817,
-      "p95_ms": 0.3327,
+      "max_ms": 0.5198,
+      "p50_ms": 0.3308,
+      "p95_ms": 0.3723,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.4767,
-      "p50_ms": 0.0858,
-      "p95_ms": 0.1689,
+      "max_ms": 0.5529,
+      "p50_ms": 0.1,
+      "p95_ms": 0.2058,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0
