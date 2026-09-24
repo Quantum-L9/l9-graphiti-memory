@@ -446,8 +446,8 @@
         "version": "2.3.1"
       },
       "path": "MANIFEST.md",
-      "sha256": "04982a911845c12d9e670848806a557cd3387a4080e648819d419f13696cd054",
-      "size_bytes": 127281
+      "sha256": "2c13c1f66f2a2e4a453d937799db24e5205045409ca454e2388df45f00b250a2",
+      "size_bytes": 127282
     },
     {
       "category": "repository_root",
@@ -11566,7 +11566,7 @@
         "version": "2.3.1"
       },
       "path": "validation/SHA256SUMS",
-      "sha256": "6ffa02958f28934e188542a66cd9cf2b96844ee737dc94963655e817f6b3b371",
+      "sha256": "bf5d9ac748e936ff90b996bb4d6f8880384f5f45e9688a93f2b877bec165473c",
       "size_bytes": 108
     },
     {
@@ -11582,7 +11582,7 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/adr_validation.txt",
-      "sha256": "7b99b35cef2e95670a23e434691d4f66d977b32401292fc8d538c1b447aa4b7c",
+      "sha256": "c0b1876fc1d4f8b9ac6b889822846f87b4907b82176866a1dd3fb30c267594bf",
       "size_bytes": 35
     },
     {
@@ -11678,8 +11678,8 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "09c1b18ade3efbeb7154abfc28a6297a8e1d4be38a38c38755d15f275aca4477",
-      "size_bytes": 1355
+      "sha256": "06c8873dd6e44d88cdaa5b66e474802e05c28ac33aab39b29e0271ed6601a63b",
+      "size_bytes": 1489
     },
     {
       "category": "validation_evidence",
@@ -11694,8 +11694,8 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "0ff62b642d45b5c4dd4b488dcf80add81dd350b8b8e694463d1ab289236e9e99",
-      "size_bytes": 993
+      "sha256": "104569c128fd32a1b627fe35620fb6b54496cc6f5af7faf24eef3b7226a6719d",
+      "size_bytes": 1168
     },
     {
       "category": "validation_evidence",
@@ -11710,8 +11710,8 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "0edd4fddc3b8390ecb44b337f8c43836df57ef1bbec2691e08c41604bb525ee5",
-      "size_bytes": 502
+      "sha256": "a660f11074108ec5df61f9c11463c06071624a03f5d991be5730ff017be3ced0",
+      "size_bytes": 551
     },
     {
       "category": "validation_evidence",
@@ -11726,7 +11726,7 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/installed_mcp.txt",
-      "sha256": "89799fd6eed4cc1f67f9ea3e01ce9e2cfa54827c84f359f4bea3cc646d56c8e3",
+      "sha256": "f367e5f2e8aae805100080c0e748d4768fccfff9b0248eea4fb0a7bf61bfa7f5",
       "size_bytes": 74
     },
     {
@@ -11806,8 +11806,8 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "8f19767c393e566fc949dd33122308e1b0f21d72ad2c51946225a136d7ae2ae9",
-      "size_bytes": 656
+      "sha256": "9fd82e549d232f2baffc57ec98864557843c9263fa8f6512c8a58740a8654d78",
+      "size_bytes": 659
     },
     {
       "category": "validation_evidence",
@@ -11822,7 +11822,7 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/manifest_validation.txt",
-      "sha256": "5099d59ddd63f6ecd3e212b7b2ef4ae15ef019557790e87b1126095d47e1605a",
+      "sha256": "b3e279721f3c59991880a0abe01222f8a1471e4c8feb705a827ff8626aeada9e",
       "size_bytes": 64
     },
     {
@@ -11838,8 +11838,8 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "550596a35b1e7c170c273775d026268ca365fd4714c77a0c5dfa7e319fc7b350",
-      "size_bytes": 4016
+      "sha256": "f334b84db14e2449f642f1537903437c0c8e2b0fbf7037fbaa77ff8179a91817",
+      "size_bytes": 4206
     },
     {
       "category": "validation_evidence",
@@ -11870,8 +11870,8 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "fecdfed6e395fdfe20a3de57711863d37b1556e3368a8147a242e35941925031",
-      "size_bytes": 2741
+      "sha256": "ce4eff4286faf8284580e7ed89f5053e92e982b74dd3230cf3fc5d7be2fc19e0",
+      "size_bytes": 2821
     },
     {
       "category": "validation_evidence",
@@ -11918,7 +11918,7 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/source_quality.txt",
-      "sha256": "4adf3e51ad419e4e0e69453650c3adc2ec9bcdb14cbebebb9b2146cdfa8c6d41",
+      "sha256": "01313c2127aca7ab5dd1c9822203567158513a7557982fec42d6e822101d5bb0",
       "size_bytes": 67
     },
     {
@@ -11950,8 +11950,8 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "971832625461aef9db84ee0b0877ab4556e3dea68af12a545c2118e738798644",
-      "size_bytes": 41236
+      "sha256": "39d1f486fd03107ccc9ff88e1013c2e4338162d7c24b542f84927df7f5226a31",
+      "size_bytes": 28253
     },
     {
       "category": "validation_evidence",
@@ -11966,8 +11966,8 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/wheel_install.txt",
-      "sha256": "9453a2fac40cfdc5150ea105bf1a5f04024fd0c46e8c835a546cb84d0305fde6",
-      "size_bytes": 267
+      "sha256": "81d3a3331d94533ce134e63d35b3a9205cc8840756a9799c5ef07a95d23aa937",
+      "size_bytes": 333
     },
     {
       "category": "validation_evidence",
@@ -11982,7 +11982,7 @@
         "version": "2.3.1"
       },
       "path": "validation/logs/wiring_audit.txt",
-      "sha256": "92e2e3ec085417f5dbc37de7d4d531a323651a5b219e47e79315f78bedaf4a64",
+      "sha256": "f7bc40652d6a5b72b2cd68defc1cd1d7a92093feff9c53d92caa0f03634d1419",
       "size_bytes": 35
     },
     {
@@ -11998,7 +11998,7 @@
         "version": "2.3.1"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "df830f83cc9e1c3397d0a54cb82711f2a00bc032871872e56afdd96aa7e29479",
+      "sha256": "020435d993fc2613d35ad37effb947eaa47f54e17afd8a06f9e981d2bfc045ae",
       "size_bytes": 11387
     },
     {
@@ -12030,7 +12030,7 @@
         "version": "2.3.1"
       },
       "path": "validation/validation_report.yaml",
-      "sha256": "edfe4c42452a880dba112f7c178e22c27e5172bd3f2777eefb063b8ea80cdc96",
+      "sha256": "4ed8f4628707b909a29334c5f3358e5f717b61f6a2bcdd097bbdd66709aa01ed",
       "size_bytes": 474
     }
   ],
