@@ -19,7 +19,7 @@ import pytest
 from l9_graphite_memory.authz.signed_assertion import mint_assertion
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryClass
-from l9_graphite_memory.errors import AuthenticationError
+from l9_graphite_memory.errors import AuthenticationError, AuthorizationError
 from l9_graphite_memory.mcp_tools import ALIASES, MCPToolApplication, tool_definitions
 from l9_graphite_memory.server import _stdio_principal
 
@@ -152,7 +152,7 @@ def test_write_agent_refuses_identity_class(memory_service, principal) -> None:
 )
 def test_write_agent_disallowed_class_raises(bad_class, memory_service, principal) -> None:
     app = MCPToolApplication(memory_service)
-    with pytest.raises((ValueError, Exception)):
+    with pytest.raises(ValueError, match="unknown memory class"):
         app.call(
             principal,
             "memory.write_agent",
@@ -167,7 +167,7 @@ def test_write_agent_disallowed_class_raises(bad_class, memory_service, principa
 
 def test_write_governed_without_lock_raises(memory_service, principal) -> None:
     app = MCPToolApplication(memory_service)
-    with pytest.raises(Exception, match="phase.lock"):
+    with pytest.raises(AuthorizationError, match="requires a held phase-lock"):
         app.call(
             principal,
             "memory.write_governed",
@@ -341,8 +341,9 @@ def test_malformed_grant_field_denies_the_door(monkeypatch) -> None:
         json.dumps({agent_id: {"write_namespaces": {"repo-a": True}}}),
     )
 
+    settings = MemorySettings()
     with pytest.raises(AuthenticationError, match="malformed signed-agent grant"):
-        _stdio_principal(MemorySettings())
+        _stdio_principal(settings)
 
 
 def test_malformed_signing_key_denies_the_door(monkeypatch) -> None:
@@ -354,5 +355,6 @@ def test_malformed_signing_key_denies_the_door(monkeypatch) -> None:
     monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", mint_assertion(agent_id, "k"))
     monkeypatch.setenv("L9_MEMORY_AGENT_GRANTS_JSON", json.dumps({agent_id: {}}))
 
+    settings = MemorySettings()
     with pytest.raises(AuthenticationError, match="must be a non-empty string"):
-        _stdio_principal(MemorySettings())
+        _stdio_principal(settings)

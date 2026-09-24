@@ -123,9 +123,13 @@ def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+#: The agent lane's canonical tool name, referenced by the inventory, the
+#: handler map, the alias table and the write-request provenance.
+WRITE_AGENT_TOOL = "memory.write_agent"
+
 CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     {
-        "name": "memory.write_agent",
+        "name": WRITE_AGENT_TOOL,
         # Both lists are generated from contracts.class_vocabulary. Hand-keeping
         # a third copy of the vocabulary here is how the agent reading this
         # description came to be told a mapping the resolver did not perform.
@@ -398,7 +402,7 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
 
 _CANONICAL_HANDLER_METHODS: dict[str, str] = {
     "memory.ingest": "_ingest",
-    "memory.write_agent": "_write_agent",
+    WRITE_AGENT_TOOL: "_write_agent",
     "memory.write_governed": "_write_governed",
     "memory.search": "_search",
     "memory.hydrate": "_hydrate",
@@ -425,7 +429,7 @@ _CANONICAL_HANDLER_METHODS: dict[str, str] = {
 
 ALIASES: dict[str, str] = {
     "write": "memory.ingest",
-    "write_agent": "memory.write_agent",
+    "write_agent": WRITE_AGENT_TOOL,
     "search": "memory.search",
     "health": "memory.health",
     "bootstrap": "memory.bootstrap",
@@ -539,7 +543,7 @@ class MCPToolApplication:
         resolved = agent_writable_class(str(args.get("memory_class", "observation")))
         patched_args = {**args, "memory_class": resolved.value}
         return self.service.write(
-            principal, self._write_request(principal, patched_args, tool="memory.write_agent")
+            principal, self._write_request(principal, patched_args, tool=WRITE_AGENT_TOOL)
         )
 
     def _write_request(

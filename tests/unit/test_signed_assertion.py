@@ -232,4 +232,4 @@ def test_the_door_fails_closed_where_verify_assertion_alone_raises_typeerror() -
         verify_assertion(token, {_AGENT: 5})  # type: ignore[dict-item]
 
     with pytest.raises(AuthenticationError, match="must be a non-empty string"):
-        verify_assertion(token, signing_keys_from_config({_AGENT: 5}))
+        signing_keys_from_config({_AGENT: 5})
