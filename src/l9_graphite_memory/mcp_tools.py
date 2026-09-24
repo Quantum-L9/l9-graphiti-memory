@@ -396,6 +396,33 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     },
 )
 
+_CANONICAL_HANDLER_METHODS: dict[str, str] = {
+    "memory.ingest": "_ingest",
+    "memory.write_agent": "_write_agent",
+    "memory.write_governed": "_write_governed",
+    "memory.search": "_search",
+    "memory.hydrate": "_hydrate",
+    "memory.get": "_get",
+    "memory.conflicts": "_conflicts",
+    "memory.phase_lock": "_phase_lock",
+    "memory.verify_phase_lock": "_verify_phase_lock",
+    "memory.lineage": "_lineage",
+    "memory.retention": "_retention",
+    "memory.delete": "_delete",
+    "memory.promote": "_promote",
+    "memory.bootstrap": "_bootstrap",
+    "memory.distill": "_distill",
+    "memory.synthesize_procedures": "_synthesize_procedures",
+    "memory.health": "_health",
+    "memory.capabilities": "_capabilities",
+    "memory.close": "_close",
+    "memory.ingest_governed_candidate": "_ingest_governed_candidate",
+    "memory.record_reuse": "_record_reuse",
+    "memory.invalidate_source": "_invalidate_source",
+    "memory.generated_data_capabilities": "_generated_data_capabilities",
+}
+
+
 ALIASES: dict[str, str] = {
     "write": "memory.ingest",
     "write_agent": "memory.write_agent",
@@ -412,6 +439,11 @@ ALIASES: dict[str, str] = {
 
 def canonical_tool_names() -> tuple[str, ...]:
     return tuple(item["name"] for item in CANONICAL_TOOLS)
+
+
+def canonical_handler_names() -> tuple[str, ...]:
+    """Return the canonical tool names backed by the live dispatcher."""
+    return tuple(_CANONICAL_HANDLER_METHODS)
 
 
 def mcp_capabilities() -> ControlPlaneCapabilities:
@@ -484,34 +516,10 @@ class MCPToolApplication:
 
     def call(self, principal: MemoryPrincipal, name: str, arguments: dict[str, Any]) -> Any:
         canonical = ALIASES.get(name, name)
-        handlers = {
-            "memory.ingest": self._ingest,
-            "memory.write_agent": self._write_agent,
-            "memory.write_governed": self._write_governed,
-            "memory.search": self._search,
-            "memory.hydrate": self._hydrate,
-            "memory.get": self._get,
-            "memory.conflicts": self._conflicts,
-            "memory.phase_lock": self._phase_lock,
-            "memory.verify_phase_lock": self._verify_phase_lock,
-            "memory.lineage": self._lineage,
-            "memory.retention": self._retention,
-            "memory.delete": self._delete,
-            "memory.promote": self._promote,
-            "memory.bootstrap": self._bootstrap,
-            "memory.distill": self._distill,
-            "memory.synthesize_procedures": self._synthesize_procedures,
-            "memory.health": self._health,
-            "memory.capabilities": self._capabilities,
-            "memory.close": self._close,
-            "memory.ingest_governed_candidate": self._ingest_governed_candidate,
-            "memory.record_reuse": self._record_reuse,
-            "memory.invalidate_source": self._invalidate_source,
-            "memory.generated_data_capabilities": self._generated_data_capabilities,
-        }
-        handler = handlers.get(canonical)
-        if handler is None:
+        handler_name = _CANONICAL_HANDLER_METHODS.get(canonical)
+        if handler_name is None:
             raise KeyError(f"unknown tool: {name}")
+        handler = getattr(self, handler_name)
         try:
             return handler(principal, arguments)
         except ValidationError as exc:

@@ -115,8 +115,15 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # test_search_request_identity.py stacked on 2.3.1. Same arithmetic:
         # 856 + 14 = 870 collected, 870 - 15 = 855.
         #
-        # Re-pinned 855 -> 1014 for 2.5.0. Both terms are measured, not
-        # estimated: 1030 collected, and CI skips 16 (10 constellation_node_sdk,
+        # Re-pinned 855 -> 860 for the MCP tool-handler parity guard (PR #61,
+        # ADR-014 invariants "every listed tool has exactly one handler" and
+        # the unknown-tool error test): 5 cases in
+        # test_release_b_capability.py, none backend-parameterized. Same
+        # arithmetic: 870 + 5 = 875 collected, 875 - 15 = 860.
+        #
+        # Re-pinned 855 -> 1014 for 2.5.0 on the #63/#64 branch, before the
+        # parity merge. Both terms are measured, not estimated: 1030
+        # collected, and CI skips 16 (10 constellation_node_sdk,
         # 4 "Cursor-Governance checkout unavailable", 1 CURSOR_GOVERNANCE_ROOT,
         # 1 agent-lane identity), so 1030 - 16 = 1014. The added cases are the
         # signed-agent door's (ADR-0031), ADR-083's vocabulary and namespace
@@ -129,13 +136,18 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         #   postgres + redis, governance sibling   1018 passed,  12 skipped
         #   CI (services, no governance sibling)   1014 passed,  16 skipped
         #
-        # Only `collected` (1030) is invariant. So do not "fix" a local V-001
+        # Only `collected` (1024 on this head) is invariant. So do not "fix" a local V-001
         # miss by pinning the local count: bring the environment to CI's shape
         # instead -- start postgres and redis, and run from a checkout with no
         # Cursor-Governance sibling, which is what makes the four cross-repo
         # contract tests skip as they do in CI.
-        "1014 tests pass",
-        r"1014 passed",
+        #
+        # Re-pinned 1014 -> 1008 on the combined #61/#62 + #63/#64 head
+        # (open-PR audit 2026-09-24): +5 handler-parity cases, and ADR-083's
+        # namespace suite rewritten for F-64-AUTHZ-001 (26 cases -> 15). Same
+        # arithmetic: 1030 + 5 - 26 + 15 = 1024 collected, 1024 - 16 = 1008.
+        "1008 tests pass",
+        r"1008 passed",
     ),
     CheckSpec(
         "V-002",
