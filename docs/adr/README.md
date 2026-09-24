@@ -107,7 +107,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-080 | [Automated Quarantine Review](ADR-080-automated-quarantine-review.md) | Accepted |
 | ADR-081 | [Canonical Conflict Links](ADR-081-canonical-conflict-links.md) | Accepted |
 | ADR-082 | [Consumer Control-Plane Transport Parity](ADR-082-consumer-control-plane-transport-parity.md) | Accepted |
-| ADR-083 | [Per-Request Local Authorization and One Class Vocabulary](ADR-083-per-request-local-authorization-and-one-class-vocabulary.md) | Accepted |
+| ADR-083 | [Server-Side Local Authorization and One Class Vocabulary](ADR-083-server-side-local-authorization-and-one-class-vocabulary.md) | Accepted |
 
 ## Validation
 

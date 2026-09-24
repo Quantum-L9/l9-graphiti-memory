@@ -19,11 +19,7 @@ from l9_graphite_memory.adapters import build_projection, build_store
 from l9_graphite_memory.authz import build_local_principal
 from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.contracts import MemoryPrincipal
-from l9_graphite_memory.group_resolver import (
-    GroupResolution,
-    resolve_group,
-    resolve_namespace_request,
-)
+from l9_graphite_memory.group_resolver import GroupResolution, resolve_group
 from l9_graphite_memory.observability import configure_logging
 from l9_graphite_memory.services import MemoryService
 
@@ -118,43 +114,3 @@ def resolve_local_context(
 ) -> tuple[GroupResolution, MemoryPrincipal]:
     resolution = resolve_group(cwd, explicit=explicit_group, settings=settings)
     return resolution, local_principal_for_resolution(settings, resolution)
-
-
-def resolve_local_context_for_namespace(
-    settings: MemorySettings,
-    namespace: str | None,
-    *,
-    cwd: Path | None = None,
-) -> tuple[GroupResolution, MemoryPrincipal]:
-    """Resolve the local context for the namespace a request names.
-
-    The operator CLI resolves authorization once per invocation, against the
-    ``--workspace`` it was given, so it can address any repository. A long-lived
-    local transport must do the same thing per request, or it can only ever
-    serve the repository it was launched in — the caller's ``namespace``
-    argument becomes decorative and every other root in the session is
-    unwritable for the life of the process.
-
-    Widening is deliberately narrow:
-
-    * Configured ``local_*_namespaces`` remain the sole ACL source (ADR-006).
-      They are an explicit operator grant and are never widened by a request.
-    * Only a *registered repository* slug resolves. Empty, forbidden, and
-      unregistered namespaces fall through to cwd resolution, which keeps read
-      access to the workspace namespace working and leaves every previously
-      observable outcome unchanged.
-
-    This is not a new authority. Tier 3 is the unauthenticated local-operator
-    fallback, and ``resolve_group`` already honours ``L9_MEMORY_NAMESPACE`` for
-    *any* non-forbidden value; requiring registry membership is strictly
-    stricter than that existing path.
-    """
-
-    if _local_namespaces_configured(settings):
-        return resolve_local_context(settings, cwd=cwd)
-
-    requested = resolve_namespace_request(namespace, settings=settings)
-    if requested.group_id:
-        return requested, local_principal_for_resolution(settings, requested)
-
-    return resolve_local_context(settings, cwd=cwd)
