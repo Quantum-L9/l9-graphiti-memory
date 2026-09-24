@@ -624,7 +624,7 @@ wheels = [
 
 [[package]]
 name = "l9-graphite-memory"
-version = "2.3.1"
+version = "2.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "pydantic" },

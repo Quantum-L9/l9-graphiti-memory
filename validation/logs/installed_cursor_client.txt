@@ -4,15 +4,15 @@
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/a/.venv/bin/python3",
+    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-24T18:29:41.699142Z",
+  "created_at": "2026-09-24T18:37:49.889962Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.owYO5RTmjX/installed-smoke/home/.cursor/mcp.json",
+  "path": "/tmp/tmp.2VlBepFbgs/installed-smoke/home/.cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -20,7 +20,7 @@
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "d7d6248b-de03-4821-9950-ac19496a8079",
+  "receipt_id": "59b70106-7449-4d82-aa2b-ce2a822462d1",
   "status": "dry_run",
   "warnings": []
 }
@@ -30,21 +30,21 @@
   "backup_sha256": null,
   "changed": true,
   "command_argv": [
-    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/a/.venv/bin/python3",
+    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-24T18:29:42.401866Z",
+  "created_at": "2026-09-24T18:37:50.619209Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.owYO5RTmjX/installed-smoke/home/.cursor/mcp.json",
+  "path": "/tmp/tmp.2VlBepFbgs/installed-smoke/home/.cursor/mcp.json",
   "policy_version": "client-config/v1",
-  "post_sha256": "c2189af9f5708123edf5a5e8f76be693b6d21f606b46d030399daecddf68817a",
+  "post_sha256": "ddb38e2092859b7346a5fa561597fcf70f8457345f5ea65beb8776a03ab2f4ba",
   "pre_sha256": null,
   "preserved_server_keys": [],
   "reasons": [],
-  "receipt_id": "7187e04e-07ba-40af-8792-845ddab05714",
+  "receipt_id": "a69fd898-8db4-4fa6-9fcd-37523c444f31",
   "status": "complete",
   "warnings": []
 }

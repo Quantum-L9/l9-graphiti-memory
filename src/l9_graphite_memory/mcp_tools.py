@@ -39,6 +39,12 @@ from l9_graphite_memory.contracts import (
     Provenance,
     build_capabilities,
 )
+from l9_graphite_memory.contracts.class_vocabulary import (
+    agent_writable_class,
+    agent_writable_summary,
+    alias_summary,
+    resolve_memory_class,
+)
 from l9_graphite_memory.curation.procedural import (
     PatternProceduralSynthesizer,
     ProceduralSynthesisWorker,
@@ -117,7 +123,27 @@ def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+#: The agent lane's canonical tool name, referenced by the inventory, the
+#: handler map, the alias table and the write-request provenance.
+WRITE_AGENT_TOOL = "memory.write_agent"
+
 CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
+    {
+        "name": WRITE_AGENT_TOOL,
+        # Both lists are generated from contracts.class_vocabulary. Hand-keeping
+        # a third copy of the vocabulary here is how the agent reading this
+        # description came to be told a mapping the resolver did not perform.
+        "description": (
+            "Admit one memory record from a verified agent. "
+            "No phase-lock required. "
+            f"Allowed memory_class values: {agent_writable_summary()} "
+            f"(aliases: {alias_summary()})."
+        ),
+        "inputSchema": _object_schema(
+            _write_properties(),
+            ["namespace", "content"],
+        ),
+    },
     {
         "name": "memory.ingest",
         "description": "Admit one governed, evidence-bearing memory record.",
@@ -376,6 +402,7 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
 
 _CANONICAL_HANDLER_METHODS: dict[str, str] = {
     "memory.ingest": "_ingest",
+    WRITE_AGENT_TOOL: "_write_agent",
     "memory.write_governed": "_write_governed",
     "memory.search": "_search",
     "memory.hydrate": "_hydrate",
@@ -402,6 +429,7 @@ _CANONICAL_HANDLER_METHODS: dict[str, str] = {
 
 ALIASES: dict[str, str] = {
     "write": "memory.ingest",
+    "write_agent": WRITE_AGENT_TOOL,
     "search": "memory.search",
     "health": "memory.health",
     "bootstrap": "memory.bootstrap",
@@ -506,6 +534,18 @@ class MCPToolApplication:
             principal, self._write_request(principal, args, tool="memory.ingest")
         )
 
+    def _write_agent(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
+        # The vocabulary and the agent-lane allowlist both live in
+        # contracts.class_vocabulary, so this lane and the CLI resolve a
+        # spelling identically. They did not before: "lesson" landed on
+        # `insight` here and on `procedural` there, and a class filter written
+        # against one lane silently missed everything the other wrote.
+        resolved = agent_writable_class(str(args.get("memory_class", "observation")))
+        patched_args = {**args, "memory_class": resolved.value}
+        return self.service.write(
+            principal, self._write_request(principal, patched_args, tool=WRITE_AGENT_TOOL)
+        )
+
     def _write_request(
         self,
         principal: MemoryPrincipal,
@@ -523,7 +563,10 @@ class MCPToolApplication:
             assertion = MemoryAssertion(
                 subject=str(subject), predicate=str(predicate), object=str(object_value)
             )
-        memory_class = MemoryClass(str(args.get("memory_class", "observation")))
+        # One vocabulary on every write tool, not only on the agent lane: a
+        # caller moving between memory.ingest and memory.write_agent must not
+        # find the same spelling accepted by one and rejected by the other.
+        memory_class = resolve_memory_class(str(args.get("memory_class", "observation")))
         consent = _consent_from_payload(
             args.get("consent"),
             namespace=str(args["namespace"]),

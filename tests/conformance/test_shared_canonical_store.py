@@ -68,7 +68,18 @@ def test_factory_rejects_a_shared_backend_without_a_dsn() -> None:
 def test_sqlite_remains_supported_for_local_operation(tmp_path: Path, principal) -> None:
     """SP-06: SQLite still works locally and is still not shared."""
 
-    settings = MemorySettings(store_backend="sqlite", database_path=tmp_path / "local.sqlite3")
+    # data_dir as well as database_path: build_store runs the ADR-077
+    # prior-ledger probe, and that probe scans settings.data_dir, which
+    # defaults to the machine's real ~/.local/share/l9-memory. Isolating only
+    # database_path left the test passing exactly where no memory had ever been
+    # written and failing on any machine that had used the CLI. The dedicated
+    # guard suite (test_backend_transition_guard.py) already pins data_dir for
+    # the same reason.
+    settings = MemorySettings(
+        store_backend="sqlite",
+        data_dir=tmp_path,
+        database_path=tmp_path / "local.sqlite3",
+    )
     store = build_store(settings)
     try:
         assert isinstance(store, SQLiteRecordStore)

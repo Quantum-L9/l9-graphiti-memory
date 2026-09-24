@@ -12,5 +12,12 @@
 
 from .authenticator import TokenAuthenticator, build_local_principal
 from .policy import NamespacePolicy
+from .signed_assertion import mint_assertion, verify_assertion
 
-__all__ = ["NamespacePolicy", "TokenAuthenticator", "build_local_principal"]
+__all__ = [
+    "NamespacePolicy",
+    "TokenAuthenticator",
+    "build_local_principal",
+    "mint_assertion",
+    "verify_assertion",
+]

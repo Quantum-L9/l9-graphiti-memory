@@ -65,7 +65,17 @@ CLI_OPERATION_COMMANDS: dict[str, str] = {
 }
 
 #: Operation name -> canonical MCP tool.
+#:
+#: ``write_agent`` and ``write_governed`` are MCP-only, so they are reported
+#: here but deliberately absent from :data:`LIFECYCLE_OPERATIONS`: they are the
+#: model's two interactive write doors (ADR-0031), and the CLI's ``write`` is
+#: the operator form of ``ingest`` rather than a twin of either. They were
+#: previously missing from this map altogether, which made the receipt claim
+#: less than the transport actually exposes — the one thing a consumer binds to
+#: this receipt to avoid (ADR-082).
 MCP_OPERATION_TOOLS: dict[str, str] = {
+    "write_agent": "memory.write_agent",
+    "write_governed": "memory.write_governed",
     "health": "memory.health",
     "capabilities": "memory.capabilities",
     "hydrate": "memory.hydrate",

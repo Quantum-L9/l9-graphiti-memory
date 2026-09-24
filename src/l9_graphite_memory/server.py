@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from typing import Any
 
@@ -32,6 +33,11 @@ except ModuleNotFoundError:  # [server] extra not installed; create_http_app() w
     JSONResponse = None  # type: ignore[assignment,misc]
 
 from l9_graphite_memory.authz import TokenAuthenticator
+from l9_graphite_memory.authz.signed_assertion import (
+    agent_grant_from_config,
+    signing_keys_from_config,
+    verify_assertion,
+)
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
 from l9_graphite_memory.errors import (
@@ -145,11 +151,167 @@ class MCPServer:
         return self.error(request_id, -32601, f"method not found: {method}")
 
 
+def _agents_door_env(name: str) -> str:
+    """A variable the agents door requires once its secret is set."""
+
+    value = os.environ.get(name, "").strip()
+    if not value:
+        raise AuthenticationError(f"L9_MEMORY_AGENTS_DOOR_SECRET is set but {name} is missing")
+    return value
+
+
+def _json_object(raw: str, name: str) -> dict[str, Any]:
+    """Decode a JSON object from an environment variable, or refuse."""
+
+    try:
+        decoded = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise AuthenticationError(f"{name} is not valid JSON: {exc}") from exc
+    if not isinstance(decoded, dict):
+        raise AuthenticationError(f"{name} must be a JSON object")
+    return decoded
+
+
+def _human_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
+    """Tier 1 — ``L9_MEMORY_HUMAN_DOOR_SECRET`` set and non-empty grants admin."""
+
+    if not os.environ.get("L9_MEMORY_HUMAN_DOOR_SECRET", "").strip():
+        return None
+    return MemoryPrincipal(
+        principal_id="human",
+        tenant_id=settings.local_tenant_id,
+        organization_id=settings.local_organization_id,
+        workspace_id=settings.local_workspace_id,
+        user_id=settings.local_user_id or "human",
+        agent_id="human",
+        roles=("admin", "local-operator"),
+        read_namespaces=("*",),
+        write_namespaces=("*",),
+        promote_namespaces=("*",),
+        is_admin=True,
+        auth_method="stdio-human-door",
+    )
+
+
+def _agent_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
+    """Tier 2 — a signed agent assertion verified against a configured key.
+
+    ``L9_MEMORY_AGENTS_DOOR_SECRET`` being set makes every other variable
+    mandatory: a half-configured door fails loudly rather than falling through
+    to the weaker local fallback, which would be a silent downgrade of the
+    trust model.
+    """
+
+    if not os.environ.get("L9_MEMORY_AGENTS_DOOR_SECRET", "").strip():
+        return None
+
+    assertion = _agents_door_env("L9_MEMORY_AGENT_ASSERTION")
+    # Key material is typed before any assertion is checked against it: hmac
+    # raises TypeError for a non-string key, which is not an authentication
+    # outcome and would leave the door as an unhandled error.
+    keys_by_agent_id = signing_keys_from_config(
+        _json_object(
+            _agents_door_env("L9_MEMORY_AGENT_SIGNING_KEYS_JSON"),
+            "L9_MEMORY_AGENT_SIGNING_KEYS_JSON",
+        )
+    )
+    agent_id = verify_assertion(assertion, keys_by_agent_id)
+
+    grants_map = _json_object(
+        _agents_door_env("L9_MEMORY_AGENT_GRANTS_JSON"),
+        "L9_MEMORY_AGENT_GRANTS_JSON",
+    )
+    # Typed at the trust boundary rather than coerced. Every claim below is now
+    # a validated field: `is_admin` can only become True from a real boolean,
+    # where `bool(grants.get("is_admin"))` made the string "false" an
+    # administrator, and a malformed namespace or roles value is an error
+    # instead of a silently empty grant.
+    grant = agent_grant_from_config(agent_id, grants_map.get(agent_id))
+
+    return MemoryPrincipal(
+        principal_id=grant.principal_id or agent_id,
+        tenant_id=settings.local_tenant_id,
+        organization_id=settings.local_organization_id,
+        workspace_id=settings.local_workspace_id,
+        user_id=grant.user_id or None,
+        agent_id=agent_id,
+        roles=grant.roles,
+        read_namespaces=grant.read_namespaces,
+        write_namespaces=grant.write_namespaces,
+        promote_namespaces=grant.promote_namespaces,
+        is_admin=grant.is_admin,
+        auth_method="stdio-agent-assertion",
+    )
+
+
+def _door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
+    """The principal from a configured door, or ``None`` to fall through.
+
+    Tier 1 is the human door, Tier 2 the signed agent door; each is a function
+    above, because one body doing environment parsing, JSON decoding,
+    signature verification and grant construction for two trust tiers is hard
+    to read in exactly the place where reading it matters most.
+
+    Both tiers read their claims from the environment, so they are resolved
+    once and do not vary per request. ``None`` means Tier 3 — the local
+    operator fallback, whose claims come from repository identity and are
+    resolved once, server-side, by :class:`StdioPrincipalResolver`.
+    """
+
+    return _human_door_principal(settings) or _agent_door_principal(settings)
+
+
 def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
-    # Same ACL construction as CLI (runtime.local_principal_for_resolution):
-    # configured local_*_namespaces win; otherwise repository-scoped resolution.
-    _, principal = resolve_local_context(settings)
-    return principal.model_copy(update={"auth_method": "stdio-local"})
+    """The stdio principal: a door principal, else the Tier 3 cwd principal.
+
+    Every claim is established server-side, from the environment (Tiers 1/2)
+    or from the repository the process runs in plus any operator-configured
+    ``local_*_namespaces`` (Tier 3). No request data is consulted (ADR-006).
+    """
+
+    principal = _door_principal(settings)
+    if principal is not None:
+        return principal
+    _, local = resolve_local_context(settings)
+    return local.model_copy(update={"auth_method": "stdio-local"})
+
+
+class StdioPrincipalResolver:
+    """Resolve the principal a local transport serves every request under.
+
+    Claims are fixed before the first request is read. Tiers 1 and 2 come from
+    the environment and are verified eagerly, so a misconfigured door fails at
+    startup. Tier 3 comes from the process's repository identity (cwd) or the
+    operator-configured ``local_*_namespaces`` ceiling.
+
+    ``for_request`` deliberately ignores the request. A requested namespace is
+    an address that MemoryService checks against these claims; it must never
+    produce the claim it is checked against (ADR-006, ADR-083). A registered
+    repository slug is a namespace hint and grants nothing. Multi-root agent
+    writes use the signed Tier 2 grant map; a multi-root local operator lists
+    its roots in ``local_*_namespaces``.
+    """
+
+    def __init__(self, settings: MemorySettings) -> None:
+        self._settings = settings
+        self._door = _door_principal(settings)
+        self._principal = self._door or _stdio_principal(settings)
+
+    @property
+    def door_principal(self) -> MemoryPrincipal | None:
+        """The static Tier 1/Tier 2 principal, or ``None`` when on Tier 3."""
+
+        return self._door
+
+    @property
+    def principal(self) -> MemoryPrincipal:
+        """The one principal every request on this transport is served under."""
+
+        return self._principal
+
+    def for_request(self, request: dict[str, Any]) -> MemoryPrincipal:
+        del request  # authority is never derived from request data
+        return self._principal
 
 
 def _write_json_line(obj: Any) -> None:
@@ -160,7 +322,7 @@ def _write_json_line(obj: Any) -> None:
 
 def run_stdio(runtime: MemoryRuntime) -> int:
     server = MCPServer(runtime)
-    principal = _stdio_principal(runtime.settings)
+    principals = StdioPrincipalResolver(runtime.settings)
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -172,6 +334,11 @@ def run_stdio(runtime: MemoryRuntime) -> int:
             continue
         if not isinstance(decoded, dict):
             _write_json_line(server.error(None, -32600, "batch requests are not supported"))
+            continue
+        try:
+            principal = principals.for_request(decoded)
+        except AuthenticationError as exc:
+            _write_json_line(server.error(decoded.get("id"), -32001, str(exc)))
             continue
         response = server.handle(decoded, principal)
         if response is not None:
@@ -190,12 +357,21 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
     settings = runtime.settings
     authenticator = TokenAuthenticator(settings.auth_tokens)
     server = MCPServer(runtime)
+    # Auth-disabled HTTP is the local trust model: exactly the stdio principal,
+    # established server-side before any body is read. Never wider than stdio.
+    local_principal = (
+        None
+        if settings.http_auth_required
+        else StdioPrincipalResolver(settings).principal.model_copy(
+            update={"auth_method": "http-auth-disabled"}
+        )
+    )
     app = FastAPI(title="L9 Graphite Memory", version=PACKAGE_VERSION)
 
     def principal_for(request: Request) -> MemoryPrincipal:
-        if settings.http_auth_required:
+        if local_principal is None:
             return authenticator.authenticate(request.headers.get("Authorization"))
-        return _stdio_principal(settings).model_copy(update={"auth_method": "http-auth-disabled"})
+        return local_principal
 
     @app.post("/mcp")
     @app.post("/mcp/")

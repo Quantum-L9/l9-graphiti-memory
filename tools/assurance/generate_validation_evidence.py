@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.3.1"
+RELEASE: Final = "2.5.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,8 +120,34 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # the unknown-tool error test): 5 cases in
         # test_release_b_capability.py, none backend-parameterized. Same
         # arithmetic: 870 + 5 = 875 collected, 875 - 15 = 860.
-        "860 tests pass",
-        r"860 passed",
+        #
+        # Re-pinned 855 -> 1014 for 2.5.0 on the #63/#64 branch, before the
+        # parity merge. Both terms are measured, not estimated: 1030
+        # collected, and CI skips 16 (10 constellation_node_sdk,
+        # 4 "Cursor-Governance checkout unavailable", 1 CURSOR_GOVERNANCE_ROOT,
+        # 1 agent-lane identity), so 1030 - 16 = 1014. The added cases are the
+        # signed-agent door's (ADR-0031), ADR-083's vocabulary and namespace
+        # suites, and F-AUTH-1's typed-grant negative cases.
+        #
+        # This pin is CI's number, and the count is a property of the
+        # ENVIRONMENT as much as of the suite. Three environments, all observed:
+        #
+        #   no postgres/redis                       867 passed, 107 skipped
+        #   postgres + redis, governance sibling   1018 passed,  12 skipped
+        #   CI (services, no governance sibling)   1014 passed,  16 skipped
+        #
+        # Only `collected` (1024 on this head) is invariant. So do not "fix" a local V-001
+        # miss by pinning the local count: bring the environment to CI's shape
+        # instead -- start postgres and redis, and run from a checkout with no
+        # Cursor-Governance sibling, which is what makes the four cross-repo
+        # contract tests skip as they do in CI.
+        #
+        # Re-pinned 1014 -> 1008 on the combined #61/#62 + #63/#64 head
+        # (open-PR audit 2026-09-24): +5 handler-parity cases, and ADR-083's
+        # namespace suite rewritten for F-64-AUTHZ-001 (26 cases -> 15). Same
+        # arithmetic: 1030 + 5 - 26 + 15 = 1024 collected, 1024 - 16 = 1008.
+        "1008 tests pass",
+        r"1008 passed",
     ),
     CheckSpec(
         "V-002",
@@ -142,8 +168,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
         # parity).
-        "82 ADRs complete and indexed",
-        r"PASS: 82 ADRs",
+        "83 ADRs complete and indexed",
+        r"PASS: 83 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -223,8 +249,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         #
         # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
         # the control-plane capability receipt.
-        "125 production files pass",
-        r"PASS: 125 production Python files",
+        "127 production files pass",
+        r"PASS: 127 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -268,8 +294,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "Python wheel",
         "python -m build --wheel",
         "logs/wheel_build.txt",
-        "v2.3.1 wheel builds",
-        r"Successfully built l9_graphite_memory-2\.3\.1-py3-none-any\.whl",
+        "v2.5.0 wheel builds",
+        r"Successfully built l9_graphite_memory-2\.5\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -278,7 +304,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.3\.1",
+        r"l9-graphite-memory==2\.5\.0",
     ),
     CheckSpec(
         "V-018",
@@ -306,8 +332,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/installed_mcp.txt",
         # Re-pinned 30 -> 31 for ADR-082: memory.capabilities joins the
         # canonical tool inventory.
-        "31 tools and required surfaces load",
-        r"31 tools loaded",
+        "33 tools and required surfaces load",
+        r"33 tools loaded",
     ),
     CheckSpec(
         "V-021",
