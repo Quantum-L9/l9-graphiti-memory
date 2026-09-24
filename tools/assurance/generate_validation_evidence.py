@@ -114,8 +114,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # result-affecting selector and a request digest): 14 cases in
         # test_search_request_identity.py stacked on 2.3.1. Same arithmetic:
         # 856 + 14 = 870 collected, 870 - 15 = 855.
-        "855 tests pass",
-        r"855 passed",
+        #
+        # Re-pinned 855 -> 860 for the MCP tool-handler parity guard (PR #61,
+        # ADR-014 invariants "every listed tool has exactly one handler" and
+        # the unknown-tool error test): 5 cases in
+        # test_release_b_capability.py, none backend-parameterized. Same
+        # arithmetic: 870 + 5 = 875 collected, 875 - 15 = 860.
+        "860 tests pass",
+        r"860 passed",
     ),
     CheckSpec(
         "V-002",
