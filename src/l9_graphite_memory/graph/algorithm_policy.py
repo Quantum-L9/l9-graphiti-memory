@@ -57,6 +57,17 @@ class GraphAlgorithm:
 
 
 ALGORITHMS: tuple[GraphAlgorithm, ...] = (
+    # Candidate retrieval through the existing Graphiti projection strategies.
+    GraphAlgorithm(
+        "graphiti-graph-search", GraphOperation.SEARCH, AlgorithmMaturity.NATIVE, False, True
+    ),
+    GraphAlgorithm(
+        "graphiti-semantic-search",
+        GraphOperation.SEMANTIC_SEARCH,
+        AlgorithmMaturity.NATIVE,
+        False,
+        True,
+    ),
     GraphAlgorithm(
         "bounded-traversal", GraphOperation.TRAVERSE, AlgorithmMaturity.NATIVE, False, True
     ),

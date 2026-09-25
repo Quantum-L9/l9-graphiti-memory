@@ -75,6 +75,7 @@ def build_graph_service(
         service.store,
         port,
         namespace_policy=service.namespace_policy,
+        projection=service.projection,
         config=GraphServiceConfig(
             max_runtime_ms=settings.graph_query_timeout_ms,
             relationship_allowlist=settings.graph_relationship_allowlist,
