@@ -159,8 +159,15 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # test_graph_intelligence_factory.py) plus 2 live Neo4j cases that CI
         # skips without L9_MEMORY_TEST_NEO4J_URI. 1042 + 45 = 1087 collected,
         # CI skips 16 + 2 = 18, so 1087 - 18 = 1069.
-        "1069 tests pass",
-        r"1069 passed",
+        #
+        # Re-pinned 1069 -> 1120 for ADR-086 (graph-intelligence contracts,
+        # algorithm policy, evidence binding, service; campaign PR-C): 51
+        # cases across test_graph_contracts.py, test_graph_algorithm_policy.py,
+        # test_graph_evidence_linking.py, test_graph_service.py and
+        # conformance/test_graph_intelligence_port.py, none skipped in CI.
+        # 1087 + 51 = 1138 collected, 1138 - 18 = 1120.
+        "1120 tests pass",
+        r"1120 passed",
     ),
     CheckSpec(
         "V-002",
@@ -183,8 +190,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # parity).
         # Re-pinned 83 -> 84 for ADR-084 (tenant-safe graph scope key).
         # Re-pinned 84 -> 85 for ADR-085 (graph intelligence port, Neo4j).
-        "85 ADRs complete and indexed",
-        r"PASS: 85 ADRs",
+        # Re-pinned 85 -> 86 for ADR-086 (graph contracts and evidence).
+        "86 ADRs complete and indexed",
+        r"PASS: 86 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -269,8 +277,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 129 -> 133 for ADR-085: graph/ports.py,
         # adapters/null_graph_intelligence.py, adapters/neo4j_query_policy.py,
         # adapters/neo4j_graph_intelligence.py.
-        "133 production files pass",
-        r"PASS: 133 production Python files",
+        # Re-pinned 133 -> 137 for ADR-086: graph/contracts.py,
+        # graph/algorithm_policy.py, graph/evidence.py, graph/service.py.
+        "137 production files pass",
+        r"PASS: 137 production Python files",
     ),
     CheckSpec(
         "V-012",

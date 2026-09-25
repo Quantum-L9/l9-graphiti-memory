@@ -110,6 +110,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-083 | [Server-Side Local Authorization and One Class Vocabulary](ADR-083-server-side-local-authorization-and-one-class-vocabulary.md) | Accepted |
 | ADR-084 | [Tenant-Safe Graph Scope Key](ADR-084-tenant-safe-graph-scope-key.md) | Accepted |
 | ADR-085 | [Graph Intelligence Port and Read-Only Neo4j Substrate](ADR-085-graph-intelligence-port-and-neo4j-substrate.md) | Accepted |
+| ADR-086 | [Graph Intelligence Contracts, Receipts, and Evidence Binding](ADR-086-graph-intelligence-contracts-and-evidence-binding.md) | Accepted |
 
 ## Validation
 
@@ -119,4 +120,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-085 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-086 ledger and all mandatory sections.
