@@ -62,6 +62,18 @@ class ProjectionError(L9MemoryError):
     """A graph or semantic projection failed."""
 
 
+class GraphIntelligenceError(L9MemoryError):
+    """A structural graph-intelligence operation failed (never zero results)."""
+
+
+class GraphCapabilityUnavailable(GraphIntelligenceError):
+    """The configured graph-intelligence backend cannot serve this capability."""
+
+
+class GraphQueryPolicyViolation(GraphIntelligenceError):
+    """A query template or request violated the static graph query policy."""
+
+
 class UnsupportedSchemaVersion(L9MemoryError):
     """No safe migration path exists for a persisted schema version."""
 

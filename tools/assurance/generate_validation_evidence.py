@@ -152,8 +152,15 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # and 5 in tests/security/test_graph_tenant_isolation.py, none
         # skipped in CI. Same arithmetic: 1024 + 18 = 1042 collected,
         # 1042 - 16 = 1026.
-        "1026 tests pass",
-        r"1026 passed",
+        #
+        # Re-pinned 1026 -> 1069 for ADR-085 (graph-intelligence port and
+        # read-only Neo4j adapter, campaign PR-B): 43 unit cases
+        # (test_graph_query_policy.py, test_neo4j_graph_intelligence_adapter.py,
+        # test_graph_intelligence_factory.py) plus 2 live Neo4j cases that CI
+        # skips without L9_MEMORY_TEST_NEO4J_URI. 1042 + 45 = 1087 collected,
+        # CI skips 16 + 2 = 18, so 1087 - 18 = 1069.
+        "1069 tests pass",
+        r"1069 passed",
     ),
     CheckSpec(
         "V-002",
@@ -175,8 +182,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
         # parity).
         # Re-pinned 83 -> 84 for ADR-084 (tenant-safe graph scope key).
-        "84 ADRs complete and indexed",
-        r"PASS: 84 ADRs",
+        # Re-pinned 84 -> 85 for ADR-085 (graph intelligence port, Neo4j).
+        "85 ADRs complete and indexed",
+        r"PASS: 85 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -258,8 +266,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # the control-plane capability receipt.
         # Re-pinned 127 -> 129 for ADR-084: graph/__init__.py and
         # graph/scope.py carry the GraphScopeKey v1 derivation.
-        "129 production files pass",
-        r"PASS: 129 production Python files",
+        # Re-pinned 129 -> 133 for ADR-085: graph/ports.py,
+        # adapters/null_graph_intelligence.py, adapters/neo4j_query_policy.py,
+        # adapters/neo4j_graph_intelligence.py.
+        "133 production files pass",
+        r"PASS: 133 production Python files",
     ),
     CheckSpec(
         "V-012",

@@ -14,6 +14,13 @@ projection_required: false
 graphiti_mcp_url: null
 zep_api_url: null
 
+# Read-only structural graph intelligence (ADR-085): none | neo4j.
+# The reader password comes from L9_MEMORY_GRAPH_NEO4J_PASSWORD, never this file.
+graph_intelligence_backend: none
+graph_intelligence_required: false
+graph_neo4j_uri: null
+graph_neo4j_database: neo4j
+
 # Remote HTTP is authenticated by default.
 http_auth_required: true
 
