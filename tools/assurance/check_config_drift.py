@@ -31,6 +31,7 @@ _TRACKED_NAMES = {
     "projection_backend",
     "outbox_max_attempts",
     "gate_ttl_minutes",
+    "graph_intelligence_backend",
 }
 
 
