@@ -1277,14 +1277,29 @@ class MemoryService:
             self.projection.name,
             limit=limit,
         )
-        total_active = len(
-            self.store.list_records(
-                principal.tenant_id,
-                namespace,
-                states=(MemoryState.ACTIVE,),
-                limit=limit,
-            )
+        active_records = self.store.list_records(
+            principal.tenant_id,
+            namespace,
+            states=(MemoryState.ACTIVE,),
+            limit=limit,
         )
+        total_active = len(active_records)
+        # A live link written under an older provider scope scheme points at a
+        # copy in the wrong provider group; it is re-projected, not trusted
+        # (ADR-084). Providers without scoped groups declare no scheme.
+        scope_scheme = getattr(self.projection, "scope_scheme", None)
+        stale_scope: list[MemoryRecord] = []
+        if scope_scheme is not None:
+            queued = {record.record_id for record in candidates}
+            for record in active_records:
+                if len(candidates) + len(stale_scope) >= limit:
+                    break
+                if record.record_id in queued:
+                    continue
+                link = self.store.get_projection_link(record.record_id, self.projection.name)
+                if link is not None and link.metadata.get("scope_scheme") != scope_scheme:
+                    stale_scope.append(record)
+            candidates = [*candidates, *stale_scope]
         events = tuple(
             OutboxEvent(
                 event_type="memory.record.project",
@@ -1307,6 +1322,7 @@ class MemoryService:
             considered_record_count=total_active,
             already_projected_count=max(total_active - len(candidates), 0),
             queued_record_ids=tuple(record.record_id for record in candidates),
+            stale_scope_record_ids=tuple(record.record_id for record in stale_scope),
             outbox_event_ids=tuple(event.event_id for event in events),
             authorization=authorization,
             reason=reason,

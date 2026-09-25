@@ -10,15 +10,15 @@ PASS  MCP inventory
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/.venv/bin/python3",
+    "/home/user/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-24T18:37:37.041069Z",
+  "created_at": "2026-09-25T23:08:27.611781Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.oNXLI77Ftu/cursor/mcp.json",
+  "path": "/tmp/tmp.E0hHYexiwj/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,7 +26,7 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "53b7b7b1-742e-4d3b-b533-4dcc5c4a783d",
+  "receipt_id": "01cd8104-013b-4b0b-8bc5-6293799e4e3f",
   "status": "dry_run",
   "warnings": []
 }
@@ -34,21 +34,21 @@ PASS  cursor client dry-run
 {
   "argv_source": "generated",
   "command_argv": [
-    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/.venv/bin/python3",
+    "/home/user/l9-graphiti-memory/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
   "config_path": null,
-  "created_at": "2026-09-24T18:37:38.473166Z",
+  "created_at": "2026-09-25T23:08:29.045052Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "620199f9-7392-4a18-ada6-11cc9edc1ff6",
+  "receipt_id": "c087867e-8f46-47f3-8455-2f6c49943d47",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.5.0",
@@ -89,7 +89,7 @@ PASS  shell syntax graphiti-reset-generation.sh
 PASS  shell syntax graphiti-session-end.sh
 PASS  shell syntax graphiti_common.sh
 PASS  shell syntax graphiti_gate_runner.sh
-PASS: 83 ADRs complete and indexed
+PASS: 84 ADRs complete and indexed
 PASS  ADR ledger
 PASS: 51 harvest decisions closed {'blocked_external': 4, 'implemented': 41, 'rejected_boundary': 6}
 PASS  harvest coverage
@@ -125,25 +125,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.5221,
-      "p50_ms": 0.4518,
-      "p95_ms": 0.5221,
+      "max_ms": 0.5344,
+      "p50_ms": 0.4196,
+      "p95_ms": 0.5344,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.5198,
-      "p50_ms": 0.3308,
-      "p95_ms": 0.3723,
+      "max_ms": 0.4964,
+      "p50_ms": 0.3393,
+      "p95_ms": 0.4718,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.5529,
-      "p50_ms": 0.1,
-      "p95_ms": 0.2058,
+      "max_ms": 0.4832,
+      "p50_ms": 0.094,
+      "p95_ms": 0.224,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0
