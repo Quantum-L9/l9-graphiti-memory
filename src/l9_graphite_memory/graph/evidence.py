@@ -93,7 +93,9 @@ class CanonicalEvidenceLinker:
         linked.supporting_record_ids = sorted(seen, key=str)
         return linked
 
-    def _admit(self, record_id: UUID, scope: EvidenceScope, cache: dict[UUID, bool]) -> bool:
+    def admit(self, record_id: UUID, scope: EvidenceScope, cache: dict[UUID, bool]) -> bool:
+        """Whether one candidate id is an admitted canonical record in scope."""
+
         if record_id in cache:
             return cache[record_id]
         record = self.store.get_record(record_id)
@@ -114,7 +116,7 @@ class CanonicalEvidenceLinker:
     def _support(
         self, candidates: tuple[UUID, ...], scope: EvidenceScope, cache: dict[UUID, bool]
     ) -> list[str]:
-        return sorted({str(c) for c in candidates if self._admit(c, scope, cache)})
+        return sorted({str(c) for c in candidates if self.admit(c, scope, cache)})
 
     def _nodes(
         self,

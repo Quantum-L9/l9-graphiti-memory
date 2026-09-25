@@ -147,6 +147,8 @@ Structural graph intelligence is a sibling of the projection adapter (ADR-085). 
 
 `GraphIntelligenceService` governs every structural operation (ADR-086): it authorizes namespaces against server-side claims, derives GraphScopeKey groups from the principal's tenant, refuses out-of-policy relationship types, algorithms, and anchors before any provider call, binds every provider observation back to active canonical records in scope (unsupported ones are reported, never served), and returns a typed `COMPLETE | PARTIAL | FAILED` receipt with a deterministic digest. Provider failure is never an empty answer.
 
+The Neo4j adapter serves bounded traversal, neighborhood, and shortest-path discovery (ADR-087) from a closed family of per-depth, per-direction templates. Every node and relationship on a path must lie in an authorized GraphScopeKey group and pass the relationship allowlist and the valid-time/transaction-time filters, so a cross-tenant edge cannot be crossed. `graph.search` and `graph.semantic_search` reuse the projection strategies with the principal's tenant and rehydrate every hit.
+
 ## Projection erasure
 
 Projection writes must return or establish a stable episode locator. The locator is stored in the canonical store as a `ProjectionLink`. A deletion outbox event loads that locator and invokes the provider deletion operation. Graphiti uses `delete_episode`; Zep uses `graph.episode.delete`. The link is removed only after provider confirmation, then the canonical deletion receipt becomes complete.

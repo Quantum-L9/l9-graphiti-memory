@@ -151,6 +151,7 @@ class GraphProviderRequest(BaseModel):
     relationship_types: tuple[str, ...] = ()
     direction: Literal["out", "in", "both"] = "both"
     as_of: datetime | None = None
+    recorded_before: datetime | None = None
     limits: GraphLimits
     algorithm_id: str | None = None
     algorithm_config: dict[str, Any] = Field(default_factory=dict)
