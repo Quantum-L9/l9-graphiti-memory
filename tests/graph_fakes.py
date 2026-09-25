@@ -137,3 +137,89 @@ def healthy_graphiti_responses(
         responses["gds_version_v1"] = RuntimeError("Unknown function 'gds.version'")
         responses["gds_procedures_v1"] = RuntimeError("no procedure gds.list")
     return responses
+
+
+class FakeGraphPort:
+    """A GraphIntelligencePort double serving scripted provider results."""
+
+    def __init__(
+        self,
+        results: dict[Any, Any] | None = None,
+        *,
+        capabilities: tuple[Any, ...] | None = None,
+        health_overrides: dict[str, Any] | None = None,
+    ) -> None:
+        from l9_graphite_memory.graph.ports import BASELINE_CAPABILITIES
+
+        self.name = "fake-graph"
+        self.results = results or {}
+        self._capabilities = BASELINE_CAPABILITIES if capabilities is None else capabilities
+        self.health_overrides = health_overrides or {}
+        self.requests: list[Any] = []
+        self.health_calls = 0
+
+    def capabilities(self):
+        return self.health().capabilities
+
+    def health(self):
+        from l9_graphite_memory.graph.ports import GraphBackendHealth
+
+        self.health_calls += 1
+        values = {
+            "name": self.name,
+            "enabled": True,
+            "healthy": True,
+            "reachable": True,
+            "backend_version": "5.26.31",
+            "analytics_version": "2.13.13",
+            "capabilities": self._capabilities,
+            **self.health_overrides,
+        }
+        return GraphBackendHealth(**values)
+
+    def close(self) -> None:
+        return None
+
+    def _serve(self, request):
+        self.requests.append(request)
+        outcome = self.results.get(request.operation)
+        if outcome is None:
+            raise AssertionError(f"no scripted result for {request.operation}")
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome(request) if callable(outcome) else outcome
+
+    traverse = path = neighborhood = structural_similarity = _serve
+    community = centrality = link_prediction = structural_embedding = _serve
+
+
+def seeded_memory():
+    """MemoryService with active records in two tenants that share a namespace."""
+
+    from l9_graphite_memory.adapters import InMemoryRecordStore, NullProjection
+    from l9_graphite_memory.contracts import MemoryPrincipal, MemoryWriteRequest, Provenance
+    from l9_graphite_memory.services import MemoryService
+
+    store = InMemoryRecordStore()
+    service = MemoryService(store, NullProjection())
+    service.initialize()
+
+    def principal(tenant: str, namespaces: tuple[str, ...] = ("shared", "other")):
+        return MemoryPrincipal(
+            principal_id=f"{tenant}-agent",
+            tenant_id=tenant,
+            read_namespaces=namespaces,
+            write_namespaces=namespaces,
+            maintain_namespaces=namespaces,
+        )
+
+    def write(tenant: str, content: str, namespace: str = "shared"):
+        receipt = service.write(
+            principal(tenant),
+            MemoryWriteRequest(
+                namespace=namespace, content=content, provenance=Provenance(source="graph-test")
+            ),
+        )
+        return receipt.record_id
+
+    return service, store, principal, write

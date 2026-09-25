@@ -28,6 +28,10 @@ from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from l9_graphite_memory.errors import GraphCapabilityUnavailable
+
+from .contracts import GraphOperation, GraphProviderRequest, GraphProviderResult
+
 
 class GraphCapability(str, Enum):
     """Canonical provider-neutral graph-intelligence capability names."""
@@ -120,3 +124,75 @@ class GraphIntelligencePort(Protocol):
     def health(self) -> GraphBackendHealth: ...
 
     def close(self) -> None: ...
+
+    # Every operation takes a typed provider request whose scope is already a
+    # set of derived GraphScopeKey groups, and returns projection-derived
+    # observations. No method accepts query text or mutates the graph.
+    def traverse(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+    def path(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+    def neighborhood(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+    def structural_similarity(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+    def community(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+    def centrality(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+    def link_prediction(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+    def structural_embedding(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+
+#: Port method serving each structural operation.
+PORT_METHODS: dict[GraphOperation, str] = {
+    GraphOperation.TRAVERSE: "traverse",
+    GraphOperation.PATH: "path",
+    GraphOperation.NEIGHBORHOOD: "neighborhood",
+    GraphOperation.STRUCTURAL_SIMILARITY: "structural_similarity",
+    GraphOperation.COMMUNITY: "community",
+    GraphOperation.CENTRALITY: "centrality",
+    GraphOperation.LINK_PREDICTION: "link_prediction",
+    GraphOperation.STRUCTURAL_EMBEDDING: "structural_embedding",
+}
+
+
+class UnservedOperations:
+    """Mixin: every structural operation refuses explicitly until implemented.
+
+    A backend that does not implement an operation raises
+    ``GraphCapabilityUnavailable``; it never returns an empty result that
+    would read as "no relationships found" (GI-029).
+    """
+
+    name: str
+
+    def _unserved(self, request: GraphProviderRequest) -> GraphProviderResult:
+        raise GraphCapabilityUnavailable(
+            f"graph backend {self.name} does not serve {request.operation.value}"
+        )
+
+    def traverse(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
+
+    def path(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
+
+    def neighborhood(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
+
+    def structural_similarity(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
+
+    def community(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
+
+    def centrality(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
+
+    def link_prediction(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
+
+    def structural_embedding(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
