@@ -1,5 +1,5 @@
 Using CPython 3.13.12 interpreter at: .venv/bin/python3
 Resolved 1 package in 2ms
-Prepared 1 package in 5ms
-Installed 1 package in 4ms
- + l9-graphite-memory==2.5.0 (from file:///tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/validation/dist/l9_graphite_memory-2.5.0-py3-none-any.whl)
+Prepared 1 package in 6ms
+Installed 1 package in 3ms
+ + l9-graphite-memory==2.5.0 (from file:///home/user/l9-graphiti-memory/validation/dist/l9_graphite_memory-2.5.0-py3-none-any.whl)

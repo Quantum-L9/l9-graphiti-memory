@@ -65,10 +65,10 @@ class RecordingProjection:
     def erase(self, record_id, namespace, *, locator=None) -> dict[str, object]:
         return {"erased": True}
 
-    def search_strategy(self, strategy, query, namespaces, *, limit):
+    def search_strategy(self, strategy, query, namespaces, *, limit, tenant_id):
         return []
 
-    def search(self, query, namespaces, *, limit):
+    def search(self, query, namespaces, *, limit, tenant_id):
         return []
 
 

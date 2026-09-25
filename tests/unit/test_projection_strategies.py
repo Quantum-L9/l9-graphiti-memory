@@ -19,6 +19,7 @@ from l9_graphite_memory.contracts import (
     MemoryWriteRequest,
     Provenance,
 )
+from l9_graphite_memory.graph.scope import graph_group_id
 from l9_graphite_memory.services import MemoryService
 
 
@@ -56,8 +57,12 @@ def test_graphiti_projection_executes_graph_and_semantic_strategies_independentl
     transport = StrategyTransport()
     projection = GraphitiProjection(transport)
 
-    graph_hits = projection.search_strategy("graph-search", "memory", ("repo-a",), limit=10)
-    semantic_hits = projection.search_strategy("semantic-search", "memory", ("repo-a",), limit=10)
+    graph_hits = projection.search_strategy(
+        "graph-search", "memory", ("repo-a",), limit=10, tenant_id="t"
+    )
+    semantic_hits = projection.search_strategy(
+        "semantic-search", "memory", ("repo-a",), limit=10, tenant_id="t"
+    )
 
     assert transport.calls == ["search_nodes", "search_facts"]
     assert graph_hits[0].metadata["strategy"] == "graph-search"
@@ -131,8 +136,12 @@ class OfficialStrategyTransport(StrategyTransport):
 def test_official_graphiti_dialect_uses_current_tool_names_and_group_ids() -> None:
     transport = OfficialStrategyTransport()
     projection = GraphitiProjection(transport)
-    projection.search_strategy("semantic-search", "memory", ("repo-a",), limit=10)
-    projection.search_strategy("graph-search", "memory", ("repo-a",), limit=10)
+    projection.search_strategy("semantic-search", "memory", ("repo-a",), limit=10, tenant_id="t")
+    projection.search_strategy("graph-search", "memory", ("repo-a",), limit=10, tenant_id="t")
     assert transport.calls == ["search_memory_facts", "search_nodes"]
-    assert transport.arguments[0]["group_ids"] == ["repo-a"]
-    assert transport.arguments[1]["group_ids"] == ["repo-a"]
+    # GraphScopeKey v1: the provider group binds tenant and namespace, never
+    # the bare namespace string (ADR-084).
+    expected = graph_group_id("t", "repo-a")
+    assert transport.arguments[0]["group_ids"] == [expected]
+    assert transport.arguments[1]["group_ids"] == [expected]
+    assert "repo-a" not in transport.arguments[0]["group_ids"]

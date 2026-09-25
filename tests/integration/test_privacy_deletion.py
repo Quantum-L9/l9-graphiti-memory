@@ -144,7 +144,7 @@ class ErasingProjection:
         return {"erased": True, "locator": locator}
 
     def search(
-        self, _query: str, _namespaces: tuple[str, ...], *, limit: int
+        self, _query: str, _namespaces: tuple[str, ...], *, limit: int, tenant_id: str
     ) -> list[ProjectionHit]:
         return []
 
