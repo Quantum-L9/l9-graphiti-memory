@@ -322,3 +322,157 @@ def test_a_stalled_provider_search_is_abandoned_at_the_deadline() -> None:
     assert time.monotonic() - started < 1.0
     assert receipt.status is GraphReceiptStatus.FAILED
     assert receipt.failures[0]["class"] == "runtime_budget_exhausted"
+
+
+# -- audit F-03: the budget bounds the caller's wall-clock time -------------
+
+_BUDGET = GraphLimits(max_runtime_ms=150)
+_CEILING_S = 0.6  # budget plus scheduling slack; every stall below is 5 s
+
+
+def _timed(graph, principal, request):
+    import time
+
+    started = time.monotonic()
+    receipt = graph.execute(principal, request)
+    return receipt, time.monotonic() - started
+
+
+def _assert_bounded(receipt, elapsed) -> None:
+    assert elapsed < _CEILING_S, f"request took {elapsed:.2f}s against a 150 ms budget"
+    assert receipt.status is GraphReceiptStatus.FAILED
+    assert receipt.failures[0]["class"] == "runtime_budget_exceeded"
+    assert receipt.results == ()
+
+
+def test_slow_backend_health_is_bounded_by_the_request_budget() -> None:
+    import threading
+
+    release = threading.Event()
+
+    class SlowHealthPort(FakeGraphPort):
+        def health(self):
+            release.wait(5)
+            return super().health()
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        SlowHealthPort(
+            {GraphOperation.NEIGHBORHOOD: GraphProviderResult(operation="graph.neighborhood")}
+        ),
+        namespace_policy=service.namespace_policy,
+    )
+    try:
+        receipt, elapsed = _timed(graph, principal("tenant-a"), _request(limits=_BUDGET))
+    finally:
+        release.set()
+    _assert_bounded(receipt, elapsed)
+
+
+def test_slow_canonical_evidence_rehydration_is_bounded() -> None:
+    import threading
+
+    from l9_graphite_memory.graph.contracts import GraphProviderNode
+
+    release = threading.Event()
+    service, store, principal, write = seeded_memory()
+    record = write("tenant-a", "falcon")
+    real_get = store.get_record
+
+    def slow_get(record_id):
+        release.wait(5)
+        return real_get(record_id)
+
+    def result(request):
+        return GraphProviderResult(
+            operation=request.operation,
+            nodes=(
+                GraphProviderNode(
+                    entity_uuid=uuid4(),
+                    group_id=request.group_ids[0],
+                    name="falcon",
+                    supporting_episode_ids=(record,),
+                ),
+            ),
+        )
+
+    graph = GraphIntelligenceService(
+        store,
+        FakeGraphPort({GraphOperation.NEIGHBORHOOD: result}),
+        namespace_policy=service.namespace_policy,
+    )
+    store.get_record = slow_get  # evidence rehydration reads canonical records
+    try:
+        receipt, elapsed = _timed(graph, principal("tenant-a"), _request(limits=_BUDGET))
+    finally:
+        release.set()
+    _assert_bounded(receipt, elapsed)
+
+
+def test_slow_gds_catalog_cleanup_is_bounded_and_still_runs() -> None:
+    import threading
+
+    from tests.unit.test_neo4j_gds_operations import _analytics_responses
+
+    release, dropped = threading.Event(), threading.Event()
+    responses = _analytics_responses([{"uuid": str(uuid4()), "score": 1.0}])
+
+    def slow_drop(_parameters):
+        release.wait(5)
+        dropped.set()
+        return [{"graphName": "x"}]
+
+    responses["gds_drop_v1"] = slow_drop
+    driver = FakeNeo4jDriver(responses={**responses, **_health_rows()})
+    adapter = Neo4jGraphIntelligence(
+        Neo4jGraphIntelligenceConfig(uri="bolt://graph.invalid:7687"), driver_factory=lambda: driver
+    )
+    driver.bind(adapter)
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(store, adapter, namespace_policy=service.namespace_policy)
+    try:
+        receipt, elapsed = _timed(
+            graph,
+            principal("tenant-a"),
+            _request(operation=GraphOperation.CENTRALITY, anchor=None, limits=_BUDGET),
+        )
+    finally:
+        release.set()
+    _assert_bounded(receipt, elapsed)
+    # Cleanup is not abandoned: it completes after the caller was answered.
+    assert dropped.wait(5)
+
+
+def _health_rows():
+    from tests.graph_fakes import healthy_graphiti_responses
+
+    return healthy_graphiti_responses(group_ids=(GROUP,))
+
+
+def test_stalled_projection_transport_is_bounded_on_every_search_strategy() -> None:
+    import threading
+
+    release = threading.Event()
+
+    class StalledProjection(Projection):
+        def search_strategy(self, strategy, query, namespaces, *, limit, tenant_id):
+            release.wait(5)
+            return []
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        FakeGraphPort(),
+        namespace_policy=service.namespace_policy,
+        projection=StalledProjection(Clock(), {}),
+    )
+    try:
+        for operation in (GraphOperation.SEARCH, GraphOperation.SEMANTIC_SEARCH):
+            receipt, elapsed = _timed(
+                graph, principal("tenant-a"), _search(operation=operation, limits=_BUDGET)
+            )
+            assert elapsed < _CEILING_S
+            assert receipt.status is GraphReceiptStatus.FAILED
+    finally:
+        release.set()

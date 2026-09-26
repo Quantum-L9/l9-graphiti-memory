@@ -436,6 +436,7 @@ class InMemoryRecordStore:
         link_updates: tuple[ProjectionLink, ...] = (),
         link_removals: tuple[tuple[UUID, str], ...] = (),
         deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
     ) -> None:
         require_service_write_capability(capability)
         if not receipt.applied:
@@ -443,21 +444,44 @@ class InMemoryRecordStore:
         with self._write_lock:
             # Validate every effect before applying any, so the release is
             # all-or-nothing like the transactional backends.
+            for expected in expected_links:
+                current = self.projection_links.get((expected.record_id, expected.projection_name))
+                if current != expected:
+                    raise StoreError("projection link changed since the release was planned")
             for record_id, receipt_id in deletion_completions:
                 if record_id not in self.records or receipt_id not in self.deletion_receipts:
                     raise StoreError("deletion record or receipt not found")
-            self.legacy_projection_releases.append(receipt)
-            for link in link_updates:
-                self.projection_links[(link.record_id, link.projection_name)] = link
-            for key in link_removals:
-                self.projection_links.pop(key, None)
-            for record_id, receipt_id in deletion_completions:
-                self.complete_deletion(
-                    record_id,
-                    receipt_id,
-                    completed_at=receipt.created_at,
-                    actor=f"memory.legacy-release:{receipt.actor}",
-                )
+            # Snapshot what the release touches; any failure while applying
+            # restores it, matching the SQL backends' rollback.
+            snapshot = (
+                dict(self.records),
+                dict(self.deletion_receipts),
+                list(self.status_events),
+                dict(self.projection_links),
+                list(self.legacy_projection_releases),
+            )
+            try:
+                self.legacy_projection_releases.append(receipt)
+                for link in link_updates:
+                    self.projection_links[(link.record_id, link.projection_name)] = link
+                for key in link_removals:
+                    self.projection_links.pop(key, None)
+                for record_id, receipt_id in deletion_completions:
+                    self.complete_deletion(
+                        record_id,
+                        receipt_id,
+                        completed_at=receipt.created_at,
+                        actor=f"memory.legacy-release:{receipt.actor}",
+                    )
+            except BaseException:
+                (
+                    self.records,
+                    self.deletion_receipts,
+                    self.status_events,
+                    self.projection_links,
+                    self.legacy_projection_releases,
+                ) = snapshot
+                raise
 
     def list_legacy_projection_releases(
         self, namespace: str

@@ -33,6 +33,7 @@ closed on any partial outcome (GI-030).
 
 from __future__ import annotations
 
+import contextvars
 import hashlib
 import json
 import threading
@@ -98,6 +99,22 @@ MIN_PROVIDER_BUDGET_MS = 10
 _SEARCH_WORKERS = 8
 _search_pool: ThreadPoolExecutor | None = None
 _search_pool_lock = threading.Lock()
+
+
+_REQUEST_WORKERS = 16
+_request_pool: ThreadPoolExecutor | None = None
+
+
+def _request_executor() -> ThreadPoolExecutor:
+    """Bounded pool that runs whole graph operations under a caller deadline."""
+
+    global _request_pool
+    with _search_pool_lock:
+        if _request_pool is None:
+            _request_pool = ThreadPoolExecutor(
+                max_workers=_REQUEST_WORKERS, thread_name_prefix="l9-graph-request"
+            )
+        return _request_pool
 
 
 def _search_executor() -> ThreadPoolExecutor:
@@ -249,8 +266,20 @@ class GraphIntelligenceService:
         """Run one operation and record its metrics and structured log line."""
 
         started = self._monotonic()
+        budget_ms = min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
+        # The whole operation (health, provider, canonical evidence, GDS
+        # cleanup, projection transport) runs off-thread; the caller waits at
+        # most the request budget and then gets a typed refusal. Work still in
+        # flight finishes against its own statement/transport timeouts and its
+        # result is discarded (ADR-091).
+        future = _request_executor().submit(
+            contextvars.copy_context().run, self._execute, principal, request
+        )
         try:
-            receipt = self._execute(principal, request)
+            receipt = future.result(timeout=budget_ms / 1_000)
+        except FuturesTimeoutError:
+            future.cancel()
+            receipt = self._deadline_receipt(principal, request)
         except AuthorizationError:
             self.metrics.record_scope_denied(request.operation.value)
             raise
@@ -271,6 +300,34 @@ class GraphIntelligenceService:
             result_digest=receipt.result_digest,
         )
         return receipt
+
+    def _deadline_receipt(
+        self, principal: MemoryPrincipal, request: GraphIntelligenceRequest
+    ) -> GraphIntelligenceReceipt:
+        """FAILED receipt for an operation still running at its deadline.
+
+        Built without touching the backend: provider identity comes from the
+        cached health report when there is one.
+        """
+
+        limits = request.limits.model_copy(
+            update={
+                "max_runtime_ms": min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
+            }
+        )
+        health = self._health or GraphBackendHealth(
+            name=self.port.name, enabled=True, healthy=False
+        )
+        return self._receipt(
+            GraphReceiptStatus.FAILED,
+            request.operation,
+            graph_request_scope_digest(principal.tenant_id, request.namespaces),
+            self._provider_identity(health),
+            None,
+            {**limits.model_dump(), "direction": request.direction},
+            LinkedEvidence(),
+            [{"class": "runtime_budget_exceeded", "stage": "request"}],
+        )
 
     def _execute(
         self, principal: MemoryPrincipal, request: GraphIntelligenceRequest
@@ -419,6 +476,7 @@ class GraphIntelligenceService:
                 as_of=request.as_of,
                 recorded_before=request.recorded_before,
                 include_raw_vectors=self.config.raw_vectors_allowed,
+                path_direction=request.direction,
             ),
         )
         failures: list[dict[str, Any]] = []

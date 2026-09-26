@@ -1103,12 +1103,24 @@ class SQLiteRecordStore:
         link_updates: tuple[ProjectionLink, ...] = (),
         link_removals: tuple[tuple[UUID, str], ...] = (),
         deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
     ) -> None:
         require_service_write_capability(capability)
         if not receipt.applied:
             raise StoreError("cannot persist a non-applied legacy projection release")
         try:
             with self._transaction() as tx:
+                for expected in expected_links:
+                    row = tx.execute(
+                        "SELECT link_json FROM projection_links "
+                        "WHERE record_id = ? AND projection_name = ?",
+                        (str(expected.record_id), expected.projection_name),
+                    ).fetchone()
+                    current = (
+                        ProjectionLink.model_validate_json(str(row["link_json"])) if row else None
+                    )
+                    if current != expected:
+                        raise StoreError("projection link changed since the release was planned")
                 tx.execute(
                     """
                     INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)

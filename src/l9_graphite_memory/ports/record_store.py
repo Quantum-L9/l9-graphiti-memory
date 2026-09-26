@@ -217,13 +217,17 @@ class RecordStore(Protocol):
         link_updates: tuple[ProjectionLink, ...] = (),
         link_removals: tuple[tuple[UUID, str], ...] = (),
         deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
     ) -> None:
         """Atomically record a legacy-copy release and apply its effects (ADR-091).
 
         One transaction persists the receipt, rewrites or removes the affected
         projection links, and completes each ``(record_id, deletion_receipt_id)``
-        deletion that was waiting only on the released copies. A canonical
-        mutation, so it requires the service-issued capability (ADR-036).
+        deletion that was waiting only on the released copies. Every link in
+        ``expected_links`` (the state the release was planned from) must still
+        be current, or nothing is applied: a concurrent outbox erasure cannot be
+        overwritten by a stale plan. A canonical mutation, so it requires the
+        service-issued capability (ADR-036).
         """
         ...
 

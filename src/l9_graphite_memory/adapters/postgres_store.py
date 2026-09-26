@@ -1104,6 +1104,7 @@ class PostgresRecordStore:
         link_updates: tuple[ProjectionLink, ...] = (),
         link_removals: tuple[tuple[UUID, str], ...] = (),
         deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
     ) -> None:
         require_service_write_capability(capability)
         if not receipt.applied:
@@ -1111,6 +1112,18 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
+                for expected in expected_links:
+                    tx.execute(
+                        "SELECT link_json FROM projection_links "
+                        "WHERE record_id = %s AND projection_name = %s FOR UPDATE",
+                        (str(expected.record_id), expected.projection_name),
+                    )
+                    row = tx.fetchone()
+                    current = (
+                        ProjectionLink.model_validate_json(str(row["link_json"])) if row else None
+                    )
+                    if current != expected:
+                        raise StoreError("projection link changed since the release was planned")
                 self._insert_operation_receipt(
                     tx,
                     receipt_id=receipt.receipt_id,
