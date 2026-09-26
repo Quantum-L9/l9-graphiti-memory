@@ -43,7 +43,12 @@ from uuid import UUID
 
 from l9_graphite_memory.authz import NamespacePolicy
 from l9_graphite_memory.contracts import AuthorizationAction, MemoryPrincipal, MemoryState
-from l9_graphite_memory.errors import GraphCapabilityUnavailable, GraphQueryPolicyViolation
+from l9_graphite_memory.errors import (
+    AuthorizationError,
+    GraphCapabilityUnavailable,
+    GraphQueryPolicyViolation,
+)
+from l9_graphite_memory.observability.graph_metrics import GRAPH_METRICS, GraphMetrics
 from l9_graphite_memory.ports import ProjectionAdapter, RecordStore
 
 from .algorithm_policy import (
@@ -54,6 +59,7 @@ from .algorithm_policy import (
 )
 from .contracts import (
     GraphAlgorithmIdentity,
+    GraphCapabilityReport,
     GraphIntelligenceReceipt,
     GraphIntelligenceRequest,
     GraphOperation,
@@ -70,7 +76,12 @@ from .ports import (
     GraphCapability,
     GraphIntelligencePort,
 )
-from .scope import GRAPH_SCOPE_SCHEME, graph_group_ids, graph_scope_digest
+from .scope import (
+    GRAPH_SCOPE_SCHEME,
+    GRAPH_SCOPE_SCHEME_VERSION,
+    graph_group_ids,
+    graph_scope_digest,
+)
 
 #: Candidate-retrieval operations served by the Graphiti projection strategies.
 SEARCH_STRATEGIES: dict[GraphOperation, str] = {
@@ -110,6 +121,23 @@ class GraphServiceConfig:
     raw_vectors_allowed: bool = False
 
 
+def graph_service_for(
+    memory: Any,
+    port: GraphIntelligencePort,
+    *,
+    config: GraphServiceConfig | None = None,
+) -> GraphIntelligenceService:
+    """Compose a graph service over a MemoryService's store, policy, projection."""
+
+    return GraphIntelligenceService(
+        memory.store,
+        port,
+        namespace_policy=memory.namespace_policy,
+        config=config,
+        projection=memory.projection,
+    )
+
+
 class GraphIntelligenceService:
     def __init__(
         self,
@@ -119,8 +147,10 @@ class GraphIntelligenceService:
         namespace_policy: NamespacePolicy | None = None,
         config: GraphServiceConfig | None = None,
         projection: ProjectionAdapter | None = None,
+        metrics: GraphMetrics | None = None,
         monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
+        self.metrics = metrics or GRAPH_METRICS
         self.store = store
         self.port = port
         self.projection = projection
@@ -165,9 +195,58 @@ class GraphIntelligenceService:
             gds_version=health.analytics_version,
         )
 
+    def capability_report(self, *, refresh: bool = False) -> GraphCapabilityReport:
+        """Typed capability and health report; health dimensions stay separate."""
+
+        backend = self.health(refresh=refresh)
+        catalog_failures = getattr(self.port, "catalog_cleanup_failures", 0)
+        self.metrics.set_gauge("memory_graph_gds_cleanup_failures_seen", float(catalog_failures))
+        return GraphCapabilityReport(
+            scope_scheme=GRAPH_SCOPE_SCHEME,
+            scope_scheme_version=GRAPH_SCOPE_SCHEME_VERSION,
+            capabilities=tuple(capability.value for capability in self.capabilities()),
+            backend=backend.model_dump(mode="json"),
+            projection_provider=self.projection.name if self.projection else None,
+            projection_strategies=tuple(self.projection.capabilities) if self.projection else (),
+            algorithm_maturity_ceiling=self.config.algorithm_policy.maturity_ceiling.value,
+            link_prediction_enabled=self.config.algorithm_policy.link_prediction_enabled,
+            required=self.config.required,
+            ready=backend.healthy or not self.config.required,
+            gds_catalog_cleanup_failures=int(catalog_failures),
+        )
+
     # -- execution -----------------------------------------------------
 
     def execute(
+        self, principal: MemoryPrincipal, request: GraphIntelligenceRequest
+    ) -> GraphIntelligenceReceipt:
+        """Run one operation and record its metrics and structured log line."""
+
+        started = self._monotonic()
+        try:
+            receipt = self._execute(principal, request)
+        except AuthorizationError:
+            self.metrics.record_scope_denied(request.operation.value)
+            raise
+        self.metrics.record_operation(
+            operation=request.operation.value,
+            status=receipt.status.value,
+            latency_ms=(self._monotonic() - started) * 1_000,
+            node_count=sum(1 for item in receipt.results if item.get("kind") == "node"),
+            edge_count=sum(1 for item in receipt.results if item.get("kind") == "edge"),
+            unsupported_reasons=[
+                str(item.get("reason", "unknown"))
+                for item in receipt.unsupported_projection_observations
+            ],
+            failure_classes=[str(item.get("class")) for item in receipt.failures],
+            provider=receipt.provider.graph_backend,
+            scope_digest=receipt.scope_digest,
+            algorithm=receipt.algorithm.id if receipt.algorithm else None,
+            result_digest=receipt.result_digest,
+        )
+        return receipt
+
+    def _execute(
         self, principal: MemoryPrincipal, request: GraphIntelligenceRequest
     ) -> GraphIntelligenceReceipt:
         namespaces = request.namespaces

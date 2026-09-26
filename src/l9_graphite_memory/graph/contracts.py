@@ -244,6 +244,29 @@ class GraphAlgorithmIdentity(BaseModel):
     config_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 
+class GraphCapabilityReport(BaseModel):
+    """What the graph-intelligence plane can serve right now, and why.
+
+    Scope scheme, served capabilities, backend health, projection strategies,
+    and algorithm gates are separate fields so no dimension masks another.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["1.0.0"] = GRAPH_CONTRACT_SCHEMA_VERSION
+    scope_scheme: str
+    scope_scheme_version: int
+    capabilities: tuple[str, ...]
+    backend: dict[str, Any]
+    projection_provider: str | None = None
+    projection_strategies: tuple[str, ...] = ()
+    algorithm_maturity_ceiling: str
+    link_prediction_enabled: bool
+    required: bool
+    ready: bool
+    gds_catalog_cleanup_failures: int = 0
+
+
 class GraphIntelligenceReceipt(BaseModel):
     """Typed, deterministic outcome of one graph-intelligence operation."""
 

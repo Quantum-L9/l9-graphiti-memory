@@ -33,6 +33,12 @@ from l9_graphite_memory.contracts import (
     WriteReceipt,
 )
 from l9_graphite_memory.contracts.generated_data import MemoryCandidateIngestionResult
+from l9_graphite_memory.graph.contracts import (
+    GraphCapabilityReport,
+    GraphIntelligenceReceipt,
+    GraphIntelligenceRequest,
+)
+from l9_graphite_memory.graph.service import GraphIntelligenceService, graph_service_for
 from l9_graphite_memory.lineage import LineageReplay
 from l9_graphite_memory.services import GeneratedDataService, MemoryService
 
@@ -45,9 +51,33 @@ class MemorySDK:
     around the service.
     """
 
-    def __init__(self, service: MemoryService, principal: MemoryPrincipal) -> None:
+    def __init__(
+        self,
+        service: MemoryService,
+        principal: MemoryPrincipal,
+        *,
+        graph: GraphIntelligenceService | None = None,
+    ) -> None:
         self._service = service
         self.principal = principal
+        self._graph = graph
+
+    def _graph_service(self) -> GraphIntelligenceService:
+        if self._graph is None:
+            from l9_graphite_memory.adapters import NullGraphIntelligence
+
+            # No backend configured: structural operations report unavailable;
+            # graph/semantic search still run through the projection.
+            self._graph = graph_service_for(self._service, NullGraphIntelligence())
+        return self._graph
+
+    def graph(self, request: GraphIntelligenceRequest) -> GraphIntelligenceReceipt:
+        """Provider-neutral graph intelligence under this principal (ADR-089)."""
+
+        return self._graph_service().execute(self.principal, request)
+
+    def graph_capabilities(self) -> GraphCapabilityReport:
+        return self._graph_service().capability_report()
 
     def write(self, request: MemoryWriteRequest) -> WriteReceipt:
         return self._service.write(self.principal, request)
