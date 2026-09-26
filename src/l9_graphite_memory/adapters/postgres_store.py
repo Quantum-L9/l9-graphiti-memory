@@ -25,6 +25,7 @@ from l9_graphite_memory.contracts import (
     ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
@@ -1095,6 +1096,74 @@ class PostgresRecordStore:
         except psycopg2.Error as exc:
             raise StoreError(f"projection rebuild failed: {exc}") from exc
 
+    def commit_legacy_projection_release(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LegacyProjectionReleaseReceipt,
+        *,
+        link_updates: tuple[ProjectionLink, ...] = (),
+        link_removals: tuple[tuple[UUID, str], ...] = (),
+        deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied legacy projection release")
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="legacy_projection_release",
+                    aggregate_id=receipt.namespace,
+                    status="applied",
+                    created_at=receipt.created_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+                for link in link_updates:
+                    tx.execute(
+                        "UPDATE projection_links SET locator = %s, created_at = %s, link_json = %s "
+                        "WHERE record_id = %s AND projection_name = %s",
+                        (
+                            link.locator,
+                            link.created_at,
+                            _json(link.model_dump(mode="json")),
+                            str(link.record_id),
+                            link.projection_name,
+                        ),
+                    )
+                for record_id, projection_name in link_removals:
+                    tx.execute(
+                        "DELETE FROM projection_links WHERE record_id = %s AND projection_name = %s",
+                        (str(record_id), projection_name),
+                    )
+                for record_id, receipt_id in deletion_completions:
+                    self._complete_deletion_tx(
+                        tx,
+                        record_id,
+                        receipt_id,
+                        receipt.created_at,
+                        f"memory.legacy-release:{receipt.actor}",
+                    )
+        except psycopg2.Error as exc:
+            raise StoreError(f"legacy projection release failed: {exc}") from exc
+
+    def list_legacy_projection_releases(
+        self, namespace: str
+    ) -> list[LegacyProjectionReleaseReceipt]:
+        with self._cursor() as cursor:
+            cursor.execute(
+                "SELECT receipt_json FROM operation_receipts "
+                "WHERE kind = 'legacy_projection_release' AND aggregate_id = %s "
+                "ORDER BY created_at, receipt_id",
+                (namespace,),
+            )
+            rows = cursor.fetchall()
+        return [
+            LegacyProjectionReleaseReceipt.model_validate_json(str(row["receipt_json"]))
+            for row in rows
+        ]
+
     # -- maintenance ledger ---------------------------------------------------
 
     def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
@@ -1313,47 +1382,59 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
-                tx.execute(
-                    "SELECT record_json FROM memory_records WHERE record_id = %s FOR UPDATE",
-                    (str(record_id),),
-                )
-                record_row = tx.fetchone()
-                tx.execute(
-                    "SELECT receipt_json FROM operation_receipts "
-                    "WHERE receipt_id = %s AND kind = 'deletion' FOR UPDATE",
-                    (str(receipt_id),),
-                )
-                receipt_row = tx.fetchone()
-                if record_row is None or receipt_row is None:
-                    raise StoreError("deletion record or receipt not found")
-                record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
-                receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
-                updated_receipt = receipt.model_copy(
-                    update={
-                        "status": DeletionStatus.COMPLETE,
-                        "completed_at": completed_at,
-                    }
-                )
-                if record.state is not MemoryState.DELETED:
-                    self._insert_status_event(
-                        tx,
-                        MemoryStatusEvent(
-                            record_id=record_id,
-                            previous_state=record.state,
-                            new_state=MemoryState.DELETED,
-                            reason="projection erasure confirmed; verified deletion complete",
-                            actor=actor,
-                            occurred_at=completed_at,
-                            receipt_id=receipt_id,
-                        ),
-                    )
-                tx.execute(
-                    "UPDATE operation_receipts SET status = %s, receipt_json = %s WHERE receipt_id = %s",
-                    (
-                        DeletionStatus.COMPLETE.value,
-                        _json(updated_receipt.model_dump(mode="json")),
-                        str(receipt_id),
-                    ),
-                )
+                self._complete_deletion_tx(tx, record_id, receipt_id, completed_at, actor)
         except psycopg2.Error as exc:
             raise StoreError(f"deletion completion failed: {exc}") from exc
+
+    def _complete_deletion_tx(
+        self,
+        tx: Any,
+        record_id: UUID,
+        receipt_id: UUID,
+        completed_at: datetime,
+        actor: str,
+    ) -> None:
+        """Mark one verified deletion complete inside the caller's transaction."""
+
+        tx.execute(
+            "SELECT record_json FROM memory_records WHERE record_id = %s FOR UPDATE",
+            (str(record_id),),
+        )
+        record_row = tx.fetchone()
+        tx.execute(
+            "SELECT receipt_json FROM operation_receipts "
+            "WHERE receipt_id = %s AND kind = 'deletion' FOR UPDATE",
+            (str(receipt_id),),
+        )
+        receipt_row = tx.fetchone()
+        if record_row is None or receipt_row is None:
+            raise StoreError("deletion record or receipt not found")
+        record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
+        receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
+        updated_receipt = receipt.model_copy(
+            update={
+                "status": DeletionStatus.COMPLETE,
+                "completed_at": completed_at,
+            }
+        )
+        if record.state is not MemoryState.DELETED:
+            self._insert_status_event(
+                tx,
+                MemoryStatusEvent(
+                    record_id=record_id,
+                    previous_state=record.state,
+                    new_state=MemoryState.DELETED,
+                    reason="projection erasure confirmed; verified deletion complete",
+                    actor=actor,
+                    occurred_at=completed_at,
+                    receipt_id=receipt_id,
+                ),
+            )
+        tx.execute(
+            "UPDATE operation_receipts SET status = %s, receipt_json = %s WHERE receipt_id = %s",
+            (
+                DeletionStatus.COMPLETE.value,
+                _json(updated_receipt.model_dump(mode="json")),
+                str(receipt_id),
+            ),
+        )

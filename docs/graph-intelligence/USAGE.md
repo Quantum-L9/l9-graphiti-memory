@@ -13,7 +13,7 @@ updated: 2026-07-22
 
 Decisions: ADR-084 (scope key) · ADR-085 (port, Neo4j) · ADR-086 (contracts,
 evidence) · ADR-087 (traversal, paths) · ADR-088 (GDS analytics) · ADR-089
-(surfaces, observability) · ADR-090 (Graphiti episode identity).
+(surfaces, observability) · ADR-090 (Graphiti episode identity) · ADR-091 (audit remediation).
 
 Graph intelligence is advisory projection intelligence. Every result item is
 `authority_class: advisory_projection` and names the canonical records that
@@ -59,6 +59,15 @@ support: Graphiti entities carry no episode reference. Prefer
 
 There is no tenant field: the tenant is the authenticated principal's. There
 is no query-text field for the database: statements are fixed server-side.
+
+`max_runtime_ms` is one budget for the whole request (ADR-091). Every provider
+statement draws on what is left of it, and an answer that arrives after it
+is refused (`runtime_budget_exceeded`). A multi-namespace search that runs
+out of budget returns what completed in time as `PARTIAL`
+(`runtime_budget_exhausted`). Search operations refuse `target`,
+`relationship_types` and a non-default `direction`
+(`request_field_not_applicable`). A path is returned only when every
+relationship on it has canonical support.
 
 ## SDK
 

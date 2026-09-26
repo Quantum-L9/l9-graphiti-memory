@@ -683,6 +683,28 @@ def cmd_rebuild_projection(args: argparse.Namespace) -> int:
         runtime.close()
 
 
+def cmd_release_legacy_projection(args: argparse.Namespace) -> int:
+    """Release legacy projection copies after their retained store is destroyed."""
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        receipt = runtime.service.release_legacy_projection_copies(
+            principal,
+            namespace,
+            store_destruction_reference=args.store_destruction_reference,
+            apply=args.apply,
+            reason=args.reason,
+        )
+        _print(receipt)
+        return 0
+    finally:
+        runtime.close()
+
+
 def cmd_maintain(args: argparse.Namespace) -> int:
     """Run scheduled canonical-memory maintenance for one namespace."""
 
@@ -1177,6 +1199,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="queue the projection events; without it the run is a dry run",
     )
 
+    release = sub.add_parser("release-legacy-projection")
+    release.add_argument("--group-id", default=None)
+    release.add_argument(
+        "--store-destruction-reference",
+        required=True,
+        help="change or ticket reference recording that the legacy store was destroyed",
+    )
+    release.add_argument("--reason", default="legacy projection store destroyed")
+    release.add_argument(
+        "--apply",
+        action="store_true",
+        help="release and complete waiting deletions; without it the run is a dry run",
+    )
+
     sub.add_parser("outbox-run")
     drain_legacy = sub.add_parser("drain-legacy-write-queue")
     drain_legacy.add_argument("--group-id", default=None)
@@ -1265,6 +1301,7 @@ def main(argv: list[str] | None = None) -> int:
         "synthesize-procedures": cmd_synthesize_procedures,
         "maintain": cmd_maintain,
         "rebuild-projection": cmd_rebuild_projection,
+        "release-legacy-projection": cmd_release_legacy_projection,
         "outbox-run": cmd_outbox_run,
         "drain-legacy-write-queue": cmd_drain_legacy_write_queue,
         "client": cmd_client,
