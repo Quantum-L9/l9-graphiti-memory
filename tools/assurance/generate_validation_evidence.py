@@ -185,8 +185,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # surfaces and observability, campaign PR-F): 13 cases in
         # test_graph_public_surfaces.py, none skipped in CI.
         # 1186 + 13 = 1199 collected, 1199 - 39 = 1160.
-        "1160 tests pass",
-        r"1160 passed",
+        #
+        # Re-pinned 1160 -> 1173 for ADR-090 (Graphiti episode identity and
+        # live qualification, campaign PR-G): 13 cases in
+        # test_graphiti_projection_episode_identity.py, none skipped in CI.
+        # The live module tests/qualification/ skips as a whole without
+        # graphiti_core, adding one CI skip: 39 + 1 = 40.
+        "1173 tests pass",
+        r"1173 passed",
     ),
     CheckSpec(
         "V-002",
@@ -213,8 +219,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 86 -> 87 for ADR-087 (bounded structural operations).
         # Re-pinned 87 -> 88 for ADR-088 (stream-only GDS analytics).
         # Re-pinned 88 -> 89 for ADR-089 (graph public surfaces, metrics).
-        "89 ADRs complete and indexed",
-        r"PASS: 89 ADRs",
+        # Re-pinned 89 -> 90 for ADR-090 (Graphiti episode identity).
+        "90 ADRs complete and indexed",
+        r"PASS: 90 ADRs",
     ),
     CheckSpec(
         "V-004",

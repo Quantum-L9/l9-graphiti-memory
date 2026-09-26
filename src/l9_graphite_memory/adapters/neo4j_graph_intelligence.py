@@ -435,6 +435,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
                 "episode_entities_v1",
                 {
                     "record_id": str(anchor.record_id),
+                    "episode_name": f"memory:{anchor.record_id}",
                     "group_ids": group_ids,
                     "limit": self.anchor_resolution_limit,
                 },
@@ -526,6 +527,9 @@ class Neo4jGraphIntelligence(UnservedOperations):
         if len(nodes) > limits.max_nodes or len(edges) > limits.max_edges:
             truncated = True
         support = self._entity_support(request, list(nodes)) if nodes else {}
+        edge_support = self._episode_support(
+            request, [str(e) for edge in edges.values() for e in edge.get("episodes") or ()]
+        )
         provider_nodes = tuple(
             GraphProviderNode(
                 entity_uuid=UUID(uuid),
@@ -546,7 +550,9 @@ class Neo4jGraphIntelligence(UnservedOperations):
                 fact=edge.get("fact"),
                 valid_at=_as_datetime(edge.get("valid_at")),
                 invalid_at=_as_datetime(edge.get("invalid_at")),
-                supporting_episode_ids=_uuids(edge.get("episodes")),
+                supporting_episode_ids=_uuids(
+                    edge_support.get(str(e), str(e)) for e in edge.get("episodes") or ()
+                ),
             )
             for _, edge in sorted(edges.items())
         )
@@ -859,6 +865,25 @@ class Neo4jGraphIntelligence(UnservedOperations):
             timeout_ms=request.limits.max_runtime_ms,
         )
         return {str(row["uuid"]): _uuids(row.get("episodes")) for row in rows}
+
+    def _episode_support(
+        self, request: GraphProviderRequest, episode_uuids: list[str]
+    ) -> dict[str, str]:
+        """Map edge episode uuids to canonical support ids (ADR-090).
+
+        Ids that name no in-scope episode are returned unchanged; the evidence
+        linker admits only ids that rehydrate to canonical records.
+        """
+
+        unique = sorted(set(episode_uuids))
+        if not unique:
+            return {}
+        rows = self._read(
+            "episode_support_ids_v1",
+            {"episode_uuids": unique, "group_ids": list(request.group_ids)},
+            timeout_ms=request.limits.max_runtime_ms,
+        )
+        return {str(row["uuid"]): str(row["support"]) for row in rows if row.get("support")}
 
     def template_names(self) -> Iterator[str]:
         """Audit hook: every statement this adapter can execute, by name."""

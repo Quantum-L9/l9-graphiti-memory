@@ -52,6 +52,10 @@ _EDGE_FILTER = (
     "AND (r.expired_at IS NULL OR r.expired_at > $recorded_before)) END)) "
     "AND all(x IN nodes(p) WHERE x.group_id IN $group_ids)"
 )
+# Canonical support identity of an episode (ADR-090): the record id carried
+# in its ``memory:<record_id>`` name, else its provider uuid (episodes created
+# under the legacy ``uuid = record_id`` convention).
+_SUPPORT_ID = "CASE WHEN ep.name STARTS WITH 'memory:' THEN substring(ep.name, 7) ELSE ep.uuid END"
 _NODE_MAP = "{uuid: x.uuid, group_id: x.group_id, name: x.name, labels: labels(x)}"
 _EDGE_MAP = (
     "{uuid: r.uuid, source: startNode(r).uuid, target: endNode(r).uuid, type: type(r), "
@@ -101,9 +105,10 @@ STRUCTURAL_TEMPLATES: tuple[QueryTemplate, ...] = (
     QueryTemplate(
         "episode_entities_v1",
         TemplateKind.READ,
-        "MATCH (ep:Episodic {uuid: $record_id})-[m:MENTIONS]->(n:Entity) "
-        "WHERE ep.group_id IN $group_ids AND n.group_id IN $group_ids "
-        "RETURN n.uuid AS uuid ORDER BY uuid LIMIT $limit",
+        "MATCH (ep:Episodic) WHERE ep.group_id IN $group_ids "
+        "AND (ep.name = $episode_name OR ep.uuid = $record_id) "
+        "MATCH (ep)-[m:MENTIONS]->(n:Entity) WHERE n.group_id IN $group_ids "
+        "RETURN DISTINCT n.uuid AS uuid ORDER BY uuid LIMIT $limit",
     ),
     QueryTemplate(
         "entity_lookup_v1",
@@ -117,8 +122,15 @@ STRUCTURAL_TEMPLATES: tuple[QueryTemplate, ...] = (
         TemplateKind.READ,
         "UNWIND $entity_uuids AS id MATCH (n:Entity {uuid: id}) WHERE n.group_id IN $group_ids "
         "OPTIONAL MATCH (ep:Episodic)-[:MENTIONS]->(n) WHERE ep.group_id IN $group_ids "
-        "WITH n, ep ORDER BY ep.uuid "
-        "RETURN n.uuid AS uuid, collect(DISTINCT ep.uuid)[..$support_limit] AS episodes",
+        f"WITH n, {_SUPPORT_ID} AS support ORDER BY support "
+        "RETURN n.uuid AS uuid, collect(DISTINCT support)[..$support_limit] AS episodes",
+    ),
+    QueryTemplate(
+        "episode_support_ids_v1",
+        TemplateKind.READ,
+        "UNWIND $episode_uuids AS id MATCH (ep:Episodic {uuid: id}) "
+        "WHERE ep.group_id IN $group_ids "
+        f"RETURN ep.uuid AS uuid, {_SUPPORT_ID} AS support",
     ),
     *(
         QueryTemplate(
