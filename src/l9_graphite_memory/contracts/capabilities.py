@@ -87,6 +87,19 @@ MCP_OPERATION_TOOLS: dict[str, str] = {
     "conflicts": "memory.conflicts",
     "phase_lock": "memory.phase_lock",
     "verify_phase_lock": "memory.verify_phase_lock",
+    # Graph intelligence (ADR-089) is an MCP + SDK surface, like the two agent
+    # write doors: reported here, deliberately not a CLI lifecycle operation.
+    "graph.search": "memory.graph.search",
+    "graph.semantic_search": "memory.graph.semantic_search",
+    "graph.traverse": "memory.graph.traverse",
+    "graph.path": "memory.graph.path",
+    "graph.neighborhood": "memory.graph.neighborhood",
+    "graph.structural_similarity": "memory.graph.structural_similarity",
+    "graph.community": "memory.graph.community",
+    "graph.centrality": "memory.graph.centrality",
+    "graph.link_prediction": "memory.graph.link_prediction",
+    "graph.structural_embedding": "memory.graph.structural_embedding",
+    "graph.capabilities": "memory.graph.capabilities",
 }
 
 #: Exit codes of the integration-facing CLI commands. Zero is reserved for a

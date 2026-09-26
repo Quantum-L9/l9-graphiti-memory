@@ -113,6 +113,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-086 | [Graph Intelligence Contracts, Receipts, and Evidence Binding](ADR-086-graph-intelligence-contracts-and-evidence-binding.md) | Accepted |
 | ADR-087 | [Bounded Structural Graph Operations](ADR-087-bounded-structural-graph-operations.md) | Accepted |
 | ADR-088 | [Stream-Only GDS Graph Analytics](ADR-088-stream-only-gds-graph-analytics.md) | Accepted |
+| ADR-089 | [Graph Intelligence Public Surfaces and Observability](ADR-089-graph-intelligence-public-surfaces-and-observability.md) | Accepted |
 
 ## Validation
 
@@ -122,4 +123,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-088 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-089 ledger and all mandatory sections.
