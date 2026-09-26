@@ -538,9 +538,11 @@ def test_bounded_pool_releases_slots_when_work_finishes() -> None:
 
     pool = _BoundedPool(1, 0, "test-slots")
     first = pool.try_submit(lambda: 1)
-    assert first is not None and first.result(1) == 1
+    assert first is not None
+    assert first.result(1) == 1
     second = pool.try_submit(lambda: 2)
-    assert second is not None and second.result(1) == 2
+    assert second is not None
+    assert second.result(1) == 2
 
 
 # -- third audit F-02: authorization precedes admission and deadlines ------
@@ -566,8 +568,9 @@ def test_unauthorized_caller_is_refused_even_when_the_request_pool_is_full(monke
     graph = GraphIntelligenceService(
         store, FakeGraphPort(), namespace_policy=service.namespace_policy
     )
+    intruder, request = _unauthorized(principal), _request(limits=_BUDGET)
     with pytest.raises(AuthorizationError):
-        graph.execute(_unauthorized(principal), _request(limits=_BUDGET))
+        graph.execute(intruder, request)
     assert FullPool.submitted == 0  # never reached admission; no receipt produced
 
 
@@ -601,9 +604,10 @@ def test_unauthorized_caller_is_refused_before_queueing_or_deadline(monkeypatch)
         # then hit its deadline.
         occupied = graph.execute(principal("tenant-a"), _request(limits=_BUDGET))
         assert occupied.failures[0]["class"] == "runtime_budget_exceeded"
+        intruder, request = _unauthorized(principal), _request(limits=_BUDGET)
         started = time.monotonic()
         with pytest.raises(AuthorizationError):
-            graph.execute(_unauthorized(principal), _request(limits=_BUDGET))
+            graph.execute(intruder, request)
         assert time.monotonic() - started < 0.1  # decided before queueing or waiting
     finally:
         release.set()
@@ -618,6 +622,7 @@ def test_scope_denial_is_counted_once_when_refused_before_admission(monkeypatch)
     graph = GraphIntelligenceService(
         store, FakeGraphPort(), namespace_policy=service.namespace_policy, metrics=metrics
     )
+    intruder, request = _unauthorized(principal), _request()
     with pytest.raises(AuthorizationError):
-        graph.execute(_unauthorized(principal), _request())
+        graph.execute(intruder, request)
     assert metrics.value("memory_graph_scope_denied_total") == 1

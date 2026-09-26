@@ -432,7 +432,8 @@ def test_release_refuses_a_plan_overtaken_by_a_concurrent_erasure(tmp_path, back
         )
     store.commit_legacy_projection_release = original  # type: ignore[method-assign]
     link = migration.link(record)
-    assert link_withdrawn(link) and legacy_copies(link)
+    assert link_withdrawn(link)
+    assert legacy_copies(link)
     assert store.get_record(record).state is MemoryState.DELETION_PENDING
     assert store.list_legacy_projection_releases(NAMESPACE) == []
 
@@ -586,10 +587,12 @@ def test_release_between_link_read_and_write_is_not_undone(tmp_path, backend) ->
         migration.drain()
     finally:
         store.save_projection_link_if_active = original  # type: ignore[method-assign]
-    assert released and released[0].applied
+    assert len(released) == 1
+    assert released[0].applied
     assert store.get_record(record).state is MemoryState.ACTIVE
     final = migration.link(record)
-    assert final is not None and not link_withdrawn(final)
+    assert final is not None
+    assert not link_withdrawn(final)
     assert legacy_copies(final) == []
     assert str(record) in migration.new.episodes
 
@@ -619,6 +622,7 @@ def test_link_install_gives_up_under_persistent_contention(migration) -> None:
     store.save_projection_link_if_active = always_conflict  # type: ignore[method-assign]
     stats = migration.worker.run_once()
     assert attempts["count"] == OutboxWorker._LINK_INSTALL_ATTEMPTS
-    assert stats["delivered"] == 0 and stats["retried"] == 1
+    assert stats["delivered"] == 0
+    assert stats["retried"] == 1
     assert migration.link(record) is None
     assert str(record) not in migration.old.episodes

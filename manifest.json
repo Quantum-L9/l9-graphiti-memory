@@ -446,7 +446,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "229f105ad71502f821f5ae1aa4ca7a775219e6043ab9dcbd9f9d6b239076b59e",
+      "sha256": "134353700f62a5e4133fbc8023228162a39081929b497dcc49e4f9dacb251239",
       "size_bytes": 136608
     },
     {
@@ -6590,8 +6590,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/graph/service.py",
-      "sha256": "36d929f4366bfcff37719246295ecf3e50427c70b100d425c6af7e51bf485645",
-      "size_bytes": 31437
+      "sha256": "7aedde622ca1425b62306aeedabf2eec07ca058881222b08c050800ee387b6e8",
+      "size_bytes": 32372
     },
     {
       "category": "production_source",
@@ -9806,8 +9806,8 @@
         "version": "2.5.0"
       },
       "path": "tests/security/test_legacy_projection_erasure.py",
-      "sha256": "5d9ed19f1021f1482152979e75337d4c076604432377251e54795d2c7f1dbdc1",
-      "size_bytes": 24962
+      "sha256": "7117896775bb06344ea8d4c654ea1322726a4d3b58e13c6c2fb24f5dedfc4fd3",
+      "size_bytes": 25000
     },
     {
       "category": "tests",
@@ -10286,8 +10286,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_graph_request_budget_and_policy.py",
-      "sha256": "6e0a300f9b50b8679dea141cb6e00d83fdfbe5fb50b0effe8e4b54f1d3a260cc",
-      "size_bytes": 21589
+      "sha256": "f3d27958ffff36fd952a21b462a8a7997e7218f180684d0f6033ac8a1572986c",
+      "size_bytes": 21733
     },
     {
       "category": "tests",
@@ -12478,7 +12478,7 @@
         "version": "2.5.0"
       },
       "path": "validation/SHA256SUMS",
-      "sha256": "cffb3bf2690c8b446db28a9bef79cd3c7e5635f51696dabb053a75cb72612983",
+      "sha256": "2e8078d89e5a13e19c801e0d606c36fd7ce8944414702d2ce2f52a9b7227445b",
       "size_bytes": 108
     },
     {
@@ -12590,7 +12590,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "511e85554e1766c72d6776d74563023812525e2e70cbd0d4f2310d4c571dee6a",
+      "sha256": "d87e5ee9c01adab58344d170906a96f0778dc4ad479d1dced66214c9af3ab39a",
       "size_bytes": 1355
     },
     {
@@ -12606,7 +12606,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "a65aff9d86c5a0f2fd409001da6460dd9e51773719056467d99d9c40bce41a30",
+      "sha256": "9305ad90ce5e83c7f24f5761ccd1d6eeeea880a68ed16f7270d70d12ae43a0eb",
       "size_bytes": 1101
     },
     {
@@ -12622,7 +12622,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "e9cbd75038968ad5f244de6eefa7d42f281ab729ba352b8de4bcc1247d291e8a",
+      "sha256": "35cf64649e35b8ef326d3db99ed3f9839b57665a3dcfebd9d5b8e2535fc3ba4a",
       "size_bytes": 551
     },
     {
@@ -12686,8 +12686,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/l9_meta_apply.txt",
-      "sha256": "d455efc432cf1b97757890f92a4f8467b902112486c661f319211629415b3514",
-      "size_bytes": 27
+      "sha256": "3dc454f62fa207c97b1137afb2e456591d0bc25760d8711c267087e42550864e",
+      "size_bytes": 28
     },
     {
       "category": "validation_evidence",
@@ -12718,7 +12718,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "df471f01b494164c9dd395367485f713f9f24813835bdf5d95ea4c598e3fd7ea",
+      "sha256": "ff15669d7acd41082f3fbfd23aa1b37b5bfbd342d3a70f1be20b179e4f301a08",
       "size_bytes": 659
     },
     {
@@ -12750,8 +12750,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "c156e5d2cdf6b316e6741db5b054ec15cf6a90e722089a911b7757af49ad72f1",
-      "size_bytes": 4071
+      "sha256": "698882611f63fb58e7e49b7333506ae8fae28b6f839b1cb6d0feedef04eacedd",
+      "size_bytes": 4070
     },
     {
       "category": "validation_evidence",
@@ -12782,7 +12782,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "a094bcd15f9c5eb628f6b7e398ec62c7c184e3ba00d4cdadf00ae7781f9c30ac",
+      "sha256": "f438f3e9729e186b9ed2c6490da72afd74d18a9307128cf97ce2dd5cbbc8d28e",
       "size_bytes": 6302
     },
     {
@@ -12862,7 +12862,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "98fb9fb307c1b26104ff454e24a5b9a0c1dd4a609c0170905ac708df1d7eea26",
+      "sha256": "cd393a9f0418445011607b7b5a8808788ef63c942a4080591ac2e1442c8dd6ef",
       "size_bytes": 31505
     },
     {
@@ -12878,7 +12878,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_install.txt",
-      "sha256": "00b8faca874a12ceaffaa997494b6570ddd75e3d000cdd4517a45f03d2481596",
+      "sha256": "8f0f270ebbf2ebb1939aab07fdff57aa24a1d01da4f3b067b832994b95661bcb",
       "size_bytes": 266
     },
     {
@@ -12910,7 +12910,7 @@
         "version": "2.5.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "da8d499a0d75a8628d4f2428a29952cf622c7daac6c774f2df6573c758877463",
+      "sha256": "35558b8692b4307d1c8e920a91e6ee957bf68c989f7681f4c963239e514171ef",
       "size_bytes": 11388
     },
     {

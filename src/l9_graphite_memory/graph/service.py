@@ -38,7 +38,7 @@ import hashlib
 import json
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass, field
@@ -135,6 +135,72 @@ _REQUEST_POOL = _BoundedPool(workers=16, backlog=16, name="l9-graph-request")
 # Projection search calls run here so a stalled provider cannot hold a request
 # past its deadline.
 _SEARCH_POOL = _BoundedPool(workers=8, backlog=8, name="l9-graph-search")
+
+
+@dataclass
+class _SearchHits:
+    """Outcome of the per-namespace search fan-out."""
+
+    hits: dict[UUID, ProjectionHit] = field(default_factory=dict)
+    #: Why the fan-out stopped early (deadline or capacity), if it did.
+    stop_class: str | None = None
+    #: Normalized provider failure class; the request fails when set.
+    provider_error: str | None = None
+
+
+def _gather_search_hits(
+    projection: ProjectionAdapter,
+    strategy: str,
+    query: str,
+    namespaces: Sequence[str],
+    tenant_id: str,
+    per_namespace: int,
+    remaining_ms: Callable[[], int],
+) -> _SearchHits:
+    """Call the projection once per namespace, best hit per record.
+
+    The request deadline is checked between calls, and a call that
+    returns after it is discarded. Each call runs off-thread so the
+    request can stop waiting at its deadline even when the provider
+    stalls; an abandoned call ends at its transport timeout and its
+    result is discarded.
+    """
+
+    gathered = _SearchHits()
+    for namespace in namespaces:
+        if remaining_ms() <= 0:
+            gathered.stop_class = "runtime_budget_exhausted"
+            break
+        future = _SEARCH_POOL.try_submit(
+            projection.search_strategy,
+            strategy,
+            query,
+            (namespace,),
+            limit=per_namespace,
+            tenant_id=tenant_id,
+        )
+        if future is None:
+            # Search capacity is exhausted (stalled provider calls hold
+            # every slot): stop here rather than queue without bound.
+            gathered.stop_class = "graph_capacity_exhausted"
+            break
+        try:
+            namespace_hits = future.result(timeout=max(remaining_ms(), 0) / 1_000)
+        except FuturesTimeoutError:
+            future.cancel()
+            gathered.stop_class = "runtime_budget_exhausted"
+            break
+        except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
+            gathered.provider_error = f"provider_error:{type(exc).__name__}"
+            return gathered
+        if remaining_ms() <= 0:
+            gathered.stop_class = "runtime_budget_exhausted"
+            break
+        for hit in namespace_hits:
+            current = gathered.hits.get(hit.record_id)
+            if current is None or hit.score > current.score:
+                gathered.hits[hit.record_id] = hit
+    return gathered
 
 
 SEARCH_STRATEGIES: dict[GraphOperation, str] = {
@@ -587,52 +653,19 @@ class GraphIntelligenceService:
             return fail("search_requires_query_anchor", "policy")
         if self.projection is None or strategy not in self.projection.capabilities:
             return fail("capability_unavailable", "capability")
-        # One provider call per namespace so the request deadline is checked
-        # between calls; a call that returns after the deadline is discarded.
-        # A single in-flight call is bounded by the transport's own timeout.
-        per_namespace = max(1, limits.max_nodes // len(request.namespaces))
-        best: dict[UUID, ProjectionHit] = {}
-        budget_exhausted = False
-        stop_class = "runtime_budget_exhausted"
-        for namespace in request.namespaces:
-            if remaining_ms() <= 0:
-                budget_exhausted = True
-                break
-            # The call runs off-thread so the request can stop waiting at its
-            # deadline even when the provider stalls; an abandoned call ends
-            # at its transport timeout and its result is discarded.
-            future = _SEARCH_POOL.try_submit(
-                self.projection.search_strategy,
-                strategy,
-                request.anchor.query,
-                (namespace,),
-                limit=per_namespace,
-                tenant_id=tenant_id,
-            )
-            if future is None:
-                # Search capacity is exhausted (stalled provider calls hold
-                # every slot): stop here rather than queue without bound.
-                budget_exhausted = True
-                stop_class = "graph_capacity_exhausted"
-                break
-            try:
-                namespace_hits = future.result(timeout=max(remaining_ms(), 0) / 1_000)
-            except FuturesTimeoutError:
-                future.cancel()
-                budget_exhausted = True
-                break
-            except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
-                return fail(f"provider_error:{type(exc).__name__}", "provider")
-            if remaining_ms() <= 0:
-                budget_exhausted = True
-                break
-            for hit in namespace_hits:
-                current = best.get(hit.record_id)
-                if current is None or hit.score > current.score:
-                    best[hit.record_id] = hit
-        if budget_exhausted and not best:
-            return fail(stop_class, "provider")
-        hits = list(best.values())
+        gathered = _gather_search_hits(
+            self.projection,
+            strategy,
+            request.anchor.query,
+            request.namespaces,
+            tenant_id,
+            max(1, limits.max_nodes // len(request.namespaces)),
+            remaining_ms,
+        )
+        if gathered.provider_error is not None:
+            return fail(gathered.provider_error, "provider")
+        if gathered.stop_class is not None and not gathered.hits:
+            return fail(gathered.stop_class, "provider")
         scope = EvidenceScope(
             tenant_id=tenant_id,
             namespaces=frozenset(request.namespaces),
@@ -640,26 +673,8 @@ class GraphIntelligenceService:
             as_of=request.as_of,
             recorded_before=request.recorded_before,
         )
-        linked = LinkedEvidence()
-        cache: dict[Any, bool] = {}
         try:
-            for hit in sorted(hits, key=lambda h: (-h.score, str(h.record_id))):
-                if self.linker.admit(hit.record_id, scope, cache):
-                    linked.results.append(
-                        {
-                            "kind": "record_hit",
-                            "record_id": str(hit.record_id),
-                            "score": hit.score,
-                            "strategy": strategy,
-                            "supporting_record_ids": [str(hit.record_id)],
-                            "authority_class": "advisory_projection",
-                        }
-                    )
-                else:
-                    # The id may name another tenant's record; never echo it.
-                    linked.unsupported.append(
-                        {"kind": "record_hit", "reason": "no_canonical_support"}
-                    )
+            linked = self._link_search_hits(list(gathered.hits.values()), scope, strategy)
         except Exception as exc:  # noqa: BLE001 - reported as a rehydration failure
             return fail(f"rehydration_error:{type(exc).__name__}", "evidence")
         linked.supporting_record_ids = [
@@ -669,8 +684,8 @@ class GraphIntelligenceService:
         if len(linked.results) > limits.max_nodes:
             linked.results = linked.results[: limits.max_nodes]
             failures.append({"class": "truncated", "stage": "limits"})
-        if budget_exhausted:
-            failures.append({"class": stop_class, "stage": "provider"})
+        if gathered.stop_class is not None:
+            failures.append({"class": gathered.stop_class, "stage": "provider"})
         status = GraphReceiptStatus.COMPLETE
         if failures:
             status = GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL
@@ -686,6 +701,30 @@ class GraphIntelligenceService:
             linked,
             failures,
         )
+
+    def _link_search_hits(
+        self, hits: list[ProjectionHit], scope: EvidenceScope, strategy: str
+    ) -> LinkedEvidence:
+        """Admit each hit only after canonical rehydration under ``scope``."""
+
+        linked = LinkedEvidence()
+        cache: dict[Any, bool] = {}
+        for hit in sorted(hits, key=lambda h: (-h.score, str(h.record_id))):
+            if self.linker.admit(hit.record_id, scope, cache):
+                linked.results.append(
+                    {
+                        "kind": "record_hit",
+                        "record_id": str(hit.record_id),
+                        "score": hit.score,
+                        "strategy": strategy,
+                        "supporting_record_ids": [str(hit.record_id)],
+                        "authority_class": "advisory_projection",
+                    }
+                )
+            else:
+                # The id may name another tenant's record; never echo it.
+                linked.unsupported.append({"kind": "record_hit", "reason": "no_canonical_support"})
+        return linked
 
     # -- helpers -------------------------------------------------------
 
