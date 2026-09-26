@@ -34,20 +34,20 @@ updated: 2026-07-22
 
 | Category | Files |
 |---|---:|
-| `architecture_decisions` | 90 |
+| `architecture_decisions` | 91 |
 | `assurance` | 92 |
 | `ci` | 8 |
 | `configuration` | 10 |
-| `documentation` | 131 |
+| `documentation` | 132 |
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 147 |
 | `repository_root` | 76 |
 | `skill` | 2 |
-| `tests` | 197 |
+| `tests` | 200 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **800**
+- Hashed inventory files below: **805**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -332,7 +332,8 @@ updated: 2026-07-22
 | `docs/adr/ADR-087-bounded-structural-graph-operations.md` | `architecture_decisions` | `architecture_decisions` | 5419 | `1e12904f8523c61e382a3457bffbc512b1450c99c0bbccf0be5a7cf840341f85` |
 | `docs/adr/ADR-088-stream-only-gds-graph-analytics.md` | `architecture_decisions` | `architecture_decisions` | 5429 | `dbbb2454d6df0d4ed747344f23d9edf1e4a50dc8cfae12160f8e86551bc4c70a` |
 | `docs/adr/ADR-089-graph-intelligence-public-surfaces-and-observability.md` | `architecture_decisions` | `architecture_decisions` | 5082 | `eb39493a293b27ff7ac426ce427fee22090b00ddfe5f83ef91fefedf4c3a26d2` |
-| `docs/adr/README.md` | `architecture_decisions` | `architecture_decisions` | 11269 | `0ec8b449ea4bcb2bc68849add2f75bb2b7c53d143425c538714e016475f9a993` |
+| `docs/adr/ADR-090-graphiti-episode-identity-and-live-qualification.md` | `architecture_decisions` | `architecture_decisions` | 6640 | `d9501eab80a66c8dc2b5abe6dac11f1a052af14f8c61e113a208ff08a415d2d9` |
+| `docs/adr/README.md` | `architecture_decisions` | `architecture_decisions` | 11374 | `3de8254fd2f850ec443972e54ae6114d9f0148d28534bba03eb6f7113ed36734` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
 | `docs/audits/L9_GRAPHITI_MEMORY_FORENSIC_CODEBASE_AUDIT.md` | `documentation` | `documentation` | 23490 | `950dd757e835df18166726bead2d45269b2d9bdf82ded464f20e70bfbf78612f` |
@@ -341,8 +342,9 @@ updated: 2026-07-22
 | `docs/generated-data-waves/wave 1.md` | `documentation` | `documentation` | 71598 | `9d607fb1b075643a3a737c48d5a0e08c0f96e1203bef1c4ad2d6d317ed2b1988` |
 | `docs/generated-data-waves/wave 2.md` | `documentation` | `documentation` | 61070 | `9f7ba89e15ee469d9092bf2b111a05f512434bd72c4dba6733b7ab3e0d48bde7` |
 | `docs/graph-intelligence/NEO4J_BINDING.md` | `documentation` | `documentation` | 3768 | `17e592b4ebe611f9995ea4fb4bd470d81d460e085c8e8239f7a488ba210ddd18` |
-| `docs/graph-intelligence/TENANT_SCOPE_MIGRATION.md` | `documentation` | `documentation` | 3180 | `2d7ba309d0f116163948f3ccfd766de9adb0b47de2ad598346102686ddbe027a` |
-| `docs/graph-intelligence/USAGE.md` | `documentation` | `documentation` | 3683 | `a79b9ab85b20c8884ff1e0ade2d597caa1503c7530d6c50595e43d7d1d3e278f` |
+| `docs/graph-intelligence/QUALIFICATION.md` | `documentation` | `documentation` | 5680 | `3bd8ded0fe6086d81b41e381552be0f7ba2bc63fcf71fc5de82ec46bc5b1eb20` |
+| `docs/graph-intelligence/TENANT_SCOPE_MIGRATION.md` | `documentation` | `documentation` | 3790 | `064195d6710f007019a35958e3a964a61da6f2c00b6600150a276255ad98d6b8` |
+| `docs/graph-intelligence/USAGE.md` | `documentation` | `documentation` | 4229 | `79b97720288b6840a59db8363c961157ff905523ff02f84cb014e98c667a089a` |
 | `docs/harvest_coverage.yaml` | `documentation` | `documentation` | 24462 | `f8f176363d0353af788ef0504001d341ec63ff256d8011273b7a39c330afa2fe` |
 | `hooks/graphiti-gate-edits.sh` | `hooks` | `hooks` | 358 | `29c1929141d3a27581a191b61021c197c5a2e30f6c47b3aa7574dccf388ac248` |
 | `hooks/graphiti-gate-shell.sh` | `hooks` | `hooks` | 351 | `a0d160caeca8a0b2be539d9a012b31f2805954bb54741d41ae2f4927637e5385` |
@@ -407,7 +409,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/adapters/graphiti_projection.py` | `production_source` | `adapter` | 17674 | `bb8b052b80b257751d474c0ec94700aba9b86d95a7b1d5eb3bf9d4a1a4507512` |
 | `src/l9_graphite_memory/adapters/in_memory_store.py` | `production_source` | `adapter` | 21519 | `626df26bce1c412fbcc2ec4ec066e7703aa2975f6c3c623b0f1b46c3a77b0ded` |
 | `src/l9_graphite_memory/adapters/neo4j_gds_templates.py` | `production_source` | `adapter` | 6116 | `a966c981b10509d6bf024b37cc864d8cbdd65a9b9c7977d7424667af134f0e47` |
-| `src/l9_graphite_memory/adapters/neo4j_graph_intelligence.py` | `production_source` | `adapter` | 37308 | `2660d92a0f80d76d20c38e91503c80e8b6d26766a7d3e3519b925eacc47f2fc2` |
+| `src/l9_graphite_memory/adapters/neo4j_graph_intelligence.py` | `production_source` | `adapter` | 39453 | `b305c3060a21ca03ea05f962f93cf6534991b7eec65608ecb85352e68a0a6f39` |
 | `src/l9_graphite_memory/adapters/neo4j_graph_templates.py` | `production_source` | `adapter` | 6746 | `a83f582ef7aec5dbc5df764a49d083e7875c307ea3ac4a10d505682fa6b3f983` |
 | `src/l9_graphite_memory/adapters/neo4j_query_policy.py` | `production_source` | `adapter` | 5111 | `a17240be7418a89ca768560453a795fb0fb0a1aefb783a7f61edb7b9ec45478b` |
 | `src/l9_graphite_memory/adapters/null_graph_intelligence.py` | `production_source` | `adapter` | 984 | `8b1d9f4e018b939d3a0012ab0a5992042056fab9c3a0296a1feb27cca41847cc` |
@@ -423,7 +425,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/authz/policy.py` | `production_source` | `production_source` | 3389 | `9c4fb8ee42d99d43c6d7b6bc963d4c8e04c067e599f8dbcb61e6d629fd7f1046` |
 | `src/l9_graphite_memory/authz/signed_assertion.py` | `production_source` | `production_source` | 6442 | `00b3bf5b0126d8ab37905f0c9fe4afbde6355be3117bca20a1e6eaa0fc899ec0` |
 | `src/l9_graphite_memory/circuit_breaker.py` | `production_source` | `production_source` | 2784 | `48348de22f97e017768d47ac47930ed19167e290eeb614d79f474c4bdc7d7499` |
-| `src/l9_graphite_memory/cli.py` | `production_source` | `production_source` | 47535 | `052b0d1231e8b0b18ebec3eb51da6dcc85a11fca27fcb009f65d396c96a3c21d` |
+| `src/l9_graphite_memory/cli.py` | `production_source` | `production_source` | 48899 | `c3ba95f421921d9a4e9f368607682a221f95a01d4d854fe6485a4f3dbe7217e2` |
 | `src/l9_graphite_memory/client_config/__init__.py` | `production_source` | `production_source` | 1560 | `7e715da42d482fe303ca8a7b2a44bcfb28f3de24ae10e41c5719822b7ee2312a` |
 | `src/l9_graphite_memory/client_config/contracts.py` | `production_source` | `production_source` | 4472 | `93934b9a2eb275b13a00f24451a164ee87249b797ebfd96c2c2ffed313c3276c` |
 | `src/l9_graphite_memory/client_config/cursor.py` | `production_source` | `production_source` | 18214 | `b22d69be90b2e3c25ce0d1df58c41218c61eae503fa16c3ffee4a845433fc695` |
@@ -431,7 +433,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/config/__init__.py` | `production_source` | `production_source` | 448 | `ca7aaaa346d76faa176d150b1fe24a6c29318c3bece0bb48c7c419ef56fcae7f` |
 | `src/l9_graphite_memory/config/loader.py` | `production_source` | `production_source` | 7584 | `8fc47bf9d80263de6fb9fd9b93f23cfd5540e2345c7e58eb06fdf113850d39c3` |
 | `src/l9_graphite_memory/config/models.py` | `production_source` | `production_source` | 7401 | `6541fd968d6170c5c240f3c6765a5a48c9e371f0f1fe3db0c66d3570d0acdff5` |
-| `src/l9_graphite_memory/contracts/__init__.py` | `production_source` | `contract` | 4706 | `9f2bb63ff2cc935b85ebe3581ce3754fdb68cbfce848032907030d637a4d2344` |
+| `src/l9_graphite_memory/contracts/__init__.py` | `production_source` | `contract` | 4780 | `f1a16d4d3b0cfce84fca779e01009edf679572a2da4806f5664cbe3a6829ad86` |
 | `src/l9_graphite_memory/contracts/capabilities.py` | `production_source` | `contract` | 7128 | `667ee8e528f8369fbab2d6cf37b73f4955578e79e84cf37fbc617259f85d9dfd` |
 | `src/l9_graphite_memory/contracts/class_vocabulary.py` | `production_source` | `contract` | 5299 | `3a5e6359b61141eb1bb72e427a3f65dc0f2edb6cdcd79868833a9e57526087e2` |
 | `src/l9_graphite_memory/contracts/enums.py` | `production_source` | `contract` | 3562 | `3b615650dec2e89e437a903d7aaf8abc3541331bfdf2a1c4ddaa44b0630478e9` |
@@ -442,7 +444,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/contracts/memory.py` | `production_source` | `contract` | 3667 | `447e14f3d13ddd07337a7bbccd2bbc3328068b7e0edf64854cc78b40582b6a0b` |
 | `src/l9_graphite_memory/contracts/privacy.py` | `production_source` | `contract` | 2137 | `90c7d4f7b99f907d6b286dbb09de4a84cf79e297d9a73bdbe457fac0435e2d10` |
 | `src/l9_graphite_memory/contracts/profiles.py` | `production_source` | `contract` | 3235 | `ba1550aa91af50829129325fa14af66711f84ee57fdb09085e3859e33de18a54` |
-| `src/l9_graphite_memory/contracts/projection.py` | `production_source` | `contract` | 4633 | `4bd6d04c02220cde322cd8e4f5ad04a96609a878beb3fa333c184acf32ad6676` |
+| `src/l9_graphite_memory/contracts/projection.py` | `production_source` | `contract` | 6821 | `5bb316ea5511fdaa98ce75735afda325c6dc93627d87f54ab3289301922b7fc4` |
 | `src/l9_graphite_memory/contracts/receipts.py` | `production_source` | `contract` | 14298 | `7668fc859b5a9c450eab01bf53b2343837a14976a83cda350ab0a444eda856ad` |
 | `src/l9_graphite_memory/contracts/requests.py` | `production_source` | `contract` | 8990 | `e4f7f7413e3f7895b7b28e6ac6ddf87cd23e32e42fdaf540b9d25538de705044` |
 | `src/l9_graphite_memory/contracts/review.py` | `production_source` | `contract` | 4009 | `6166051ac7a29441f83eb6dc48708b53e2a3772977b26a790adf1ad2442c3134` |
@@ -453,17 +455,17 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/curation/quarantine.py` | `production_source` | `production_source` | 10222 | `4d51522dc7f5e9ae91b15e683a81c9da2cb9e485ad1bbec0c131e725ad42fbf6` |
 | `src/l9_graphite_memory/curation/retention.py` | `production_source` | `production_source` | 3998 | `25d13d6af2b7638d7f20cc885e45a6ff55ad347dbac1b9bb4068f3ed1ab24fd5` |
 | `src/l9_graphite_memory/episode_contract.py` | `production_source` | `production_source` | 2257 | `e24414e8488aa008369b422407cc7d2f1318786631251872ddd11a5cecaa1720` |
-| `src/l9_graphite_memory/errors.py` | `production_source` | `production_source` | 3459 | `08c45a92665e535894481f6a5ba6d70212eda24d20d0b473f4614b05b8fdd519` |
+| `src/l9_graphite_memory/errors.py` | `production_source` | `production_source` | 3599 | `59296a9e11f0853815654b00ef4f27b4ee7505886d0742826769b9c2497d3c13` |
 | `src/l9_graphite_memory/extraction/__init__.py` | `production_source` | `production_source` | 773 | `46a4c59ee8f9aa3efca42c7d301071508946e0053be01a59787bbee200a59ad1` |
 | `src/l9_graphite_memory/extraction/atomic.py` | `production_source` | `production_source` | 8701 | `40cb7a0f8b9c9a0fac75a1ca4fc6f1187ecb8af7218d424d27287bab113c9d59` |
 | `src/l9_graphite_memory/extraction/distiller.py` | `production_source` | `production_source` | 4602 | `863de8913dfe0355beec35d641fd6f6177b7527cd4c9a5f23662caf0c642a230` |
 | `src/l9_graphite_memory/graph/__init__.py` | `production_source` | `production_source` | 699 | `8d2dfa804db86f5bd49aebcab60c4a0c59ad7aa9fdda3ba1f3f659128e2c0f1b` |
 | `src/l9_graphite_memory/graph/algorithm_policy.py` | `production_source` | `production_source` | 6042 | `4138e94c0965612780fee7d809f76f8775b7ecf1befae0e4cc6dc2a9a2da7db1` |
 | `src/l9_graphite_memory/graph/contracts.py` | `production_source` | `production_source` | 10515 | `97821e68e3848a92ef1d785ce2a44db37e734258d32bf9f5358a0c14b84ee3e5` |
-| `src/l9_graphite_memory/graph/evidence.py` | `production_source` | `production_source` | 10106 | `fd912f97f6bfa6b1abfd5df99d2ef63765d04b4d7dc69ea890f276c50a5a48af` |
+| `src/l9_graphite_memory/graph/evidence.py` | `production_source` | `production_source` | 11219 | `ea27b4f1e5d31b1c08d102a1833cccd9dd58b746ade18853f5b6fcf59acdfe46` |
 | `src/l9_graphite_memory/graph/ports.py` | `production_source` | `production_source` | 7100 | `0c7a7c8186d074b04f4186b33395543f12a971038c28fd20e10c253885cff926` |
 | `src/l9_graphite_memory/graph/scope.py` | `production_source` | `production_source` | 3277 | `8ee3ed5a2b20f4beb6fe611d1fb4ee1bbfddb8739518abe3fb87a7724f05d744` |
-| `src/l9_graphite_memory/graph/service.py` | `production_source` | `production_source` | 22745 | `94d0ef1ccd42c11706f39071f6f9b1e24586eaa4a9c7faee6c523591455daa1e` |
+| `src/l9_graphite_memory/graph/service.py` | `production_source` | `production_source` | 25870 | `4c5972340ae7da6f6b71e3d7a3e4fd47fb70bba172da9ec53e91705a238ea21f` |
 | `src/l9_graphite_memory/graphiti_gate_lib.py` | `production_source` | `production_source` | 1409 | `00a4dd1fc7a6462974c78d0ac0e95ece49e2f91ad6375d3c905e7a2c39415c8e` |
 | `src/l9_graphite_memory/graphiti_memory_client.py` | `production_source` | `production_source` | 441 | `1d52faf2979e368428395634d1828d55e35603c997cc06158b28f3162d0cdd52` |
 | `src/l9_graphite_memory/group_resolver.py` | `production_source` | `production_source` | 5043 | `bc64121f5d488dcb07b2a27c37ca16d44b4d0a585e876147b19fd3170a6bdef9` |
@@ -530,8 +532,8 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/server.py` | `production_source` | `production_source` | 18342 | `0f466470f898ff2dab649fc8b74c2a2c35de7d4ab994e095d7f9b48822b47b47` |
 | `src/l9_graphite_memory/services/__init__.py` | `production_source` | `service` | 474 | `1c5499701993253acd4a359a336fd654ef53a28ac02953b1ccc4a0033ff42158` |
 | `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 14723 | `67091d61a316be27602f4b09ef9e7d5d87f1a849fdab23a7bc95e2cecabaec93` |
-| `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 58102 | `e5d865d751edfa3e06212a072b264bd3892ad586843567464031f625b66e4641` |
-| `src/l9_graphite_memory/services/outbox_worker.py` | `production_source` | `service` | 16295 | `77218e5cbd2a59dc49fcdef46e3727031bfdd543c65c79e1da4684eab0b5304b` |
+| `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 61676 | `a203e544e8ac1296f67ba337304455b068112efdca7abc11adc0d3ec93651dde` |
+| `src/l9_graphite_memory/services/outbox_worker.py` | `production_source` | `service` | 19681 | `5eee84eed84a09aff4c6dd4829d6cf44789293b663a1cb3acbb2c3513a85af09` |
 | `src/l9_graphite_memory/transport.py` | `production_source` | `production_source` | 13622 | `75643012b7b55852c86b1c0b5f7a7b8cccca8480037494d12c1e8c5fb111a351` |
 | `src/l9_graphite_memory/trust_boundary.py` | `production_source` | `production_source` | 2883 | `0204be3016103469ec5b41799400d6ce2f9d77e32eafc754f78f675f63b51089` |
 | `src/l9_graphite_memory/version.py` | `production_source` | `production_source` | 1309 | `f37072b1ee4c87ed579ebc498e26cf58b962013b3594391ed3b124a53c953c51` |
@@ -654,6 +656,8 @@ updated: 2026-07-22
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `tests` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |
 | `tests/integration/test_topology_publication_e2e.py` | `tests` | `tests` | 7214 | `958dd1ecfce5c526b5ff067581a7e004c4d6fd8f7b018161fdff4b640b541421` |
 | `tests/integration/test_topology_publication_e2e_v2.py` | `tests` | `tests` | 8546 | `fcf1178af45342fa9982728a06bf292425d9b2202a159aa88fec32263123a003` |
+| `tests/qualification/graphiti_harness.py` | `tests` | `tests` | 12902 | `efcd2d112b6161c5aa0c2b09ac9d3e9b72615fabe66f5b99d865e33cc00a54ec` |
+| `tests/qualification/test_graphiti_live_qualification.py` | `tests` | `tests` | 15694 | `7a723d4aa95a8e4109cd33de4c1282a1a3d890fd522ad2ce362230ce0ccbaead` |
 | `tests/regression/test_assurance_tools.py` | `tests` | `tests` | 1982 | `79f0cb7dae4814c1a6ed73858b9ab47d05518c0dcb6d975d998902e62f6908ef` |
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `tests` | 4320 | `4ab10fdc1eee8035396984f6960aaaf80100aa6206778a6090d878e1142c6615` |
 | `tests/regression/test_phase6_operator.py` | `tests` | `tests` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
@@ -687,12 +691,13 @@ updated: 2026-07-22
 | `tests/unit/test_gate.py` | `tests` | `tests` | 3780 | `3ba0ef50fe9ebff296e6d37b92c0a5ac10a61179203e91286a9db91017840863` |
 | `tests/unit/test_graph_algorithm_policy.py` | `tests` | `tests` | 3497 | `bf3da289d622794cd144bd9b2f3762f72cec80fd2a6d9a97e153ec8c2fbe570d` |
 | `tests/unit/test_graph_contracts.py` | `tests` | `tests` | 4033 | `619262ade3d5c4416136ba079bdb6b1c60d700dff79cb81161ab856c810f8ff7` |
-| `tests/unit/test_graph_evidence_linking.py` | `tests` | `tests` | 6535 | `1da9772f86ecf1793546a274811e0564f96c33e99848ffe7adfd6d1ade693096` |
+| `tests/unit/test_graph_evidence_linking.py` | `tests` | `tests` | 9142 | `8bdd79f3453ee2eda9be03526ebe44813e39b391b9f7044d5f1350b024e31c87` |
 | `tests/unit/test_graph_intelligence_factory.py` | `tests` | `tests` | 4602 | `21b4dec86252bc86a6c0f43941111652498dde4b9483a5f53ee08a0b9baa7e95` |
 | `tests/unit/test_graph_public_surfaces.py` | `tests` | `tests` | 8799 | `01d89e26e1fde67139e3028587f8a0c864dba2fa34fa7ed7e864849a1cdf818f` |
 | `tests/unit/test_graph_query_policy.py` | `tests` | `tests` | 4637 | `a7581e67f2832460f4f08bb314a655d9fe2b38e13a25e24eed134cc647f456cb` |
 | `tests/unit/test_graph_scope_key.py` | `tests` | `tests` | 2854 | `b88d9623853a57c7ce2cb88d769b138c57b85d510cd7cce5454cd417be5b3a3b` |
-| `tests/unit/test_graph_service.py` | `tests` | `tests` | 14018 | `2959d906c58e27a1e2fe25f8bf2bb35829daa60984b9f52d1ff57cfda1e3009c` |
+| `tests/unit/test_graph_service.py` | `tests` | `tests` | 14163 | `5e79917861f8dbaedc8fed400dd9b78e7150dd8c65790764f0d550a1fdaa555d` |
+| `tests/unit/test_graphiti_projection_episode_identity.py` | `tests` | `tests` | 7516 | `2cfa4fa0a4221fd8cf9bd67120ffa888926859b4603f874b79311b7e7c4f54ad` |
 | `tests/unit/test_group_resolver.py` | `tests` | `tests` | 3503 | `27b40124f42234a9d7c53cde89cab244b87503d9c685521ffa09c23338418896` |
 | `tests/unit/test_http_mcp_request_injection.py` | `tests` | `tests` | 3138 | `f03ad77579f9d76ee58ce0d3e94cc0b0d0a17789718cc0391c82130d3d6b9b66` |
 | `tests/unit/test_http_mcp_transport_wire.py` | `tests` | `tests` | 5995 | `3c7b020390a024eef3e69123cb55d695c485c08489053ae9466a3abfa2e9eea5` |
@@ -745,9 +750,9 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 8677 | `d736b5a0efc317838a80da921868db36559baacc24919a3039202895dbc67d98` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 23284 | `d4d94ebb6441e762768657da67326e21f0ecbd0ea95f81e7218a014be97f7b97` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 23635 | `a39095b426ae6e36e0157aa19d99737a4f83158206c25ae8b6ce1eab892a1e46` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
-| `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `ecedbcddae47aa6aaf296ec827fd667db84f508701c1f6fb09a0d1fdbe252818` |
+| `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `19cf90056688f9da60e7f4a50560b8efe2356792b423f3ef61b777b0e07f32f6` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2404 | `b7134c65005e4a92ce485b1a1cb582af8a0a0f29931516c3e7493e7373309088` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2468 | `ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5` |
@@ -826,33 +831,33 @@ updated: 2026-07-22
 | `tools/phase6/tests/test_hardening.py` | `assurance` | `assurance` | 41037 | `19507aa553e0fa6da00a7ea5b96e449537be2daa48cf927d4d105810fb92c115` |
 | `tools/phase6/validation_report.yaml` | `assurance` | `assurance` | 1497 | `93351fb155a5b74c4fb46fe38c276d6a88912583ef5678261fc13af221026f36` |
 | `uv.lock` | `repository_root` | `repository_root` | 431980 | `d1d86ba74a38c23465d9b502c656cedc3d84c4f175a6970ff8d75eb3c4f4ff3d` |
-| `validation/SHA256SUMS` | `validation_evidence` | `validation_evidence` | 108 | `204a8cd6f38dfad8c4a4c3c117be414ed05959299d644f16ee1639d1cc90e76e` |
-| `validation/logs/adr_validation.txt` | `validation_evidence` | `validation_evidence` | 35 | `38ad1c6533681f3f55d88060ba2f909270cde3a6d6951b1144f1c6f6dad294b4` |
+| `validation/SHA256SUMS` | `validation_evidence` | `validation_evidence` | 108 | `ccc9c3f67fd4c9f67064f207aee98f60e8ac4f2292d7d9a6c786e63e35958a88` |
+| `validation/logs/adr_validation.txt` | `validation_evidence` | `validation_evidence` | 35 | `964e2168b0185c738e6c2886e6e123ff74cb7e90a4f2ab852cb4bf6a76cfb102` |
 | `validation/logs/bypass_check.txt` | `validation_evidence` | `validation_evidence` | 78 | `02fed3c856fe825ff8c2c04b68f49c3046d205367eb68cea6285987ef1665159` |
 | `validation/logs/committed_secrets.txt` | `validation_evidence` | `validation_evidence` | 200 | `80e92f5557ab8a050e1aa12d5dd276dbdf727b4f6523246bba108bb41a883bfe` |
 | `validation/logs/compileall.txt` | `validation_evidence` | `validation_evidence` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 | `validation/logs/config_drift.txt` | `validation_evidence` | `validation_evidence` | 122 | `dc0c81f558b8a41eff16a5ad07b4c65615b10c11c149202d1db27ea0d6a5c3e0` |
 | `validation/logs/harvest_coverage.txt` | `validation_evidence` | `validation_evidence` | 101 | `72c4cb7e4ce0e24fb5c6613c6a5b8953af02e774223b42594ad0ecb97e2ddd98` |
-| `validation/logs/installed_cursor_client.txt` | `validation_evidence` | `validation_evidence` | 1355 | `8f2ccededb59f35613875f0fff2ac7fb34929536ac94483176b104f551b846c6` |
-| `validation/logs/installed_cursor_probe.txt` | `validation_evidence` | `validation_evidence` | 1101 | `9280f9b2b8d547478f421ffe878718073c304b970819f50dfaeb1c192e5e8ed3` |
-| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 551 | `b08d2a75d15da11dd5d075319336634c74d0e1aa25509a816e796e4ecf095cad` |
+| `validation/logs/installed_cursor_client.txt` | `validation_evidence` | `validation_evidence` | 1355 | `5163df960b9a5b32244dc114deb5c2d183fdc88d273968a61e79f5adfeee5b7a` |
+| `validation/logs/installed_cursor_probe.txt` | `validation_evidence` | `validation_evidence` | 1101 | `43d365aaea7425590d30e078924875b54072098f95d8057ef7009d22c28d347a` |
+| `validation/logs/installed_health.txt` | `validation_evidence` | `validation_evidence` | 551 | `c79d27cea6d62cd1463ce7dbe278407b7ea6b06040843b8a700be83fad27c703` |
 | `validation/logs/installed_mcp.txt` | `validation_evidence` | `validation_evidence` | 74 | `1c914e551866e771b04079e24386621bea2e393ef8dca06ccacd40d3bf6670ff` |
 | `validation/logs/installed_resolve.txt` | `validation_evidence` | `validation_evidence` | 137 | `eae6487763b5416bca0bd4e711b38b74b9231186d8682cf75cea4615fc74efd2` |
 | `validation/logs/l9_meta.txt` | `validation_evidence` | `validation_evidence` | 83 | `e305e6a7e79c48e68745c71dc7b65912068010b67a512ae8498745be7137adf0` |
 | `validation/logs/l9_meta_apply.txt` | `validation_evidence` | `validation_evidence` | 27 | `d455efc432cf1b97757890f92a4f8467b902112486c661f319211629415b3514` |
 | `validation/logs/layer_boundaries.txt` | `validation_evidence` | `validation_evidence` | 80 | `3a9e49589664f3aa63e6e470f64d79e8db7957485afb4027533c1c654e07005b` |
-| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 653 | `e9f14319b2970912f817c615ae0b797f8fbda2b6dc841f6d1af8894cbddb785d` |
-| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `e20bcb63d3b6949177b546fa7ff1e18a4ffa1f4a872fea44be3fc7ea013745c2` |
-| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 4070 | `581c1749ecd856dfb0ce3cf6a2d53dcc798f751db1301d3801aebb83ca7f0bf1` |
+| `validation/logs/local_benchmark.txt` | `validation_evidence` | `validation_evidence` | 659 | `577e5f5bfcffcc36665a76e53222966e3b6e7065d5e0f2dc5a1217c2cf7d0ebb` |
+| `validation/logs/manifest_validation.txt` | `validation_evidence` | `validation_evidence` | 64 | `35dd654d131910e8baa2d6a63cfb9162dcf7d1e50ed91bc52b08d350f1809198` |
+| `validation/logs/preflight.txt` | `validation_evidence` | `validation_evidence` | 4071 | `b25223a83cf414b1623463e28f8b0033637f7674a922c9f97f456d6aa0aaefd0` |
 | `validation/logs/projection_manifests.txt` | `validation_evidence` | `validation_evidence` | 511 | `69fa3ce535fa3fc7d9a6e71446b6b4209dc4f1e8c728d0e7a22096933703a6ab` |
-| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 6212 | `adf230c48594a47525af33ce6c8bb541f3b1fbb853c0f6b437d292355887d4f5` |
+| `validation/logs/pytest.txt` | `validation_evidence` | `validation_evidence` | 6302 | `b7011b2cd12c75384812815de8ed917b54f0a05de24bca7bf96af5e2a25c5999` |
 | `validation/logs/recursive_alignment.txt` | `validation_evidence` | `validation_evidence` | 70 | `e5e2d7db7b0c91990f7fdf089e78d343fd212368e0ad3f99c300b5fdd530f993` |
 | `validation/logs/shell_syntax.txt` | `validation_evidence` | `validation_evidence` | 23 | `a0c54f351e5a214abe7090433031f08eb3a95539d861058de5c2d7da6309d2d8` |
 | `validation/logs/source_quality.txt` | `validation_evidence` | `validation_evidence` | 67 | `60bcbdb9191d76b88ff272fb80fecfd2f17f0b048148d246d430c6e10001b6a2` |
 | `validation/logs/validation_evidence.txt` | `validation_evidence` | `validation_evidence` | 62 | `b458ca9ab0f3bfc62b1e19838579c88c4f824bb502249e68fa3bc48b61d61b2e` |
-| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 31505 | `4e8345ca9162fb9b42b84a648ed6ef9a6643ab5b2e9f91804ad84bf24560e30a` |
-| `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 266 | `e49f7734941a4bd9abf8e0048dc0cc46c352c0de7f92ac50dc435af6ec28a6c5` |
+| `validation/logs/wheel_build.txt` | `validation_evidence` | `validation_evidence` | 31505 | `c1770f9022f9abe39bce16ed40f2d4095c6796d9700ec266ac7b6e520181d927` |
+| `validation/logs/wheel_install.txt` | `validation_evidence` | `validation_evidence` | 266 | `0eab4c97a45465630cd58237fab6abcdeb8102c96dcfaf307dffbc7878ca0d55` |
 | `validation/logs/wiring_audit.txt` | `validation_evidence` | `validation_evidence` | 35 | `79c0d4521adb7f88f9601239160115c1c3a465d82a4d9c66a313bdbc20f5f7e3` |
-| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 11388 | `713f70fe7f6c3d5708c95a7862474646cc489ca058d621361d634d03f9cc2ded` |
+| `validation/validation_checks.jsonl` | `validation_evidence` | `validation_evidence` | 11388 | `2816812d80df12351815a36120fe21388de8bce2265777d8a8cddcf8dacc80cf` |
 | `validation/validation_findings.jsonl` | `validation_evidence` | `validation_evidence` | 2717 | `5f2afa8ba52b03d2451510acc296faaddfc3046e5f787c5d769cc560e7edb700` |
 | `validation/validation_report.yaml` | `validation_evidence` | `validation_evidence` | 474 | `74c0d718ec3cdc3ac8efcb85c3bc0ccf3781176531b8672e5a835ae2d22d9ef1` |

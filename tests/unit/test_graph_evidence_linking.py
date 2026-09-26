@@ -146,6 +146,69 @@ def test_path_through_an_unsupported_hop_is_not_authoritative() -> None:
     assert {item["kind"] for item in linked.unsupported} == {"node", "path"}
 
 
+def _edge(source, target, *support, edge_uuid=None):
+    return GraphProviderEdge(
+        edge_uuid=edge_uuid or uuid4(),
+        source_uuid=source.entity_uuid,
+        target_uuid=target.entity_uuid,
+        relationship_type="RELATES_TO",
+        group_id=A_GROUP,
+        supporting_episode_ids=support,
+    )
+
+
+def test_path_over_an_unsupported_relationship_is_not_served() -> None:
+    """Audit finding 2: node support must not stand in for the edge between them."""
+
+    _service, store, _p, write = seeded_memory()
+    record = write("tenant-a", "fact")
+    a, b = _node(record), _node(record)
+    edge = _edge(a, b, uuid4())  # cites an episode with no canonical record
+    path = GraphProviderPath(
+        node_uuids=(a.entity_uuid, b.entity_uuid), edge_uuids=(edge.edge_uuid,), length=1
+    )
+    linked = CanonicalEvidenceLinker(store).link(
+        GraphProviderResult(
+            operation=GraphOperation.PATH, nodes=(a, b), edges=(edge,), paths=(path,)
+        ),
+        _scope(),
+    )
+    assert [item["kind"] for item in linked.results] == ["node", "node"]
+    reasons = {item["kind"]: item["reason"] for item in linked.unsupported}
+    assert reasons == {"edge": "no_canonical_support", "path": "unsupported_relationship"}
+
+
+def test_path_with_an_unidentified_hop_is_not_served() -> None:
+    _service, store, _p, write = seeded_memory()
+    record = write("tenant-a", "fact")
+    a, b = _node(record), _node(record)
+    path = GraphProviderPath(node_uuids=(a.entity_uuid, b.entity_uuid), length=1)
+    linked = CanonicalEvidenceLinker(store).link(
+        GraphProviderResult(operation=GraphOperation.PATH, nodes=(a, b), paths=(path,)),
+        _scope(),
+    )
+    assert "path" not in {item["kind"] for item in linked.results}
+    assert linked.unsupported[0]["reason"] == "unsupported_relationship"
+
+
+def test_supported_path_carries_node_and_edge_support() -> None:
+    _service, store, _p, write = seeded_memory()
+    node_record, edge_record = write("tenant-a", "nodes"), write("tenant-a", "edge")
+    a, b = _node(node_record), _node(node_record)
+    edge = _edge(a, b, edge_record)
+    path = GraphProviderPath(
+        node_uuids=(a.entity_uuid, b.entity_uuid), edge_uuids=(edge.edge_uuid,), length=1
+    )
+    linked = CanonicalEvidenceLinker(store).link(
+        GraphProviderResult(
+            operation=GraphOperation.PATH, nodes=(a, b), edges=(edge,), paths=(path,)
+        ),
+        _scope(),
+    )
+    (served,) = [item for item in linked.results if item["kind"] == "path"]
+    assert served["supporting_record_ids"] == sorted([str(node_record), str(edge_record)])
+
+
 def test_embeddings_are_digested_not_returned_by_default() -> None:
     _service, store, _p, write = seeded_memory()
     record = write("tenant-a", "fact")

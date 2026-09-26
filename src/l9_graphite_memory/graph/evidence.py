@@ -78,8 +78,8 @@ class CanonicalEvidenceLinker:
         admitted: dict[UUID, bool] = {}
         try:
             node_support = self._nodes(result.nodes, scope, linked, admitted)
-            self._edges(result.edges, scope, linked, admitted)
-            self._paths(result, node_support, linked)
+            edge_support = self._edges(result.edges, scope, linked, admitted)
+            self._paths(result, node_support, edge_support, linked)
             self._scores(result.scores, scope, node_support, linked)
         except Exception as exc:  # noqa: BLE001 - reported as a rehydration failure
             linked.rehydration_error = type(exc).__name__
@@ -159,7 +159,10 @@ class CanonicalEvidenceLinker:
         scope: EvidenceScope,
         linked: LinkedEvidence,
         cache: dict[UUID, bool],
-    ) -> None:
+    ) -> dict[UUID, list[str]]:
+        """Admit edges with canonical support; return support by edge uuid."""
+
+        edge_support: dict[UUID, list[str]] = {}
         ordered = sorted(
             edges,
             key=lambda e: (
@@ -202,11 +205,24 @@ class CanonicalEvidenceLinker:
                     "authority_class": AUTHORITY_CLASS,
                 }
             )
+            if edge.edge_uuid is not None:
+                edge_support[edge.edge_uuid] = support
+        return edge_support
 
     @staticmethod
     def _paths(
-        result: GraphProviderResult, node_support: dict[UUID, list[str]], linked: LinkedEvidence
+        result: GraphProviderResult,
+        node_support: dict[UUID, list[str]],
+        edge_support: dict[UUID, list[str]],
+        linked: LinkedEvidence,
     ) -> None:
+        """Admit a path only when every node and every relationship is supported.
+
+        Node evidence says nothing about the relationship between two nodes;
+        a hop whose edge was not admitted (or cannot be identified) makes the
+        path unsupported rather than borrowing its endpoints' support.
+        """
+
         for path in result.paths:
             identity = {
                 "node_uuids": [str(n) for n in path.node_uuids],
@@ -216,7 +232,17 @@ class CanonicalEvidenceLinker:
             if not all(node in node_support for node in path.node_uuids):
                 linked.unsupported.append({"kind": "path", **identity, "reason": "unsupported_hop"})
                 continue
-            support = sorted({rid for node in path.node_uuids for rid in node_support[node]})
+            if len(path.edge_uuids) != path.length or not all(
+                edge in edge_support for edge in path.edge_uuids
+            ):
+                linked.unsupported.append(
+                    {"kind": "path", **identity, "reason": "unsupported_relationship"}
+                )
+                continue
+            support = sorted(
+                {rid for node in path.node_uuids for rid in node_support[node]}
+                | {rid for edge in path.edge_uuids for rid in edge_support[edge]}
+            )
             linked.results.append(
                 {
                     "kind": "path",

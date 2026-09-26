@@ -70,6 +70,10 @@ class GraphCapabilityUnavailable(GraphIntelligenceError):
     """The configured graph-intelligence backend cannot serve this capability."""
 
 
+class GraphRuntimeBudgetExceeded(GraphIntelligenceError):
+    """A graph operation used up its request-wide ``max_runtime_ms`` budget."""
+
+
 class GraphQueryPolicyViolation(GraphIntelligenceError):
     """A query template or request violated the static graph query policy."""
 

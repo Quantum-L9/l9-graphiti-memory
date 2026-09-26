@@ -41,6 +41,7 @@ from l9_graphite_memory.contracts import (
     HealthReport,
     HydrationRequest,
     HydrationResult,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransition,
     LifecycleTransitionReceipt,
     MemoryClass,
@@ -65,6 +66,12 @@ from l9_graphite_memory.contracts import (
     TemporalCoordinates,
     WriteReceipt,
     WriteStatus,
+)
+from l9_graphite_memory.contracts.projection import (
+    LEGACY_COPIES_KEY,
+    PENDING_DELETION_RECEIPT_KEY,
+    legacy_copies,
+    link_withdrawn,
 )
 from l9_graphite_memory.curation import (
     PromotionPolicy,
@@ -1297,7 +1304,13 @@ class MemoryService:
                 if record.record_id in queued:
                     continue
                 link = self.store.get_projection_link(record.record_id, self.projection.name)
-                if link is not None and link.metadata.get("scope_scheme") != scope_scheme:
+                if link is None:
+                    continue
+                if link_withdrawn(link):
+                    # The link survives only to carry legacy erasure
+                    # obligations (ADR-091); the record has no live copy.
+                    candidates = [*candidates, record]
+                elif link.metadata.get("scope_scheme") != scope_scheme:
                     stale_scope.append(record)
             candidates = [*candidates, *stale_scope]
         events = tuple(
@@ -1334,6 +1347,75 @@ class MemoryService:
                 SERVICE_WRITE_CAPABILITY, receipt, outbox_events=events
             )
         return receipt
+
+    def release_legacy_projection_copies(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        store_destruction_reference: str,
+        apply: bool,
+        limit: int | None = None,
+        reason: str = "legacy projection store destroyed",
+    ) -> LegacyProjectionReleaseReceipt:
+        """Release legacy projection copies once their retained store is destroyed.
+
+        A stale-scope re-projection (ADR-084) leaves the superseded copy in the
+        provider store kept for rollback; the link records it as an erasure
+        obligation, and verified deletion of that record stays pending while
+        it is outstanding. Releasing asserts that the retained store no longer
+        exists, so those deletions complete; active records simply drop the
+        obligation (ADR-091). Requires ADMIN, as deletion does.
+        """
+
+        authorization = self.namespace_policy.require(
+            principal, AuthorizationAction.ADMIN, namespace
+        )
+        if self.projection.name == "none":
+            raise StoreError("projection backend is 'none'; there are no legacy copies")
+        now = self.clock.now()
+        released: list[UUID] = []
+        completed: list[UUID] = []
+        copy_count = 0
+        records = self.store.list_records(principal.tenant_id, namespace, states=(), limit=limit)
+        for record in records:
+            link = self.store.get_projection_link(record.record_id, self.projection.name)
+            copies = legacy_copies(link)
+            if link is None or not copies:
+                continue
+            released.append(record.record_id)
+            copy_count += len(copies)
+            pending = link.metadata.get(PENDING_DELETION_RECEIPT_KEY)
+            waiting = record.state is MemoryState.DELETION_PENDING and isinstance(pending, str)
+            if waiting:
+                completed.append(record.record_id)
+            if not apply:
+                continue
+            if link_withdrawn(link):
+                self.store.delete_projection_link(record.record_id, self.projection.name)
+            else:
+                metadata = {k: v for k, v in link.metadata.items() if k != LEGACY_COPIES_KEY}
+                self.store.save_projection_link(link.model_copy(update={"metadata": metadata}))
+            if waiting:
+                self.store.complete_deletion(
+                    record.record_id,
+                    UUID(str(pending)),
+                    completed_at=now,
+                    actor=f"memory.legacy-release:{principal.audit_subject}",
+                )
+        return LegacyProjectionReleaseReceipt(
+            namespace=namespace,
+            projection_name=self.projection.name,
+            applied=apply,
+            released_record_ids=tuple(released),
+            released_copy_count=copy_count,
+            completed_deletion_record_ids=tuple(completed),
+            authorization=authorization,
+            store_destruction_reference=store_destruction_reference,
+            reason=reason,
+            actor=principal.audit_subject,
+            created_at=now,
+        )
 
     def health(self) -> HealthReport:
         store_health = self.store.health()

@@ -47,9 +47,10 @@ from l9_graphite_memory.errors import (
     AuthorizationError,
     GraphCapabilityUnavailable,
     GraphQueryPolicyViolation,
+    GraphRuntimeBudgetExceeded,
 )
 from l9_graphite_memory.observability.graph_metrics import GRAPH_METRICS, GraphMetrics
-from l9_graphite_memory.ports import ProjectionAdapter, RecordStore
+from l9_graphite_memory.ports import ProjectionAdapter, ProjectionHit, RecordStore
 
 from .algorithm_policy import (
     AlgorithmPolicy,
@@ -84,6 +85,10 @@ from .scope import (
 )
 
 #: Candidate-retrieval operations served by the Graphiti projection strategies.
+# Smallest budget worth starting a provider operation with; it is also the
+# GraphLimits floor for max_runtime_ms.
+MIN_PROVIDER_BUDGET_MS = 10
+
 SEARCH_STRATEGIES: dict[GraphOperation, str] = {
     GraphOperation.SEARCH: "graph-search",
     GraphOperation.SEMANTIC_SEARCH: "semantic-search",
@@ -252,6 +257,14 @@ class GraphIntelligenceService:
         namespaces = request.namespaces
         for namespace in namespaces:
             self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
+        # One request-wide deadline: every stage below draws on the same
+        # max_runtime_ms instead of each receiving all of it (ADR-091).
+        budget_ms = min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
+        deadline = self._monotonic() + budget_ms / 1_000
+
+        def remaining_ms() -> int:
+            return int((deadline - self._monotonic()) * 1_000)
+
         tenant_id = principal.tenant_id
         group_ids = graph_group_ids(tenant_id, namespaces)
         scope_digest = graph_request_scope_digest(tenant_id, namespaces)
@@ -288,13 +301,36 @@ class GraphIntelligenceService:
                 [{"class": failure_class, "stage": stage}],
             )
 
-        if request.operation in SEARCH_STRATEGIES:
-            return self._search(
-                request, tenant_id, scope_digest, provider, limits, limits_applied, required
-            )
+        # Shared request policy runs before any operation-specific path.
         disallowed = [r for r in relationship_types if r not in self.config.relationship_allowlist]
         if disallowed:
             return refuse("relationship_type_not_allowed", "policy")
+        if request.operation in SEARCH_STRATEGIES:
+            # Search has no traversal: fields that would shape one are refused
+            # rather than silently ignored.
+            if (
+                request.target is not None
+                or request.relationship_types
+                or request.direction != "both"
+            ):
+                return refuse("request_field_not_applicable", "policy")
+            try:
+                search_algorithm = self.config.algorithm_policy.resolve(
+                    request.operation, request.algorithm
+                )
+            except GraphQueryPolicyViolation:
+                return refuse("algorithm_not_admitted", "policy")
+            return self._search(
+                request,
+                tenant_id,
+                scope_digest,
+                provider,
+                limits,
+                limits_applied,
+                required,
+                search_algorithm,
+                remaining_ms,
+            )
         method_name = PORT_METHODS.get(request.operation)
         if (
             method_name is None
@@ -319,6 +355,9 @@ class GraphIntelligenceService:
                     # Same answer whether the record is absent or foreign.
                     return refuse("anchor_not_in_scope", "anchor", identity)
 
+        budget_left = remaining_ms()
+        if budget_left < MIN_PROVIDER_BUDGET_MS:
+            return refuse("runtime_budget_exhausted", "limits", identity)
         provider_request = GraphProviderRequest(
             operation=request.operation,
             group_ids=group_ids,
@@ -328,7 +367,7 @@ class GraphIntelligenceService:
             direction=request.direction,
             as_of=request.as_of,
             recorded_before=request.recorded_before,
-            limits=limits,
+            limits=limits.model_copy(update={"max_runtime_ms": budget_left}),
             algorithm_id=algorithm.id,
             algorithm_config=algorithm_config,
             operation_id=_canonical_digest(
@@ -339,10 +378,16 @@ class GraphIntelligenceService:
             result: GraphProviderResult = getattr(self.port, method_name)(provider_request)
         except GraphCapabilityUnavailable:
             return refuse("capability_unavailable", "provider", identity)
+        except GraphRuntimeBudgetExceeded:
+            return refuse("runtime_budget_exhausted", "provider", identity)
         except GraphQueryPolicyViolation:
             return refuse("query_policy_violation", "provider", identity)
         except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
             return refuse(f"provider_error:{type(exc).__name__}", "provider", identity)
+        if remaining_ms() <= 0:
+            # The provider answered after the request's hard ceiling; serving
+            # it would make max_runtime_ms advisory.
+            return refuse("runtime_budget_exceeded", "provider", identity)
 
         linked = self.linker.link(
             result,
@@ -400,6 +445,8 @@ class GraphIntelligenceService:
         limits: Any,
         limits_applied: dict[str, Any],
         required: bool,
+        algorithm: GraphAlgorithm,
+        remaining_ms: Callable[[], int],
     ) -> GraphIntelligenceReceipt:
         """graph.search / graph.semantic_search over the existing projection.
 
@@ -409,7 +456,6 @@ class GraphIntelligenceService:
         """
 
         strategy = SEARCH_STRATEGIES[request.operation]
-        algorithm = self.config.algorithm_policy.resolve(request.operation, request.algorithm)
         identity = algorithm_identity(algorithm, {"strategy": strategy, "limit": limits.max_nodes})
 
         def fail(failure_class: str, stage: str) -> GraphIntelligenceReceipt:
@@ -428,16 +474,36 @@ class GraphIntelligenceService:
             return fail("search_requires_query_anchor", "policy")
         if self.projection is None or strategy not in self.projection.capabilities:
             return fail("capability_unavailable", "capability")
-        try:
-            hits = self.projection.search_strategy(
-                strategy,
-                request.anchor.query,
-                request.namespaces,
-                limit=limits.max_nodes,
-                tenant_id=tenant_id,
-            )
-        except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
-            return fail(f"provider_error:{type(exc).__name__}", "provider")
+        # One provider call per namespace so the request deadline is checked
+        # between calls; a call that returns after the deadline is discarded.
+        # A single in-flight call is bounded by the transport's own timeout.
+        per_namespace = max(1, limits.max_nodes // len(request.namespaces))
+        best: dict[UUID, ProjectionHit] = {}
+        budget_exhausted = False
+        for namespace in request.namespaces:
+            if remaining_ms() <= 0:
+                budget_exhausted = True
+                break
+            try:
+                namespace_hits = self.projection.search_strategy(
+                    strategy,
+                    request.anchor.query,
+                    (namespace,),
+                    limit=per_namespace,
+                    tenant_id=tenant_id,
+                )
+            except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
+                return fail(f"provider_error:{type(exc).__name__}", "provider")
+            if remaining_ms() <= 0:
+                budget_exhausted = True
+                break
+            for hit in namespace_hits:
+                current = best.get(hit.record_id)
+                if current is None or hit.score > current.score:
+                    best[hit.record_id] = hit
+        if budget_exhausted and not best:
+            return fail("runtime_budget_exhausted", "provider")
+        hits = list(best.values())
         scope = EvidenceScope(
             tenant_id=tenant_id,
             namespaces=frozenset(request.namespaces),
@@ -474,6 +540,8 @@ class GraphIntelligenceService:
         if len(linked.results) > limits.max_nodes:
             linked.results = linked.results[: limits.max_nodes]
             failures.append({"class": "truncated", "stage": "limits"})
+        if budget_exhausted:
+            failures.append({"class": "runtime_budget_exhausted", "stage": "provider"})
         status = GraphReceiptStatus.COMPLETE
         if failures:
             status = GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL

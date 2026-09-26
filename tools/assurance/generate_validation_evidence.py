@@ -191,8 +191,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # test_graphiti_projection_episode_identity.py, none skipped in CI.
         # The live module tests/qualification/ skips as a whole without
         # graphiti_core, adding one CI skip: 39 + 1 = 40.
-        "1173 tests pass",
-        r"1173 passed",
+        #
+        # Re-pinned 1173 -> 1195 for ADR-091 (campaign audit remediation,
+        # PR-H): 6 cases in security/test_legacy_projection_erasure.py, 3 in
+        # test_graph_evidence_linking.py, 13 in
+        # test_graph_request_budget_and_policy.py; none skipped in CI.
+        "1195 tests pass",
+        r"1195 passed",
     ),
     CheckSpec(
         "V-002",
@@ -220,8 +225,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 87 -> 88 for ADR-088 (stream-only GDS analytics).
         # Re-pinned 88 -> 89 for ADR-089 (graph public surfaces, metrics).
         # Re-pinned 89 -> 90 for ADR-090 (Graphiti episode identity).
-        "90 ADRs complete and indexed",
-        r"PASS: 90 ADRs",
+        # Re-pinned 90 -> 91 for ADR-091 (campaign audit remediation).
+        "91 ADRs complete and indexed",
+        r"PASS: 91 ADRs",
     ),
     CheckSpec(
         "V-004",

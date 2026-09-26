@@ -244,11 +244,15 @@ def test_runtime_budget_is_clamped_to_the_deployment_ceiling() -> None:
     port = FakeGraphPort(
         {GraphOperation.NEIGHBORHOOD: GraphProviderResult(operation="graph.neighborhood")}
     )
-    graph = GraphIntelligenceService(store, port, config=GraphServiceConfig(max_runtime_ms=500))
+    graph = GraphIntelligenceService(
+        store, port, config=GraphServiceConfig(max_runtime_ms=500), monotonic=lambda: 100.0
+    )
     receipt = graph.execute(
         principal("tenant-a"), _request(limits=GraphLimits(max_runtime_ms=9_000))
     )
     assert receipt.limits_applied["max_runtime_ms"] == 500
+    # No time has passed on the frozen clock, so the whole clamped budget
+    # remains for the provider.
     assert port.requests[0].limits.max_runtime_ms == 500
 
 
