@@ -10,9 +10,9 @@
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-26T20:53:41.964090Z",
+  "created_at": "2026-09-26T21:53:24.099957Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.lLFBT58eum/installed-smoke/home/.cursor/mcp.json",
+  "path": "/tmp/tmp.8BTqsIv4Ef/installed-smoke/home/.cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -20,7 +20,7 @@
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "e06f61c0-e565-488d-b503-1790e8afef7e",
+  "receipt_id": "2a7a0de4-b189-4461-b02b-be4b5fc83a13",
   "status": "dry_run",
   "warnings": []
 }
@@ -36,15 +36,15 @@
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-26T20:53:42.765528Z",
+  "created_at": "2026-09-26T21:53:24.912135Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.lLFBT58eum/installed-smoke/home/.cursor/mcp.json",
+  "path": "/tmp/tmp.8BTqsIv4Ef/installed-smoke/home/.cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": "a3d6f22cfbd2519ece22f0c7b7c8613ad96fe4817db4750a09be34b22dfe7431",
   "pre_sha256": null,
   "preserved_server_keys": [],
   "reasons": [],
-  "receipt_id": "4560d838-e8bc-497b-b2fb-2bf02abd7af7",
+  "receipt_id": "ed00c9f6-07ea-4d77-8a23-c974ea4379f2",
   "status": "complete",
   "warnings": []
 }
