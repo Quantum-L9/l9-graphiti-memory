@@ -149,6 +149,8 @@ Structural graph intelligence is a sibling of the projection adapter (ADR-085). 
 
 The Neo4j adapter serves bounded traversal, neighborhood, and shortest-path discovery (ADR-087) from a closed family of per-depth, per-direction templates. Every node and relationship on a path must lie in an authorized GraphScopeKey group and pass the relationship allowlist and the valid-time/transaction-time filters, so a cross-tenant edge cannot be crossed. `graph.search` and `graph.semantic_search` reuse the projection strategies with the principal's tenant and rehydrate every hit.
 
+Graph analytics (ADR-088) run in GDS stream mode only over an ephemeral catalog graph projected from the authorized, temporally valid scope and dropped in `finally`; nothing is written back. Centrality, communities, FastRP embeddings, and structural similarity are deterministic (fixed seeds, single-threaded); link prediction is alpha, feature-gated, scored over in-scope common neighbours, and never materialized.
+
 ## Projection erasure
 
 Projection writes must return or establish a stable episode locator. The locator is stored in the canonical store as a `ProjectionLink`. A deletion outbox event loads that locator and invokes the provider deletion operation. Graphiti uses `delete_episode`; Zep uses `graph.episode.delete`. The link is removed only after provider confirmation, then the canonical deletion receipt becomes complete.

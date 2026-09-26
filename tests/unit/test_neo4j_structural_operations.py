@@ -274,4 +274,4 @@ def test_adapter_serves_the_baseline_structural_capabilities() -> None:
 
     adapter, _driver = _adapter(healthy_graphiti_responses())
     served = {capability.value for capability in adapter.capabilities()}
-    assert served == {"graph.traverse", "graph.path", "graph.neighborhood"}
+    assert {"graph.traverse", "graph.path", "graph.neighborhood"} <= served

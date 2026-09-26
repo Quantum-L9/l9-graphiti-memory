@@ -174,8 +174,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # integration/test_neo4j_graph_traversal.py that CI skips without
         # L9_MEMORY_TEST_NEO4J_URI. 1138 + 24 = 1162 collected, CI skips
         # 18 + 10 = 28, so 1162 - 28 = 1134.
-        "1134 tests pass",
-        r"1134 passed",
+        #
+        # Re-pinned 1134 -> 1147 for ADR-088 (stream-only GDS analytics,
+        # campaign PR-E): 13 cases in test_neo4j_gds_operations.py plus 11
+        # live cases in integration/test_neo4j_gds_analytics.py that CI
+        # skips without L9_MEMORY_TEST_NEO4J_URI. 1162 + 24 = 1186 collected,
+        # CI skips 28 + 11 = 39, so 1186 - 39 = 1147.
+        "1147 tests pass",
+        r"1147 passed",
     ),
     CheckSpec(
         "V-002",
@@ -200,8 +206,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 84 -> 85 for ADR-085 (graph intelligence port, Neo4j).
         # Re-pinned 85 -> 86 for ADR-086 (graph contracts and evidence).
         # Re-pinned 86 -> 87 for ADR-087 (bounded structural operations).
-        "87 ADRs complete and indexed",
-        r"PASS: 87 ADRs",
+        # Re-pinned 87 -> 88 for ADR-088 (stream-only GDS analytics).
+        "88 ADRs complete and indexed",
+        r"PASS: 88 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -289,8 +296,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 133 -> 137 for ADR-086: graph/contracts.py,
         # graph/algorithm_policy.py, graph/evidence.py, graph/service.py.
         # Re-pinned 137 -> 138 for ADR-087: adapters/neo4j_graph_templates.py.
-        "138 production files pass",
-        r"PASS: 138 production Python files",
+        # Re-pinned 138 -> 139 for ADR-088: adapters/neo4j_gds_templates.py.
+        "139 production files pass",
+        r"PASS: 139 production Python files",
     ),
     CheckSpec(
         "V-012",
