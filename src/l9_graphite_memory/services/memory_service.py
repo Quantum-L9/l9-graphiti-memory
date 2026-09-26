@@ -1380,6 +1380,7 @@ class MemoryService:
         link_updates: list[ProjectionLink] = []
         link_removals: list[tuple[UUID, str]] = []
         deletion_completions: list[tuple[UUID, UUID]] = []
+        expected_links: list[ProjectionLink] = []
         copy_count = 0
         records = self.store.list_records(principal.tenant_id, namespace, states=(), limit=limit)
         for record in records:
@@ -1388,6 +1389,7 @@ class MemoryService:
             if link is None or not copies:
                 continue
             released.append(record.record_id)
+            expected_links.append(link)
             copy_count += len(copies)
             if link_withdrawn(link):
                 link_removals.append((record.record_id, self.projection.name))
@@ -1422,6 +1424,7 @@ class MemoryService:
                 link_updates=tuple(link_updates),
                 link_removals=tuple(link_removals),
                 deletion_completions=tuple(deletion_completions),
+                expected_links=tuple(expected_links),
             )
         return receipt
 

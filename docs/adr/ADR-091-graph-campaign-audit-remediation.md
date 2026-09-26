@@ -60,16 +60,54 @@ not catch:
    obligations and completes the waiting deletions through one
    capability-gated store commit, `commit_legacy_projection_release`. That
    commit persists the receipt to the operation ledger, rewrites or removes the
-   links, and completes the deletions in a single transaction.
-   `list_legacy_projection_releases` reads the ledger. Rebuild treats a
-   withdrawn link on an active record as unprojected.
+   links, and completes the deletions in a single transaction. The commit
+   also receives every link as it was read when the release was planned, and
+   applies nothing if any has changed since. A concurrent outbox erasure can
+   therefore never be overwritten by a stale plan, and the operator simply
+   retries. In the in-memory store, link writers take the same lock the
+   release holds, so a link write cannot land between the check and the
+   apply. `list_legacy_projection_releases` reads the ledger.
+   The outbox worker installs a projection link only through
+   `save_projection_link_if_active`, which checks that the record is still
+   ACTIVE and writes the link in one atomic store step (a row lock on
+   PostgreSQL). If a deletion, retirement or release lands after the worker's
+   provider write, the link is refused and the fresh provider copy is
+   withdrawn. A record whose deletion is complete can never regain a link. Rebuild
+   treats a withdrawn link on an active record as unprojected.
+   The worker derives the new link's legacy obligations from the link it
+   replaces, so the same write also compares that link with the one it read
+   (`expected_previous`). If a release (or any other link writer) changed it in
+   between, the store raises `ProjectionLinkConflict` and writes nothing. The
+   worker then re-reads the link and re-derives the obligations, up to three
+   attempts. A released obligation is never carried back. When every attempt
+   conflicts, the worker withdraws the fresh copy and the outbox retries the
+   event.
 2. **Path admission requires every relationship.** A path is served only when
    every node is supported, every hop has an identified edge, and every edge
-   was admitted with canonical support. Its support is the union of node and
-   edge support. Otherwise it is reported as unsupported
-   (`unsupported_hop` or `unsupported_relationship`).
-3. **One deadline per request.** `GraphIntelligenceService` fixes a monotonic
-   deadline when an operation starts, clamped to the deployment ceiling.
+   was admitted with canonical support. Each hop's edge must also connect
+   exactly that hop's two nodes, in the request's orientation (`out`:
+   node[i]→node[i+1]; `in`: the reverse; `both`: either). The path must be
+   well formed: length+1 distinct nodes and distinct edges. Its support is the
+   union of node and edge support. Otherwise it is reported as unsupported
+   (`unsupported_hop`, `unsupported_relationship`,
+   `relationship_does_not_connect_hop` or `malformed_path`).
+3. **One deadline per request, and a hard ceiling on the caller's time.**
+   Namespace READ authorization runs first, on the caller's thread. An
+   unauthorized request raises `AuthorizationError` before admission,
+   capacity or deadline handling, and never receives a graph receipt.
+   `GraphIntelligenceService.execute` then runs the whole operation on a bounded
+   worker pool and waits at most `max_runtime_ms` (clamped to the deployment
+   ceiling). That covers health probing, the provider, canonical evidence
+   rehydration, GDS cleanup and projection transport alike. When the wait
+   ends first, the caller gets FAILED `runtime_budget_exceeded` (stage
+   `request`), built without touching the backend. The work still in flight
+   ends against its own statement and transport timeouts, GDS catalog cleanup
+   included, and its result is discarded. Both worker pools (whole operations
+   and projection search calls) have bounded admission (workers plus an equal
+   backlog). A request that finds the pool full is refused at once with
+   `graph_capacity_exhausted` (stage `admission`), so a hung backend cannot
+   make queued requests accumulate. Inside the operation the service also
+   fixes a monotonic deadline:
    - The provider receives only the budget left, and none below 10 ms
      (`runtime_budget_exhausted`).
    - An answer that arrives after the deadline is refused
@@ -117,9 +155,10 @@ evidence-bearing canonical persistence; no bypass).
 - Deletions during a migration rollback window complete only after the
   retained store is destroyed and released.
 - Paths are fewer but always backed by evidence for every relationship.
-- Requests end near `max_runtime_ms`. Neo4j statements are bounded by
-  per-statement driver timeouts. Projection search is bounded by the worker
-  wait.
+- The caller never waits longer than `max_runtime_ms` plus scheduling slack.
+  Abandoned work holds a pool worker until its own timeout. A saturated pool
+  turns into immediate `graph_capacity_exhausted` refusals, never an
+  unbounded queue.
 - Deletions of records whose rebuild had not yet run also wait for the
   release. An in-place upgrade without the fresh-database rebuild (which
   ADR-084 forbids) keeps every such deletion pending until release.
@@ -145,12 +184,22 @@ obligations; the obligation is recorded when the ADR-084 rebuild runs. Run
   runs; release atomic, persisted and capability-gated on memory, SQLite and
   PostgreSQL.
 - `tests/unit/test_graph_evidence_linking.py`: unsupported relationship,
-  unidentified hop, union support.
+  unidentified hop, union support, a supported edge between other nodes
+  (hostile), hop orientation per direction, malformed shapes, a matching
+  two-hop path.
+- `tests/security/test_legacy_projection_erasure.py` also covers injected
+  failure mid-commit, process restart and idempotent retry, and a plan
+  overtaken by a concurrent erasure, on memory, SQLite and PostgreSQL. It also
+  covers a release landing between the worker's link read and its link write,
+  which must stay released (all three backends), and link install giving up
+  under persistent contention.
 - `tests/unit/test_graph_request_budget_and_policy.py`: remaining budget to the
   provider, refusal when spent, late answer refused, adapter statements share
   one budget, GDS cleanup after exhaustion, search policy refusals, a
   multi-namespace deadline yielding PARTIAL, and a stalled provider abandoned
-  at the deadline.
+  at the deadline. Wall-clock bounds (150 ms budget, under 0.6 s total) hold
+  for slow health, slow evidence rehydration, slow GDS cleanup (which still
+  completes) and a stalled projection transport on both search strategies.
 
 ## Rollback Conditions
 

@@ -50,6 +50,18 @@ class EvidenceScope:
     as_of: datetime | None = None
     recorded_before: datetime | None = None
     include_raw_vectors: bool = False
+    # Orientation a path's hops must follow: "out" = node[i] -> node[i+1],
+    # "in" = node[i+1] -> node[i], "both" = either (ADR-091).
+    path_direction: str = "both"
+
+
+@dataclass(frozen=True)
+class AdmittedEdge:
+    """An edge that survived canonical binding, with the endpoints it connects."""
+
+    source: UUID
+    target: UUID
+    support: list[str]
 
 
 @dataclass
@@ -79,7 +91,7 @@ class CanonicalEvidenceLinker:
         try:
             node_support = self._nodes(result.nodes, scope, linked, admitted)
             edge_support = self._edges(result.edges, scope, linked, admitted)
-            self._paths(result, node_support, edge_support, linked)
+            self._paths(result, node_support, edge_support, linked, scope.path_direction)
             self._scores(result.scores, scope, node_support, linked)
         except Exception as exc:  # noqa: BLE001 - reported as a rehydration failure
             linked.rehydration_error = type(exc).__name__
@@ -159,10 +171,10 @@ class CanonicalEvidenceLinker:
         scope: EvidenceScope,
         linked: LinkedEvidence,
         cache: dict[UUID, bool],
-    ) -> dict[UUID, list[str]]:
-        """Admit edges with canonical support; return support by edge uuid."""
+    ) -> dict[UUID, AdmittedEdge]:
+        """Admit edges with canonical support; return them by edge uuid."""
 
-        edge_support: dict[UUID, list[str]] = {}
+        edge_support: dict[UUID, AdmittedEdge] = {}
         ordered = sorted(
             edges,
             key=lambda e: (
@@ -206,21 +218,63 @@ class CanonicalEvidenceLinker:
                 }
             )
             if edge.edge_uuid is not None:
-                edge_support[edge.edge_uuid] = support
+                edge_support[edge.edge_uuid] = AdmittedEdge(
+                    edge.source_uuid, edge.target_uuid, support
+                )
         return edge_support
 
     @staticmethod
+    def _path_defect(
+        path: Any, edge_support: dict[UUID, AdmittedEdge], direction: str
+    ) -> str | None:
+        """Why a path's shape or hops do not hold, or None when they all do.
+
+        Every hop i must be carried by an admitted edge whose endpoints are
+        exactly node[i] and node[i+1] in the requested orientation; an edge
+        that is supported but connects other nodes proves nothing about this
+        hop.
+        """
+
+        nodes, edges = path.node_uuids, path.edge_uuids
+        if (
+            len(nodes) != path.length + 1
+            or len(set(nodes)) != len(nodes)
+            or len(set(edges)) != len(edges)
+        ):
+            return "malformed_path"
+        if len(edges) != path.length:
+            # A hop with no identified relationship cannot be verified.
+            return "unsupported_relationship"
+        for index, edge_uuid in enumerate(edges):
+            admitted = edge_support.get(edge_uuid)
+            if admitted is None:
+                return "unsupported_relationship"
+            here, there = nodes[index], nodes[index + 1]
+            forward = admitted.source == here and admitted.target == there
+            backward = admitted.source == there and admitted.target == here
+            if not (
+                (direction == "out" and forward)
+                or (direction == "in" and backward)
+                or (direction == "both" and (forward or backward))
+            ):
+                return "relationship_does_not_connect_hop"
+        return None
+
+    @classmethod
     def _paths(
+        cls,
         result: GraphProviderResult,
         node_support: dict[UUID, list[str]],
-        edge_support: dict[UUID, list[str]],
+        edge_support: dict[UUID, AdmittedEdge],
         linked: LinkedEvidence,
+        direction: str = "both",
     ) -> None:
         """Admit a path only when every node and every relationship is supported.
 
         Node evidence says nothing about the relationship between two nodes;
-        a hop whose edge was not admitted (or cannot be identified) makes the
-        path unsupported rather than borrowing its endpoints' support.
+        a hop whose edge was not admitted, cannot be identified, or does not
+        connect that hop's two nodes makes the path unsupported rather than
+        borrowing support from elsewhere.
         """
 
         for path in result.paths:
@@ -232,16 +286,13 @@ class CanonicalEvidenceLinker:
             if not all(node in node_support for node in path.node_uuids):
                 linked.unsupported.append({"kind": "path", **identity, "reason": "unsupported_hop"})
                 continue
-            if len(path.edge_uuids) != path.length or not all(
-                edge in edge_support for edge in path.edge_uuids
-            ):
-                linked.unsupported.append(
-                    {"kind": "path", **identity, "reason": "unsupported_relationship"}
-                )
+            defect = cls._path_defect(path, edge_support, direction)
+            if defect is not None:
+                linked.unsupported.append({"kind": "path", **identity, "reason": defect})
                 continue
             support = sorted(
                 {rid for node in path.node_uuids for rid in node_support[node]}
-                | {rid for edge in path.edge_uuids for rid in edge_support[edge]}
+                | {rid for edge in path.edge_uuids for rid in edge_support[edge].support}
             )
             linked.results.append(
                 {

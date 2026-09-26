@@ -45,6 +45,7 @@ from l9_graphite_memory.contracts import (
 from l9_graphite_memory.errors import (
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
+    ProjectionLinkConflict,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -890,26 +891,60 @@ class SQLiteRecordStore:
     def save_projection_link(self, link: ProjectionLink) -> None:
         try:
             with self._transaction() as tx:
-                tx.execute(
-                    """
-                    INSERT INTO projection_links (
-                        record_id, projection_name, namespace, locator, created_at, link_json
-                    ) VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(record_id, projection_name) DO UPDATE SET
-                        namespace = excluded.namespace,
-                        locator = excluded.locator,
-                        created_at = excluded.created_at,
-                        link_json = excluded.link_json
-                    """,
-                    (
-                        str(link.record_id),
-                        link.projection_name,
-                        link.namespace,
-                        link.locator,
-                        _dt(link.created_at),
-                        _json(link.model_dump(mode="json")),
-                    ),
+                self._upsert_projection_link(tx, link)
+        except sqlite3.Error as exc:
+            raise StoreError(f"projection link persistence failed: {exc}") from exc
+
+    def _upsert_projection_link(self, tx: Any, link: ProjectionLink) -> None:
+        tx.execute(
+            """
+            INSERT INTO projection_links (
+                record_id, projection_name, namespace, locator, created_at, link_json
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(record_id, projection_name) DO UPDATE SET
+                namespace = excluded.namespace,
+                locator = excluded.locator,
+                created_at = excluded.created_at,
+                link_json = excluded.link_json
+            """,
+            (
+                str(link.record_id),
+                link.projection_name,
+                link.namespace,
+                link.locator,
+                _dt(link.created_at),
+                _json(link.model_dump(mode="json")),
+            ),
+        )
+
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
+        try:
+            with self._transaction() as tx:
+                row = tx.execute(
+                    "SELECT record_json FROM memory_records WHERE record_id = ?",
+                    (str(link.record_id),),
+                ).fetchone()
+                if row is None:
+                    return False
+                record = schema_registry.read_record(json.loads(str(row["record_json"])))
+                if record.state is not MemoryState.ACTIVE:
+                    return False
+                current_row = tx.execute(
+                    "SELECT link_json FROM projection_links "
+                    "WHERE record_id = ? AND projection_name = ?",
+                    (str(link.record_id), link.projection_name),
+                ).fetchone()
+                current = (
+                    ProjectionLink.model_validate_json(str(current_row["link_json"]))
+                    if current_row
+                    else None
                 )
+                if current != expected_previous:
+                    raise ProjectionLinkConflict("projection link changed since it was read")
+                self._upsert_projection_link(tx, link)
+                return True
         except sqlite3.Error as exc:
             raise StoreError(f"projection link persistence failed: {exc}") from exc
 
@@ -1103,12 +1138,24 @@ class SQLiteRecordStore:
         link_updates: tuple[ProjectionLink, ...] = (),
         link_removals: tuple[tuple[UUID, str], ...] = (),
         deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
     ) -> None:
         require_service_write_capability(capability)
         if not receipt.applied:
             raise StoreError("cannot persist a non-applied legacy projection release")
         try:
             with self._transaction() as tx:
+                for expected in expected_links:
+                    row = tx.execute(
+                        "SELECT link_json FROM projection_links "
+                        "WHERE record_id = ? AND projection_name = ?",
+                        (str(expected.record_id), expected.projection_name),
+                    ).fetchone()
+                    current = (
+                        ProjectionLink.model_validate_json(str(row["link_json"])) if row else None
+                    )
+                    if current != expected:
+                        raise StoreError("projection link changed since the release was planned")
                 tx.execute(
                     """
                     INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
