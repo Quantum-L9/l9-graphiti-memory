@@ -16,9 +16,9 @@ PASS  MCP inventory
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-26T19:01:47.093373Z",
+  "created_at": "2026-09-26T19:12:58.631666Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.Iu0CEOKpxW/cursor/mcp.json",
+  "path": "/tmp/tmp.JOStP4DubE/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,7 +26,7 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "d9e3c500-962d-4f03-aaf2-c3dbccccb704",
+  "receipt_id": "a82afa5b-db72-428e-889f-f589ca686616",
   "status": "dry_run",
   "warnings": []
 }
@@ -41,14 +41,14 @@ PASS  cursor client dry-run
     "stdio"
   ],
   "config_path": null,
-  "created_at": "2026-09-26T19:01:48.716682Z",
+  "created_at": "2026-09-26T19:13:00.244984Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "b439fa63-dc2f-411c-bc57-f1efd38edf04",
+  "receipt_id": "a5539807-45b8-4edd-9883-5fa02dc7e969",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.5.0",
@@ -125,25 +125,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.5874,
-      "p50_ms": 0.5152,
-      "p95_ms": 0.5874,
+      "max_ms": 0.9179,
+      "p50_ms": 0.7927,
+      "p95_ms": 0.9179,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.5255,
-      "p50_ms": 0.3562,
-      "p95_ms": 0.4633,
+      "max_ms": 0.7423,
+      "p50_ms": 0.5321,
+      "p95_ms": 0.6733,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.664,
-      "p50_ms": 0.1145,
-      "p95_ms": 0.3015,
+      "max_ms": 0.6552,
+      "p50_ms": 0.1575,
+      "p95_ms": 0.432,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

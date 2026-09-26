@@ -363,7 +363,11 @@ class InMemoryRecordStore:
         )
 
     def save_projection_link(self, link: ProjectionLink) -> None:
-        self.projection_links[(link.record_id, link.projection_name)] = link
+        # Link writers share the store lock so a legacy-copy release (which
+        # validates its plan and applies it under that lock) can never be
+        # interleaved with an outbox link write (ADR-091).
+        with self._write_lock:
+            self.projection_links[(link.record_id, link.projection_name)] = link
 
     def get_projection_link(
         self,
@@ -373,7 +377,8 @@ class InMemoryRecordStore:
         return self.projection_links.get((record_id, projection_name))
 
     def delete_projection_link(self, record_id: UUID, projection_name: str) -> None:
-        self.projection_links.pop((record_id, projection_name), None)
+        with self._write_lock:
+            self.projection_links.pop((record_id, projection_name), None)
 
     def stats(self) -> dict[str, Any]:
         by_state: dict[str, int] = {}

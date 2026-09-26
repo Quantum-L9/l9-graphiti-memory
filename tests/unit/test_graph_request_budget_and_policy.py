@@ -476,3 +476,68 @@ def test_stalled_projection_transport_is_bounded_on_every_search_strategy() -> N
             assert receipt.status is GraphReceiptStatus.FAILED
     finally:
         release.set()
+
+
+def test_graph_requests_beyond_pool_capacity_are_refused_immediately(monkeypatch) -> None:
+    """Codex review on #73: admission is bounded instead of queueing without limit."""
+
+    import threading
+
+    from l9_graphite_memory.graph import service as service_module
+
+    monkeypatch.setattr(
+        service_module, "_REQUEST_POOL", service_module._BoundedPool(1, 0, "test-graph")
+    )
+    release = threading.Event()
+
+    class HungPort(FakeGraphPort):
+        def health(self):
+            release.wait(5)
+            return super().health()
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        HungPort(
+            {GraphOperation.NEIGHBORHOOD: GraphProviderResult(operation="graph.neighborhood")}
+        ),
+        namespace_policy=service.namespace_policy,
+    )
+    try:
+        first, _ = _timed(graph, principal("tenant-a"), _request(limits=_BUDGET))
+        second, elapsed = _timed(graph, principal("tenant-a"), _request(limits=_BUDGET))
+    finally:
+        release.set()
+    assert first.failures[0]["class"] == "runtime_budget_exceeded"
+    assert second.failures == ({"class": "graph_capacity_exhausted", "stage": "admission"},)
+    assert elapsed < 0.1  # refused at admission, not after waiting out the budget
+
+
+def test_search_beyond_pool_capacity_is_refused(monkeypatch) -> None:
+    from l9_graphite_memory.graph import service as service_module
+
+    class FullPool:
+        def try_submit(self, *args, **kwargs):
+            return None
+
+    monkeypatch.setattr(service_module, "_SEARCH_POOL", FullPool())
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        FakeGraphPort(),
+        namespace_policy=service.namespace_policy,
+        projection=Projection(Clock(), {}),
+    )
+    receipt = graph.execute(principal("tenant-a"), _search())
+    assert receipt.status is GraphReceiptStatus.FAILED
+    assert receipt.failures[0]["class"] == "graph_capacity_exhausted"
+
+
+def test_bounded_pool_releases_slots_when_work_finishes() -> None:
+    from l9_graphite_memory.graph.service import _BoundedPool
+
+    pool = _BoundedPool(1, 0, "test-slots")
+    first = pool.try_submit(lambda: 1)
+    assert first is not None and first.result(1) == 1
+    second = pool.try_submit(lambda: 2)
+    assert second is not None and second.result(1) == 2

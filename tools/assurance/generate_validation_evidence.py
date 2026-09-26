@@ -202,8 +202,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1201 -> 1217 for the second PR-H audit (PR-I): 6 store-matrix
         # failure-injection/restart and stale-plan cases, 6 path-hop binding
         # cases, 4 wall-clock request-ceiling cases.
-        "1217 tests pass",
-        r"1217 passed",
+        # Re-pinned 1217 -> 1221 for the #73 review fixes: in-memory link-writer
+        # lock, request and search admission refusal, pool slot release.
+        "1221 tests pass",
+        r"1221 passed",
     ),
     CheckSpec(
         "V-002",

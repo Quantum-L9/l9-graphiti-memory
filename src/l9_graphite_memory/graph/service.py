@@ -39,7 +39,7 @@ import json
 import threading
 import time
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass, field
 from typing import Any
@@ -93,38 +93,48 @@ from .scope import (
 # GraphLimits floor for max_runtime_ms.
 MIN_PROVIDER_BUDGET_MS = 10
 
-# Worker threads for projection search calls, so a stalled provider cannot
-# hold a request past its deadline (ADR-091). Shared and bounded: when every
-# worker is busy, a new call waits in the queue and the deadline still applies.
-_SEARCH_WORKERS = 8
-_search_pool: ThreadPoolExecutor | None = None
-_search_pool_lock = threading.Lock()
+
+class _BoundedPool:
+    """A worker pool that refuses new work instead of queueing without bound.
+
+    At most ``workers + backlog`` items are in the pool at once (running or
+    queued). When it is full, ``try_submit`` returns ``None`` and the caller
+    answers with a typed refusal, so a hung backend cannot make queued
+    requests pile up in memory (ADR-091).
+    """
+
+    def __init__(self, workers: int, backlog: int, name: str) -> None:
+        self._workers = workers
+        self._name = name
+        self._slots = threading.BoundedSemaphore(workers + backlog)
+        self._executor: ThreadPoolExecutor | None = None
+        self._lock = threading.Lock()
+
+    def try_submit(
+        self, fn: Callable[..., Any], /, *args: Any, **kwargs: Any
+    ) -> Future[Any] | None:
+        if not self._slots.acquire(blocking=False):
+            return None
+        with self._lock:
+            if self._executor is None:
+                self._executor = ThreadPoolExecutor(
+                    max_workers=self._workers, thread_name_prefix=self._name
+                )
+            executor = self._executor
+        try:
+            future = executor.submit(fn, *args, **kwargs)
+        except BaseException:
+            self._slots.release()
+            raise
+        future.add_done_callback(lambda _: self._slots.release())
+        return future
 
 
-_REQUEST_WORKERS = 16
-_request_pool: ThreadPoolExecutor | None = None
-
-
-def _request_executor() -> ThreadPoolExecutor:
-    """Bounded pool that runs whole graph operations under a caller deadline."""
-
-    global _request_pool
-    with _search_pool_lock:
-        if _request_pool is None:
-            _request_pool = ThreadPoolExecutor(
-                max_workers=_REQUEST_WORKERS, thread_name_prefix="l9-graph-request"
-            )
-        return _request_pool
-
-
-def _search_executor() -> ThreadPoolExecutor:
-    global _search_pool
-    with _search_pool_lock:
-        if _search_pool is None:
-            _search_pool = ThreadPoolExecutor(
-                max_workers=_SEARCH_WORKERS, thread_name_prefix="l9-graph-search"
-            )
-        return _search_pool
+# Whole graph operations run here so the caller waits at most its budget.
+_REQUEST_POOL = _BoundedPool(workers=16, backlog=16, name="l9-graph-request")
+# Projection search calls run here so a stalled provider cannot hold a request
+# past its deadline.
+_SEARCH_POOL = _BoundedPool(workers=8, backlog=8, name="l9-graph-search")
 
 
 SEARCH_STRATEGIES: dict[GraphOperation, str] = {
@@ -272,13 +282,22 @@ class GraphIntelligenceService:
         # most the request budget and then gets a typed refusal. Work still in
         # flight finishes against its own statement/transport timeouts and its
         # result is discarded (ADR-091).
-        future = _request_executor().submit(
+        future = _REQUEST_POOL.try_submit(
             contextvars.copy_context().run, self._execute, principal, request
         )
         try:
-            receipt = future.result(timeout=budget_ms / 1_000)
+            if future is None:
+                # Admission is bounded: when every worker and backlog slot is
+                # taken (for example by a hung backend) the request is refused
+                # now instead of queueing without limit.
+                receipt = self._deadline_receipt(
+                    principal, request, failure_class="graph_capacity_exhausted", stage="admission"
+                )
+            else:
+                receipt = future.result(timeout=budget_ms / 1_000)
         except FuturesTimeoutError:
-            future.cancel()
+            if future is not None:
+                future.cancel()
             receipt = self._deadline_receipt(principal, request)
         except AuthorizationError:
             self.metrics.record_scope_denied(request.operation.value)
@@ -302,7 +321,12 @@ class GraphIntelligenceService:
         return receipt
 
     def _deadline_receipt(
-        self, principal: MemoryPrincipal, request: GraphIntelligenceRequest
+        self,
+        principal: MemoryPrincipal,
+        request: GraphIntelligenceRequest,
+        *,
+        failure_class: str = "runtime_budget_exceeded",
+        stage: str = "request",
     ) -> GraphIntelligenceReceipt:
         """FAILED receipt for an operation still running at its deadline.
 
@@ -326,7 +350,7 @@ class GraphIntelligenceService:
             None,
             {**limits.model_dump(), "direction": request.direction},
             LinkedEvidence(),
-            [{"class": "runtime_budget_exceeded", "stage": "request"}],
+            [{"class": failure_class, "stage": stage}],
         )
 
     def _execute(
@@ -559,6 +583,7 @@ class GraphIntelligenceService:
         per_namespace = max(1, limits.max_nodes // len(request.namespaces))
         best: dict[UUID, ProjectionHit] = {}
         budget_exhausted = False
+        stop_class = "runtime_budget_exhausted"
         for namespace in request.namespaces:
             if remaining_ms() <= 0:
                 budget_exhausted = True
@@ -566,7 +591,7 @@ class GraphIntelligenceService:
             # The call runs off-thread so the request can stop waiting at its
             # deadline even when the provider stalls; an abandoned call ends
             # at its transport timeout and its result is discarded.
-            future = _search_executor().submit(
+            future = _SEARCH_POOL.try_submit(
                 self.projection.search_strategy,
                 strategy,
                 request.anchor.query,
@@ -574,6 +599,12 @@ class GraphIntelligenceService:
                 limit=per_namespace,
                 tenant_id=tenant_id,
             )
+            if future is None:
+                # Search capacity is exhausted (stalled provider calls hold
+                # every slot): stop here rather than queue without bound.
+                budget_exhausted = True
+                stop_class = "graph_capacity_exhausted"
+                break
             try:
                 namespace_hits = future.result(timeout=max(remaining_ms(), 0) / 1_000)
             except FuturesTimeoutError:
@@ -590,7 +621,7 @@ class GraphIntelligenceService:
                 if current is None or hit.score > current.score:
                     best[hit.record_id] = hit
         if budget_exhausted and not best:
-            return fail("runtime_budget_exhausted", "provider")
+            return fail(stop_class, "provider")
         hits = list(best.values())
         scope = EvidenceScope(
             tenant_id=tenant_id,
@@ -629,7 +660,7 @@ class GraphIntelligenceService:
             linked.results = linked.results[: limits.max_nodes]
             failures.append({"class": "truncated", "stage": "limits"})
         if budget_exhausted:
-            failures.append({"class": "runtime_budget_exhausted", "stage": "provider"})
+            failures.append({"class": stop_class, "stage": "provider"})
         status = GraphReceiptStatus.COMPLETE
         if failures:
             status = GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL

@@ -64,7 +64,9 @@ not catch:
    also receives every link as it was read when the release was planned, and
    applies nothing if any has changed since. A concurrent outbox erasure can
    therefore never be overwritten by a stale plan, and the operator simply
-   retries. `list_legacy_projection_releases` reads the ledger. Rebuild
+   retries. In the in-memory store, link writers take the same lock the
+   release holds, so a link write cannot land between the check and the
+   apply. `list_legacy_projection_releases` reads the ledger. Rebuild
    treats a withdrawn link on an active record as unprojected.
 2. **Path admission requires every relationship.** A path is served only when
    every node is supported, every hop has an identified edge, and every edge
@@ -83,8 +85,12 @@ not catch:
    ends first, the caller gets FAILED `runtime_budget_exceeded` (stage
    `request`), built without touching the backend. The work still in flight
    ends against its own statement and transport timeouts, GDS catalog cleanup
-   included, and its result is discarded. Inside the operation the service
-   also fixes a monotonic deadline:
+   included, and its result is discarded. Both worker pools (whole operations
+   and projection search calls) have bounded admission (workers plus an equal
+   backlog). A request that finds the pool full is refused at once with
+   `graph_capacity_exhausted` (stage `admission`), so a hung backend cannot
+   make queued requests accumulate. Inside the operation the service also
+   fixes a monotonic deadline:
    - The provider receives only the budget left, and none below 10 ms
      (`runtime_budget_exhausted`).
    - An answer that arrives after the deadline is refused
@@ -133,8 +139,9 @@ evidence-bearing canonical persistence; no bypass).
   retained store is destroyed and released.
 - Paths are fewer but always backed by evidence for every relationship.
 - The caller never waits longer than `max_runtime_ms` plus scheduling slack.
-  Abandoned work holds a pool worker until its own timeout, and a saturated
-  pool turns into fast budget refusals rather than unbounded waits.
+  Abandoned work holds a pool worker until its own timeout. A saturated pool
+  turns into immediate `graph_capacity_exhausted` refusals, never an
+  unbounded queue.
 - Deletions of records whose rebuild had not yet run also wait for the
   release. An in-place upgrade without the fresh-database rebuild (which
   ADR-084 forbids) keeps every such deletion pending until release.

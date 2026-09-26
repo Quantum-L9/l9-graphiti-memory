@@ -441,3 +441,40 @@ def test_release_refuses_a_plan_overtaken_by_a_concurrent_erasure(tmp_path, back
     )
     assert store.get_record(record).state is MemoryState.DELETED
     store.close()
+
+
+def test_in_memory_link_writers_wait_for_an_in_flight_release(monkeypatch) -> None:
+    """Codex review on #73: link writes cannot interleave with the release's plan check."""
+
+    import threading
+
+    migration = Migration()
+    record = _pending_deletion(migration)
+    store = migration.store
+    inside, proceed = threading.Event(), threading.Event()
+    real_complete = store.complete_deletion
+
+    def paused_complete(*args, **kwargs):
+        inside.set()
+        proceed.wait(5)
+        return real_complete(*args, **kwargs)
+
+    late = migration.link(record).model_copy(update={"locator": "written-during-release"})
+    monkeypatch.setattr(store, "complete_deletion", paused_complete)
+    release = threading.Thread(
+        target=migration.service.release_legacy_projection_copies,
+        args=(ADMIN, NAMESPACE),
+        kwargs={"store_destruction_reference": "CHG-9", "apply": True},
+    )
+    release.start()
+    assert inside.wait(5)
+    writer = threading.Thread(target=store.save_projection_link, args=(late,))
+    writer.start()
+    writer.join(0.2)
+    assert writer.is_alive(), "link write must block while the release holds the store"
+    proceed.set()
+    release.join(5)
+    writer.join(5)
+    assert store.get_record(record).state is MemoryState.DELETED
+    # The writer ran after the release committed; its write is not lost.
+    assert migration.link(record).locator == "written-during-release"
