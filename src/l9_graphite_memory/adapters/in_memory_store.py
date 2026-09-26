@@ -22,6 +22,7 @@ from l9_graphite_memory.contracts import (
     ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
@@ -64,6 +65,7 @@ class InMemoryRecordStore:
         self.maintenance_runs: list[MaintenanceRunReceipt] = []
         self.projection_retirements: list[ProjectionRetirementReceipt] = []
         self.projection_rebuilds: list[ProjectionRebuildReceipt] = []
+        self.legacy_projection_releases: list[LegacyProjectionReleaseReceipt] = []
         self.lifecycle_receipts: dict[UUID, LifecycleTransitionReceipt] = {}
         self.conflict_receipts: dict[UUID, ConflictLinkReceipt] = {}
         self.initialized = False
@@ -425,6 +427,42 @@ class InMemoryRecordStore:
         self.projection_rebuilds.append(receipt)
         for event in outbox_events:
             self.outbox[event.event_id] = event
+
+    def commit_legacy_projection_release(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LegacyProjectionReleaseReceipt,
+        *,
+        link_updates: tuple[ProjectionLink, ...] = (),
+        link_removals: tuple[tuple[UUID, str], ...] = (),
+        deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied legacy projection release")
+        with self._write_lock:
+            # Validate every effect before applying any, so the release is
+            # all-or-nothing like the transactional backends.
+            for record_id, receipt_id in deletion_completions:
+                if record_id not in self.records or receipt_id not in self.deletion_receipts:
+                    raise StoreError("deletion record or receipt not found")
+            self.legacy_projection_releases.append(receipt)
+            for link in link_updates:
+                self.projection_links[(link.record_id, link.projection_name)] = link
+            for key in link_removals:
+                self.projection_links.pop(key, None)
+            for record_id, receipt_id in deletion_completions:
+                self.complete_deletion(
+                    record_id,
+                    receipt_id,
+                    completed_at=receipt.created_at,
+                    actor=f"memory.legacy-release:{receipt.actor}",
+                )
+
+    def list_legacy_projection_releases(
+        self, namespace: str
+    ) -> list[LegacyProjectionReleaseReceipt]:
+        return [r for r in self.legacy_projection_releases if r.namespace == namespace]
 
     def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
         self.maintenance_runs.append(receipt)

@@ -35,10 +35,12 @@ from l9_graphite_memory.contracts import (
     Provenance,
 )
 from l9_graphite_memory.contracts.projection import legacy_copies, link_withdrawn
-from l9_graphite_memory.errors import AuthorizationError
+from l9_graphite_memory.errors import AuthorizationError, StoreError
 from l9_graphite_memory.graph import GRAPH_SCOPE_SCHEME
+from l9_graphite_memory.ports.service_capability import SERVICE_WRITE_CAPABILITY
 from l9_graphite_memory.services import MemoryService
 from l9_graphite_memory.services.outbox_worker import OutboxWorker
+from tests.conftest import STORE_BACKENDS, make_store
 from tests.security.test_graph_tenant_isolation import GroupedGraphitiTransport
 
 NAMESPACE = "shared"
@@ -61,8 +63,8 @@ ADMIN = MemoryPrincipal(
 class Migration:
     """Canonical store shared across an old and a fresh provider database."""
 
-    def __init__(self) -> None:
-        self.store = InMemoryRecordStore()
+    def __init__(self, store=None) -> None:
+        self.store = store if store is not None else InMemoryRecordStore()
         self.old = GroupedGraphitiTransport()
         self.new = GroupedGraphitiTransport()
         self.service, self.worker = self._bind(self.old)
@@ -95,14 +97,19 @@ class Migration:
     def link(self, record_id: UUID) -> ProjectionLink | None:
         return self.store.get_projection_link(record_id, "graphiti")
 
-    def cut_over(self, *records: UUID) -> None:
-        """Mark links as pre-ADR-084, then rebuild into the fresh database."""
+    def switch_provider(self, *records: UUID) -> None:
+        """Mark links as pre-ADR-084 and bind the fresh database; no rebuild yet."""
 
         for record_id in records:
             link = self.link(record_id)
             assert link is not None
             self.store.save_projection_link(link.model_copy(update={"metadata": {}}))
         self.service, self.worker = self._bind(self.new)
+
+    def cut_over(self, *records: UUID) -> None:
+        """Mark links as pre-ADR-084, then rebuild into the fresh database."""
+
+        self.switch_provider(*records)
         receipt = self.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
         assert set(receipt.stale_scope_record_ids) == set(records)
         self.drain()
@@ -225,3 +232,91 @@ def test_deletion_without_legacy_copies_completes_as_before(migration) -> None:
     migration.drain()
     assert migration.store.get_record(record).state is MemoryState.DELETED
     assert str(record) not in migration.old.episodes
+
+
+def test_deletion_before_the_rebuild_runs_keeps_the_legacy_copy_outstanding(migration) -> None:
+    """Codex review: a stale-scheme link must not be erased through the new provider."""
+
+    record = migration.write("falcon plan")
+    migration.drain()
+    migration.switch_provider(record)  # rebuild not run yet
+    migration.service.delete(
+        ADMIN,
+        DeletionRequest(record_id=record, reason="subject request", verification_reference="r"),
+    )
+    migration.drain()
+    assert migration.store.get_record(record).state is MemoryState.DELETION_PENDING
+    link = migration.link(record)
+    assert link_withdrawn(link)
+    assert [copy["scope_scheme"] for copy in legacy_copies(link)] == [None]
+    assert str(record) in migration.old.episodes  # the retained copy
+    migration.service.release_legacy_projection_copies(
+        ADMIN, NAMESPACE, store_destruction_reference="CHG-5", apply=True
+    )
+    assert migration.store.get_record(record).state is MemoryState.DELETED
+
+
+def test_retirement_before_the_rebuild_runs_keeps_the_legacy_copy_outstanding(migration) -> None:
+    old = migration.write(
+        "kestrel owner billing",
+        assertion=MemoryAssertion(subject="kestrel", predicate="owner", object="billing"),
+    )
+    migration.drain()
+    migration.switch_provider(old)
+    migration.write(
+        "kestrel owner platform",
+        assertion=MemoryAssertion(subject="kestrel", predicate="owner", object="platform"),
+        supersedes=(old,),
+    )
+    migration.drain()
+    link = migration.link(old)
+    assert link_withdrawn(link) and len(legacy_copies(link)) == 1
+
+
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
+def test_release_is_atomic_persisted_and_capability_gated(tmp_path, backend) -> None:
+    """Codex review: one capability-gated transaction that records its receipt."""
+
+    migration = Migration(make_store(backend, tmp_path))
+    record = migration.write("falcon plan")
+    migration.drain()
+    migration.cut_over(record)
+    deletion = migration.service.delete(
+        ADMIN,
+        DeletionRequest(record_id=record, reason="subject request", verification_reference="r"),
+    )
+    migration.drain()
+    store = migration.store
+    preview = migration.service.release_legacy_projection_copies(
+        ADMIN, NAMESPACE, store_destruction_reference="CHG-6", apply=False
+    )
+    assert store.list_legacy_projection_releases(NAMESPACE) == []
+    applied_receipt = preview.model_copy(update={"applied": True})
+
+    with pytest.raises(PermissionError):
+        store.commit_legacy_projection_release(
+            object(), applied_receipt, link_removals=((record, "graphiti"),)
+        )
+    # A failing completion rolls back the receipt and the link removal with it.
+    with pytest.raises(StoreError):
+        store.commit_legacy_projection_release(
+            SERVICE_WRITE_CAPABILITY,
+            applied_receipt,
+            link_removals=((record, "graphiti"),),
+            deletion_completions=((record, UUID(int=0)),),
+        )
+    assert migration.link(record) is not None
+    assert store.list_legacy_projection_releases(NAMESPACE) == []
+    assert store.get_record(record).state is MemoryState.DELETION_PENDING
+
+    released = migration.service.release_legacy_projection_copies(
+        ADMIN, NAMESPACE, store_destruction_reference="CHG-6", apply=True
+    )
+    assert store.get_record(record).state is MemoryState.DELETED
+    assert migration.link(record) is None
+    (persisted,) = store.list_legacy_projection_releases(NAMESPACE)
+    assert persisted.receipt_id == released.receipt_id
+    assert persisted.store_destruction_reference == "CHG-6"
+    assert persisted.completed_deletion_record_ids == (record,)
+    assert deletion.receipt_id is not None
+    store.close()

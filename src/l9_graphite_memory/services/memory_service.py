@@ -56,6 +56,7 @@ from l9_graphite_memory.contracts import (
     PhaseLockReceipt,
     PhaseLockRequest,
     PhaseLockVerification,
+    ProjectionLink,
     ProjectionRebuildReceipt,
     PromotionRequest,
     Provenance,
@@ -1376,6 +1377,9 @@ class MemoryService:
         now = self.clock.now()
         released: list[UUID] = []
         completed: list[UUID] = []
+        link_updates: list[ProjectionLink] = []
+        link_removals: list[tuple[UUID, str]] = []
+        deletion_completions: list[tuple[UUID, UUID]] = []
         copy_count = 0
         records = self.store.list_records(principal.tenant_id, namespace, states=(), limit=limit)
         for record in records:
@@ -1385,25 +1389,16 @@ class MemoryService:
                 continue
             released.append(record.record_id)
             copy_count += len(copies)
-            pending = link.metadata.get(PENDING_DELETION_RECEIPT_KEY)
-            waiting = record.state is MemoryState.DELETION_PENDING and isinstance(pending, str)
-            if waiting:
-                completed.append(record.record_id)
-            if not apply:
-                continue
             if link_withdrawn(link):
-                self.store.delete_projection_link(record.record_id, self.projection.name)
+                link_removals.append((record.record_id, self.projection.name))
             else:
                 metadata = {k: v for k, v in link.metadata.items() if k != LEGACY_COPIES_KEY}
-                self.store.save_projection_link(link.model_copy(update={"metadata": metadata}))
-            if waiting:
-                self.store.complete_deletion(
-                    record.record_id,
-                    UUID(str(pending)),
-                    completed_at=now,
-                    actor=f"memory.legacy-release:{principal.audit_subject}",
-                )
-        return LegacyProjectionReleaseReceipt(
+                link_updates.append(link.model_copy(update={"metadata": metadata}))
+            pending = link.metadata.get(PENDING_DELETION_RECEIPT_KEY)
+            if record.state is MemoryState.DELETION_PENDING and isinstance(pending, str):
+                completed.append(record.record_id)
+                deletion_completions.append((record.record_id, UUID(pending)))
+        receipt = LegacyProjectionReleaseReceipt(
             namespace=namespace,
             projection_name=self.projection.name,
             applied=apply,
@@ -1416,6 +1411,19 @@ class MemoryService:
             actor=principal.audit_subject,
             created_at=now,
         )
+        if apply and released:
+            # One capability-gated transaction: the evidence (receipt), the
+            # link changes and the deletion completions land together or not
+            # at all, so a crash cannot strand a deletion without its
+            # obligation (ADR-036, ADR-091).
+            self.store.commit_legacy_projection_release(
+                SERVICE_WRITE_CAPABILITY,
+                receipt,
+                link_updates=tuple(link_updates),
+                link_removals=tuple(link_removals),
+                deletion_completions=tuple(deletion_completions),
+            )
+        return receipt
 
     def health(self) -> HealthReport:
         store_health = self.store.health()

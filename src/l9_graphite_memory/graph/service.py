@@ -35,8 +35,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID
@@ -88,6 +91,24 @@ from .scope import (
 # Smallest budget worth starting a provider operation with; it is also the
 # GraphLimits floor for max_runtime_ms.
 MIN_PROVIDER_BUDGET_MS = 10
+
+# Worker threads for projection search calls, so a stalled provider cannot
+# hold a request past its deadline (ADR-091). Shared and bounded: when every
+# worker is busy, a new call waits in the queue and the deadline still applies.
+_SEARCH_WORKERS = 8
+_search_pool: ThreadPoolExecutor | None = None
+_search_pool_lock = threading.Lock()
+
+
+def _search_executor() -> ThreadPoolExecutor:
+    global _search_pool
+    with _search_pool_lock:
+        if _search_pool is None:
+            _search_pool = ThreadPoolExecutor(
+                max_workers=_SEARCH_WORKERS, thread_name_prefix="l9-graph-search"
+            )
+        return _search_pool
+
 
 SEARCH_STRATEGIES: dict[GraphOperation, str] = {
     GraphOperation.SEARCH: "graph-search",
@@ -484,14 +505,23 @@ class GraphIntelligenceService:
             if remaining_ms() <= 0:
                 budget_exhausted = True
                 break
+            # The call runs off-thread so the request can stop waiting at its
+            # deadline even when the provider stalls; an abandoned call ends
+            # at its transport timeout and its result is discarded.
+            future = _search_executor().submit(
+                self.projection.search_strategy,
+                strategy,
+                request.anchor.query,
+                (namespace,),
+                limit=per_namespace,
+                tenant_id=tenant_id,
+            )
             try:
-                namespace_hits = self.projection.search_strategy(
-                    strategy,
-                    request.anchor.query,
-                    (namespace,),
-                    limit=per_namespace,
-                    tenant_id=tenant_id,
-                )
+                namespace_hits = future.result(timeout=max(remaining_ms(), 0) / 1_000)
+            except FuturesTimeoutError:
+                future.cancel()
+                budget_exhausted = True
+                break
             except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
                 return fail(f"provider_error:{type(exc).__name__}", "provider")
             if remaining_ms() <= 0:

@@ -196,8 +196,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # PR-H): 6 cases in security/test_legacy_projection_erasure.py, 3 in
         # test_graph_evidence_linking.py, 13 in
         # test_graph_request_budget_and_policy.py; none skipped in CI.
-        "1195 tests pass",
-        r"1195 passed",
+        # Re-pinned 1195 -> 1201 for the #72 review fixes: 2 stale-link window
+        # cases and 3 store-matrix release cases (memory, sqlite, postgres) in
+        # test_legacy_projection_erasure.py, 1 stalled-search case.
+        "1201 tests pass",
+        r"1201 passed",
     ),
     CheckSpec(
         "V-002",

@@ -290,3 +290,35 @@ def test_search_within_budget_is_complete() -> None:
     receipt = graph.execute(principal("tenant-a"), _search())
     assert receipt.status is GraphReceiptStatus.COMPLETE
     assert receipt.supporting_record_ids == (shared,)
+
+
+def test_a_stalled_provider_search_is_abandoned_at_the_deadline() -> None:
+    """Codex review: the in-flight projection call must not outlive the budget."""
+
+    import threading
+    import time
+
+    release = threading.Event()
+
+    class StalledProjection(Projection):
+        def search_strategy(self, strategy, query, namespaces, *, limit, tenant_id):
+            release.wait(5)
+            return []
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        FakeGraphPort(),
+        namespace_policy=service.namespace_policy,
+        projection=StalledProjection(Clock(), {}),
+    )
+    started = time.monotonic()
+    try:
+        receipt = graph.execute(
+            principal("tenant-a"), _search(limits=GraphLimits(max_runtime_ms=100))
+        )
+    finally:
+        release.set()
+    assert time.monotonic() - started < 1.0
+    assert receipt.status is GraphReceiptStatus.FAILED
+    assert receipt.failures[0]["class"] == "runtime_budget_exhausted"

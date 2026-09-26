@@ -50,11 +50,19 @@ not catch:
    link, marked withdrawn, while legacy copies remain. Verified erasure
    removes the reachable copy; if legacy copies remain, the record stays
    `DELETION_PENDING` and the link records the waiting deletion receipt.
+   A link still carrying another scope scheme when a retirement or erasure
+   runs (the rebuild queued but not yet projected) is itself treated as a
+   legacy copy. It is never erased through the new provider with a locator
+   that addresses the retained store.
    `MemoryService.release_legacy_projection_copies` (CLI
    `l9-memory release-legacy-projection --store-destruction-reference …`,
    ADMIN) is run after the retained store is destroyed. It clears the
-   obligations and completes the waiting deletions. Rebuild treats a withdrawn
-   link on an active record as unprojected.
+   obligations and completes the waiting deletions through one
+   capability-gated store commit, `commit_legacy_projection_release`. That
+   commit persists the receipt to the operation ledger, rewrites or removes the
+   links, and completes the deletions in a single transaction.
+   `list_legacy_projection_releases` reads the ledger. Rebuild treats a
+   withdrawn link on an active record as unprojected.
 2. **Path admission requires every relationship.** A path is served only when
    every node is supported, every hop has an identified edge, and every edge
    was admitted with canonical support. Its support is the union of node and
@@ -69,9 +77,11 @@ not catch:
    - The Neo4j adapter binds one deadline per operation. Each statement gets
      at most the remaining time, and none starts once the budget is spent
      (`GraphRuntimeBudgetExceeded`). GDS catalog cleanup still runs.
-   - Search calls the projection once per namespace, checking the deadline
-     between calls. A call that returns late is discarded. What completed in
-     time is served as PARTIAL with `runtime_budget_exhausted`.
+   - Search calls the projection once per namespace, on a bounded worker pool,
+     and waits at most the remaining budget. A stalled call is abandoned at the
+     deadline; it ends at its transport timeout and its result is discarded.
+     What completed in time is served as PARTIAL with
+     `runtime_budget_exhausted`.
 4. **Shared policy before the search split.** The relationship allowlist
    applies to every operation. Search resolves its algorithm inside the
    policy normalization (`algorithm_not_admitted`). It refuses `target`,
@@ -93,9 +103,9 @@ not catch:
   from reintroduces the old binding at runtime. The operator already owns its
   destruction (migration step 7).
 - A ceiling that is only reported is not a ceiling.
-- Changing the port touches every projection adapter. Per-namespace calls
-  bound the request without it; a single in-flight call stays bounded by its
-  transport's timeout.
+- Changing the port touches every projection adapter. A worker-pool deadline
+  bounds the request for any adapter; the abandoned call still holds a worker
+  until its transport timeout.
 
 ## Invariants
 
@@ -107,8 +117,12 @@ evidence-bearing canonical persistence; no bypass).
 - Deletions during a migration rollback window complete only after the
   retained store is destroyed and released.
 - Paths are fewer but always backed by evidence for every relationship.
-- Requests end near `max_runtime_ms`. The time between the last check and a
-  provider's reply is bounded by driver and transport timeouts.
+- Requests end near `max_runtime_ms`. Neo4j statements are bounded by
+  per-statement driver timeouts. Projection search is bounded by the worker
+  wait.
+- Deletions of records whose rebuild had not yet run also wait for the
+  release. An in-place upgrade without the fresh-database rebuild (which
+  ADR-084 forbids) keeps every such deletion pending until release.
 
 ## Security Impact
 
@@ -127,13 +141,16 @@ obligations; the obligation is recorded when the ADR-084 rebuild runs. Run
 - `tests/security/test_legacy_projection_erasure.py`: obligation recorded;
   deletion pending through the window; release completes it; retirement
   keeps the obligation; active records keep their link; ADMIN required; no
-  change without legacy copies.
+  change without legacy copies; deletion or retirement before the rebuild
+  runs; release atomic, persisted and capability-gated on memory, SQLite and
+  PostgreSQL.
 - `tests/unit/test_graph_evidence_linking.py`: unsupported relationship,
   unidentified hop, union support.
 - `tests/unit/test_graph_request_budget_and_policy.py`: remaining budget to the
   provider, refusal when spent, late answer refused, adapter statements share
-  one budget, GDS cleanup after exhaustion, search policy refusals, and a
-  multi-namespace deadline yielding PARTIAL.
+  one budget, GDS cleanup after exhaustion, search policy refusals, a
+  multi-namespace deadline yielding PARTIAL, and a stalled provider abandoned
+  at the deadline.
 
 ## Rollback Conditions
 
