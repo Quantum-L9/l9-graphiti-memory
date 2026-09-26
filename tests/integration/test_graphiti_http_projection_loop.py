@@ -14,8 +14,12 @@ This is the strongest repo-owned proof available when no real Graphiti runtime
 is reachable: a real HTTP listener speaking the Streamable-HTTP MCP framing the
 production transport is written for (``initialize`` issuing ``Mcp-Session-Id``,
 ``notifications/initialized`` answered 202, SSE-framed JSON-RPC results, bearer
-authentication) and the official tool surface (``add_memory`` keyed by
-``uuid``, ``search_memory_facts``, ``search_nodes``, ``delete_episode``).
+authentication) and the official tool surface (``add_memory``,
+``get_episodes``, ``search_memory_facts``, ``search_nodes``,
+``delete_episode``) with Graphiti v0.30.2 episode identity semantics: the
+provider issues episode uuids, and a caller-supplied ``uuid`` names an
+existing episode to update — for a new episode the queued write fails
+silently (ADR-090).
 
 Every hop below crosses the wire: canonical write, outbox delivery, graph and
 semantic retrieval that resolves back to canonical records, supersession and
@@ -36,6 +40,7 @@ from uuid import uuid4
 import pytest
 
 from l9_graphite_memory.adapters import GraphitiProjection, SQLiteRecordStore
+from l9_graphite_memory.adapters.graphiti_projection import episode_name_locator
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import (
     DeletionRequest,
@@ -59,33 +64,62 @@ from l9_graphite_memory.services.outbox_worker import OutboxWorker
 from l9_graphite_memory.transport import HttpMcpTransport
 
 TOKEN = "loop-test-bearer"
-TOOLS = ("add_memory", "search_memory_facts", "search_nodes", "delete_episode")
+TOOLS = ("add_memory", "get_episodes", "search_memory_facts", "search_nodes", "delete_episode")
 
 
 class FakeGraphitiState:
-    """Episodes keyed by uuid, as the official server stores them."""
+    """Episodes indexed by the record id in their ``memory:<id>`` name.
+
+    Each carries its provider-issued ``uuid``, which is what ``delete_episode``
+    takes, as on the official server.
+    """
 
     def __init__(self) -> None:
         self.episodes: dict[str, dict[str, Any]] = {}
+        self.dropped: list[dict[str, Any]] = []
         self.calls: list[str] = []
         self.sessions: set[str] = set()
         self.lock = threading.Lock()
 
     def add_memory(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        uuid = str(arguments.get("uuid") or uuid4())
+        name = str(arguments.get("name"))
+        queued = {"message": f"Episode '{name}' queued for processing in group"}
         with self.lock:
-            self.episodes[uuid] = {
-                "uuid": uuid,
-                "name": arguments.get("name"),
+            supplied = arguments.get("uuid")
+            if supplied and not any(e["uuid"] == supplied for e in self.episodes.values()):
+                # Graphiti: EpisodicNode.get_by_uuid raises NodeNotFoundError in
+                # the background queue; the caller has already been told "queued".
+                self.dropped.append(dict(arguments))
+                return queued
+            self.episodes[name.removeprefix("memory:")] = {
+                "uuid": str(supplied or uuid4()),
+                "name": name,
                 "episode_body": arguments.get("episode_body", ""),
                 "group_id": arguments.get("group_id"),
             }
-        return {"message": f"Episode '{arguments.get('name')}' queued", "uuid": uuid}
+        return queued
+
+    def get_episodes(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        group_ids = set(arguments.get("group_ids") or [])
+        limit = int(arguments.get("max_episodes", 10))
+        with self.lock:
+            episodes = sorted(
+                (e for e in self.episodes.values() if e["group_id"] in group_ids),
+                key=lambda e: e["uuid"],
+                reverse=True,
+            )[:limit]
+        return {
+            "message": "Episodes retrieved successfully",
+            "episodes": [
+                {"uuid": e["uuid"], "name": e["name"], "group_id": e["group_id"]} for e in episodes
+            ],
+        }
 
     def delete_episode(self, arguments: dict[str, Any]) -> dict[str, Any]:
         uuid = str(arguments.get("uuid"))
         with self.lock:
-            removed = self.episodes.pop(uuid, None)
+            key = next((k for k, e in self.episodes.items() if e["uuid"] == uuid), None)
+            removed = self.episodes.pop(key, None) if key is not None else None
         if removed is None:
             return {"error": f"Episode with UUID {uuid} not found"}
         return {"message": f"Episode with UUID {uuid} deleted successfully"}
@@ -186,6 +220,8 @@ def _handler(state: FakeGraphitiState) -> type[BaseHTTPRequestHandler]:
                     value = state.add_memory(arguments)
                 elif name == "delete_episode":
                     value = state.delete_episode(arguments)
+                elif name == "get_episodes":
+                    value = state.get_episodes(arguments)
                 elif name == "search_memory_facts":
                     value = state.search(arguments, key="facts", limit_key="max_facts")
                 elif name == "search_nodes":
@@ -287,7 +323,7 @@ def test_transport_speaks_the_official_streamable_http_dialect(graphiti) -> None
     assert transport.list_tools() == sorted(TOOLS)
     assert state.calls == ["initialize", "notifications/initialized", "tools/list"]
     health = GraphitiProjection(transport).health()
-    assert health["healthy"] is True and health["tool_count"] == 4
+    assert health["healthy"] is True and health["tool_count"] == len(TOOLS)
 
     unauthenticated = HttpMcpTransport(url=url, token="wrong", timeout_seconds=5)
     assert unauthenticated.health()["healthy"] is False
@@ -306,8 +342,11 @@ def test_write_project_search_supersede_erase_rebuild_loop(loop, maintainer, adm
     assert first.status is WriteStatus.ADMITTED
     assert _drain(worker)["delivered"] == 1
     link = store.get_projection_link(first.record_id, "graphiti")
-    assert link is not None and link.locator == str(first.record_id)
-    assert str(first.record_id) in state.episodes
+    assert link is not None
+    group = state.episodes[str(first.record_id)]["group_id"]
+    assert link.locator == episode_name_locator(group, first.record_id)
+    assert state.episodes[str(first.record_id)]["uuid"] != str(first.record_id)
+    assert state.dropped == []
     assert json.loads(state.episodes[str(first.record_id)]["episode_body"])["record_id"] == str(
         first.record_id
     )

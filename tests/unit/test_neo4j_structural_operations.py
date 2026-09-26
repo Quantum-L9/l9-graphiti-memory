@@ -101,7 +101,7 @@ def test_depth_zero_returns_anchor_only_without_expansion() -> None:
 
 
 def test_expansion_binds_scope_filters_and_budget_as_parameters() -> None:
-    a, b, episode = uuid4(), uuid4(), uuid4()
+    a, b, episode, record = uuid4(), uuid4(), uuid4(), uuid4()
     as_of = datetime(2026, 9, 1, tzinfo=timezone.utc)
     adapter, driver = _adapter(
         {
@@ -125,9 +125,11 @@ def test_expansion_binds_scope_filters_and_budget_as_parameters() -> None:
                 }
             ],
             "entity_supporting_episodes_v1": [
-                {"uuid": str(a), "episodes": [str(episode)]},
+                {"uuid": str(a), "episodes": [str(record)]},
                 {"uuid": str(b), "episodes": []},
             ],
+            # Edge episode uuids map to the record id in the episode name.
+            "episode_support_ids_v1": [{"uuid": str(episode), "support": str(record)}],
         }
     )
     result = adapter.neighborhood(
@@ -146,8 +148,11 @@ def test_expansion_binds_scope_filters_and_budget_as_parameters() -> None:
     assert all(call.session_config["default_access_mode"] == "READ" for call in driver.calls)
     edge = result.edges[0]
     assert edge.valid_at == as_of
-    assert edge.supporting_episode_ids == (episode,)
-    assert {n.entity_uuid: n.supporting_episode_ids for n in result.nodes}[a] == (episode,)
+    assert edge.supporting_episode_ids == (record,)
+    assert {n.entity_uuid: n.supporting_episode_ids for n in result.nodes}[a] == (record,)
+    support = next(call for call in driver.calls if call.template == "episode_support_ids_v1")
+    assert support.parameters["group_ids"] == [GROUP]
+    assert sorted(support.parameters["episode_uuids"]) == sorted([str(episode), "not-a-uuid"])
 
 
 def test_traverse_follows_direction_and_neighborhood_ignores_it() -> None:
