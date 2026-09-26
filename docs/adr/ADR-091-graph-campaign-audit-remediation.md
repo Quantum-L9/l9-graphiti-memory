@@ -66,7 +66,13 @@ not catch:
    therefore never be overwritten by a stale plan, and the operator simply
    retries. In the in-memory store, link writers take the same lock the
    release holds, so a link write cannot land between the check and the
-   apply. `list_legacy_projection_releases` reads the ledger. Rebuild
+   apply. `list_legacy_projection_releases` reads the ledger.
+   The outbox worker installs a projection link only through
+   `save_projection_link_if_active`, which checks that the record is still
+   ACTIVE and writes the link in one atomic store step (a row lock on
+   PostgreSQL). If a deletion, retirement or release lands after the worker's
+   provider write, the link is refused and the fresh provider copy is
+   withdrawn. A record whose deletion is complete can never regain a link. Rebuild
    treats a withdrawn link on an active record as unprojected.
 2. **Path admission requires every relationship.** A path is served only when
    every node is supported, every hop has an identified edge, and every edge
@@ -78,7 +84,10 @@ not catch:
    (`unsupported_hop`, `unsupported_relationship`,
    `relationship_does_not_connect_hop` or `malformed_path`).
 3. **One deadline per request, and a hard ceiling on the caller's time.**
-   `GraphIntelligenceService.execute` runs the whole operation on a bounded
+   Namespace READ authorization runs first, on the caller's thread. An
+   unauthorized request raises `AuthorizationError` before admission,
+   capacity or deadline handling, and never receives a graph receipt.
+   `GraphIntelligenceService.execute` then runs the whole operation on a bounded
    worker pool and waits at most `max_runtime_ms` (clamped to the deployment
    ceiling). That covers health probing, the provider, canonical evidence
    rehydration, GDS cleanup and projection transport alike. When the wait

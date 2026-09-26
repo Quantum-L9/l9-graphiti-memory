@@ -172,6 +172,17 @@ class RecordStore(Protocol):
 
     def save_projection_link(self, link: ProjectionLink) -> None: ...
 
+    def save_projection_link_if_active(self, link: ProjectionLink) -> bool:
+        """Persist ``link`` only while its record is ACTIVE, in one atomic step.
+
+        Returns ``False`` (and writes nothing) when the record is missing or
+        no longer ACTIVE. The outbox worker uses this after a provider write,
+        so a deletion, retirement or release that lands between its lifecycle
+        check and the link write can never be followed by a live link
+        (ADR-091).
+        """
+        ...
+
     def get_projection_link(
         self,
         record_id: UUID,

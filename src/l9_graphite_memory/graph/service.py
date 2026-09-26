@@ -276,6 +276,16 @@ class GraphIntelligenceService:
         """Run one operation and record its metrics and structured log line."""
 
         started = self._monotonic()
+        # Namespace READ authority is decided first, on the caller's thread:
+        # an unauthorized request never reaches admission, capacity or
+        # deadline handling, and never receives a graph receipt. _execute
+        # repeats the check as defense in depth.
+        try:
+            for namespace in request.namespaces:
+                self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
+        except AuthorizationError:
+            self.metrics.record_scope_denied(request.operation.value)
+            raise
         budget_ms = min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
         # The whole operation (health, provider, canonical evidence, GDS
         # cleanup, projection transport) runs off-thread; the caller waits at

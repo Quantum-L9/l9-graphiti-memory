@@ -204,8 +204,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # cases, 4 wall-clock request-ceiling cases.
         # Re-pinned 1217 -> 1221 for the #73 review fixes: in-memory link-writer
         # lock, request and search admission refusal, pool slot release.
-        "1221 tests pass",
-        r"1221 passed",
+        # Re-pinned 1221 -> 1227 for the third audit: 3 store-matrix
+        # projection/deletion race cases, 3 authorization-ordering cases.
+        "1227 tests pass",
+        r"1227 passed",
     ),
     CheckSpec(
         "V-002",

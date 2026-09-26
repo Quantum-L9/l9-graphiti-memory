@@ -541,3 +541,83 @@ def test_bounded_pool_releases_slots_when_work_finishes() -> None:
     assert first is not None and first.result(1) == 1
     second = pool.try_submit(lambda: 2)
     assert second is not None and second.result(1) == 2
+
+
+# -- third audit F-02: authorization precedes admission and deadlines ------
+
+
+def _unauthorized(principal):
+    # Holds READ on "other" only; every request below targets "shared".
+    return principal("tenant-a", namespaces=("other",))
+
+
+def test_unauthorized_caller_is_refused_even_when_the_request_pool_is_full(monkeypatch) -> None:
+    from l9_graphite_memory.errors import AuthorizationError
+    from l9_graphite_memory.graph import service as service_module
+
+    class FullPool:
+        submitted = 0
+
+        def try_submit(self, *args, **kwargs):
+            FullPool.submitted += 1
+
+    monkeypatch.setattr(service_module, "_REQUEST_POOL", FullPool())
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store, FakeGraphPort(), namespace_policy=service.namespace_policy
+    )
+    with pytest.raises(AuthorizationError):
+        graph.execute(_unauthorized(principal), _request(limits=_BUDGET))
+    assert FullPool.submitted == 0  # never reached admission; no receipt produced
+
+
+def test_unauthorized_caller_is_refused_before_queueing_or_deadline(monkeypatch) -> None:
+    import threading
+    import time
+
+    from l9_graphite_memory.errors import AuthorizationError
+    from l9_graphite_memory.graph import service as service_module
+
+    monkeypatch.setattr(
+        service_module, "_REQUEST_POOL", service_module._BoundedPool(1, 1, "test-authz")
+    )
+    release = threading.Event()
+
+    class HungPort(FakeGraphPort):
+        def health(self):
+            release.wait(5)
+            return super().health()
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        HungPort(
+            {GraphOperation.NEIGHBORHOOD: GraphProviderResult(operation="graph.neighborhood")}
+        ),
+        namespace_policy=service.namespace_policy,
+    )
+    try:
+        # Occupy the only worker so the next accepted request would queue and
+        # then hit its deadline.
+        occupied = graph.execute(principal("tenant-a"), _request(limits=_BUDGET))
+        assert occupied.failures[0]["class"] == "runtime_budget_exceeded"
+        started = time.monotonic()
+        with pytest.raises(AuthorizationError):
+            graph.execute(_unauthorized(principal), _request(limits=_BUDGET))
+        assert time.monotonic() - started < 0.1  # decided before queueing or waiting
+    finally:
+        release.set()
+
+
+def test_scope_denial_is_counted_once_when_refused_before_admission(monkeypatch) -> None:
+    from l9_graphite_memory.errors import AuthorizationError
+    from l9_graphite_memory.observability.graph_metrics import GraphMetrics
+
+    metrics = GraphMetrics()
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store, FakeGraphPort(), namespace_policy=service.namespace_policy, metrics=metrics
+    )
+    with pytest.raises(AuthorizationError):
+        graph.execute(_unauthorized(principal), _request())
+    assert metrics.value("memory_graph_scope_denied_total") == 1

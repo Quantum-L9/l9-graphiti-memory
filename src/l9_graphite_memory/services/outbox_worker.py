@@ -256,7 +256,13 @@ class OutboxWorker:
                             )
                             if carried:
                                 metadata[LEGACY_COPIES_KEY] = carried
-                            self.store.save_projection_link(
+                            # The lifecycle check and the link write are one
+                            # atomic store step: a deletion, retirement or
+                            # legacy release that landed after the check
+                            # above must not be followed by a live link, so
+                            # losing the race withdraws the fresh copy
+                            # instead (ADR-091).
+                            installed = self.store.save_projection_link_if_active(
                                 ProjectionLink(
                                     record_id=record.record_id,
                                     namespace=record.namespace,
@@ -266,6 +272,20 @@ class OutboxWorker:
                                     created_at=now,
                                 )
                             )
+                            if not installed:
+                                log.info(
+                                    "projection_link_refused_not_active",
+                                    extra={
+                                        "event_id": str(event.event_id),
+                                        "record_id": str(record.record_id),
+                                    },
+                                )
+                                self.projection.retire(
+                                    record.record_id,
+                                    record.namespace,
+                                    locator=locator,
+                                    reason="post-project-race-stale",
+                                )
                 elif event.event_type == "memory.record.retire":
                     # Withdraw a superseded or archived projection. This path
                     # must never touch canonical state: the record keeps its

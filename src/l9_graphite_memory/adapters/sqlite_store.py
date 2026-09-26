@@ -890,26 +890,46 @@ class SQLiteRecordStore:
     def save_projection_link(self, link: ProjectionLink) -> None:
         try:
             with self._transaction() as tx:
-                tx.execute(
-                    """
-                    INSERT INTO projection_links (
-                        record_id, projection_name, namespace, locator, created_at, link_json
-                    ) VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(record_id, projection_name) DO UPDATE SET
-                        namespace = excluded.namespace,
-                        locator = excluded.locator,
-                        created_at = excluded.created_at,
-                        link_json = excluded.link_json
-                    """,
-                    (
-                        str(link.record_id),
-                        link.projection_name,
-                        link.namespace,
-                        link.locator,
-                        _dt(link.created_at),
-                        _json(link.model_dump(mode="json")),
-                    ),
-                )
+                self._upsert_projection_link(tx, link)
+        except sqlite3.Error as exc:
+            raise StoreError(f"projection link persistence failed: {exc}") from exc
+
+    def _upsert_projection_link(self, tx: Any, link: ProjectionLink) -> None:
+        tx.execute(
+            """
+            INSERT INTO projection_links (
+                record_id, projection_name, namespace, locator, created_at, link_json
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(record_id, projection_name) DO UPDATE SET
+                namespace = excluded.namespace,
+                locator = excluded.locator,
+                created_at = excluded.created_at,
+                link_json = excluded.link_json
+            """,
+            (
+                str(link.record_id),
+                link.projection_name,
+                link.namespace,
+                link.locator,
+                _dt(link.created_at),
+                _json(link.model_dump(mode="json")),
+            ),
+        )
+
+    def save_projection_link_if_active(self, link: ProjectionLink) -> bool:
+        try:
+            with self._transaction() as tx:
+                row = tx.execute(
+                    "SELECT record_json FROM memory_records WHERE record_id = ?",
+                    (str(link.record_id),),
+                ).fetchone()
+                if row is None:
+                    return False
+                record = schema_registry.read_record(json.loads(str(row["record_json"])))
+                if record.state is not MemoryState.ACTIVE:
+                    return False
+                self._upsert_projection_link(tx, link)
+                return True
         except sqlite3.Error as exc:
             raise StoreError(f"projection link persistence failed: {exc}") from exc
 

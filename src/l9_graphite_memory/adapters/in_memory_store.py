@@ -376,6 +376,14 @@ class InMemoryRecordStore:
     ) -> ProjectionLink | None:
         return self.projection_links.get((record_id, projection_name))
 
+    def save_projection_link_if_active(self, link: ProjectionLink) -> bool:
+        with self._write_lock:
+            record = self.records.get(link.record_id)
+            if record is None or record.state is not MemoryState.ACTIVE:
+                return False
+            self.projection_links[(link.record_id, link.projection_name)] = link
+            return True
+
     def delete_projection_link(self, record_id: UUID, projection_name: str) -> None:
         with self._write_lock:
             self.projection_links.pop((record_id, projection_name), None)

@@ -468,7 +468,11 @@ def test_in_memory_link_writers_wait_for_an_in_flight_release(monkeypatch) -> No
     )
     release.start()
     assert inside.wait(5)
-    writer = threading.Thread(target=store.save_projection_link, args=(late,))
+    outcome: list[bool] = []
+    # The outbox worker's link write is lifecycle-conditional.
+    writer = threading.Thread(
+        target=lambda: outcome.append(store.save_projection_link_if_active(late))
+    )
     writer.start()
     writer.join(0.2)
     assert writer.is_alive(), "link write must block while the release holds the store"
@@ -476,5 +480,62 @@ def test_in_memory_link_writers_wait_for_an_in_flight_release(monkeypatch) -> No
     release.join(5)
     writer.join(5)
     assert store.get_record(record).state is MemoryState.DELETED
-    # The writer ran after the release committed; its write is not lost.
-    assert migration.link(record).locator == "written-during-release"
+    # Third audit F-01: once deletion is complete, a late link write is refused;
+    # a DELETED record never regains a projection link.
+    assert outcome == [False]
+    assert migration.link(record) is None
+
+
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
+def test_projection_losing_the_race_to_deletion_withdraws_its_fresh_copy(tmp_path, backend) -> None:
+    """Third audit F-01: rebuild/project, provider write, pause, delete, release, resume.
+
+    The projection worker has written the fresh provider copy and seen the
+    record ACTIVE; before it installs the link, the record is deleted, its
+    legacy copy erased-and-released, and deletion completes. On resuming, the
+    worker must withdraw the fresh copy and must not install a link.
+    """
+
+    migration = Migration(_open_store(backend, tmp_path))
+    record = migration.write("falcon plan")
+    migration.drain()
+    migration.switch_provider(record)
+    migration.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
+    store = migration.store
+    real_get = store.get_record
+    reads = {"count": 0}
+
+    def get_record_then_race(record_id):
+        current = real_get(record_id)
+        if record_id == record:
+            reads["count"] += 1
+            if reads["count"] == 2:
+                # The worker's post-provider-write lifecycle check has just
+                # read ACTIVE. Everything below lands before its link write.
+                store.get_record = real_get
+                racer = Migration(store)
+                racer.old, racer.new = migration.old, migration.new
+                racer.service, racer.worker = racer._bind(migration.new)
+                racer.service.delete(
+                    ADMIN,
+                    DeletionRequest(
+                        record_id=record, reason="subject request", verification_reference="r"
+                    ),
+                )
+                racer.drain()
+                racer.service.release_legacy_projection_copies(
+                    ADMIN, NAMESPACE, store_destruction_reference="CHG-10", apply=True
+                )
+                assert real_get(record).state is MemoryState.DELETED
+        return current
+
+    store.get_record = get_record_then_race
+    try:
+        migration.drain()
+    finally:
+        store.get_record = real_get
+    assert reads["count"] >= 2, "the race window was not reached"
+    assert store.get_record(record).state is MemoryState.DELETED
+    assert migration.link(record) is None
+    assert str(record) not in migration.new.episodes  # fresh copy withdrawn
+    store.close()
