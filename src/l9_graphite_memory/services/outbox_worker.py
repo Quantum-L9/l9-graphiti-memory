@@ -22,6 +22,7 @@ from uuid import UUID
 
 from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.contracts import (
+    MemoryRecord,
     MemoryState,
     OutboxEvent,
     OutboxStatus,
@@ -35,7 +36,7 @@ from l9_graphite_memory.contracts.projection import (
     legacy_copies,
     link_withdrawn,
 )
-from l9_graphite_memory.errors import StoreError
+from l9_graphite_memory.errors import ProjectionLinkConflict, StoreError
 from l9_graphite_memory.observability import configure_logging, get_logger
 from l9_graphite_memory.ports import Clock, ProjectionAdapter, RecordStore, SystemClock
 
@@ -100,8 +101,9 @@ class OutboxWorker:
             return False
         return True
 
+    @staticmethod
     def _carried_legacy_copies(
-        self, record_id: UUID, scope_scheme: object, now: datetime
+        previous: ProjectionLink | None, scope_scheme: object, now: datetime
     ) -> list[dict[str, object]]:
         """Legacy obligations a new link inherits from the one it replaces.
 
@@ -110,7 +112,6 @@ class OutboxWorker:
         becomes an obligation instead of being forgotten (ADR-091).
         """
 
-        previous = self.store.get_projection_link(record_id, self.projection.name)
         copies: list[dict[str, object]] = list(legacy_copies(previous))
         if (
             previous is not None
@@ -125,6 +126,60 @@ class OutboxWorker:
                 }
             )
         return copies
+
+    #: Re-derivations allowed when the link changes under the worker.
+    _LINK_INSTALL_ATTEMPTS = 3
+
+    def _install_link(
+        self,
+        record: MemoryRecord,
+        locator: str,
+        metadata: dict[str, object],
+        scope_scheme: object,
+        now: datetime,
+    ) -> bool:
+        """Install the new link, re-deriving carried obligations on conflict.
+
+        The link's legacy obligations are derived from the link it replaces.
+        A legacy release that clears them between that read and the write
+        would otherwise have them re-added, so the store rejects a write whose
+        predecessor changed and the worker re-derives from the current link.
+        The lifecycle check and the write are one atomic store step: a
+        deletion, retirement or release that landed after the provider write
+        must not be followed by a live link (ADR-091).
+        """
+
+        for _ in range(self._LINK_INSTALL_ATTEMPTS):
+            previous = self.store.get_projection_link(record.record_id, self.projection.name)
+            link_metadata = dict(metadata)
+            carried = self._carried_legacy_copies(previous, scope_scheme, now)
+            if carried:
+                link_metadata[LEGACY_COPIES_KEY] = carried
+            try:
+                return self.store.save_projection_link_if_active(
+                    ProjectionLink(
+                        record_id=record.record_id,
+                        namespace=record.namespace,
+                        projection_name=self.projection.name,
+                        locator=locator,
+                        metadata=link_metadata,
+                        created_at=now,
+                    ),
+                    expected_previous=previous,
+                )
+            except ProjectionLinkConflict:
+                continue
+        # Persistent contention: withdraw the fresh copy so no unlinked copy
+        # is left behind, and let the outbox retry the projection.
+        self.projection.retire(
+            record.record_id,
+            record.namespace,
+            locator=locator,
+            reason="post-project-link-contention",
+        )
+        raise ProjectionLinkConflict(
+            f"projection link for {record.record_id} kept changing during install"
+        )
 
     def _retain_stale_link(self, link: ProjectionLink, now: datetime) -> ProjectionLink:
         """Treat a link written under another scope scheme as a legacy copy.
@@ -251,26 +306,8 @@ class OutboxWorker:
                                 # provider without scoped groups.
                                 "scope_scheme": scope_scheme,
                             }
-                            carried = self._carried_legacy_copies(
-                                record.record_id, scope_scheme, now
-                            )
-                            if carried:
-                                metadata[LEGACY_COPIES_KEY] = carried
-                            # The lifecycle check and the link write are one
-                            # atomic store step: a deletion, retirement or
-                            # legacy release that landed after the check
-                            # above must not be followed by a live link, so
-                            # losing the race withdraws the fresh copy
-                            # instead (ADR-091).
-                            installed = self.store.save_projection_link_if_active(
-                                ProjectionLink(
-                                    record_id=record.record_id,
-                                    namespace=record.namespace,
-                                    projection_name=self.projection.name,
-                                    locator=locator,
-                                    metadata=metadata,
-                                    created_at=now,
-                                )
+                            installed = self._install_link(
+                                record, locator, metadata, scope_scheme, now
                             )
                             if not installed:
                                 log.info(

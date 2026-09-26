@@ -74,6 +74,14 @@ not catch:
    provider write, the link is refused and the fresh provider copy is
    withdrawn. A record whose deletion is complete can never regain a link. Rebuild
    treats a withdrawn link on an active record as unprojected.
+   The worker derives the new link's legacy obligations from the link it
+   replaces, so the same write also compares that link with the one it read
+   (`expected_previous`). If a release (or any other link writer) changed it in
+   between, the store raises `ProjectionLinkConflict` and writes nothing. The
+   worker then re-reads the link and re-derives the obligations, up to three
+   attempts. A released obligation is never carried back. When every attempt
+   conflicts, the worker withdraws the fresh copy and the outbox retries the
+   event.
 2. **Path admission requires every relationship.** A path is served only when
    every node is supported, every hop has an identified edge, and every edge
    was admitted with canonical support. Each hop's edge must also connect
@@ -181,7 +189,10 @@ obligations; the obligation is recorded when the ADR-084 rebuild runs. Run
   two-hop path.
 - `tests/security/test_legacy_projection_erasure.py` also covers injected
   failure mid-commit, process restart and idempotent retry, and a plan
-  overtaken by a concurrent erasure, on memory, SQLite and PostgreSQL.
+  overtaken by a concurrent erasure, on memory, SQLite and PostgreSQL. It also
+  covers a release landing between the worker's link read and its link write,
+  which must stay released (all three backends), and link install giving up
+  under persistent contention.
 - `tests/unit/test_graph_request_budget_and_policy.py`: remaining budget to the
   provider, refusal when spent, late answer refused, adapter statements share
   one budget, GDS cleanup after exhaustion, search policy refusals, a

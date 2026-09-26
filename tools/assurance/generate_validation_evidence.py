@@ -206,8 +206,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # lock, request and search admission refusal, pool slot release.
         # Re-pinned 1221 -> 1227 for the third audit: 3 store-matrix
         # projection/deletion race cases, 3 authorization-ordering cases.
-        "1227 tests pass",
-        r"1227 passed",
+        # Re-pinned 1227 -> 1231 for the legacy-carry race: 3 store-matrix
+        # release-between-read-and-write cases, 1 link-install contention case.
+        "1231 tests pass",
+        r"1231 passed",
     ),
     CheckSpec(
         "V-002",

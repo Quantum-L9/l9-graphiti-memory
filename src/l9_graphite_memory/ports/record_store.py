@@ -172,7 +172,9 @@ class RecordStore(Protocol):
 
     def save_projection_link(self, link: ProjectionLink) -> None: ...
 
-    def save_projection_link_if_active(self, link: ProjectionLink) -> bool:
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
         """Persist ``link`` only while its record is ACTIVE, in one atomic step.
 
         Returns ``False`` (and writes nothing) when the record is missing or
@@ -180,6 +182,12 @@ class RecordStore(Protocol):
         so a deletion, retirement or release that lands between its lifecycle
         check and the link write can never be followed by a live link
         (ADR-091).
+
+        ``expected_previous`` is the link the replacement was derived from
+        (``None`` when there was none). If the current link differs, for
+        example because a legacy release cleared its obligations in the
+        meantime, nothing is written and ``ProjectionLinkConflict`` is raised
+        so the caller can re-derive from the current link.
         """
         ...
 

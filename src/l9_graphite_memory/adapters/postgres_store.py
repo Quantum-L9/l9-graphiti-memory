@@ -44,6 +44,7 @@ from l9_graphite_memory.errors import (
     ConfigurationError,
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
+    ProjectionLinkConflict,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -1001,7 +1002,9 @@ class PostgresRecordStore:
             ),
         )
 
-    def save_projection_link_if_active(self, link: ProjectionLink) -> bool:
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
@@ -1017,6 +1020,19 @@ class PostgresRecordStore:
                 record = schema_registry.read_record(json.loads(str(row["record_json"])))
                 if record.state is not MemoryState.ACTIVE:
                     return False
+                tx.execute(
+                    "SELECT link_json FROM projection_links "
+                    "WHERE record_id = %s AND projection_name = %s FOR UPDATE",
+                    (str(link.record_id), link.projection_name),
+                )
+                current_row = tx.fetchone()
+                current = (
+                    ProjectionLink.model_validate_json(str(current_row["link_json"]))
+                    if current_row
+                    else None
+                )
+                if current != expected_previous:
+                    raise ProjectionLinkConflict("projection link changed since it was read")
                 self._upsert_projection_link(tx, link)
                 return True
         except psycopg2.Error as exc:

@@ -37,6 +37,10 @@ class StoreError(L9MemoryError):
     """The canonical record store failed."""
 
 
+class ProjectionLinkConflict(StoreError):
+    """A projection link changed between being read and being replaced."""
+
+
 class IdempotencyConflict(StoreError):
     """A concurrent write already committed this operation identity.
 

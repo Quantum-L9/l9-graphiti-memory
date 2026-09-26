@@ -459,7 +459,8 @@ def test_in_memory_link_writers_wait_for_an_in_flight_release(monkeypatch) -> No
         proceed.wait(5)
         return real_complete(*args, **kwargs)
 
-    late = migration.link(record).model_copy(update={"locator": "written-during-release"})
+    before = migration.link(record)
+    late = before.model_copy(update={"locator": "written-during-release"})
     monkeypatch.setattr(store, "complete_deletion", paused_complete)
     release = threading.Thread(
         target=migration.service.release_legacy_projection_copies,
@@ -471,7 +472,9 @@ def test_in_memory_link_writers_wait_for_an_in_flight_release(monkeypatch) -> No
     outcome: list[bool] = []
     # The outbox worker's link write is lifecycle-conditional.
     writer = threading.Thread(
-        target=lambda: outcome.append(store.save_projection_link_if_active(late))
+        target=lambda: outcome.append(
+            store.save_projection_link_if_active(late, expected_previous=before)
+        )
     )
     writer.start()
     writer.join(0.2)
@@ -539,3 +542,83 @@ def test_projection_losing_the_race_to_deletion_withdraws_its_fresh_copy(tmp_pat
     assert migration.link(record) is None
     assert str(record) not in migration.new.episodes  # fresh copy withdrawn
     store.close()
+
+
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
+def test_release_between_link_read_and_write_is_not_undone(tmp_path, backend) -> None:
+    """A release that lands after the worker read the old link must stay released.
+
+    The worker derives the new link's legacy obligations from the link it
+    replaces. If the release clears them between that read and the write, the
+    write must not carry them back; otherwise a later deletion would wait for
+    a second release of a store that is already destroyed.
+    """
+
+    migration = Migration(_open_store(backend, tmp_path))
+    record = migration.write("falcon plan")
+    migration.drain()
+    migration.cut_over(record)
+    store = migration.store
+    # A retirement withdrew the new copy, keeping the obligation; the record is
+    # active again, so the rebuild re-projects it.
+    link = migration.link(record)
+    store.save_projection_link(
+        link.model_copy(update={"metadata": {**link.metadata, "withdrawn": True}})
+    )
+    migration.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
+
+    original = store.save_projection_link_if_active
+    released: list[object] = []
+
+    def release_first(*args, **kwargs):
+        if not released:
+            # The worker has read the old link; the operator releases now.
+            migration.old.episodes.clear()
+            released.append(
+                migration.service.release_legacy_projection_copies(
+                    ADMIN, NAMESPACE, store_destruction_reference="CHG-11", apply=True
+                )
+            )
+        return original(*args, **kwargs)
+
+    store.save_projection_link_if_active = release_first  # type: ignore[method-assign]
+    try:
+        migration.drain()
+    finally:
+        store.save_projection_link_if_active = original  # type: ignore[method-assign]
+    assert released and released[0].applied
+    assert store.get_record(record).state is MemoryState.ACTIVE
+    final = migration.link(record)
+    assert final is not None and not link_withdrawn(final)
+    assert legacy_copies(final) == []
+    assert str(record) in migration.new.episodes
+
+    # With no obligation left, a deletion completes without another release.
+    migration.service.delete(
+        ADMIN,
+        DeletionRequest(record_id=record, reason="subject request", verification_reference="r"),
+    )
+    migration.drain()
+    assert store.get_record(record).state is MemoryState.DELETED
+    store.close()
+
+
+def test_link_install_gives_up_under_persistent_contention(migration) -> None:
+    """Exhausted retries withdraw the fresh copy and leave the event to the outbox."""
+
+    from l9_graphite_memory.errors import ProjectionLinkConflict
+
+    record = migration.write("falcon plan")
+    store = migration.store
+    attempts = {"count": 0}
+
+    def always_conflict(*args, **kwargs):
+        attempts["count"] += 1
+        raise ProjectionLinkConflict("projection link changed since it was read")
+
+    store.save_projection_link_if_active = always_conflict  # type: ignore[method-assign]
+    stats = migration.worker.run_once()
+    assert attempts["count"] == OutboxWorker._LINK_INSTALL_ATTEMPTS
+    assert stats["delivered"] == 0 and stats["retried"] == 1
+    assert migration.link(record) is None
+    assert str(record) not in migration.old.episodes

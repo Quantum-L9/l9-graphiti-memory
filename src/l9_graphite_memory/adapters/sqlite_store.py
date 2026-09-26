@@ -45,6 +45,7 @@ from l9_graphite_memory.contracts import (
 from l9_graphite_memory.errors import (
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
+    ProjectionLinkConflict,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -916,7 +917,9 @@ class SQLiteRecordStore:
             ),
         )
 
-    def save_projection_link_if_active(self, link: ProjectionLink) -> bool:
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
         try:
             with self._transaction() as tx:
                 row = tx.execute(
@@ -928,6 +931,18 @@ class SQLiteRecordStore:
                 record = schema_registry.read_record(json.loads(str(row["record_json"])))
                 if record.state is not MemoryState.ACTIVE:
                     return False
+                current_row = tx.execute(
+                    "SELECT link_json FROM projection_links "
+                    "WHERE record_id = ? AND projection_name = ?",
+                    (str(link.record_id), link.projection_name),
+                ).fetchone()
+                current = (
+                    ProjectionLink.model_validate_json(str(current_row["link_json"]))
+                    if current_row
+                    else None
+                )
+                if current != expected_previous:
+                    raise ProjectionLinkConflict("projection link changed since it was read")
                 self._upsert_projection_link(tx, link)
                 return True
         except sqlite3.Error as exc:

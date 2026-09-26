@@ -40,6 +40,7 @@ from l9_graphite_memory.contracts import (
 from l9_graphite_memory.errors import (
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
+    ProjectionLinkConflict,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -376,12 +377,17 @@ class InMemoryRecordStore:
     ) -> ProjectionLink | None:
         return self.projection_links.get((record_id, projection_name))
 
-    def save_projection_link_if_active(self, link: ProjectionLink) -> bool:
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
         with self._write_lock:
             record = self.records.get(link.record_id)
             if record is None or record.state is not MemoryState.ACTIVE:
                 return False
-            self.projection_links[(link.record_id, link.projection_name)] = link
+            key = (link.record_id, link.projection_name)
+            if self.projection_links.get(key) != expected_previous:
+                raise ProjectionLinkConflict("projection link changed since it was read")
+            self.projection_links[key] = link
             return True
 
     def delete_projection_link(self, record_id: UUID, projection_name: str) -> None:
