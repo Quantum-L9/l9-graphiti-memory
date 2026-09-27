@@ -430,16 +430,9 @@ class GraphitiProjection:
             )
             result = self.transport.call_tool("search_nodes", arguments)
             for rank, item in enumerate(self._result_items(result, "graph-search")):
-                hit = self._entity_hit(item, namespace, rank)
-                if hit is None:
-                    continue
-                key = (
-                    (str(hit.record_id), "record") if hit.record_id else (str(hit.entity_uuid), "")
-                )
-                existing = hits.get(key)
-                if existing is None or hit.score > existing.score:
-                    hits[key] = hit
-        return sorted(hits.values(), key=lambda item: item.score, reverse=True)[:limit]
+                _keep_best(hits, self._entity_hit(item, namespace, rank))
+        # Graphiti's node search carries no score; its order is the ranking.
+        return sorted(hits.values(), key=lambda item: (-item.score, item.rank))[:limit]
 
     def _entity_hit(
         self, item: dict[str, Any], namespace: str, rank: int
@@ -485,3 +478,16 @@ class GraphitiProjection:
         if failures and not combined:
             raise ProjectionError("; ".join(failures))
         return sorted(combined.values(), key=lambda item: item.score, reverse=True)[:limit]
+
+
+def _keep_best(
+    hits: dict[tuple[str, str], ProjectionEntityHit], hit: ProjectionEntityHit | None
+) -> None:
+    """Keep one hit per record (or per entity when it names no record), best score first."""
+
+    if hit is None:
+        return
+    key = (str(hit.record_id), "record") if hit.record_id else (str(hit.entity_uuid), "")
+    existing = hits.get(key)
+    if existing is None or hit.score > existing.score:
+        hits[key] = hit

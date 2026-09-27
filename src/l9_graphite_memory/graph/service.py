@@ -72,6 +72,7 @@ from .contracts import (
     GraphCapabilityReport,
     GraphIntelligenceReceipt,
     GraphIntelligenceRequest,
+    GraphLimits,
     GraphOperation,
     GraphProviderIdentity,
     GraphProviderRequest,
@@ -219,6 +220,43 @@ def _gather_search_hits(
 
 def _result_key(item: dict[str, Any]) -> str:
     return str(item.get("record_id") or item.get("entity_uuid") or "")
+
+
+def _limits_applied(
+    request: GraphIntelligenceRequest,
+    limits: GraphLimits,
+    relationship_types: tuple[str, ...],
+) -> dict[str, Any]:
+    """The effective limits and filters a receipt reports."""
+
+    return {
+        **limits.model_dump(),
+        "relationship_types": list(relationship_types),
+        "direction": request.direction,
+        "as_of": request.as_of.isoformat() if request.as_of else None,
+        "recorded_before": (
+            request.recorded_before.isoformat() if request.recorded_before else None
+        ),
+    }
+
+
+def _served_port_method(
+    operation: GraphOperation, capabilities: tuple[GraphCapability, ...]
+) -> str | None:
+    """The port method for a structural operation the backend serves, else None."""
+
+    method_name = PORT_METHODS.get(operation)
+    if method_name is None or GraphCapability(operation.value) not in capabilities:
+        return None
+    return method_name
+
+
+def _structural_status(failures: list[dict[str, Any]], required: bool) -> GraphReceiptStatus:
+    """COMPLETE without failures; FAILED when the result is required, else PARTIAL."""
+
+    if not failures:
+        return GraphReceiptStatus.COMPLETE
+    return GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL
 
 
 def _finish_search(
@@ -517,22 +555,13 @@ class GraphIntelligenceService:
         tenant_id = principal.tenant_id
         group_ids = graph_group_ids(tenant_id, namespaces)
         scope_digest = graph_request_scope_digest(tenant_id, namespaces)
-        required = request.required or self.config.required
-        relationship_types = request.relationship_types or self.config.relationship_allowlist
+        required, relationship_types = self._effective_policy(request)
         limits = request.limits.model_copy(
             update={
                 "max_runtime_ms": min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
             }
         )
-        limits_applied: dict[str, Any] = {
-            **limits.model_dump(),
-            "relationship_types": list(relationship_types),
-            "direction": request.direction,
-            "as_of": request.as_of.isoformat() if request.as_of else None,
-            "recorded_before": request.recorded_before.isoformat()
-            if request.recorded_before
-            else None,
-        }
+        limits_applied = _limits_applied(request, limits, relationship_types)
         health = self.health()
         provider = self._provider_identity(health)
 
@@ -555,11 +584,8 @@ class GraphIntelligenceService:
         if policy_refusal is not None:
             return refuse(policy_refusal, "policy")
         if request.operation in SEARCH_STRATEGIES:
-            try:
-                search_algorithm = self.config.algorithm_policy.resolve(
-                    request.operation, request.algorithm
-                )
-            except GraphQueryPolicyViolation:
+            search_algorithm = self._admitted_algorithm(request)
+            if search_algorithm is None:
                 return refuse("algorithm_not_admitted", "policy")
             return self._search(
                 request,
@@ -573,15 +599,11 @@ class GraphIntelligenceService:
                 remaining_ms,
                 health.capabilities,
             )
-        method_name = PORT_METHODS.get(request.operation)
-        if (
-            method_name is None
-            or GraphCapability(request.operation.value) not in health.capabilities
-        ):
+        method_name = _served_port_method(request.operation, health.capabilities)
+        if method_name is None:
             return refuse("capability_unavailable", "capability")
-        try:
-            algorithm = self.config.algorithm_policy.resolve(request.operation, request.algorithm)
-        except GraphQueryPolicyViolation:
+        algorithm = self._admitted_algorithm(request)
+        if algorithm is None:
             return refuse("algorithm_not_admitted", "policy")
         algorithm_config = self._algorithm_config(algorithm, limits_applied)
         identity = algorithm_identity(algorithm, algorithm_config)
@@ -629,9 +651,7 @@ class GraphIntelligenceService:
             ),
         )
         failures = self._structural_failures(linked, result, limits_applied)
-        status = GraphReceiptStatus.COMPLETE
-        if failures:
-            status = GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL
+        status = _structural_status(failures, required)
         if status is GraphReceiptStatus.FAILED:
             linked = LinkedEvidence()
         return self._receipt(
@@ -644,6 +664,22 @@ class GraphIntelligenceService:
             linked,
             failures,
         )
+
+    def _effective_policy(self, request: GraphIntelligenceRequest) -> tuple[bool, tuple[str, ...]]:
+        """Whether a result is required, and the relationship types, after defaults."""
+
+        return (
+            request.required or self.config.required,
+            request.relationship_types or self.config.relationship_allowlist,
+        )
+
+    def _admitted_algorithm(self, request: GraphIntelligenceRequest) -> GraphAlgorithm | None:
+        """The algorithm policy admits for this request, or None when it refuses."""
+
+        try:
+            return self.config.algorithm_policy.resolve(request.operation, request.algorithm)
+        except GraphQueryPolicyViolation:
+            return None
 
     def _shared_policy_refusal(
         self, request: GraphIntelligenceRequest, relationship_types: tuple[str, ...]

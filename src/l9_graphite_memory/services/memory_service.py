@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -121,6 +122,34 @@ _LIFECYCLE_TRANSITIONS: dict[tuple[MemoryState, MemoryState], AuthorizationActio
     (MemoryState.ARCHIVED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
     (MemoryState.QUARANTINED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
 }
+
+
+@dataclass
+class _ReleasePlan:
+    """The store changes one legacy-projection release commits (ADR-091)."""
+
+    projection_name: str
+    released: list[UUID] = field(default_factory=list)
+    completed: list[UUID] = field(default_factory=list)
+    link_updates: list[ProjectionLink] = field(default_factory=list)
+    link_removals: list[tuple[UUID, str]] = field(default_factory=list)
+    deletion_completions: list[tuple[UUID, UUID]] = field(default_factory=list)
+    expected_links: list[ProjectionLink] = field(default_factory=list)
+    copy_count: int = 0
+
+    def add(self, record: MemoryRecord, link: ProjectionLink, copy_count: int) -> None:
+        self.released.append(record.record_id)
+        self.expected_links.append(link)
+        self.copy_count += copy_count
+        if link_withdrawn(link):
+            self.link_removals.append((record.record_id, self.projection_name))
+        else:
+            metadata = {k: v for k, v in link.metadata.items() if k != LEGACY_COPIES_KEY}
+            self.link_updates.append(link.model_copy(update={"metadata": metadata}))
+        pending = link.metadata.get(PENDING_DELETION_RECEIPT_KEY)
+        if record.state is MemoryState.DELETION_PENDING and isinstance(pending, str):
+            self.completed.append(record.record_id)
+            self.deletion_completions.append((record.record_id, UUID(pending)))
 
 
 def _require_predates_cutover(
@@ -1400,13 +1429,7 @@ class MemoryService:
             raise StoreError("projection backend is 'none'; there are no legacy copies")
         now = self.clock.now()
         cutover = self._release_cutover(principal.tenant_id, namespace, now, apply=apply)
-        released: list[UUID] = []
-        completed: list[UUID] = []
-        link_updates: list[ProjectionLink] = []
-        link_removals: list[tuple[UUID, str]] = []
-        deletion_completions: list[tuple[UUID, UUID]] = []
-        expected_links: list[ProjectionLink] = []
-        copy_count = 0
+        plan = _ReleasePlan(self.projection.name)
         records = self.store.list_records(principal.tenant_id, namespace, states=(), limit=limit)
         for record in records:
             link = self.store.get_projection_link(record.record_id, self.projection.name)
@@ -1415,25 +1438,14 @@ class MemoryService:
                 continue
             if apply and cutover is not None:
                 _require_predates_cutover(copies, cutover)
-            released.append(record.record_id)
-            expected_links.append(link)
-            copy_count += len(copies)
-            if link_withdrawn(link):
-                link_removals.append((record.record_id, self.projection.name))
-            else:
-                metadata = {k: v for k, v in link.metadata.items() if k != LEGACY_COPIES_KEY}
-                link_updates.append(link.model_copy(update={"metadata": metadata}))
-            pending = link.metadata.get(PENDING_DELETION_RECEIPT_KEY)
-            if record.state is MemoryState.DELETION_PENDING and isinstance(pending, str):
-                completed.append(record.record_id)
-                deletion_completions.append((record.record_id, UUID(pending)))
+            plan.add(record, link, len(copies))
         receipt = LegacyProjectionReleaseReceipt(
             namespace=namespace,
             projection_name=self.projection.name,
             applied=apply,
-            released_record_ids=tuple(released),
-            released_copy_count=copy_count,
-            completed_deletion_record_ids=tuple(completed),
+            released_record_ids=tuple(plan.released),
+            released_copy_count=plan.copy_count,
+            completed_deletion_record_ids=tuple(plan.completed),
             authorization=authorization,
             store_destruction_reference=store_destruction_reference,
             reason=reason,
@@ -1441,7 +1453,7 @@ class MemoryService:
             created_at=now,
             cutover_receipt_id=cutover.receipt_id if cutover else None,
         )
-        if apply and released:
+        if apply and plan.released:
             # One capability-gated transaction: the evidence (receipt), the
             # link changes and the deletion completions land together or not
             # at all, so a crash cannot strand a deletion without its
@@ -1449,10 +1461,10 @@ class MemoryService:
             self.store.commit_legacy_projection_release(
                 SERVICE_WRITE_CAPABILITY,
                 receipt,
-                link_updates=tuple(link_updates),
-                link_removals=tuple(link_removals),
-                deletion_completions=tuple(deletion_completions),
-                expected_links=tuple(expected_links),
+                link_updates=tuple(plan.link_updates),
+                link_removals=tuple(plan.link_removals),
+                deletion_completions=tuple(plan.deletion_completions),
+                expected_links=tuple(plan.expected_links),
             )
         return receipt
 

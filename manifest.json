@@ -462,7 +462,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "958f1e05c15964b0073b91cca91c4d3e03c9edfe72461bf2714297ca0e8faade",
+      "sha256": "d115b45e5e928c383450fff349778ab6d1adb861fad85de84dec1c239826b2e3",
       "size_bytes": 137686
     },
     {
@@ -5694,8 +5694,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/graphiti_projection.py",
-      "sha256": "f6cc2771455e03f0fa2c2e249c678c4a0336756f97c52dbd75c428d083db5c59",
-      "size_bytes": 20643
+      "sha256": "1b5f649da730c922474b7e7860b30dc5f329abf8e3bd0f8d18f1d5ea98f38596",
+      "size_bytes": 20827
     },
     {
       "category": "production_source",
@@ -5742,8 +5742,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/neo4j_graph_intelligence.py",
-      "sha256": "8578de09ebde341ad8548988e83832c60da13005eb751ea23e34c7765f2a5144",
-      "size_bytes": 41072
+      "sha256": "042c9f928fbbfbf4ca0ec38974827f4741e34a27af4e03a324803f252d65f18a",
+      "size_bytes": 41703
     },
     {
       "category": "production_source",
@@ -6638,8 +6638,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/graph/service.py",
-      "sha256": "4055013ce7d42d90c69659ea425f621ee9d4811e57648e59ed7d53b72337e39b",
-      "size_bytes": 41654
+      "sha256": "d7b0f5139fcb13330cefce0ba9fddd4a4ac6e0881ae3289d5ee8f9f4bbe380a1",
+      "size_bytes": 42873
     },
     {
       "category": "production_source",
@@ -7710,8 +7710,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/services/memory_service.py",
-      "sha256": "f304a883513e5cf9e5ff57104de24f2577d3e6dac8453d8092d816c416f9fbb8",
-      "size_bytes": 68773
+      "sha256": "dbf65f1f10dc15dbbf5bcbc0e23ba27ce4c6fca66d55adf306bfc8b728ff7a8d",
+      "size_bytes": 69290
     },
     {
       "category": "production_source",
@@ -12590,7 +12590,7 @@
         "version": "2.5.0"
       },
       "path": "validation/SHA256SUMS",
-      "sha256": "5cdf26fe8174d29e7e03e02e4b5e5f929c91a5ffc865443d630d3c028a0f8d2b",
+      "sha256": "ffec2e836c9479780aec93c8573785d55135671b6c1796756eeb84473f4c2a4e",
       "size_bytes": 108
     },
     {
@@ -12702,7 +12702,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "5f671da1bf40d84f654376877a8ae490e22c2e590a78be6d9f2a925ef7f1242a",
+      "sha256": "db55260098972db7ff16af439b71048addba88c3e8c4bef0f13c136b40c0eff3",
       "size_bytes": 1355
     },
     {
@@ -12718,7 +12718,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "45af5b05d2c241c8b4528a7eef5811676577b7d8307f995cef082a1324f19db4",
+      "sha256": "e60f000803fbca8b5353e04695c6927337cf4a4fb778aa452ff70e020ad2627e",
       "size_bytes": 1101
     },
     {
@@ -12734,7 +12734,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "9920351d343414230681a6438a100adfd0d6a4f0f2ad5b52b1168b1343ab2372",
+      "sha256": "2da1a2ab17dd9698640c3f7cd5af38567621d4fbfa880cb726d5c0f63b7c9933",
       "size_bytes": 551
     },
     {
@@ -12798,7 +12798,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/l9_meta_apply.txt",
-      "sha256": "2733285cf31aebf78d0a2dd85091d91eb9239d6d98a4bb625dd8df1abb2c7047",
+      "sha256": "3ef518e8a670b419e0de57a807b00b4fd29df8977162adceeae1b9a777877c2c",
       "size_bytes": 28
     },
     {
@@ -12830,7 +12830,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "a18d1ae5671a44653083ea0d584717f12efba71d0817b27f615e70200ef2d9eb",
+      "sha256": "6963e515b3449779e4b374ec28e6a7e6fa41bd80c713df88998369fb38ef3461",
       "size_bytes": 659
     },
     {
@@ -12862,8 +12862,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "453a6b780ea98ad4b5e38171bc8c42a062cf361c62aeb4bae33807d464ce2152",
-      "size_bytes": 4071
+      "sha256": "ba1b69a897ad0ad8356f9bec3e3bf8c93df8ade049ccadd450a6ec3cde5a3c3d",
+      "size_bytes": 4072
     },
     {
       "category": "validation_evidence",
@@ -12894,7 +12894,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "5be24eebc11bf2330007ee901ed249a244296a8635e9c6254005829f8307e3e8",
+      "sha256": "e8249fe3de898e885c563b740e65bea4bcc7a73a704b5c1f9c0a0b0792207e18",
       "size_bytes": 6671
     },
     {
@@ -12974,7 +12974,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "fd2d0049bb3f7be73e85d8df2192707f2bf0edcb55a25d08970fb0f614773e22",
+      "sha256": "0c862d89b3e60bf5cfe1d42ef840882b74586220c3fe4c20523d37a314e9f43e",
       "size_bytes": 31505
     },
     {
@@ -12990,8 +12990,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_install.txt",
-      "sha256": "1b353ebaf9d9a7dc615566d4f52c86907d47400fb35ae2f6167e41d16b14c49e",
-      "size_bytes": 266
+      "sha256": "f3cb130668aac34840d4208820134e5909adbbb6770f3ca7a28313ba47785d73",
+      "size_bytes": 267
     },
     {
       "category": "validation_evidence",
@@ -13022,7 +13022,7 @@
         "version": "2.5.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "cc6ae1890eb104101a7cecb90433869d24166b12df508e22ee71fd580ee8fc5d",
+      "sha256": "253af3d6d361e0a805cc93db7a35cb114c6d7cedfec899a7367de6a0c8b085f6",
       "size_bytes": 11388
     },
     {
