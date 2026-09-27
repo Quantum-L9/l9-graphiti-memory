@@ -1,0 +1,110 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .github/workflows/graph-qualification.yml
+#   layer: ci
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.5.0
+#   updated: 2026-09-27
+
+# Real-model live qualification (GI-080, ADR-092): graphiti-core 0.30.2 with
+# real LLM extraction, embeddings and reranking against Neo4j 5.26 + GDS 2.13.
+#
+# Nightly and on demand, not per PR: every run spends model tokens, and real
+# extraction is not deterministic. The deterministic live suites run on every
+# PR in ci.yml `graph-live`. This workflow fails, never skips: a missing
+# credential or a skipped test is a red run.
+name: Graph qualification
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+    inputs:
+      route:
+        description: 'Model route: openai (OPENAI_API_KEY) or openrouter (OPENROUTER_API_KEY)'
+        required: false
+        default: ''
+permissions:
+  contents: read
+jobs:
+  qualification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      neo4j:
+        image: neo4j:5.26.31
+        env:
+          NEO4J_AUTH: neo4j/l9-qual-${{ github.run_id }}
+          NEO4J_PLUGINS: '["graph-data-science"]'
+          NEO4J_dbms_security_procedures_unrestricted: gds.*
+          NEO4J_dbms_security_procedures_allowlist: gds.*
+        ports:
+          - 7687:7687
+          - 7474:7474
+        options: >-
+          --health-cmd "wget -q --spider http://localhost:7474 || exit 1"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 30
+          --health-start-period 30s
+    env:
+      L9_MEMORY_TEST_NEO4J_URI: bolt://localhost:7687
+      L9_MEMORY_TEST_NEO4J_USER: neo4j
+      L9_MEMORY_TEST_NEO4J_PASSWORD: l9-qual-${{ github.run_id }}
+      # Route and models: explicit, recorded in the qualification receipt.
+      L9_QUAL_MODEL_ROUTE: ${{ inputs.route || vars.L9_QUAL_MODEL_ROUTE || 'openai' }}
+      MODEL_NAME: ${{ vars.L9_QUAL_MODEL_NAME || 'gpt-5.5' }}
+      SMALL_MODEL_NAME: ${{ vars.L9_QUAL_SMALL_MODEL_NAME || 'gpt-4.1-nano' }}
+      # Imported from the repository's Actions secrets (mirrors of the Infisical
+      # names). Never echoed, never written to a file.
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: '3.13'
+      - name: Build the qualification environment
+        # graphiti-core is a test-only dependency of the qualification harness,
+        # pinned to the qualified version (docs/graph-intelligence/QUALIFICATION.md).
+        run: |
+          uv venv -p 3.13 .qualvenv
+          uv pip install -p .qualvenv/bin/python 'graphiti-core==0.30.2' httpx pytest \
+            pytest-asyncio jsonschema pyyaml 'neo4j>=5.26,<7'
+      - name: Wait for Bolt and GDS
+        run: |
+          .qualvenv/bin/python - <<'PY'
+          import os, time
+          import neo4j
+          auth = ("neo4j", os.environ["L9_MEMORY_TEST_NEO4J_PASSWORD"])
+          deadline = time.monotonic() + 180
+          while True:
+              try:
+                  with neo4j.GraphDatabase.driver("bolt://localhost:7687", auth=auth) as d:
+                      version = d.execute_query("RETURN gds.version() AS v").records[0]["v"]
+                  print(f"GDS {version} ready")
+                  break
+              except Exception as exc:
+                  if time.monotonic() > deadline:
+                      raise SystemExit(f"Neo4j/GDS not ready: {type(exc).__name__}")
+                  time.sleep(3)
+          PY
+      - name: Run real-model qualification
+        run: |
+          PYTHONPATH=src:. .qualvenv/bin/python -m pytest -rs -p no:cacheprovider \
+            -W ignore::pytest.PytestConfigWarning --junitxml=graph-qualification.xml \
+            tests/qualification
+      - name: Fail if any qualification test skipped
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          suites = ET.parse("graph-qualification.xml").getroot().iter("testsuite")
+          skipped = sum(int(s.get("skipped", 0)) for s in suites)
+          if skipped:
+              raise SystemExit(f"{skipped} qualification test(s) skipped")
+          print("no qualification test skipped")
+          PY
