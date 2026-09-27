@@ -365,6 +365,13 @@ class Neo4jGraphIntelligence(UnservedOperations):
         missing = tuple(name for name in REQUIRED_GDS_PROCEDURES if name not in names)
         return (str(version) if version is not None else None), missing
 
+    def _catalog_active(self) -> int | None:
+        try:
+            rows = self._read("gds_catalog_list_v1", {"prefix": GRAPH_NAME_PREFIX})
+        except Exception:  # noqa: BLE001 - an unreadable catalog is reported as unknown
+            return None
+        return len(rows[0].get("names") or ()) if rows else 0
+
     def health(self) -> GraphBackendHealth:
         try:
             components = self._read("dbms_components_v1")
@@ -405,6 +412,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
         conformant = all(is_graph_group_id(group) for group in groups) if groups else None
         analytics_version, missing_procedures = self._probe_analytics()
         analytics_available = analytics_version is not None and not missing_procedures
+        catalog_active = self._catalog_active() if analytics_available else None
 
         supported: list[GraphCapability] = []
         if schema_compatible and conformant is not False:
@@ -440,6 +448,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
             analytics_available=analytics_available,
             analytics_version=analytics_version,
             missing_procedures=missing_procedures,
+            gds_catalog_active=catalog_active,
             scope_scheme=GRAPH_SCOPE_SCHEME,
             scope_scheme_conformant=conformant,
             supported_capabilities=tuple(supported),
@@ -711,6 +720,23 @@ class Neo4jGraphIntelligence(UnservedOperations):
                 supporting_episode_ids=support.get(uuid, ()),
             )
             for uuid, node in sorted(found.items())
+        )
+
+    def describe_entities(
+        self, request: GraphProviderRequest, entity_uuids: tuple[UUID, ...]
+    ) -> GraphProviderResult:
+        token = None
+        if _REQUEST_DEADLINE.get() is None:
+            token = _REQUEST_DEADLINE.set(self._monotonic() + request.limits.max_runtime_ms / 1_000)
+        try:
+            nodes = self._nodes_for(request, sorted({str(uuid) for uuid in entity_uuids}))
+        finally:
+            if token is not None:
+                _REQUEST_DEADLINE.reset(token)
+        return GraphProviderResult(
+            operation=request.operation,
+            nodes=nodes,
+            provider_metadata={"backend": self.name, "database": self.config.database},
         )
 
     def _analytic_result(

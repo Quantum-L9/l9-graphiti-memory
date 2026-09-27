@@ -37,9 +37,20 @@ from l9_graphite_memory.graph.contracts import (
 )
 from l9_graphite_memory.graph.service import GraphIntelligenceService, GraphServiceConfig
 from l9_graphite_memory.services import MemoryService
-from tests.integration.neo4j_graph_fixture import GraphitiShapedGraph, live_neo4j_settings
+from tests.integration.neo4j_graph_fixture import (
+    GraphitiShapedGraph,
+    live_neo4j_settings,
+    warm_analytics,
+)
 
 NOW = datetime.now(timezone.utc)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _warm_gds():
+    """A cold server's first GDS call is a startup cost, not the behavior under test."""
+
+    warm_analytics(live_neo4j_settings())
 
 
 @pytest.fixture
