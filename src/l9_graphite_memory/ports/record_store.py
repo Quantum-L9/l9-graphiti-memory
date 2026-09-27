@@ -268,8 +268,8 @@ class RecordStore(Protocol):
         """
         ...
 
-    def list_graph_cutovers(self, namespace: str) -> list[GraphCutoverReceipt]:
-        """Applied graph cutovers for one namespace, oldest first."""
+    def list_graph_cutovers(self, tenant_id: str, namespace: str) -> list[GraphCutoverReceipt]:
+        """Applied graph cutovers for one tenant's namespace, oldest first."""
         ...
 
     def stats(self) -> dict[str, Any]: ...

@@ -425,31 +425,42 @@ class GraphitiProjection:
         for namespace in namespaces:
             group_id = graph_group_id(tenant_id, namespace)
             arguments: dict[str, Any] = {"query": query, "max_nodes": per_namespace}
-            if official_dialect:
-                arguments["group_ids"] = [group_id]
-            else:
-                arguments["group_id"] = group_id
+            arguments.update(
+                {"group_ids": [group_id]} if official_dialect else {"group_id": group_id}
+            )
             result = self.transport.call_tool("search_nodes", arguments)
-            for item in self._result_items(result, "graph-search"):
-                record_id = self._extract_record_id(item)
-                entity_uuid: UUID | None = None
-                if record_id is None:
-                    try:
-                        entity_uuid = UUID(str(item.get("uuid")))
-                    except ValueError:
-                        continue
-                hit = ProjectionEntityHit(
-                    entity_uuid=entity_uuid,
-                    record_id=record_id,
-                    score=self._score(item),
-                    name=str(item.get("name") or "")[:300],
-                    namespace=namespace,
+            for rank, item in enumerate(self._result_items(result, "graph-search")):
+                hit = self._entity_hit(item, namespace, rank)
+                if hit is None:
+                    continue
+                key = (
+                    (str(hit.record_id), "record") if hit.record_id else (str(hit.entity_uuid), "")
                 )
-                key = ("record", str(record_id)) if record_id else ("entity", str(entity_uuid))
                 existing = hits.get(key)
                 if existing is None or hit.score > existing.score:
                     hits[key] = hit
         return sorted(hits.values(), key=lambda item: item.score, reverse=True)[:limit]
+
+    def _entity_hit(
+        self, item: dict[str, Any], namespace: str, rank: int
+    ) -> ProjectionEntityHit | None:
+        """One search_nodes item as a hit; None when it names neither a record nor a uuid."""
+
+        record_id = self._extract_record_id(item)
+        entity_uuid: UUID | None = None
+        if record_id is None:
+            try:
+                entity_uuid = UUID(str(item.get("uuid")))
+            except ValueError:
+                return None
+        return ProjectionEntityHit(
+            entity_uuid=entity_uuid,
+            record_id=record_id,
+            score=self._score(item),
+            rank=rank,
+            name=str(item.get("name") or "")[:300],
+            namespace=namespace,
+        )
 
     def search(
         self,

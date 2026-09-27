@@ -1224,7 +1224,7 @@ class SQLiteRecordStore:
         except sqlite3.Error as exc:
             raise StoreError(f"graph cutover record failed: {exc}") from exc
 
-    def list_graph_cutovers(self, namespace: str) -> list[GraphCutoverReceipt]:
+    def list_graph_cutovers(self, tenant_id: str, namespace: str) -> list[GraphCutoverReceipt]:
         rows = (
             self._connection()
             .execute(
@@ -1235,7 +1235,11 @@ class SQLiteRecordStore:
             )
             .fetchall()
         )
-        return [GraphCutoverReceipt.model_validate_json(str(row["receipt_json"])) for row in rows]
+        receipts = [
+            GraphCutoverReceipt.model_validate_json(str(row["receipt_json"])) for row in rows
+        ]
+        # aggregate_id is the namespace; the tenant is part of the receipt.
+        return [receipt for receipt in receipts if receipt.tenant_id == tenant_id]
 
     def list_legacy_projection_releases(
         self, namespace: str

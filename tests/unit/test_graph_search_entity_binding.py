@@ -243,8 +243,10 @@ def test_graphiti_entity_search_keeps_hits_without_a_record_id() -> None:
     hits = projection.search_entities("falcon", ("shared",), limit=10, tenant_id="tenant-a")
     assert transport.arguments[0]["group_ids"] == [graph_group_id("tenant-a", "shared")]
     by_kind = {("entity" if h.record_id is None else "record"): h for h in hits}
-    assert by_kind["entity"].entity_uuid == ENTITY and by_kind["entity"].name == "Falcon"
-    assert by_kind["record"].record_id == record_id and by_kind["record"].entity_uuid is None
+    assert by_kind["entity"].entity_uuid == ENTITY
+    assert by_kind["entity"].name == "Falcon"
+    assert by_kind["record"].record_id == record_id
+    assert by_kind["record"].entity_uuid is None
     assert len(hits) == 2
     # memory.search semantics are unchanged: the strategy still drops entity-only hits.
     strategy_hits = projection.search_strategy(
@@ -252,3 +254,37 @@ def test_graphiti_entity_search_keeps_hits_without_a_record_id() -> None:
     )
     assert [h.record_id for h in strategy_hits] == [record_id]
     assert all(isinstance(h, ProjectionHit) for h in strategy_hits)
+
+
+def test_provider_rank_orders_entity_hits_when_graphiti_returns_no_score() -> None:
+    """Codex P2 on #74: Graphiti node search has no score; its ranking must survive."""
+
+    first, second = uuid4(), uuid4()
+    # UUID order deliberately opposite to Graphiti's ranking.
+    best, worst = (first, second) if str(first) > str(second) else (second, first)
+    record = {}
+
+    def describe(request, entity_uuids):
+        return GraphProviderResult(
+            operation=request.operation,
+            nodes=tuple(
+                GraphProviderNode(
+                    entity_uuid=uuid,
+                    group_id=graph_group_id("tenant-a", "shared"),
+                    labels=("Entity",),
+                    name=name,
+                    supporting_episode_ids=(record["own"],),
+                )
+                for uuid, name in ((best, "Best"), (worst, "Worst"))
+            ),
+        )
+
+    hits = [
+        ProjectionEntityHit(entity_uuid=best, score=0.0, rank=0, name="Best", namespace="shared"),
+        ProjectionEntityHit(entity_uuid=worst, score=0.0, rank=1, name="Worst", namespace="shared"),
+    ]
+    graph, _port, _projection, principal, own, _ = _world(hits, describe)
+    record["own"] = own
+    receipt = graph.execute(principal("tenant-a"), _search())
+    assert [item["name"] for item in receipt.results] == ["Best", "Worst"]
+    assert [item["rank"] for item in receipt.results] == [0, 1]

@@ -42,6 +42,9 @@ class ProjectionEntityHit(BaseModel):
     entity_uuid: UUID | None = None
     record_id: UUID | None = None
     score: float = Field(ge=0.0, le=1.0)
+    #: Position in the provider's own ranking (0 = best). Orders hits whose
+    #: scores tie, as when Graphiti's node search returns no score at all.
+    rank: int = Field(default=0, ge=0)
     name: str = ""
     namespace: str
 

@@ -171,6 +171,14 @@ ignore_missing_imports = true
 constellation = [
   "constellation-node-sdk ; python_full_version >= '3.12'",
 ]
+# Real-model live qualification (tests/qualification, ADR-092). Test-only:
+# graphiti-core is pinned to the qualified version and resolved in uv.lock so
+# CI installs it frozen and without building. graphiti-core imports httpx
+# without declaring it.
+qualification = [
+  "graphiti-core==0.30.2 ; python_full_version >= '3.12'",
+  "httpx>=0.28,<1 ; python_full_version >= '3.12'",
+]
 
 [tool.uv]
 # Lock all declared extras so CI/dev can `uv sync --frozen --extra …` without

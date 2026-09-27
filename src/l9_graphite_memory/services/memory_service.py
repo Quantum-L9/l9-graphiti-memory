@@ -12,7 +12,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 from l9_graphite_memory.admission import AdmissionEngine, normalize_candidate
@@ -121,6 +121,28 @@ _LIFECYCLE_TRANSITIONS: dict[tuple[MemoryState, MemoryState], AuthorizationActio
     (MemoryState.ARCHIVED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
     (MemoryState.QUARANTINED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
 }
+
+
+def _require_predates_cutover(
+    copies: list[dict[str, object]], cutover: GraphCutoverReceipt
+) -> None:
+    """Refuse to release a legacy copy superseded after the governing cutover.
+
+    A copy superseded after the latest recorded cutover belongs to a later
+    migration whose own cutover (and rollback window) is not recorded yet;
+    the closed window of an earlier cutover must not release it (ADR-092).
+    """
+
+    for copy in copies:
+        superseded = copy.get("superseded_at")
+        if not isinstance(superseded, str):
+            continue
+        if datetime.fromisoformat(superseded) > cutover.cut_over_at:
+            raise CutoverNotReady(
+                "legacy copies were superseded after the latest recorded cutover "
+                f"{cutover.receipt_id}; record the cutover for the current migration "
+                "and wait for its rollback window"
+            )
 
 
 class MemoryService:
@@ -1377,23 +1399,7 @@ class MemoryService:
         if self.projection.name == "none":
             raise StoreError("projection backend is 'none'; there are no legacy copies")
         now = self.clock.now()
-        cutovers = self.store.list_graph_cutovers(namespace)
-        cutover = cutovers[-1] if cutovers else None
-        if apply:
-            # GI-090: releasing asserts the previous store is gone. That store
-            # must not be destroyed before the cutover is recorded, nor while
-            # its rollback window is open (ADR-092).
-            if cutover is None:
-                raise CutoverNotReady(
-                    "no graph cutover is recorded for this namespace; "
-                    "run record-graph-cutover before releasing legacy copies"
-                )
-            if now < cutover.rollback_window_ends_at:
-                raise CutoverNotReady(
-                    "the rollback window of cutover "
-                    f"{cutover.receipt_id} ends at {cutover.rollback_window_ends_at.isoformat()}; "
-                    "the previous projection store must be kept until then"
-                )
+        cutover = self._release_cutover(principal.tenant_id, namespace, now, apply=apply)
         released: list[UUID] = []
         completed: list[UUID] = []
         link_updates: list[ProjectionLink] = []
@@ -1407,6 +1413,8 @@ class MemoryService:
             copies = legacy_copies(link)
             if link is None or not copies:
                 continue
+            if apply and cutover is not None:
+                _require_predates_cutover(copies, cutover)
             released.append(record.record_id)
             expected_links.append(link)
             copy_count += len(copies)
@@ -1447,6 +1455,45 @@ class MemoryService:
                 expected_links=tuple(expected_links),
             )
         return receipt
+
+    def _release_cutover(
+        self, tenant_id: str, namespace: str, now: datetime, *, apply: bool
+    ) -> GraphCutoverReceipt | None:
+        """The cutover governing a release; raise when an applied release is premature.
+
+        GI-090: releasing asserts the previous store is gone. That store must
+        not be destroyed before the cutover is recorded, nor while its
+        rollback window is open (ADR-092). A preview is never refused.
+        """
+
+        cutovers = self.store.list_graph_cutovers(tenant_id, namespace)
+        cutover = cutovers[-1] if cutovers else None
+        if not apply:
+            return cutover
+        if cutover is None:
+            raise CutoverNotReady(
+                "no graph cutover is recorded for this namespace; "
+                "run record-graph-cutover before releasing legacy copies"
+            )
+        if now < cutover.rollback_window_ends_at:
+            raise CutoverNotReady(
+                "the rollback window of cutover "
+                f"{cutover.receipt_id} ends at {cutover.rollback_window_ends_at.isoformat()}; "
+                "the previous projection store must be kept until then"
+            )
+        return cutover
+
+    def graph_cutovers(
+        self, principal: MemoryPrincipal, namespace: str
+    ) -> list[GraphCutoverReceipt]:
+        """The caller's recorded graph cutovers for a namespace, oldest first.
+
+        Receipts name bindings, change references and actors, so reading them
+        requires ADMIN on the namespace, as recording them does (ADR-092).
+        """
+
+        self.namespace_policy.require(principal, AuthorizationAction.ADMIN, namespace)
+        return self.store.list_graph_cutovers(principal.tenant_id, namespace)
 
     def record_graph_cutover(
         self,
@@ -1493,6 +1540,7 @@ class MemoryService:
         backlog = self.store.outbox_backlog()
         ready = not unprojected and backlog == 0
         receipt = GraphCutoverReceipt(
+            tenant_id=principal.tenant_id,
             namespace=namespace,
             projection_name=self.projection.name,
             applied=apply and ready,

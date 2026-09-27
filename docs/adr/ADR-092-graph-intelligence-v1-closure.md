@@ -120,7 +120,16 @@ complete but seven acceptance items open:
      until a cutover is recorded and its rollback window has ended.
    - The release receipt names the cutover that authorized it.
    - The latest cutover governs; earlier ones are kept.
-   - `graph-cutover-status` reports the window.
+   - Cutovers are tenant-scoped. The receipt carries the recording principal's
+     `tenant_id`, and a release consults only its own tenant's cutovers: one
+     tenant's closed window never opens another tenant's release in a shared
+     namespace.
+   - A cutover covers only the migration it recorded. An applied release
+     refuses while any legacy copy it would release was superseded after the
+     latest cutover; a later migration (B → C) needs its own cutover and
+     window before B's copies may be declared destroyed.
+   - `graph-cutover-status` reports the window. It is ADMIN, like recording,
+     because receipts name bindings and actors.
    - Operator procedure: `docs/graph-intelligence/CUTOVER_RUNBOOK.md`.
 
 ## Alternatives Considered
@@ -191,7 +200,8 @@ AGENTS.md invariants 3, 6 and 8.
 - `tests/security/test_graph_cutover.py` (memory, SQLite, PostgreSQL):
   readiness refusal, persistence across restart, capability gate, release
   refused before the receipt and within the window, the latest cutover
-  governs, ADMIN only.
+  governs, tenant scoping, a later migration needs its own cutover, ADMIN
+  only for recording and status.
 - `tests/qualification`: 15 real-model cases.
 
 ## Rollback Conditions

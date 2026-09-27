@@ -76,21 +76,18 @@ CI runs it nightly and on dispatch (`.github/workflows/graph-qualification.yml`)
 and fails on a skip. The deterministic live suites, including Neo4j outage and
 restart, run on every PR (`ci.yml` job `graph-live`).
 
-Local command (the harness needs `graphiti-core`, which is not a project
-dependency):
+Local command (`graphiti-core` is the test-only `qualification` dependency
+group, pinned and locked in `uv.lock`):
 
 ```bash
-uv venv -p 3.13 .qualvenv
-uv pip install -p .qualvenv/bin/python 'graphiti-core==0.30.2' httpx pytest \
-  pytest-asyncio jsonschema pyyaml 'neo4j>=5.26,<7'
+uv sync --frozen --no-install-project --no-build --extra dev --group qualification
 PYTHONPATH=src:. L9_MEMORY_TEST_NEO4J_URI=bolt://127.0.0.1:7687 \
   L9_MEMORY_TEST_NEO4J_PASSWORD=... L9_QUAL_MODEL_ROUTE=openai \
-  .qualvenv/bin/python -m pytest tests/qualification
+  .venv/bin/python -m pytest tests/qualification
 ```
 
-`graphiti-core` 0.30.2 imports `httpx` without declaring it, so it is
-installed explicitly. Without `graphiti_core` or `L9_MEMORY_TEST_NEO4J_URI`
-the suite skips locally; CI fails on that skip.
+Without `graphiti_core` or `L9_MEMORY_TEST_NEO4J_URI` the suite skips
+locally; CI fails on that skip.
 
 ## What this does not qualify
 

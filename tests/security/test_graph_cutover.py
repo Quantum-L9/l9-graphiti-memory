@@ -22,11 +22,12 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from l9_graphite_memory.contracts import DeletionRequest, MemoryState
+from l9_graphite_memory.contracts import DeletionRequest, MemoryPrincipal, MemoryState
 from l9_graphite_memory.errors import AuthorizationError, CutoverNotReady, StoreError
 from l9_graphite_memory.ports.service_capability import SERVICE_WRITE_CAPABILITY
 from l9_graphite_memory.services import MemoryService
 from tests.conftest import STORE_BACKENDS
+from tests.security.test_graph_tenant_isolation import GroupedGraphitiTransport
 from tests.security.test_legacy_projection_erasure import (
     ADMIN,
     MAINTAINER,
@@ -38,16 +39,20 @@ from tests.security.test_legacy_projection_erasure import (
 
 
 class SteppedClock:
-    """Starts at the real time (the outbox worker uses the system clock) and steps."""
+    """Real time plus a controllable offset.
+
+    The outbox worker stamps legacy obligations with the system clock, so the
+    service clock must not run behind it; tests step it forward.
+    """
 
     def __init__(self) -> None:
-        self.current = datetime.now(timezone.utc)
+        self.offset = timedelta(0)
 
     def now(self) -> datetime:
-        return self.current
+        return datetime.now(timezone.utc) + self.offset
 
     def advance(self, delta: timedelta) -> None:
-        self.current += delta
+        self.offset += delta
 
 
 def _migration(store=None) -> tuple[Migration, SteppedClock]:
@@ -93,12 +98,13 @@ def test_cutover_is_refused_until_the_projection_is_complete(tmp_path, backend) 
     record = _switched_and_rebuilt(migration, drain=False)
 
     check = _record(migration, apply=False)
-    assert check.ready is False and check.applied is False
+    assert check.ready is False
+    assert check.applied is False
     assert check.unprojected_record_ids == (record,)
     assert check.outbox_backlog >= 1
     with pytest.raises(CutoverNotReady, match="not projected"):
         _record(migration)
-    assert migration.store.list_graph_cutovers(NAMESPACE) == []
+    assert migration.store.list_graph_cutovers(ADMIN.tenant_id, NAMESPACE) == []
     migration.store.close()
 
 
@@ -109,20 +115,21 @@ def test_cutover_is_recorded_persisted_and_capability_gated(tmp_path, backend) -
     _rebind(migration, clock)
 
     receipt = _record(migration, window=timedelta(hours=72))
-    assert receipt.applied and receipt.ready
+    assert receipt.applied
+    assert receipt.ready
     assert receipt.active_record_count == receipt.projected_record_count == 1
-    assert receipt.rollback_window_ends_at == clock.now() + timedelta(hours=72)
+    assert receipt.rollback_window_ends_at == receipt.cut_over_at + timedelta(hours=72)
+    assert receipt.tenant_id == ADMIN.tenant_id
     assert receipt.scope_scheme is not None
 
     with pytest.raises(PermissionError):
         migration.store.commit_graph_cutover(object(), receipt)
+    not_applied = receipt.model_copy(update={"applied": False})
     with pytest.raises(StoreError, match="non-applied"):
-        migration.store.commit_graph_cutover(
-            SERVICE_WRITE_CAPABILITY, receipt.model_copy(update={"applied": False})
-        )
+        migration.store.commit_graph_cutover(SERVICE_WRITE_CAPABILITY, not_applied)
 
     migration.store = _reopen(backend, tmp_path, migration.store)
-    (persisted,) = migration.store.list_graph_cutovers(NAMESPACE)
+    (persisted,) = migration.store.list_graph_cutovers(ADMIN.tenant_id, NAMESPACE)
     assert persisted == receipt
     migration.store.close()
 
@@ -161,7 +168,8 @@ def test_release_waits_for_the_receipt_and_the_end_of_the_window(tmp_path, backe
     # Window ended: the release applies and records which cutover authorized it.
     clock.advance(timedelta(hours=1))
     released = release()
-    assert released.applied and released.cutover_receipt_id == cutover.receipt_id
+    assert released.applied
+    assert released.cutover_receipt_id == cutover.receipt_id
     assert migration.store.get_record(record).state is MemoryState.DELETED
     (persisted,) = migration.store.list_legacy_projection_releases(NAMESPACE)
     assert persisted.cutover_receipt_id == cutover.receipt_id
@@ -175,7 +183,9 @@ def test_the_latest_cutover_governs_and_earlier_ones_are_kept() -> None:
     first = _record(migration, window=timedelta(0))
     clock.advance(timedelta(minutes=5))
     second = _record(migration, window=timedelta(days=7), change_reference="CHG-43")
-    assert [r.receipt_id for r in migration.store.list_graph_cutovers(NAMESPACE)] == [
+    assert [
+        r.receipt_id for r in migration.store.list_graph_cutovers(ADMIN.tenant_id, NAMESPACE)
+    ] == [
         first.receipt_id,
         second.receipt_id,
     ]
@@ -187,6 +197,7 @@ def test_the_latest_cutover_governs_and_earlier_ones_are_kept() -> None:
 
 def test_cutover_requires_admin_distinct_bindings_and_a_non_negative_window() -> None:
     migration, _clock = _migration()
+    no_window, negative = timedelta(0), timedelta(hours=-1)
     with pytest.raises(AuthorizationError):
         migration.service.record_graph_cutover(
             MAINTAINER,
@@ -194,10 +205,70 @@ def test_cutover_requires_admin_distinct_bindings_and_a_non_negative_window() ->
             previous_binding="a",
             new_binding="b",
             change_reference="CHG",
-            rollback_window=timedelta(0),
+            rollback_window=no_window,
             apply=True,
         )
     with pytest.raises(CutoverNotReady, match="differ"):
         _record(migration, previous_binding="neo4j://same", new_binding="neo4j://same")
     with pytest.raises(CutoverNotReady, match="negative"):
-        _record(migration, window=timedelta(hours=-1))
+        _record(migration, window=negative)
+
+
+ADMIN_B = MemoryPrincipal(
+    principal_id="admin-b",
+    tenant_id="tenant-b",
+    read_namespaces=("*",),
+    write_namespaces=("*",),
+    is_admin=True,
+)
+
+
+def test_a_cutover_is_scoped_to_its_tenant() -> None:
+    """Codex P1 on #74: tenant A's closed window cannot open tenant B's release."""
+
+    migration, _clock = _migration()
+    _switched_and_rebuilt(migration, drain=True)
+    _rebind(migration, _clock)
+    _record(migration, window=timedelta(0))
+    assert migration.service.graph_cutovers(ADMIN_B, NAMESPACE) == []
+    with pytest.raises(CutoverNotReady, match="no graph cutover"):
+        migration.service.release_legacy_projection_copies(
+            ADMIN_B, NAMESPACE, store_destruction_reference="CHG-B", apply=True
+        )
+
+
+def test_a_later_migration_needs_its_own_cutover() -> None:
+    """Codex P1 on #74: an earlier cutover's closed window cannot release newer copies."""
+
+    migration, clock = _migration()
+    record = _switched_and_rebuilt(migration, drain=True)
+    _rebind(migration, clock)
+    _record(migration, window=timedelta(0))
+    # A second migration (B -> C) supersedes the B copy after that cutover.
+    migration.old, migration.new = migration.new, GroupedGraphitiTransport()
+    migration.switch_provider(record)
+    migration.service = MemoryService(migration.store, migration.service.projection, clock=clock)
+    migration.service.initialize()
+    migration.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
+    migration.drain()
+
+    with pytest.raises(CutoverNotReady, match="superseded after the latest recorded cutover"):
+        migration.service.release_legacy_projection_copies(
+            ADMIN, NAMESPACE, store_destruction_reference="CHG-C", apply=True
+        )
+    assert migration.store.list_legacy_projection_releases(NAMESPACE) == []
+
+    second = _record(migration, window=timedelta(0), new_binding="neo4j://fresh/graphiti-v2")
+    released = migration.service.release_legacy_projection_copies(
+        ADMIN, NAMESPACE, store_destruction_reference="CHG-C", apply=True
+    )
+    assert released.cutover_receipt_id == second.receipt_id
+    assert released.released_record_ids == (record,)
+
+
+def test_cutover_status_requires_admin() -> None:
+    """Codex P2 on #74: receipts name bindings and actors; reading them is ADMIN."""
+
+    migration, _clock = _migration()
+    with pytest.raises(AuthorizationError):
+        migration.service.graph_cutovers(MAINTAINER, NAMESPACE)

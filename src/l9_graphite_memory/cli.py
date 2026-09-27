@@ -743,11 +743,12 @@ def cmd_graph_cutover_status(args: argparse.Namespace) -> int:
 
     runtime = _runtime(args)
     try:
-        resolution, _principal = _context(runtime, args)
+        resolution, principal = _context(runtime, args)
         namespace = args.group_id or resolution.group_id
         if not namespace:
             raise L9MemoryError(resolution.error or "namespace is unresolved")
-        cutovers = runtime.service.store.list_graph_cutovers(namespace)
+        # Authorized like recording: receipts name bindings and actors.
+        cutovers = runtime.service.graph_cutovers(principal, namespace)
         latest = cutovers[-1] if cutovers else None
         now = runtime.service.clock.now()
         _print(

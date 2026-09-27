@@ -212,8 +212,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # entity binding and profile refusal 10, health dimensions 5, graph
         # cutover and rollback window 11 (store matrix). The live Neo4j suites
         # run in the graph-live job, not here.
-        "1257 tests pass",
-        r"1257 passed",
+        # Re-pinned 1257 -> 1261 for the #74 review fixes: cutover tenant
+        # scoping, per-migration cutover, ADMIN-only status, provider rank.
+        "1261 tests pass",
+        r"1261 passed",
     ),
     CheckSpec(
         "V-002",

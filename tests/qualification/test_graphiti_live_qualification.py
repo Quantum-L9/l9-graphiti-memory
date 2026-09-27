@@ -242,17 +242,20 @@ def test_graphiti_extraction_builds_scoped_entities_and_edges(world) -> None:
     )
     a_names = {e["name"] for e in entities if e["g"] == a}
     b_names = {e["name"] for e in entities if e["g"] == b}
-    assert _has(a_names, "falcon") and _has(a_names, "payments") and _has(a_names, "ledger")
+    for token in ("falcon", "payments", "ledger"):
+        assert _has(a_names, token), token
     assert _has(b_names, "vault")
     # Tenant B's text never leaks into tenant A's graph, nor the reverse.
     assert not _has(a_names, "vault")
-    assert not _has(b_names, "ledger") and not _has(b_names, "osprey")
+    assert not _has(b_names, "ledger")
+    assert not _has(b_names, "osprey")
     edges = world.rows(
         "MATCH (s:Entity)-[r:RELATES_TO]->(t:Entity) WHERE r.group_id IN $groups "
         "RETURN r.group_id AS g, s.group_id AS sg, t.group_id AS tg",
         groups=world.groups,
     )
-    assert any(e["g"] == a for e in edges) and any(e["g"] == b for e in edges)
+    assert any(e["g"] == a for e in edges)
+    assert any(e["g"] == b for e in edges)
     # Graphiti's own persistence keeps every edge inside one GraphScopeKey group.
     assert all(e["g"] == e["sg"] == e["tg"] for e in edges)
 
@@ -276,7 +279,8 @@ def test_record_anchor_resolves_through_the_episode_name_and_binds_support(world
     )
     assert receipt.status is GraphReceiptStatus.COMPLETE, receipt.failures
     names = _node_names(receipt)
-    assert _has(names, "falcon") and _has(names, "payments")
+    assert _has(names, "falcon")
+    assert _has(names, "payments")
     assert not _has(names, "vault")
     support = set(receipt.supporting_record_ids)
     assert world.records["a1"] in support
@@ -291,7 +295,8 @@ def test_another_tenant_cannot_reach_the_graph_through_a_shared_namespace(world)
         ),
     )
     names = _node_names(receipt)
-    assert not (_has(names, "payments") or _has(names, "ledger") or _has(names, "osprey"))
+    for token in ("payments", "ledger", "osprey"):
+        assert not _has(names, token), token
     assert world.records["a1"] not in receipt.supporting_record_ids
     falcon_b = world.graph.execute(
         world.principal("tenant-b"),
@@ -303,7 +308,8 @@ def test_another_tenant_cannot_reach_the_graph_through_a_shared_namespace(world)
     assert falcon_b.status is GraphReceiptStatus.COMPLETE
     b_names = _node_names(falcon_b)
     assert _has(b_names, "vault")
-    assert not (_has(b_names, "payments") or _has(b_names, "ledger"))
+    assert not _has(b_names, "payments")
+    assert not _has(b_names, "ledger")
     assert set(falcon_b.supporting_record_ids) == {world.records["b1"]}
 
 
@@ -321,7 +327,8 @@ def test_path_and_neighborhood_over_the_real_graph(world) -> None:
     )
     assert path.status is GraphReceiptStatus.COMPLETE, path.failures
     paths = [item for item in path.results if item.get("kind") == "path"]
-    assert paths and 1 <= min(item["length"] for item in paths) <= 3
+    assert paths
+    assert 1 <= min(item["length"] for item in paths) <= 3
     neighborhood = world.graph.execute(
         principal,
         world.request(
@@ -379,9 +386,11 @@ def test_entity_node_search_binds_canonical_support_on_real_graphiti(world) -> N
     )
     assert receipt.status is GraphReceiptStatus.COMPLETE, receipt.failures
     entity_hits = [item for item in receipt.results if item["kind"] == "entity_hit"]
-    assert entity_hits and _has({item["name"] for item in entity_hits}, "falcon")
+    assert entity_hits
+    assert _has({item["name"] for item in entity_hits}, "falcon")
     support = set(receipt.supporting_record_ids)
-    assert support and support <= {world.records["a1"], world.records["a2"]}
+    assert support
+    assert support <= {world.records["a1"], world.records["a2"]}
     assert str(world.records["b1"]) not in receipt.model_dump_json()
 
 

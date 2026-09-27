@@ -164,6 +164,8 @@ class GraphCutoverReceipt(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     receipt_id: UUID = Field(default_factory=uuid4)
+    #: Receipts are scoped like the records they govern: tenant and namespace.
+    tenant_id: str = Field(min_length=1, max_length=255)
     namespace: str = Field(min_length=1, max_length=255)
     projection_name: str = Field(min_length=1, max_length=128)
     applied: bool = False

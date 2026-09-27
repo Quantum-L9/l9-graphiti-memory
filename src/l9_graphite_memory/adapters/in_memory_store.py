@@ -513,8 +513,10 @@ class InMemoryRecordStore:
         with self._write_lock:
             self.graph_cutovers.append(receipt)
 
-    def list_graph_cutovers(self, namespace: str) -> list[GraphCutoverReceipt]:
-        return [r for r in self.graph_cutovers if r.namespace == namespace]
+    def list_graph_cutovers(self, tenant_id: str, namespace: str) -> list[GraphCutoverReceipt]:
+        return [
+            r for r in self.graph_cutovers if r.tenant_id == tenant_id and r.namespace == namespace
+        ]
 
     def list_legacy_projection_releases(
         self, namespace: str

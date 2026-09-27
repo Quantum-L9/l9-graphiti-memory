@@ -217,6 +217,19 @@ def _within_request_budget(
     return bounded
 
 
+def _health_problems(
+    constructs_missing: bool, fingerprint_differs: bool, scheme_nonconformant: bool
+) -> list[str]:
+    problems: list[str] = []
+    if constructs_missing:
+        problems.append("required Graphiti constructs missing")
+    if fingerprint_differs:
+        problems.append("schema fingerprint differs from the qualified binding")
+    if scheme_nonconformant:
+        problems.append("projection groups do not use the GraphScopeKey v1 scheme")
+    return problems
+
+
 def schema_fingerprint(
     labels: tuple[str, ...] | list[str],
     relationship_types: tuple[str, ...] | list[str],
@@ -365,6 +378,21 @@ class Neo4jGraphIntelligence(UnservedOperations):
         missing = tuple(name for name in REQUIRED_GDS_PROCEDURES if name not in names)
         return (str(version) if version is not None else None), missing
 
+    def _supported_capabilities(
+        self, baseline_ok: bool, analytics_available: bool
+    ) -> list[GraphCapability]:
+        if not baseline_ok:
+            return []
+        supported = list(BASELINE_CAPABILITIES)
+        if analytics_available:
+            supported.extend(
+                capability
+                for capability in ANALYTICS_CAPABILITIES
+                if capability is not GraphCapability.LINK_PREDICTION
+                or self.config.link_prediction_enabled
+            )
+        return supported
+
     def _catalog_active(self) -> int | None:
         try:
             rows = self._read("gds_catalog_list_v1", {"prefix": GRAPH_NAME_PREFIX})
@@ -414,24 +442,15 @@ class Neo4jGraphIntelligence(UnservedOperations):
         analytics_available = analytics_version is not None and not missing_procedures
         catalog_active = self._catalog_active() if analytics_available else None
 
-        supported: list[GraphCapability] = []
-        if schema_compatible and conformant is not False:
-            supported.extend(BASELINE_CAPABILITIES)
-            if analytics_available:
-                supported.extend(
-                    capability
-                    for capability in ANALYTICS_CAPABILITIES
-                    if capability is not GraphCapability.LINK_PREDICTION
-                    or self.config.link_prediction_enabled
-                )
+        supported = self._supported_capabilities(
+            schema_compatible and conformant is not False, analytics_available
+        )
         served = tuple(c for c in supported if c in self.implemented_capabilities)
-        problems: list[str] = []
-        if missing_labels or missing_types:
-            problems.append("required Graphiti constructs missing")
-        if expected is not None and expected != fingerprint:
-            problems.append("schema fingerprint differs from the qualified binding")
-        if conformant is False:
-            problems.append("projection groups do not use the GraphScopeKey v1 scheme")
+        problems = _health_problems(
+            bool(missing_labels or missing_types),
+            expected is not None and expected != fingerprint,
+            conformant is False,
+        )
         return GraphBackendHealth(
             name=self.name,
             enabled=True,

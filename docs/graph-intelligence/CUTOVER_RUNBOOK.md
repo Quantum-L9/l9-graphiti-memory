@@ -243,6 +243,11 @@ carries the live `schema_fingerprint` and served `graph_capabilities`.
 Record `rollback_window_ends_at` for the operator. That is the earliest moment
 Phase 10 may start.
 
+Cutovers are tenant-scoped: record and read them as an ADMIN principal of the
+tenant whose namespace migrated. A receipt covers only this migration. If the
+namespace is migrated again later, record a new cutover for that migration;
+the earlier receipt does not authorize releasing the newer legacy copies.
+
 ## Phase 8: Rollback window (monitor)
 
 Until `rollback_window_ends_at`:
@@ -297,6 +302,9 @@ newer cutover's window has also ended):
    ```
 
    The applied receipt carries `cutover_receipt_id`, the Phase 7 receipt.
+   STOP if `--apply` refuses with "superseded after the latest recorded
+   cutover": a later migration happened since Phase 7. Record its cutover
+   (Phase 7) and wait for that window before releasing.
    Deletions that were waiting on legacy copies complete
    (`completed_deletion_record_ids`).
 4. Check that running the preview again releases nothing.

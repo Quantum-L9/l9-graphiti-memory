@@ -67,16 +67,13 @@ jobs:
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           python-version: '3.13'
-      - name: Build the qualification environment
-        # graphiti-core is a test-only dependency of the qualification harness,
-        # pinned to the qualified version (docs/graph-intelligence/QUALIFICATION.md).
-        run: |
-          uv venv -p 3.13 .qualvenv
-          uv pip install -p .qualvenv/bin/python 'graphiti-core==0.30.2' httpx pytest \
-            pytest-asyncio jsonschema pyyaml 'neo4j>=5.26,<7'
+      - name: Sync the locked qualification environment
+        # graphiti-core is a test-only dependency group, pinned to the qualified
+        # version and resolved in uv.lock: installed frozen, from wheels only.
+        run: uv sync --frozen --no-install-project --no-build --extra dev --group qualification
       - name: Wait for Bolt and GDS
         run: |
-          .qualvenv/bin/python - <<'PY'
+          .venv/bin/python - <<'PY'
           import os, time
           import neo4j
           auth = ("neo4j", os.environ["L9_MEMORY_TEST_NEO4J_PASSWORD"])
@@ -94,7 +91,7 @@ jobs:
           PY
       - name: Run real-model qualification
         run: |
-          PYTHONPATH=src:. .qualvenv/bin/python -m pytest -rs -p no:cacheprovider \
+          PYTHONPATH=src:. .venv/bin/python -m pytest -rs -p no:cacheprovider \
             -W ignore::pytest.PytestConfigWarning --junitxml=graph-qualification.xml \
             tests/qualification
       - name: Fail if any qualification test skipped
