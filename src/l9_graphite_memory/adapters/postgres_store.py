@@ -25,6 +25,7 @@ from l9_graphite_memory.contracts import (
     ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    GraphCutoverReceipt,
     LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
@@ -1200,6 +1201,38 @@ class PostgresRecordStore:
                     )
         except psycopg2.Error as exc:
             raise StoreError(f"legacy projection release failed: {exc}") from exc
+
+    def commit_graph_cutover(
+        self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied graph cutover")
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="graph_cutover",
+                    aggregate_id=receipt.namespace,
+                    status="applied",
+                    created_at=receipt.created_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+        except psycopg2.Error as exc:
+            raise StoreError(f"graph cutover record failed: {exc}") from exc
+
+    def list_graph_cutovers(self, namespace: str) -> list[GraphCutoverReceipt]:
+        with self._cursor() as cursor:
+            cursor.execute(
+                "SELECT receipt_json FROM operation_receipts "
+                "WHERE kind = 'graph_cutover' AND aggregate_id = %s "
+                "ORDER BY created_at, receipt_id",
+                (namespace,),
+            )
+            rows = cursor.fetchall()
+        return [GraphCutoverReceipt.model_validate_json(str(row["receipt_json"])) for row in rows]
 
     def list_legacy_projection_releases(
         self, namespace: str

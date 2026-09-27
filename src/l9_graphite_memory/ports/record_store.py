@@ -20,6 +20,7 @@ from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     ConflictLinkReceipt,
     DeletionReceipt,
+    GraphCutoverReceipt,
     LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
@@ -254,6 +255,21 @@ class RecordStore(Protocol):
         self, namespace: str
     ) -> list[LegacyProjectionReleaseReceipt]:
         """Applied legacy-copy releases for one namespace, oldest first."""
+        ...
+
+    def commit_graph_cutover(
+        self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
+    ) -> None:
+        """Append one applied graph cutover receipt to the operation ledger.
+
+        Append-only: a later cutover supersedes an earlier one for the same
+        namespace, and neither is ever updated or deleted. A canonical
+        mutation, so it requires the service-issued capability (ADR-036, ADR-092).
+        """
+        ...
+
+    def list_graph_cutovers(self, namespace: str) -> list[GraphCutoverReceipt]:
+        """Applied graph cutovers for one namespace, oldest first."""
         ...
 
     def stats(self) -> dict[str, Any]: ...

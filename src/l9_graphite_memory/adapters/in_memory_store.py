@@ -22,6 +22,7 @@ from l9_graphite_memory.contracts import (
     ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    GraphCutoverReceipt,
     LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
@@ -67,6 +68,7 @@ class InMemoryRecordStore:
         self.projection_retirements: list[ProjectionRetirementReceipt] = []
         self.projection_rebuilds: list[ProjectionRebuildReceipt] = []
         self.legacy_projection_releases: list[LegacyProjectionReleaseReceipt] = []
+        self.graph_cutovers: list[GraphCutoverReceipt] = []
         self.lifecycle_receipts: dict[UUID, LifecycleTransitionReceipt] = {}
         self.conflict_receipts: dict[UUID, ConflictLinkReceipt] = {}
         self.initialized = False
@@ -501,6 +503,18 @@ class InMemoryRecordStore:
                     self.legacy_projection_releases,
                 ) = snapshot
                 raise
+
+    def commit_graph_cutover(
+        self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied graph cutover")
+        with self._write_lock:
+            self.graph_cutovers.append(receipt)
+
+    def list_graph_cutovers(self, namespace: str) -> list[GraphCutoverReceipt]:
+        return [r for r in self.graph_cutovers if r.namespace == namespace]
 
     def list_legacy_projection_releases(
         self, namespace: str

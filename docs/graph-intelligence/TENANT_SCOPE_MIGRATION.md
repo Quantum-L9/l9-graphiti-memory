@@ -38,6 +38,9 @@ an empty projection, not a provider failure.
 
 ## Cutover
 
+The executable procedure, with approvals, evidence and STOP conditions, is
+[CUTOVER_RUNBOOK.md](CUTOVER_RUNBOOK.md). The steps below summarize it.
+
 In-place group rename is forbidden. Re-projecting into the same Graphiti
 database would move episodes but leave entities and edges already extracted
 into the old namespace-keyed groups, so rebuild into a fresh database.
@@ -63,8 +66,19 @@ into the old namespace-keyed groups, so rebuild into a fresh database.
    obligation (ADR-091). A verified deletion during the window erases the
    new copy but stays `deletion_pending`, because the previous database
    still holds one.
-7. Destroy the previous database only after cutover is verified. Then release
-   the obligations, which completes the waiting deletions:
+7. Record the cutover and its rollback window (ADR-092); the receipt is
+   refused until every active record is projected and the outbox is drained:
+
+   ```bash
+   l9-memory record-graph-cutover --group-id <namespace> \
+     --previous-binding <old store ref> --new-binding <new store ref> \
+     --change-reference <change-id> --rollback-window-hours <hours> --apply
+   ```
+
+8. Destroy the previous database only after the rollback window has ended
+   (`l9-memory graph-cutover-status`). Then release the obligations, which
+   completes the waiting deletions; the release is refused before a cutover
+   receipt exists and while its window is open:
 
    ```bash
    l9-memory release-legacy-projection --group-id <namespace> \

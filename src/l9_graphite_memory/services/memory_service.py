@@ -38,6 +38,7 @@ from l9_graphite_memory.contracts import (
     DeletionStatus,
     EvidenceKind,
     EvidenceRef,
+    GraphCutoverReceipt,
     HealthReport,
     HydrationRequest,
     HydrationResult,
@@ -82,6 +83,7 @@ from l9_graphite_memory.curation import (
 from l9_graphite_memory.errors import (
     AdmissionError,
     AuthorizationError,
+    CutoverNotReady,
     IdempotencyConflict,
     StoreError,
 )
@@ -1375,6 +1377,23 @@ class MemoryService:
         if self.projection.name == "none":
             raise StoreError("projection backend is 'none'; there are no legacy copies")
         now = self.clock.now()
+        cutovers = self.store.list_graph_cutovers(namespace)
+        cutover = cutovers[-1] if cutovers else None
+        if apply:
+            # GI-090: releasing asserts the previous store is gone. That store
+            # must not be destroyed before the cutover is recorded, nor while
+            # its rollback window is open (ADR-092).
+            if cutover is None:
+                raise CutoverNotReady(
+                    "no graph cutover is recorded for this namespace; "
+                    "run record-graph-cutover before releasing legacy copies"
+                )
+            if now < cutover.rollback_window_ends_at:
+                raise CutoverNotReady(
+                    "the rollback window of cutover "
+                    f"{cutover.receipt_id} ends at {cutover.rollback_window_ends_at.isoformat()}; "
+                    "the previous projection store must be kept until then"
+                )
         released: list[UUID] = []
         completed: list[UUID] = []
         link_updates: list[ProjectionLink] = []
@@ -1412,6 +1431,7 @@ class MemoryService:
             reason=reason,
             actor=principal.audit_subject,
             created_at=now,
+            cutover_receipt_id=cutover.receipt_id if cutover else None,
         )
         if apply and released:
             # One capability-gated transaction: the evidence (receipt), the
@@ -1426,6 +1446,82 @@ class MemoryService:
                 deletion_completions=tuple(deletion_completions),
                 expected_links=tuple(expected_links),
             )
+        return receipt
+
+    def record_graph_cutover(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        previous_binding: str,
+        new_binding: str,
+        change_reference: str,
+        rollback_window: timedelta,
+        apply: bool,
+        schema_fingerprint: str | None = None,
+        graph_capabilities: tuple[str, ...] = (),
+        reason: str = "graph projection cutover",
+    ) -> GraphCutoverReceipt:
+        """Record that a namespace's projection now serves from a new binding (GI-090).
+
+        The receipt is written only when the cutover is ready: every ACTIVE
+        record in the namespace has a live projection link under the current
+        provider scope scheme, and the outbox is drained. It fixes the rollback
+        window during which the previous store is kept; legacy releases stay
+        refused until the window ends. Requires ADMIN (ADR-092).
+        """
+
+        authorization = self.namespace_policy.require(
+            principal, AuthorizationAction.ADMIN, namespace
+        )
+        if self.projection.name == "none":
+            raise StoreError("projection backend is 'none'; there is no projection to cut over")
+        if rollback_window < timedelta(0):
+            raise CutoverNotReady("the rollback window cannot be negative")
+        if previous_binding.strip() == new_binding.strip():
+            raise CutoverNotReady("the new binding must differ from the previous binding")
+        now = self.clock.now()
+        scheme = getattr(self.projection, "scope_scheme", None)
+        active = self.store.list_records(
+            principal.tenant_id, namespace, states=(MemoryState.ACTIVE,), limit=None
+        )
+        unprojected: list[UUID] = []
+        for record in active:
+            link = self.store.get_projection_link(record.record_id, self.projection.name)
+            if link is None or link_withdrawn(link) or link.metadata.get("scope_scheme") != scheme:
+                unprojected.append(record.record_id)
+        backlog = self.store.outbox_backlog()
+        ready = not unprojected and backlog == 0
+        receipt = GraphCutoverReceipt(
+            namespace=namespace,
+            projection_name=self.projection.name,
+            applied=apply and ready,
+            previous_binding=previous_binding.strip(),
+            new_binding=new_binding.strip(),
+            change_reference=change_reference,
+            cut_over_at=now,
+            rollback_window_ends_at=now + rollback_window,
+            scope_scheme=scheme,
+            active_record_count=len(active),
+            projected_record_count=len(active) - len(unprojected),
+            unprojected_record_ids=tuple(unprojected),
+            outbox_backlog=backlog,
+            schema_fingerprint=schema_fingerprint,
+            graph_capabilities=graph_capabilities,
+            ready=ready,
+            authorization=authorization,
+            reason=reason,
+            actor=principal.audit_subject,
+            created_at=now,
+        )
+        if apply:
+            if not ready:
+                raise CutoverNotReady(
+                    f"{len(unprojected)} active record(s) are not projected under the new "
+                    f"binding and {backlog} outbox event(s) are undelivered; rebuild the "
+                    "projection and drain the outbox before recording the cutover"
+                )
+            self.store.commit_graph_cutover(SERVICE_WRITE_CAPABILITY, receipt)
         return receipt
 
     def health(self) -> HealthReport:

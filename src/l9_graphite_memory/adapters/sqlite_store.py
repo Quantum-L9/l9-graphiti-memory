@@ -27,6 +27,7 @@ from l9_graphite_memory.contracts import (
     ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    GraphCutoverReceipt,
     LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
@@ -1197,6 +1198,44 @@ class SQLiteRecordStore:
                     )
         except sqlite3.Error as exc:
             raise StoreError(f"legacy projection release failed: {exc}") from exc
+
+    def commit_graph_cutover(
+        self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied graph cutover")
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "graph_cutover",
+                        receipt.namespace,
+                        "applied",
+                        _dt(receipt.created_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+        except sqlite3.Error as exc:
+            raise StoreError(f"graph cutover record failed: {exc}") from exc
+
+    def list_graph_cutovers(self, namespace: str) -> list[GraphCutoverReceipt]:
+        rows = (
+            self._connection()
+            .execute(
+                "SELECT receipt_json FROM operation_receipts "
+                "WHERE kind = 'graph_cutover' AND aggregate_id = ? "
+                "ORDER BY created_at, receipt_id",
+                (namespace,),
+            )
+            .fetchall()
+        )
+        return [GraphCutoverReceipt.model_validate_json(str(row["receipt_json"])) for row in rows]
 
     def list_legacy_projection_releases(
         self, namespace: str
