@@ -8,218 +8,148 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Deterministic harness for qualifying the stack against real Graphiti v0.30.2.
+"""Harness for qualifying the stack against real Graphiti v0.30.2 (GI-080, ADR-092).
 
-What is real: ``graphiti_core`` 0.30.2 itself — its ``add_episode`` pipeline,
-node/edge resolution, persistence Cypher, indices, search, and
-``remove_episode`` — writing into a real Neo4j 5.26 (+ GDS 2.13).
+Everything is real: ``graphiti_core`` 0.30.2 — its ``add_episode`` pipeline,
+LLM entity and relation extraction, node/edge resolution, embeddings,
+reranking, persistence Cypher, indices, search and ``remove_episode`` —
+writing into a real Neo4j 5.26 (+ GDS 2.13).
 
-What is substituted, and why: the LLM, embedder, and cross-encoder. Graphiti
-calls an LLM to extract entities and relations; no LLM credential exists in
-the qualification environment, and a live model would make the graph
-non-deterministic. ``ScriptedExtractionLLM`` answers each Graphiti prompt from
-explicit ``[[Source->Target]]`` markers in the episode content, so the graph
-Graphiti builds is known in advance. Embeddings are deterministic hash
-vectors. This qualifies schema, scoping, provenance, and lifecycle — not LLM
-extraction quality.
+Model stack (settled by the GAR intelligence harvest, ADR-092):
+
+- LLM: OpenAI, ``MODEL_NAME`` (default ``gpt-5.5``) and ``SMALL_MODEL_NAME``
+  (default ``gpt-4.1-nano``) — graphiti-core 0.30.2's own defaults. They
+  replace the harvested ``gpt-4o-mini``, which is a retired-generation model.
+- Embedder: the model and dimension this repository's projection manifest
+  pins (``config/projections/facts-v8.yaml``), not a second copy of them.
+- Cross-encoder: ``OpenAIRerankerClient`` on the small model (it ranks with
+  log-probabilities, so it needs an OpenAI-compatible endpoint).
+- Route and credential (``L9_QUAL_MODEL_ROUTE``): ``openai`` (default, the
+  settled route) calls api.openai.com with ``OPENAI_API_KEY``; ``openrouter``
+  calls the same OpenAI models through OpenRouter's OpenAI-compatible API with
+  ``OPENROUTER_API_KEY``. The route is explicit and recorded in the model-stack
+  receipt; nothing falls back from one to the other. Keys are vault names in
+  Infisical, read from the environment (CI imports the Actions secret) or
+  supplied in-process through ``KEY_PROVIDER``; they are never logged or
+  persisted.
+
+Real extraction is not deterministic, so the qualification asserts
+properties (scoping, provenance, support, lifecycle), never exact graphs.
 
 ``GraphitiCoreTransport`` is test-only: it adapts ``graphiti_core.Graphiti``
 to the ``MemoryTransport`` shape the production ``GraphitiProjection`` already
 drives, exposing the official MCP tool names with the official server's
 semantics — including that ``add_memory`` reports "queued" and swallows an
-ingestion failure (ADR-090). It is not a production provider.
+ingestion failure (ADR-090). It is a transport, not a model stand-in.
 """
 
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import json
-import math
-import re
+import os
+from collections.abc import Callable
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
+import yaml
 from graphiti_core import Graphiti
-from graphiti_core.cross_encoder.client import CrossEncoderClient
-from graphiti_core.embedder.client import EmbedderClient
-from graphiti_core.llm_client.client import LLMClient
+from graphiti_core.cross_encoder.openai_reranker_client import OpenAIRerankerClient
+from graphiti_core.embedder.openai import OpenAIEmbedder, OpenAIEmbedderConfig
 from graphiti_core.llm_client.config import LLMConfig
+from graphiti_core.llm_client.openai_client import OpenAIClient
 from graphiti_core.nodes import EpisodeType
 
-_REL = re.compile(r"\[\[([A-Za-z][A-Za-z0-9]*)\s*->\s*([A-Za-z][A-Za-z0-9]*)\]\]")
-_SECTION = {
-    "json": re.compile(r"<JSON>\s*(.*?)\s*</JSON>", re.DOTALL),
-    "current": re.compile(r"<CURRENT[_ ]MESSAGE>\s*(.*?)\s*</CURRENT[_ ]MESSAGE>", re.DOTALL),
-    "entities": re.compile(r"<ENTITIES>\s*(.*?)\s*</ENTITIES>", re.DOTALL),
-    "existing": re.compile(r"<EXISTING ENTITIES>\s*(.*?)\s*</EXISTING ENTITIES>", re.DOTALL),
-    "existing_facts": re.compile(r"<EXISTING FACTS>\s*(.*?)\s*</EXISTING FACTS>", re.DOTALL),
-    "new_fact": re.compile(r"<NEW FACT>\s*(.*?)\s*</NEW FACT>", re.DOTALL),
+DEFAULT_MODEL = "gpt-5.5"
+DEFAULT_SMALL_MODEL = "gpt-4.1-nano"
+MANIFEST = Path(__file__).resolve().parents[2] / "config" / "projections" / "facts-v8.yaml"
+ROUTE_ENV = "L9_QUAL_MODEL_ROUTE"
+#: route -> (credential vault name, OpenAI-compatible base URL, model prefix)
+ROUTES: dict[str, tuple[str, str | None, str]] = {
+    "openai": ("OPENAI_API_KEY", None, ""),
+    "openrouter": ("OPENROUTER_API_KEY", "https://openrouter.ai/api/v1", "openai/"),
 }
-_FACT = re.compile(r"""['"]idx['"]\s*:\s*(\d+)\s*,\s*['"]fact['"]\s*:\s*['"](.*?)['"]\s*[,}]""")
+
+#: In-process credential source for local runs: called with the vault name,
+#: binds it without exporting it. CI leaves it unset and imports the env var.
+KEY_PROVIDER: Callable[[str], str | None] | None = None
 
 
-def _current_content(text: str) -> str:
-    for key in ("json", "current"):
-        match = _SECTION[key].search(text)
-        if match:
-            return match.group(1)
-    return ""
+class QualificationCredentialMissing(RuntimeError):
+    """Real qualification cannot run without the model credential."""
 
 
-def _relations(text: str) -> list[tuple[str, str]]:
-    return _REL.findall(_current_content(text))
+def route() -> tuple[str, str, str | None, str]:
+    """(route name, credential name, base URL, model prefix) for this run."""
+
+    name = os.environ.get(ROUTE_ENV, "openai").strip() or "openai"
+    if name not in ROUTES:
+        raise ValueError(f"{ROUTE_ENV}={name!r} is not one of {sorted(ROUTES)}")
+    key_name, base_url, prefix = ROUTES[name]
+    return name, key_name, base_url, prefix
 
 
-def _json_section(key: str, text: str) -> list[dict[str, Any]]:
-    match = _SECTION[key].search(text)
-    if not match:
-        return []
-    try:
-        value = json.loads(match.group(1))
-    except json.JSONDecodeError:
-        return []
-    return value if isinstance(value, list) else []
+def api_key() -> str:
+    _name, key_name, _base_url, _prefix = route()
+    value = (KEY_PROVIDER(key_name) if KEY_PROVIDER is not None else None) or os.environ.get(
+        key_name, ""
+    )
+    if not value.strip():
+        raise QualificationCredentialMissing(
+            f"{key_name} is not bound: bind it from Infisical (capability_bind) or import "
+            "it from the CI secret. Qualification never falls back to a stand-in model."
+        )
+    return value.strip()
 
 
-def relation_fact(source: str, target: str) -> str:
-    return f"{source} relates to {target}"
+def manifest_embedding() -> tuple[str, int]:
+    """(model, dimensions) of the provider-managed embedding the manifest pins."""
+
+    embedding = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))["spec"]["embedding"]
+    model = str(embedding["model"]).split("@", 1)[0]
+    return model, int(embedding["dimensions"])
 
 
-class ScriptedExtractionLLM(LLMClient):
-    """Answers Graphiti's extraction prompts from ``[[A->B]]`` markers."""
+def model_stack() -> dict[str, Any]:
+    """The model identities and route a run used, for the qualification receipt."""
 
-    def __init__(self) -> None:
-        super().__init__(LLMConfig(api_key="qualification", model="scripted"), cache=False)
-        self.calls: list[str] = []
-
-    async def _generate_response(
-        self,
-        messages: list[Any],
-        response_model: Any = None,
-        max_tokens: int = 0,
-        model_size: Any = None,
-    ) -> dict[str, Any]:
-        text = "\n".join(str(getattr(m, "content", "")) for m in messages)
-        name = getattr(response_model, "__name__", "")
-        self.calls.append(name)
-        relations = _relations(text)
-        if name == "ExtractedEntities":
-            names: list[str] = []
-            for source, target in relations:
-                for entity in (source, target):
-                    if entity not in names:
-                        names.append(entity)
-            return {
-                "extracted_entities": [
-                    {"name": entity, "entity_type_id": 0, "episode_indices": [0]}
-                    for entity in names
-                ]
-            }
-        if name == "NodeResolutions":
-            existing = {
-                str(item.get("name", "")).lower(): item.get("candidate_id")
-                for item in _json_section("existing", text)
-            }
-            return {
-                "entity_resolutions": [
-                    {
-                        "id": item.get("id", index),
-                        "name": item.get("name", ""),
-                        "duplicate_candidate_id": existing.get(
-                            str(item.get("name", "")).lower(), -1
-                        ),
-                    }
-                    for index, item in enumerate(_json_section("entities", text))
-                ]
-            }
-        if name == "ExtractedEdges":
-            return {
-                "edges": [
-                    {
-                        "source_entity_name": source,
-                        "target_entity_name": target,
-                        "relation_type": "RELATED_TO",
-                        "fact": relation_fact(source, target),
-                        "valid_at": None,
-                        "invalid_at": None,
-                    }
-                    for source, target in relations
-                ]
-            }
-        if name == "EdgeDuplicate":
-            new_fact = _SECTION["new_fact"].search(text)
-            new_text = new_fact.group(1) if new_fact else ""
-            existing = _SECTION["existing_facts"].search(text)
-            duplicates = [
-                int(idx)
-                for idx, fact in _FACT.findall(existing.group(1) if existing else "")
-                if fact and fact in new_text
-            ]
-            return {"duplicate_facts": duplicates, "contradicted_facts": []}
-        if name == "SummarizedEntities":
-            return {"summaries": []}
-        if name in {"EdgeTimestamps"}:
-            return {"valid_at": None, "invalid_at": None}
-        if name == "BatchEdgeTimestamps":
-            return {"timestamps": []}
-        return _empty_instance(response_model)
+    route_name, key_name, base_url, prefix = route()
+    embedding_model, dimensions = manifest_embedding()
+    small = os.environ.get("SMALL_MODEL_NAME") or DEFAULT_SMALL_MODEL
+    return {
+        "route": route_name,
+        "credential": key_name,
+        "base_url": base_url or "https://api.openai.com/v1",
+        "llm": prefix + (os.environ.get("MODEL_NAME") or DEFAULT_MODEL),
+        "small_llm": prefix + small,
+        "embedder": prefix + embedding_model,
+        "embedding_dim": dimensions,
+        "reranker": f"openai-reranker:{prefix}{small}",
+    }
 
 
-def _empty_instance(model: Any) -> dict[str, Any]:
-    """Minimal valid payload for any other Graphiti response model."""
-
-    if model is None:
-        return {}
-    payload: dict[str, Any] = {}
-    for field_name, field in getattr(model, "model_fields", {}).items():
-        if not field.is_required():
-            continue
-        annotation = str(field.annotation)
-        if "list" in annotation:
-            payload[field_name] = []
-        elif "int" in annotation:
-            payload[field_name] = -1
-        elif "bool" in annotation:
-            payload[field_name] = False
-        elif "dict" in annotation:
-            payload[field_name] = {}
-        else:
-            payload[field_name] = ""
-    return payload
-
-
-class HashEmbedder(EmbedderClient):
-    """Deterministic unit vectors from token hashes (same text, same vector)."""
-
-    def __init__(self, dimension: int = 1024) -> None:
-        self.dimension = dimension
-
-    def _embed(self, text: str) -> list[float]:
-        vector = [0.0] * self.dimension
-        for token in re.findall(r"[a-z0-9]+", text.lower()):
-            digest = hashlib.sha256(token.encode("utf-8")).digest()
-            vector[int.from_bytes(digest[:4], "big") % self.dimension] += 1.0
-        norm = math.sqrt(sum(v * v for v in vector)) or 1.0
-        return [v / norm for v in vector]
-
-    async def create(self, input_data: Any) -> list[float]:
-        if isinstance(input_data, list):
-            input_data = " ".join(str(item) for item in input_data)
-        return self._embed(str(input_data))
-
-    async def create_batch(self, input_data_list: list[str]) -> list[list[float]]:
-        return [self._embed(text) for text in input_data_list]
-
-
-class OverlapReranker(CrossEncoderClient):
-    async def rank(self, query: str, passages: list[str]) -> list[tuple[str, float]]:
-        terms = set(query.lower().split())
-        scored = [
-            (passage, len(terms & set(passage.lower().split())) / max(1, len(terms)))
-            for passage in passages
-        ]
-        return sorted(scored, key=lambda item: item[1], reverse=True)
+def real_clients() -> dict[str, Any]:
+    key = api_key()
+    stack = model_stack()
+    base_url = None if stack["route"] == "openai" else stack["base_url"]
+    return {
+        "llm_client": OpenAIClient(
+            config=LLMConfig(
+                api_key=key, model=stack["llm"], small_model=stack["small_llm"], base_url=base_url
+            )
+        ),
+        "embedder": OpenAIEmbedder(
+            config=OpenAIEmbedderConfig(
+                api_key=key,
+                embedding_model=stack["embedder"],
+                embedding_dim=stack["embedding_dim"],
+                base_url=base_url,
+            )
+        ),
+        "cross_encoder": OpenAIRerankerClient(
+            config=LLMConfig(api_key=key, model=stack["small_llm"], base_url=base_url)
+        ),
+    }
 
 
 class GraphitiCoreTransport:
@@ -229,18 +159,10 @@ class GraphitiCoreTransport:
 
     def __init__(self, uri: str, user: str | None, password: str | None) -> None:
         self.loop = asyncio.new_event_loop()
-        self.llm = ScriptedExtractionLLM()
         # add_memory calls whose background ingestion failed, as the official
         # MCP server logs and drops them after replying "queued".
         self.dropped: list[tuple[str, str]] = []
-        self.graphiti = Graphiti(
-            uri,
-            user,
-            password,
-            llm_client=self.llm,
-            embedder=HashEmbedder(),
-            cross_encoder=OverlapReranker(),
-        )
+        self.graphiti = Graphiti(uri, user, password, **real_clients())
         self.run(self.graphiti.build_indices_and_constraints())
 
     def run(self, coroutine: Any) -> Any:
