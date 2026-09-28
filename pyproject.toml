@@ -114,6 +114,7 @@ where = ["src"]
 l9_graphite_memory = [
   "resources/*.yaml",
   "resources/projections/*.json",
+  "resources/graph/*.json",
 ]
 
 [tool.ruff]

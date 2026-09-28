@@ -24,7 +24,9 @@ from l9_graphite_memory.adapters import (
 from l9_graphite_memory.authz import build_local_principal
 from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.contracts import MemoryPrincipal
+from l9_graphite_memory.graph.algorithm_policy import AlgorithmMaturity, AlgorithmPolicy
 from l9_graphite_memory.graph.ports import GraphIntelligencePort
+from l9_graphite_memory.graph.service import GraphIntelligenceService, GraphServiceConfig
 from l9_graphite_memory.group_resolver import GroupResolution, resolve_group
 from l9_graphite_memory.observability import configure_logging
 from l9_graphite_memory.services import MemoryService
@@ -37,6 +39,7 @@ class MemoryRuntime:
     # Structural graph intelligence is a sibling of the projection adapter,
     # composed here and never reached around MemoryService authority (ADR-085).
     graph_intelligence: GraphIntelligencePort = field(default_factory=NullGraphIntelligence)
+    graph_service: GraphIntelligenceService | None = None
 
     def close(self) -> None:
         try:
@@ -53,7 +56,35 @@ def build_runtime(config_path: str | Path | None = None) -> MemoryRuntime:
     graph_intelligence = build_graph_intelligence(settings)
     service = MemoryService(store, projection, projection_required=settings.projection_required)
     service.initialize()
-    return MemoryRuntime(settings=settings, service=service, graph_intelligence=graph_intelligence)
+    return MemoryRuntime(
+        settings=settings,
+        service=service,
+        graph_intelligence=graph_intelligence,
+        graph_service=build_graph_service(settings, service, graph_intelligence),
+    )
+
+
+def build_graph_service(
+    settings: MemorySettings,
+    service: MemoryService,
+    port: GraphIntelligencePort,
+) -> GraphIntelligenceService:
+    """Compose graph intelligence over the same store and namespace policy (ADR-086)."""
+
+    return GraphIntelligenceService(
+        service.store,
+        port,
+        namespace_policy=service.namespace_policy,
+        config=GraphServiceConfig(
+            max_runtime_ms=settings.graph_query_timeout_ms,
+            relationship_allowlist=settings.graph_relationship_allowlist,
+            algorithm_policy=AlgorithmPolicy(
+                maturity_ceiling=AlgorithmMaturity(settings.graph_algorithm_maturity_ceiling),
+                link_prediction_enabled=settings.graph_link_prediction_enabled,
+            ),
+            required=settings.graph_intelligence_required,
+        ),
+    )
 
 
 def _local_namespaces_configured(settings: MemorySettings) -> bool:

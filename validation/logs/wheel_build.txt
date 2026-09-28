@@ -2,7 +2,7 @@
 * Installing packages in isolated environment:
   - setuptools>=68
 * Getting build dependencies for wheel...
-/tmp/build-env-sq_mg183/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+/tmp/build-env-ktcoshz7/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
 !!
 
         ********************************************************************************
@@ -28,7 +28,7 @@ warning: no files found matching '*.json' under directory 'config'
 adding license file 'LICENSE'
 writing manifest file 'src/l9_graphite_memory.egg-info/SOURCES.txt'
 * Building wheel...
-/tmp/build-env-sq_mg183/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+/tmp/build-env-ktcoshz7/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
 !!
 
         ********************************************************************************
@@ -76,8 +76,12 @@ copying build/lib/l9_graphite_memory/client_config/cursor.py -> build/bdist.linu
 copying build/lib/l9_graphite_memory/secrets.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
 copying build/lib/l9_graphite_memory/errors.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/graph
+copying build/lib/l9_graphite_memory/graph/algorithm_policy.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
+copying build/lib/l9_graphite_memory/graph/service.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
+copying build/lib/l9_graphite_memory/graph/evidence.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
 copying build/lib/l9_graphite_memory/graph/scope.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
 copying build/lib/l9_graphite_memory/graph/__init__.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
+copying build/lib/l9_graphite_memory/graph/contracts.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
 copying build/lib/l9_graphite_memory/graph/ports.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/extraction
 copying build/lib/l9_graphite_memory/extraction/__init__.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/extraction
@@ -159,6 +163,9 @@ copying build/lib/l9_graphite_memory/maintenance/planner.py -> build/bdist.linux
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/resources
 copying build/lib/l9_graphite_memory/resources/defaults.yaml -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources
 copying build/lib/l9_graphite_memory/resources/memory_contract.yaml -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources
+creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/resources/graph
+copying build/lib/l9_graphite_memory/resources/graph/graph-intelligence-receipt.schema.json -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources/graph
+copying build/lib/l9_graphite_memory/resources/graph/graph-intelligence-request.schema.json -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources/graph
 copying build/lib/l9_graphite_memory/resources/group_registry.yaml -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/resources/projections
 copying build/lib/l9_graphite_memory/resources/projections/schema.json -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources/projections
@@ -231,7 +238,7 @@ running install_egg_info
 Copying src/l9_graphite_memory.egg-info to build/bdist.linux-x86_64/wheel/./l9_graphite_memory-2.5.0-py3.13.egg-info
 running install_scripts
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory-2.5.0.dist-info/WHEEL
-creating '/home/user/l9-graphiti-memory/validation/dist/.tmp-762lr_bu/l9_graphite_memory-2.5.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+creating '/home/user/l9-graphiti-memory/validation/dist/.tmp-_su9oylr/l9_graphite_memory-2.5.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
 adding 'l9_graphite_memory/__init__.py'
 adding 'l9_graphite_memory/__main__.py'
 adding 'l9_graphite_memory/circuit_breaker.py'
@@ -314,8 +321,12 @@ adding 'l9_graphite_memory/extraction/__init__.py'
 adding 'l9_graphite_memory/extraction/atomic.py'
 adding 'l9_graphite_memory/extraction/distiller.py'
 adding 'l9_graphite_memory/graph/__init__.py'
+adding 'l9_graphite_memory/graph/algorithm_policy.py'
+adding 'l9_graphite_memory/graph/contracts.py'
+adding 'l9_graphite_memory/graph/evidence.py'
 adding 'l9_graphite_memory/graph/ports.py'
 adding 'l9_graphite_memory/graph/scope.py'
+adding 'l9_graphite_memory/graph/service.py'
 adding 'l9_graphite_memory/ingestion/__init__.py'
 adding 'l9_graphite_memory/ingestion/document.py'
 adding 'l9_graphite_memory/ingestion/profiles.py'
@@ -357,6 +368,8 @@ adding 'l9_graphite_memory/resources/active_memory_redis_capabilities.yaml'
 adding 'l9_graphite_memory/resources/defaults.yaml'
 adding 'l9_graphite_memory/resources/group_registry.yaml'
 adding 'l9_graphite_memory/resources/memory_contract.yaml'
+adding 'l9_graphite_memory/resources/graph/graph-intelligence-receipt.schema.json'
+adding 'l9_graphite_memory/resources/graph/graph-intelligence-request.schema.json'
 adding 'l9_graphite_memory/resources/projections/schema.json'
 adding 'l9_graphite_memory/retrieval/__init__.py'
 adding 'l9_graphite_memory/retrieval/budget.py'

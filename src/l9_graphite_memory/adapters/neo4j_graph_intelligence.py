@@ -37,6 +37,7 @@ from l9_graphite_memory.graph.ports import (
     DEFAULT_RELATIONSHIP_ALLOWLIST,
     GraphBackendHealth,
     GraphCapability,
+    UnservedOperations,
 )
 from l9_graphite_memory.graph.scope import GRAPH_SCOPE_SCHEME, is_graph_group_id
 
@@ -183,7 +184,7 @@ def _unit_of_work(timeout_seconds: float) -> Callable[[Callable[..., Any]], Call
     return attach
 
 
-class Neo4jGraphIntelligence:
+class Neo4jGraphIntelligence(UnservedOperations):
     """Read-only structural intelligence over a Graphiti Neo4j projection."""
 
     name = "neo4j"

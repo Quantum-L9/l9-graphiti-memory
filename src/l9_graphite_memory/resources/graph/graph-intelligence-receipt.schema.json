@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "l9.memory.graph-intelligence-receipt.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "operation",
+    "scope_digest",
+    "authority_class",
+    "provider",
+    "limits_applied",
+    "results",
+    "supporting_record_ids",
+    "failures",
+    "result_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "status": {"enum": ["COMPLETE", "PARTIAL", "FAILED"]},
+    "operation": {"type": "string", "minLength": 1},
+    "scope_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "authority_class": {"const": "advisory_projection"},
+    "provider": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["projection_provider", "graph_backend"],
+      "properties": {
+        "projection_provider": {"type": "string"},
+        "graph_backend": {"type": "string"},
+        "graphiti_version": {"type": ["string", "null"]},
+        "backend_version": {"type": ["string", "null"]},
+        "gds_version": {"type": ["string", "null"]}
+      }
+    },
+    "algorithm": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"},
+        "maturity": {"enum": ["native", "production", "beta", "alpha"]},
+        "config_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "limits_applied": {"type": "object"},
+    "results": {"type": "array", "items": {"type": "object"}},
+    "supporting_record_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "format": "uuid"}
+    },
+    "unsupported_projection_observations": {"type": "array", "items": {"type": "object"}},
+    "failures": {"type": "array", "items": {"type": "object"}},
+    "result_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

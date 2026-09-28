@@ -12,10 +12,14 @@
 
 from __future__ import annotations
 
-from l9_graphite_memory.graph.ports import GraphBackendHealth, GraphCapability
+from l9_graphite_memory.graph.ports import (
+    GraphBackendHealth,
+    GraphCapability,
+    UnservedOperations,
+)
 
 
-class NullGraphIntelligence:
+class NullGraphIntelligence(UnservedOperations):
     """Serves no structural capability and says so; never fakes zero results."""
 
     name = "none"
