@@ -19,6 +19,7 @@ after destroying that store.
 
 from __future__ import annotations
 
+from datetime import timedelta
 from uuid import UUID
 
 import pytest
@@ -113,6 +114,24 @@ class Migration:
         receipt = self.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
         assert set(receipt.stale_scope_record_ids) == set(records)
         self.drain()
+        self.record_cutover()
+
+    def record_cutover(self, service: MemoryService | None = None) -> None:
+        """Record the cutover (ADR-092) so legacy copies may later be released.
+
+        The rollback window is zero here; its enforcement is tested in
+        test_graph_cutover.py.
+        """
+
+        (service or self.service).record_graph_cutover(
+            ADMIN,
+            NAMESPACE,
+            previous_binding="neo4j://retained/graphiti-v0",
+            new_binding="neo4j://fresh/graphiti-v1",
+            change_reference="CHG-CUTOVER",
+            rollback_window=timedelta(0),
+            apply=True,
+        )
 
 
 @pytest.fixture
@@ -250,6 +269,7 @@ def test_deletion_before_the_rebuild_runs_keeps_the_legacy_copy_outstanding(migr
     assert link_withdrawn(link)
     assert [copy["scope_scheme"] for copy in legacy_copies(link)] == [None]
     assert str(record) in migration.old.episodes  # the retained copy
+    migration.record_cutover()
     migration.service.release_legacy_projection_copies(
         ADMIN, NAMESPACE, store_destruction_reference="CHG-5", apply=True
     )
@@ -498,14 +518,22 @@ def test_projection_losing_the_race_to_deletion_withdraws_its_fresh_copy(tmp_pat
     record ACTIVE; before it installs the link, the record is deleted, its
     legacy copy erased-and-released, and deletion completes. On resuming, the
     worker must withdraw the fresh copy and must not install a link.
+
+    The re-projection runs after a recorded cutover (ADR-092): a release is
+    refused before one, so that is the state in which this race can occur. A
+    withdrawn link on the active record queues the re-projection.
     """
 
     migration = Migration(_open_store(backend, tmp_path))
     record = migration.write("falcon plan")
     migration.drain()
-    migration.switch_provider(record)
-    migration.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
+    migration.cut_over(record)
     store = migration.store
+    link = migration.link(record)
+    store.save_projection_link(
+        link.model_copy(update={"metadata": {**link.metadata, "withdrawn": True}})
+    )
+    migration.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
     real_get = store.get_record
     reads = {"count": 0}
 

@@ -133,3 +133,76 @@ class GraphitiShapedGraph:
         if self.groups:
             self._write("MATCH (n) WHERE n.group_id IN $groups DETACH DELETE n", groups=self.groups)
         self._driver.close()
+
+
+#: Budget for warming analytics; the GraphLimits ceiling.
+WARMUP_BUDGET_MS = 30_000
+
+
+def warm_analytics(settings: dict[str, str]) -> bool:
+    """Run each GDS stream family once under a generous budget.
+
+    A freshly (re)started Neo4j compiles GDS code paths on first use. That cold
+    start can exceed the 3 s default request budget, which is a startup cost of
+    the server, not the behavior a test asserts. Suites that assert default
+    budgets warm the engine first so their outcome does not depend on test
+    order. Returns whether analytics answered COMPLETE.
+    """
+
+    from l9_graphite_memory.adapters import InMemoryRecordStore, NullProjection
+    from l9_graphite_memory.adapters.neo4j_graph_intelligence import (
+        Neo4jGraphIntelligence,
+        Neo4jGraphIntelligenceConfig,
+    )
+    from l9_graphite_memory.contracts import MemoryPrincipal
+    from l9_graphite_memory.graph.contracts import (
+        GraphIntelligenceRequest,
+        GraphLimits,
+        GraphOperation,
+        GraphReceiptStatus,
+    )
+    from l9_graphite_memory.graph.service import GraphIntelligenceService, GraphServiceConfig
+    from l9_graphite_memory.services import MemoryService
+
+    graph = GraphitiShapedGraph(settings)
+    adapter = Neo4jGraphIntelligence(
+        Neo4jGraphIntelligenceConfig(**settings, query_timeout_ms=WARMUP_BUDGET_MS)
+    )
+    try:
+        if not adapter.health().analytics_available:
+            return False
+        group = graph.group("warmup", "gds")
+        a, b, c = (graph.entity(group, name) for name in ("WarmA", "WarmB", "WarmC"))
+        graph.relate(a, b, group)
+        graph.relate(b, c, group)
+        memory = MemoryService(InMemoryRecordStore(), NullProjection())
+        memory.initialize()
+        namespace = graph.namespace("gds")
+        service = GraphIntelligenceService(
+            memory.store,
+            adapter,
+            namespace_policy=memory.namespace_policy,
+            config=GraphServiceConfig(max_runtime_ms=WARMUP_BUDGET_MS),
+        )
+        principal = MemoryPrincipal(
+            principal_id="warmup-agent", tenant_id="warmup", read_namespaces=(namespace,)
+        )
+        statuses = [
+            service.execute(
+                principal,
+                GraphIntelligenceRequest(
+                    operation=operation,
+                    namespaces=(namespace,),
+                    limits=GraphLimits(max_runtime_ms=WARMUP_BUDGET_MS),
+                ),
+            ).status
+            for operation in (
+                GraphOperation.CENTRALITY,
+                GraphOperation.COMMUNITY,
+                GraphOperation.STRUCTURAL_EMBEDDING,
+            )
+        ]
+        return all(status is GraphReceiptStatus.COMPLETE for status in statuses)
+    finally:
+        adapter.close()
+        graph.cleanup()

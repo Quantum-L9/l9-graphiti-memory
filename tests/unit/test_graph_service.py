@@ -306,6 +306,20 @@ class _SearchProjection:
             raise self.error
         return list(self.hits)
 
+    def search_entities(self, query, namespaces, *, limit, tenant_id):
+        from l9_graphite_memory.ports import ProjectionEntityHit
+
+        return [
+            hit
+            if isinstance(hit, ProjectionEntityHit)
+            else ProjectionEntityHit(
+                record_id=hit.record_id, score=hit.score, namespace=namespaces[0]
+            )
+            for hit in self.search_strategy(
+                "graph-search", query, namespaces, limit=limit, tenant_id=tenant_id
+            )
+        ]
+
 
 def _search_world(projection):
     service, store, principal, write = seeded_memory()

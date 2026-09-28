@@ -265,6 +265,13 @@ class GraphCapabilityReport(BaseModel):
     required: bool
     ready: bool
     gds_catalog_cleanup_failures: int = 0
+    #: Graph-intelligence GDS catalog graphs present now; None without GDS.
+    gds_catalog_active: int | None = None
+    #: Projection lag in events: outbox events not yet delivered or dead.
+    projection_lag_events: int | None = None
+    #: Share of candidate items admitted by canonical rehydration since the
+    #: process started; None before any graph operation produced candidates.
+    rehydration_success_rate: float | None = Field(default=None, ge=0.0, le=1.0)
 
 
 class GraphIntelligenceReceipt(BaseModel):

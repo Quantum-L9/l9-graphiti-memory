@@ -38,10 +38,13 @@ as authority.
 `memory.graph.capabilities` reports what is served right now and why the rest
 is not.
 
-On real Graphiti, `graph.search` (entity-node search) returns no canonical
-support: Graphiti entities carry no episode reference. Prefer
-`graph.semantic_search`, or a structural operation with `anchor.query`
-(see [QUALIFICATION.md](QUALIFICATION.md)).
+`graph.search` ranks with Graphiti's entity-node search. Graphiti entities
+carry no episode reference, so each hit is bound to canonical support through
+the graph backend (entity → `MENTIONS` → episode → record, ADR-092) and
+returned as `kind: entity_hit` with `supporting_record_ids`. Without a graph
+backend that can bind them, entity hits are reported under
+`unsupported_projection_observations` (`graph_backend_unavailable`), never
+dropped.
 
 ## Request
 
@@ -67,7 +70,9 @@ of the budget, and an answer that arrives after it is refused. A multi-namespace
 out of budget returns what completed in time as `PARTIAL`
 (`runtime_budget_exhausted`). Search operations refuse `target`,
 `relationship_types` and a non-default `direction`
-(`request_field_not_applicable`). A path is returned only when every
+(`request_field_not_applicable`). `profile_ref` is refused on every
+operation (`profile_not_supported`) until algorithm profiles exist. A path is
+returned only when every
 relationship on it has canonical support and connects that hop's two nodes.
 
 ## SDK

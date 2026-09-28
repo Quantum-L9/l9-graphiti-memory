@@ -54,7 +54,12 @@ from l9_graphite_memory.errors import (
     GraphRuntimeBudgetExceeded,
 )
 from l9_graphite_memory.observability.graph_metrics import GRAPH_METRICS, GraphMetrics
-from l9_graphite_memory.ports import ProjectionAdapter, ProjectionHit, RecordStore
+from l9_graphite_memory.ports import (
+    ProjectionAdapter,
+    ProjectionEntityHit,
+    ProjectionHit,
+    RecordStore,
+)
 
 from .algorithm_policy import (
     AlgorithmPolicy,
@@ -67,6 +72,7 @@ from .contracts import (
     GraphCapabilityReport,
     GraphIntelligenceReceipt,
     GraphIntelligenceRequest,
+    GraphLimits,
     GraphOperation,
     GraphProviderIdentity,
     GraphProviderRequest,
@@ -142,22 +148,40 @@ class _SearchHits:
     """Outcome of the per-namespace search fan-out."""
 
     hits: dict[UUID, ProjectionHit] = field(default_factory=dict)
+    #: Entity-node hits with no canonical record id yet (graph.search only).
+    entities: dict[UUID, ProjectionEntityHit] = field(default_factory=dict)
     #: Why the fan-out stopped early (deadline or capacity), if it did.
     stop_class: str | None = None
     #: Normalized provider failure class; the request fails when set.
     provider_error: str | None = None
 
+    def keep(self, hit: ProjectionHit | ProjectionEntityHit) -> None:
+        """Keep the best-scoring hit per record, and per unbound entity."""
+
+        if isinstance(hit, ProjectionEntityHit):
+            if hit.record_id is None:
+                if hit.entity_uuid is not None:
+                    current_entity = self.entities.get(hit.entity_uuid)
+                    if current_entity is None or hit.score > current_entity.score:
+                        self.entities[hit.entity_uuid] = hit
+                return
+            hit = ProjectionHit(
+                record_id=hit.record_id,
+                score=hit.score,
+                excerpt=hit.name,
+                metadata={"namespace": hit.namespace, "strategy": "graph-search", "rank": hit.rank},
+            )
+        current = self.hits.get(hit.record_id)
+        if current is None or hit.score > current.score:
+            self.hits[hit.record_id] = hit
+
 
 def _gather_search_hits(
-    projection: ProjectionAdapter,
-    strategy: str,
-    query: str,
+    fetch: Callable[[str], Sequence[ProjectionHit | ProjectionEntityHit]],
     namespaces: Sequence[str],
-    tenant_id: str,
-    per_namespace: int,
     remaining_ms: Callable[[], int],
 ) -> _SearchHits:
-    """Call the projection once per namespace, best hit per record.
+    """Call ``fetch`` once per namespace and keep the best hits.
 
     The request deadline is checked between calls, and a call that
     returns after it is discarded. Each call runs off-thread so the
@@ -171,14 +195,7 @@ def _gather_search_hits(
         if remaining_ms() <= 0:
             gathered.stop_class = "runtime_budget_exhausted"
             break
-        future = _SEARCH_POOL.try_submit(
-            projection.search_strategy,
-            strategy,
-            query,
-            (namespace,),
-            limit=per_namespace,
-            tenant_id=tenant_id,
-        )
+        future = _SEARCH_POOL.try_submit(fetch, namespace)
         if future is None:
             # Search capacity is exhausted (stalled provider calls hold
             # every slot): stop here rather than queue without bound.
@@ -197,10 +214,88 @@ def _gather_search_hits(
             gathered.stop_class = "runtime_budget_exhausted"
             break
         for hit in namespace_hits:
-            current = gathered.hits.get(hit.record_id)
-            if current is None or hit.score > current.score:
-                gathered.hits[hit.record_id] = hit
+            gathered.keep(hit)
     return gathered
+
+
+def _result_key(item: dict[str, Any]) -> str:
+    return str(item.get("record_id") or item.get("entity_uuid") or "")
+
+
+def _limits_applied(
+    request: GraphIntelligenceRequest,
+    limits: GraphLimits,
+    relationship_types: tuple[str, ...],
+) -> dict[str, Any]:
+    """The effective limits and filters a receipt reports."""
+
+    return {
+        **limits.model_dump(),
+        "relationship_types": list(relationship_types),
+        "direction": request.direction,
+        "as_of": request.as_of.isoformat() if request.as_of else None,
+        "recorded_before": (
+            request.recorded_before.isoformat() if request.recorded_before else None
+        ),
+    }
+
+
+def _served_port_method(
+    operation: GraphOperation, capabilities: tuple[GraphCapability, ...]
+) -> str | None:
+    """The port method for a structural operation the backend serves, else None."""
+
+    method_name = PORT_METHODS.get(operation)
+    if method_name is None or GraphCapability(operation.value) not in capabilities:
+        return None
+    return method_name
+
+
+def _structural_status(failures: list[dict[str, Any]], required: bool) -> GraphReceiptStatus:
+    """COMPLETE without failures; FAILED when the result is required, else PARTIAL."""
+
+    if not failures:
+        return GraphReceiptStatus.COMPLETE
+    return GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL
+
+
+def _finish_search(
+    linked: LinkedEvidence,
+    max_nodes: int,
+    failures: list[dict[str, Any]],
+    stop_class: str | None,
+    required: bool,
+) -> tuple[GraphReceiptStatus, LinkedEvidence]:
+    """Rank, cap and bind support for search results; decide the status.
+
+    Record and entity hits are ranked together by score. A cap that drops
+    results is reported as ``truncated``; any failure makes the receipt
+    PARTIAL, or FAILED (with no results) when the request is required.
+    """
+
+    # Score first; the provider's own rank breaks ties (Graphiti's node search
+    # returns no score, so its ranking must survive), then a stable key.
+    linked.results.sort(
+        key=lambda item: (
+            -float(item.get("score", 0.0)),
+            int(item.get("rank", 0)),
+            _result_key(item),
+        )
+    )
+    if len(linked.results) > max_nodes:
+        linked.results = linked.results[:max_nodes]
+        failures.append({"class": "truncated", "stage": "limits"})
+    if stop_class is not None:
+        failures.append({"class": stop_class, "stage": "provider"})
+    linked.supporting_record_ids = sorted(
+        {UUID(record_id) for item in linked.results for record_id in item["supporting_record_ids"]},
+        key=str,
+    )
+    if not failures:
+        return GraphReceiptStatus.COMPLETE, linked
+    if required:
+        return GraphReceiptStatus.FAILED, LinkedEvidence()
+    return GraphReceiptStatus.PARTIAL, linked
 
 
 SEARCH_STRATEGIES: dict[GraphOperation, str] = {
@@ -320,6 +415,16 @@ class GraphIntelligenceService:
         backend = self.health(refresh=refresh)
         catalog_failures = getattr(self.port, "catalog_cleanup_failures", 0)
         self.metrics.set_gauge("memory_graph_gds_cleanup_failures_seen", float(catalog_failures))
+        if backend.gds_catalog_active is not None:
+            self.metrics.set_gauge(
+                "memory_graph_gds_catalog_active", float(backend.gds_catalog_active)
+            )
+        try:
+            lag: int | None = self.store.outbox_backlog()
+        except Exception:  # noqa: BLE001 - an unreadable backlog is reported as unknown
+            lag = None
+        if lag is not None:
+            self.metrics.set_gauge("memory_graph_projection_lag_events", float(lag))
         return GraphCapabilityReport(
             scope_scheme=GRAPH_SCOPE_SCHEME,
             scope_scheme_version=GRAPH_SCOPE_SCHEME_VERSION,
@@ -332,6 +437,9 @@ class GraphIntelligenceService:
             required=self.config.required,
             ready=backend.healthy or not self.config.required,
             gds_catalog_cleanup_failures=int(catalog_failures),
+            gds_catalog_active=backend.gds_catalog_active,
+            projection_lag_events=lag,
+            rehydration_success_rate=self.metrics.rehydration_success_rate(),
         )
 
     # -- execution -----------------------------------------------------
@@ -393,6 +501,7 @@ class GraphIntelligenceService:
             scope_digest=receipt.scope_digest,
             algorithm=receipt.algorithm.id if receipt.algorithm else None,
             result_digest=receipt.result_digest,
+            admitted_count=len(receipt.results),
         )
         return receipt
 
@@ -446,22 +555,13 @@ class GraphIntelligenceService:
         tenant_id = principal.tenant_id
         group_ids = graph_group_ids(tenant_id, namespaces)
         scope_digest = graph_request_scope_digest(tenant_id, namespaces)
-        required = request.required or self.config.required
-        relationship_types = request.relationship_types or self.config.relationship_allowlist
+        required, relationship_types = self._effective_policy(request)
         limits = request.limits.model_copy(
             update={
                 "max_runtime_ms": min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
             }
         )
-        limits_applied: dict[str, Any] = {
-            **limits.model_dump(),
-            "relationship_types": list(relationship_types),
-            "direction": request.direction,
-            "as_of": request.as_of.isoformat() if request.as_of else None,
-            "recorded_before": request.recorded_before.isoformat()
-            if request.recorded_before
-            else None,
-        }
+        limits_applied = _limits_applied(request, limits, relationship_types)
         health = self.health()
         provider = self._provider_identity(health)
 
@@ -480,23 +580,12 @@ class GraphIntelligenceService:
             )
 
         # Shared request policy runs before any operation-specific path.
-        disallowed = [r for r in relationship_types if r not in self.config.relationship_allowlist]
-        if disallowed:
-            return refuse("relationship_type_not_allowed", "policy")
+        policy_refusal = self._shared_policy_refusal(request, relationship_types)
+        if policy_refusal is not None:
+            return refuse(policy_refusal, "policy")
         if request.operation in SEARCH_STRATEGIES:
-            # Search has no traversal: fields that would shape one are refused
-            # rather than silently ignored.
-            if (
-                request.target is not None
-                or request.relationship_types
-                or request.direction != "both"
-            ):
-                return refuse("request_field_not_applicable", "policy")
-            try:
-                search_algorithm = self.config.algorithm_policy.resolve(
-                    request.operation, request.algorithm
-                )
-            except GraphQueryPolicyViolation:
+            search_algorithm = self._admitted_algorithm(request)
+            if search_algorithm is None:
                 return refuse("algorithm_not_admitted", "policy")
             return self._search(
                 request,
@@ -508,30 +597,19 @@ class GraphIntelligenceService:
                 required,
                 search_algorithm,
                 remaining_ms,
+                health.capabilities,
             )
-        method_name = PORT_METHODS.get(request.operation)
-        if (
-            method_name is None
-            or GraphCapability(request.operation.value) not in health.capabilities
-        ):
+        method_name = _served_port_method(request.operation, health.capabilities)
+        if method_name is None:
             return refuse("capability_unavailable", "capability")
-        try:
-            algorithm = self.config.algorithm_policy.resolve(request.operation, request.algorithm)
-        except GraphQueryPolicyViolation:
+        algorithm = self._admitted_algorithm(request)
+        if algorithm is None:
             return refuse("algorithm_not_admitted", "policy")
         algorithm_config = self._algorithm_config(algorithm, limits_applied)
         identity = algorithm_identity(algorithm, algorithm_config)
-        for anchor in (request.anchor, request.target):
-            if anchor is not None and anchor.record_id is not None:
-                record = self.store.get_record(anchor.record_id)
-                if (
-                    record is None
-                    or record.tenant_id != tenant_id
-                    or record.namespace not in namespaces
-                    or record.state is not MemoryState.ACTIVE
-                ):
-                    # Same answer whether the record is absent or foreign.
-                    return refuse("anchor_not_in_scope", "anchor", identity)
+        if not self._record_anchors_in_scope(request, tenant_id):
+            # Same answer whether the record is absent or foreign.
+            return refuse("anchor_not_in_scope", "anchor", identity)
 
         budget_left = remaining_ms()
         if budget_left < MIN_PROVIDER_BUDGET_MS:
@@ -552,16 +630,9 @@ class GraphIntelligenceService:
                 {"scope": scope_digest, "request": request.contract_payload()}
             )[:32],
         )
-        try:
-            result: GraphProviderResult = getattr(self.port, method_name)(provider_request)
-        except GraphCapabilityUnavailable:
-            return refuse("capability_unavailable", "provider", identity)
-        except GraphRuntimeBudgetExceeded:
-            return refuse("runtime_budget_exhausted", "provider", identity)
-        except GraphQueryPolicyViolation:
-            return refuse("query_policy_violation", "provider", identity)
-        except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
-            return refuse(f"provider_error:{type(exc).__name__}", "provider", identity)
+        result, provider_failure = self._call_port(method_name, provider_request)
+        if result is None:
+            return refuse(provider_failure or "provider_error", "provider", identity)
         if remaining_ms() <= 0:
             # The provider answered after the request's hard ceiling; serving
             # it would make max_runtime_ms advisory.
@@ -579,29 +650,8 @@ class GraphIntelligenceService:
                 path_direction=request.direction,
             ),
         )
-        failures: list[dict[str, Any]] = []
-        if linked.rehydration_error is not None:
-            failures.append(
-                {"class": f"rehydration_error:{linked.rehydration_error}", "stage": "evidence"}
-            )
-        # Caps always apply; a provider-reported truncation must not skip them.
-        capped = self._apply_caps(linked, limits_applied)
-        truncated = result.truncated or capped
-        if truncated:
-            failures.append({"class": "truncated", "stage": "limits"})
-        if result.provider_metadata.get("catalog_cleanup") == "failed":
-            failures.append({"class": "gds_catalog_cleanup_failed", "stage": "provider"})
-        if linked.out_of_scope_dropped:
-            failures.append(
-                {
-                    "class": "out_of_scope_dropped",
-                    "stage": "evidence",
-                    "count": linked.out_of_scope_dropped,
-                }
-            )
-        status = GraphReceiptStatus.COMPLETE
-        if failures:
-            status = GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL
+        failures = self._structural_failures(linked, result, limits_applied)
+        status = _structural_status(failures, required)
         if status is GraphReceiptStatus.FAILED:
             linked = LinkedEvidence()
         return self._receipt(
@@ -615,6 +665,101 @@ class GraphIntelligenceService:
             failures,
         )
 
+    def _effective_policy(self, request: GraphIntelligenceRequest) -> tuple[bool, tuple[str, ...]]:
+        """Whether a result is required, and the relationship types, after defaults."""
+
+        return (
+            request.required or self.config.required,
+            request.relationship_types or self.config.relationship_allowlist,
+        )
+
+    def _admitted_algorithm(self, request: GraphIntelligenceRequest) -> GraphAlgorithm | None:
+        """The algorithm policy admits for this request, or None when it refuses."""
+
+        try:
+            return self.config.algorithm_policy.resolve(request.operation, request.algorithm)
+        except GraphQueryPolicyViolation:
+            return None
+
+    def _shared_policy_refusal(
+        self, request: GraphIntelligenceRequest, relationship_types: tuple[str, ...]
+    ) -> str | None:
+        """The failure class of a request the shared policy refuses, if any."""
+
+        if any(r not in self.config.relationship_allowlist for r in relationship_types):
+            return "relationship_type_not_allowed"
+        if request.profile_ref is not None:
+            # Algorithm profiles are not implemented (devpack V1.2). Refusing
+            # beats accepting a profile that changes nothing (GI-032).
+            return "profile_not_supported"
+        # Search has no traversal: fields that would shape one are refused
+        # rather than silently ignored.
+        if request.operation in SEARCH_STRATEGIES and (
+            request.target is not None or request.relationship_types or request.direction != "both"
+        ):
+            return "request_field_not_applicable"
+        return None
+
+    def _record_anchors_in_scope(self, request: GraphIntelligenceRequest, tenant_id: str) -> bool:
+        """Whether every record anchor is an ACTIVE record of the caller's scope."""
+
+        for anchor in (request.anchor, request.target):
+            if anchor is None or anchor.record_id is None:
+                continue
+            record = self.store.get_record(anchor.record_id)
+            if (
+                record is None
+                or record.tenant_id != tenant_id
+                or record.namespace not in request.namespaces
+                or record.state is not MemoryState.ACTIVE
+            ):
+                return False
+        return True
+
+    def _call_port(
+        self, method_name: str, provider_request: GraphProviderRequest
+    ) -> tuple[GraphProviderResult | None, str | None]:
+        """Run one port operation; a failure becomes a normalized failure class."""
+
+        try:
+            result: GraphProviderResult = getattr(self.port, method_name)(provider_request)
+        except GraphCapabilityUnavailable:
+            return None, "capability_unavailable"
+        except GraphRuntimeBudgetExceeded:
+            return None, "runtime_budget_exhausted"
+        except GraphQueryPolicyViolation:
+            return None, "query_policy_violation"
+        except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
+            return None, f"provider_error:{type(exc).__name__}"
+        return result, None
+
+    def _structural_failures(
+        self,
+        linked: LinkedEvidence,
+        result: GraphProviderResult,
+        limits_applied: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        failures: list[dict[str, Any]] = []
+        if linked.rehydration_error is not None:
+            failures.append(
+                {"class": f"rehydration_error:{linked.rehydration_error}", "stage": "evidence"}
+            )
+        # Caps always apply; a provider-reported truncation must not skip them.
+        capped = self._apply_caps(linked, limits_applied)
+        if result.truncated or capped:
+            failures.append({"class": "truncated", "stage": "limits"})
+        if result.provider_metadata.get("catalog_cleanup") == "failed":
+            failures.append({"class": "gds_catalog_cleanup_failed", "stage": "provider"})
+        if linked.out_of_scope_dropped:
+            failures.append(
+                {
+                    "class": "out_of_scope_dropped",
+                    "stage": "evidence",
+                    "count": linked.out_of_scope_dropped,
+                }
+            )
+        return failures
+
     def _search(
         self,
         request: GraphIntelligenceRequest,
@@ -626,12 +771,15 @@ class GraphIntelligenceService:
         required: bool,
         algorithm: GraphAlgorithm,
         remaining_ms: Callable[[], int],
+        backend_capabilities: tuple[GraphCapability, ...],
     ) -> GraphIntelligenceReceipt:
         """graph.search / graph.semantic_search over the existing projection.
 
         Uses the same Graphiti strategies as ``memory.search`` (whose meaning
         is unchanged, GI-036), with the principal's tenant, and admits a hit
         only after canonical rehydration under the request's filters.
+        ``graph.search`` also keeps entity hits that name no record and binds
+        their support through the graph backend (ADR-092).
         """
 
         strategy = SEARCH_STRATEGIES[request.operation]
@@ -654,17 +802,19 @@ class GraphIntelligenceService:
         if self.projection is None or strategy not in self.projection.capabilities:
             return fail("capability_unavailable", "capability")
         gathered = _gather_search_hits(
-            self.projection,
-            strategy,
-            request.anchor.query,
+            self._search_fetch(
+                self.projection,
+                strategy,
+                request.anchor.query,
+                tenant_id,
+                max(1, limits.max_nodes // len(request.namespaces)),
+            ),
             request.namespaces,
-            tenant_id,
-            max(1, limits.max_nodes // len(request.namespaces)),
             remaining_ms,
         )
         if gathered.provider_error is not None:
             return fail(gathered.provider_error, "provider")
-        if gathered.stop_class is not None and not gathered.hits:
+        if gathered.stop_class is not None and not gathered.hits and not gathered.entities:
             return fail(gathered.stop_class, "provider")
         scope = EvidenceScope(
             tenant_id=tenant_id,
@@ -677,20 +827,23 @@ class GraphIntelligenceService:
             linked = self._link_search_hits(list(gathered.hits.values()), scope, strategy)
         except Exception as exc:  # noqa: BLE001 - reported as a rehydration failure
             return fail(f"rehydration_error:{type(exc).__name__}", "evidence")
-        linked.supporting_record_ids = [
-            UUID(item["record_id"]) for item in linked.results[: limits.max_nodes]
-        ]
         failures: list[dict[str, Any]] = []
-        if len(linked.results) > limits.max_nodes:
-            linked.results = linked.results[: limits.max_nodes]
-            failures.append({"class": "truncated", "stage": "limits"})
-        if gathered.stop_class is not None:
-            failures.append({"class": gathered.stop_class, "stage": "provider"})
-        status = GraphReceiptStatus.COMPLETE
-        if failures:
-            status = GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL
-        if status is GraphReceiptStatus.FAILED:
-            linked = LinkedEvidence()
+        if gathered.entities:
+            entity_failure = self._bind_entity_hits(
+                gathered.entities,
+                request,
+                tenant_id,
+                limits,
+                scope,
+                remaining_ms,
+                backend_capabilities,
+                linked,
+            )
+            if entity_failure is not None:
+                failures.append({"class": entity_failure, "stage": "evidence"})
+        status, linked = _finish_search(
+            linked, limits.max_nodes, failures, gathered.stop_class, required
+        )
         return self._receipt(
             status,
             request.operation,
@@ -701,6 +854,106 @@ class GraphIntelligenceService:
             linked,
             failures,
         )
+
+    @staticmethod
+    def _search_fetch(
+        projection: ProjectionAdapter,
+        strategy: str,
+        query: str,
+        tenant_id: str,
+        per_namespace: int,
+    ) -> Callable[[str], Sequence[ProjectionHit | ProjectionEntityHit]]:
+        if strategy == "graph-search":
+
+            def fetch_entities(namespace: str) -> Sequence[ProjectionEntityHit]:
+                return projection.search_entities(
+                    query, (namespace,), limit=per_namespace, tenant_id=tenant_id
+                )
+
+            return fetch_entities
+
+        def fetch_strategy(namespace: str) -> Sequence[ProjectionHit]:
+            return projection.search_strategy(
+                strategy, query, (namespace,), limit=per_namespace, tenant_id=tenant_id
+            )
+
+        return fetch_strategy
+
+    def _bind_entity_hits(
+        self,
+        entities: dict[UUID, ProjectionEntityHit],
+        request: GraphIntelligenceRequest,
+        tenant_id: str,
+        limits: Any,
+        scope: EvidenceScope,
+        remaining_ms: Callable[[], int],
+        backend_capabilities: tuple[GraphCapability, ...],
+        linked: LinkedEvidence,
+    ) -> str | None:
+        """Bind entity hits to canonical support through the graph backend.
+
+        Adds admitted entity hits and unsupported observations to ``linked``.
+        Returns a failure class when binding could not run to completion. An
+        entity hit is never dropped silently: without a backend that can bind
+        it, it is reported as an unsupported observation (GI-027, GI-032).
+        """
+
+        ranked = sorted(entities.values(), key=lambda h: (-h.score, h.rank, str(h.entity_uuid)))
+
+        def unsupported(reason: str, hits: list[ProjectionEntityHit]) -> None:
+            linked.unsupported.extend(
+                {"kind": "entity_hit", "entity_uuid": str(hit.entity_uuid), "reason": reason}
+                for hit in hits
+            )
+
+        # Binding reads the same entity -> episode support as the baseline
+        # structural operations, so it is served exactly where they are.
+        if GraphCapability.NEIGHBORHOOD not in backend_capabilities:
+            unsupported("graph_backend_unavailable", ranked)
+            return None
+        budget_left = remaining_ms()
+        if budget_left < MIN_PROVIDER_BUDGET_MS:
+            unsupported("runtime_budget_exhausted", ranked)
+            return "runtime_budget_exhausted"
+        provider_request = GraphProviderRequest(
+            operation=GraphOperation.SEARCH,
+            group_ids=graph_group_ids(tenant_id, request.namespaces),
+            as_of=request.as_of,
+            recorded_before=request.recorded_before,
+            limits=limits.model_copy(update={"max_runtime_ms": budget_left}),
+            operation_id=_canonical_digest(
+                {"scope": scope.tenant_id, "request": request.contract_payload()}
+            )[:32],
+        )
+        uuids = tuple(hit.entity_uuid for hit in ranked if hit.entity_uuid is not None)
+        try:
+            result = self.port.describe_entities(provider_request, uuids)
+        except GraphCapabilityUnavailable:
+            unsupported("graph_backend_unavailable", ranked)
+            return None
+        except GraphRuntimeBudgetExceeded:
+            unsupported("runtime_budget_exhausted", ranked)
+            return "runtime_budget_exhausted"
+        except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
+            unsupported("provider_error", ranked)
+            return f"provider_error:{type(exc).__name__}"
+        bound = self.linker.link(result, scope)
+        if bound.rehydration_error is not None:
+            unsupported("rehydration_error", ranked)
+            return f"rehydration_error:{bound.rehydration_error}"
+        found = {node.entity_uuid for node in result.nodes}
+        unsupported("entity_not_found", [h for h in ranked if h.entity_uuid not in found])
+        scores = {str(hit.entity_uuid): hit.score for hit in ranked}
+        ranks = {str(hit.entity_uuid): hit.rank for hit in ranked}
+        for item in bound.results:
+            item["kind"] = "entity_hit"
+            item["score"] = scores.get(item["entity_uuid"], 0.0)
+            item["rank"] = ranks.get(item["entity_uuid"], 0)
+            item["strategy"] = "graph-search"
+        linked.results.extend(bound.results)
+        linked.unsupported.extend(bound.unsupported)
+        linked.out_of_scope_dropped += bound.out_of_scope_dropped
+        return None
 
     def _link_search_hits(
         self, hits: list[ProjectionHit], scope: EvidenceScope, strategy: str
@@ -716,6 +969,7 @@ class GraphIntelligenceService:
                         "kind": "record_hit",
                         "record_id": str(hit.record_id),
                         "score": hit.score,
+                        "rank": int(hit.metadata.get("rank", 0)),
                         "strategy": strategy,
                         "supporting_record_ids": [str(hit.record_id)],
                         "authority_class": "advisory_projection",

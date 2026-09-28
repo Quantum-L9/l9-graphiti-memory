@@ -208,8 +208,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # projection/deletion race cases, 3 authorization-ordering cases.
         # Re-pinned 1227 -> 1231 for the legacy-carry race: 3 store-matrix
         # release-between-read-and-write cases, 1 link-install contention case.
-        "1231 tests pass",
-        r"1231 passed",
+        # Re-pinned 1231 -> 1257 for the V1 closure (ADR-092): graph.search
+        # entity binding and profile refusal 10, health dimensions 5, graph
+        # cutover and rollback window 11 (store matrix). The live Neo4j suites
+        # run in the graph-live job, not here.
+        # Re-pinned 1257 -> 1261 for the #74 review fixes: cutover tenant
+        # scoping, per-migration cutover, ADMIN-only status, provider rank.
+        "1261 tests pass",
+        r"1261 passed",
     ),
     CheckSpec(
         "V-002",
@@ -238,8 +244,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 88 -> 89 for ADR-089 (graph public surfaces, metrics).
         # Re-pinned 89 -> 90 for ADR-090 (Graphiti episode identity).
         # Re-pinned 90 -> 91 for ADR-091 (campaign audit remediation).
-        "91 ADRs complete and indexed",
-        r"PASS: 91 ADRs",
+        # Re-pinned 91 -> 92 for ADR-092 (graph intelligence V1 closure).
+        "92 ADRs complete and indexed",
+        r"PASS: 92 ADRs",
     ),
     CheckSpec(
         "V-004",

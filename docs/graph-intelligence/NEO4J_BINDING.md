@@ -82,6 +82,11 @@ from Graphiti's.
    group means the adapter is bound to a pre-ADR-084 projection);
 6. GDS version and the required stream procedures.
 
+The capability report (`memory.graph.capabilities`) also carries, as separate
+dimensions: `gds_catalog_active` (graph-intelligence GDS catalog graphs present
+now; a value that stays above 0 means cleanup failures), `projection_lag_events`
+(undelivered outbox events) and `rehydration_success_rate` (ADR-092).
+
 Record the fingerprint from the live-qualified database and set
 `L9_MEMORY_GRAPH_SCHEMA_FINGERPRINT`; readiness then fails closed if required
 constructs disappear or the adapter is pointed at a different database.

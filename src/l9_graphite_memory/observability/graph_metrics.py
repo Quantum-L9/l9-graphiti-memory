@@ -29,6 +29,12 @@ _LOG = get_logger("l9_graphite_memory.graph")
 
 Labels = tuple[tuple[str, str], ...]
 
+#: Unsupported-observation reasons where canonical rehydration never ran; they
+#: are counted as drops but do not lower the rehydration success rate.
+_NOT_ATTEMPTED = frozenset(
+    {"graph_backend_unavailable", "runtime_budget_exhausted", "provider_error"}
+)
+
 
 def _labels(**values: str) -> Labels:
     return tuple(sorted(values.items()))
@@ -107,8 +113,11 @@ class GraphMetrics:
         scope_digest: str,
         algorithm: str | None,
         result_digest: str,
+        admitted_count: int = 0,
     ) -> None:
         failures = list(failure_classes)
+        if admitted_count:
+            self.inc("memory_graph_rehydration_admitted_total", amount=float(admitted_count))
         self.inc("memory_graph_query_total", operation=operation, status=status)
         self.observe("memory_graph_query_latency_ms", latency_ms, operation=operation)
         self.observe("memory_graph_result_nodes", node_count, operation=operation)
@@ -138,6 +147,20 @@ class GraphMetrics:
                 "failure_classes": failures,
             },
         )
+
+    def rehydration_success_rate(self) -> float | None:
+        """Admitted / (admitted + dropped) candidates since the process started."""
+
+        with self._lock:
+            admitted = self._counters.get(("memory_graph_rehydration_admitted_total", ()), 0.0)
+            dropped = sum(
+                value
+                for (name, labels), value in self._counters.items()
+                if name == "memory_graph_rehydration_drop_total"
+                and dict(labels).get("reason") not in _NOT_ATTEMPTED
+            )
+        total = admitted + dropped
+        return admitted / total if total else None
 
     def record_scope_denied(self, operation: str) -> None:
         self.inc("memory_graph_scope_denied_total")

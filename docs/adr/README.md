@@ -116,6 +116,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-089 | [Graph Intelligence Public Surfaces and Observability](ADR-089-graph-intelligence-public-surfaces-and-observability.md) | Accepted |
 | ADR-090 | [Graphiti Episode Identity and Live Qualification](ADR-090-graphiti-episode-identity-and-live-qualification.md) | Accepted |
 | ADR-091 | [Graph Campaign Audit Remediation](ADR-091-graph-campaign-audit-remediation.md) | Accepted |
+| ADR-092 | [Graph Intelligence V1 Closure](ADR-092-graph-intelligence-v1-closure.md) | Accepted |
 
 ## Validation
 
@@ -125,4 +126,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-091 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-092 ledger and all mandatory sections.

@@ -24,7 +24,7 @@ from l9_graphite_memory.graph import (
     graph_group_id,
     graph_scope_digest,
 )
-from l9_graphite_memory.ports import ProjectionHit
+from l9_graphite_memory.ports import ProjectionEntityHit, ProjectionHit
 from l9_graphite_memory.transport import MemoryTransport
 
 _RECORD_ID_PATTERN = re.compile(r'"record_id"\s*:\s*"([0-9a-fA-F-]{36})"')
@@ -368,11 +368,7 @@ class GraphitiProjection:
                         for episode in item["episodes"]
                         if str(episode) in episode_records
                     )
-                raw_score = item.get("relevance", item.get("score", 0.0))
-                try:
-                    score = max(0.0, min(float(raw_score), 1.0))
-                except (TypeError, ValueError):
-                    score = 0.0
+                score = self._score(item)
                 for record_id in dict.fromkeys(record_ids):
                     hit = ProjectionHit(
                         record_id=record_id,
@@ -392,6 +388,72 @@ class GraphitiProjection:
                     if existing is None or hit.score > existing.score:
                         hits[record_id] = hit
         return sorted(hits.values(), key=lambda item: item.score, reverse=True)[:limit]
+
+    @staticmethod
+    def _score(item: dict[str, Any]) -> float:
+        raw_score = item.get("relevance", item.get("score", 0.0))
+        try:
+            return max(0.0, min(float(raw_score), 1.0))
+        except (TypeError, ValueError):
+            return 0.0
+
+    def search_entities(
+        self,
+        query: str,
+        namespaces: tuple[str, ...],
+        *,
+        limit: int,
+        tenant_id: str,
+    ) -> list[ProjectionEntityHit]:
+        """Graphiti entity-node search, keeping hits without a record id.
+
+        ``search_nodes`` answers with entities (uuid, name, summary) that name
+        no episode, so ``search_strategy`` has to drop them. This keeps them
+        for ``graph.search``, which binds their canonical support through the
+        graph backend (ADR-092). Group scoping is identical: one
+        GraphScopeKey-derived group per authorized namespace (ADR-084).
+        """
+
+        if "graph-search" not in self.capabilities:
+            raise ProjectionError("unsupported projection strategy: graph-search")
+        tools = set(self.transport.list_tools())
+        if "search_nodes" not in tools:
+            raise ProjectionError(f"transport {self.transport.name} does not expose search_nodes")
+        official_dialect = "search_memory_facts" in tools or "add_memory" in tools
+        hits: dict[tuple[str, str], ProjectionEntityHit] = {}
+        per_namespace = max(1, limit // max(1, len(namespaces)))
+        for namespace in namespaces:
+            group_id = graph_group_id(tenant_id, namespace)
+            arguments: dict[str, Any] = {"query": query, "max_nodes": per_namespace}
+            arguments.update(
+                {"group_ids": [group_id]} if official_dialect else {"group_id": group_id}
+            )
+            result = self.transport.call_tool("search_nodes", arguments)
+            for rank, item in enumerate(self._result_items(result, "graph-search")):
+                _keep_best(hits, self._entity_hit(item, namespace, rank))
+        # Graphiti's node search carries no score; its order is the ranking.
+        return sorted(hits.values(), key=lambda item: (-item.score, item.rank))[:limit]
+
+    def _entity_hit(
+        self, item: dict[str, Any], namespace: str, rank: int
+    ) -> ProjectionEntityHit | None:
+        """One search_nodes item as a hit; None when it names neither a record nor a uuid."""
+
+        record_id = self._extract_record_id(item)
+        entity_uuid: UUID | None = None
+        if record_id is None:
+            try:
+                entity_uuid = UUID(str(item.get("uuid")))
+            except ValueError:
+                return None
+        return ProjectionEntityHit(
+            entity_uuid=entity_uuid,
+            record_id=record_id,
+            score=self._score(item),
+            rank=rank,
+            name=str(item.get("name") or "")[:300],
+            namespace=namespace,
+        )
 
     def search(
         self,
@@ -416,3 +478,16 @@ class GraphitiProjection:
         if failures and not combined:
             raise ProjectionError("; ".join(failures))
         return sorted(combined.values(), key=lambda item: item.score, reverse=True)[:limit]
+
+
+def _keep_best(
+    hits: dict[tuple[str, str], ProjectionEntityHit], hit: ProjectionEntityHit | None
+) -> None:
+    """Keep one hit per record (or per entity when it names no record), best score first."""
+
+    if hit is None:
+        return
+    key = (str(hit.record_id), "record") if hit.record_id else (str(hit.entity_uuid), "")
+    existing = hits.get(key)
+    if existing is None or hit.score > existing.score:
+        hits[key] = hit

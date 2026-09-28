@@ -32,7 +32,7 @@ from l9_graphite_memory.graph.contracts import (
     GraphReceiptStatus,
 )
 from l9_graphite_memory.graph.service import GraphIntelligenceService, GraphServiceConfig
-from l9_graphite_memory.ports import ProjectionHit
+from l9_graphite_memory.ports import ProjectionEntityHit, ProjectionHit
 from tests.graph_fakes import FakeGraphPort, FakeNeo4jDriver, seeded_memory
 
 GROUP = graph_group_id("tenant-a", "shared")
@@ -233,6 +233,15 @@ class Projection:
         self.clock.advance(self.step)
         return [hit for namespace in namespaces for hit in self.hits.get(namespace, [])]
 
+    def search_entities(self, query, namespaces, *, limit, tenant_id):
+        hits = self.search_strategy(
+            "graph-search", query, namespaces, limit=limit, tenant_id=tenant_id
+        )
+        return [
+            ProjectionEntityHit(record_id=hit.record_id, score=hit.score, namespace=namespaces[0])
+            for hit in hits
+        ]
+
 
 def _search(**overrides) -> GraphIntelligenceRequest:
     values = {"operation": GraphOperation.SEARCH, "anchor": GraphAnchor(query="falcon")}
@@ -302,6 +311,10 @@ def test_a_stalled_provider_search_is_abandoned_at_the_deadline() -> None:
 
     class StalledProjection(Projection):
         def search_strategy(self, strategy, query, namespaces, *, limit, tenant_id):
+            release.wait(5)
+            return []
+
+        def search_entities(self, query, namespaces, *, limit, tenant_id):
             release.wait(5)
             return []
 
@@ -457,6 +470,10 @@ def test_stalled_projection_transport_is_bounded_on_every_search_strategy() -> N
 
     class StalledProjection(Projection):
         def search_strategy(self, strategy, query, namespaces, *, limit, tenant_id):
+            release.wait(5)
+            return []
+
+        def search_entities(self, query, namespaces, *, limit, tenant_id):
             release.wait(5)
             return []
 

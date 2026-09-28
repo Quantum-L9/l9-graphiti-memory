@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Protocol
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -100,6 +101,10 @@ class GraphBackendHealth(BaseModel):
     analytics_available: bool = False
     analytics_version: str | None = None
     missing_procedures: tuple[str, ...] = ()
+    #: Graph-intelligence GDS catalog graphs present right now (None when GDS
+    #: is unavailable). Each request drops its own, so a non-zero value that
+    #: persists means cleanup failures or a crash (GI-018).
+    gds_catalog_active: int | None = None
     scope_scheme: str | None = None
     scope_scheme_conformant: bool | None = None
     supported_capabilities: tuple[GraphCapability, ...] = ()
@@ -143,6 +148,17 @@ class GraphIntelligencePort(Protocol):
     def link_prediction(self, request: GraphProviderRequest) -> GraphProviderResult: ...
 
     def structural_embedding(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+
+    def describe_entities(
+        self, request: GraphProviderRequest, entity_uuids: tuple[UUID, ...]
+    ) -> GraphProviderResult:
+        """The in-scope nodes among ``entity_uuids``, with supporting episodes.
+
+        Binds canonical support for entity hits that ``graph.search`` got from
+        the projection (ADR-092). Entities outside ``request.group_ids`` are
+        not returned. Served wherever the baseline structural capabilities are.
+        """
+        ...
 
 
 #: Port method serving each structural operation.
@@ -195,4 +211,9 @@ class UnservedOperations:
         return self._unserved(request)
 
     def structural_embedding(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._unserved(request)
+
+    def describe_entities(
+        self, request: GraphProviderRequest, entity_uuids: tuple[UUID, ...]
+    ) -> GraphProviderResult:
         return self._unserved(request)

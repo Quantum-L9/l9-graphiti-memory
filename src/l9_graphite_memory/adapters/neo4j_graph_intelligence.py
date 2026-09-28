@@ -217,6 +217,19 @@ def _within_request_budget(
     return bounded
 
 
+def _health_problems(
+    constructs_missing: bool, fingerprint_differs: bool, scheme_nonconformant: bool
+) -> list[str]:
+    problems: list[str] = []
+    if constructs_missing:
+        problems.append("required Graphiti constructs missing")
+    if fingerprint_differs:
+        problems.append("schema fingerprint differs from the qualified binding")
+    if scheme_nonconformant:
+        problems.append("projection groups do not use the GraphScopeKey v1 scheme")
+    return problems
+
+
 def schema_fingerprint(
     labels: tuple[str, ...] | list[str],
     relationship_types: tuple[str, ...] | list[str],
@@ -365,15 +378,44 @@ class Neo4jGraphIntelligence(UnservedOperations):
         missing = tuple(name for name in REQUIRED_GDS_PROCEDURES if name not in names)
         return (str(version) if version is not None else None), missing
 
+    def _supported_capabilities(
+        self, baseline_ok: bool, analytics_available: bool
+    ) -> list[GraphCapability]:
+        if not baseline_ok:
+            return []
+        supported = list(BASELINE_CAPABILITIES)
+        if analytics_available:
+            supported.extend(
+                capability
+                for capability in ANALYTICS_CAPABILITIES
+                if capability is not GraphCapability.LINK_PREDICTION
+                or self.config.link_prediction_enabled
+            )
+        return supported
+
+    def _catalog_active(self) -> int | None:
+        try:
+            rows = self._read("gds_catalog_list_v1", {"prefix": GRAPH_NAME_PREFIX})
+        except Exception:  # noqa: BLE001 - an unreadable catalog is reported as unknown
+            return None
+        return len(rows[0].get("names") or ()) if rows else 0
+
+    def _probe_schema(
+        self,
+    ) -> tuple[list[dict[str, Any]], list[str], list[str], list[str], list[dict[str, Any]]]:
+        """Components, labels, relationship types, property keys and a group sample."""
+
+        return (
+            self._read("dbms_components_v1"),
+            list(self._single("schema_labels_v1", "labels") or ()),
+            list(self._single("schema_relationship_types_v1", "types") or ()),
+            list(self._single("schema_property_keys_v1", "keys") or ()),
+            self._read("scope_group_sample_v1", {"limit": self.config.scope_group_sample_size}),
+        )
+
     def health(self) -> GraphBackendHealth:
         try:
-            components = self._read("dbms_components_v1")
-            labels = list(self._single("schema_labels_v1", "labels") or ())
-            relationship_types = list(self._single("schema_relationship_types_v1", "types") or ())
-            property_keys = list(self._single("schema_property_keys_v1", "keys") or ())
-            sample = self._read(
-                "scope_group_sample_v1", {"limit": self.config.scope_group_sample_size}
-            )
+            components, labels, relationship_types, property_keys, sample = self._probe_schema()
         except Exception as exc:  # noqa: BLE001 - unreachable is a reported state
             return GraphBackendHealth(
                 name=self.name,
@@ -385,10 +427,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
                 error_class=type(exc).__name__,
                 detail="graph backend unreachable or probe failed",
             )
-        kernel = next(
-            (row for row in components if row.get("name") == "Neo4j Kernel"),
-            components[0] if components else {},
-        )
+        kernel = _kernel_component(components)
         versions = kernel.get("versions") or []
         fingerprint = schema_fingerprint(labels, relationship_types, property_keys)
         missing_labels = tuple(label for label in REQUIRED_LABELS if label not in labels)
@@ -401,29 +440,20 @@ class Neo4jGraphIntelligence(UnservedOperations):
             and not missing_types
             and (expected is None or expected == fingerprint)
         )
-        groups = [str(row.get("group_id")) for row in sample if row.get("group_id") is not None]
-        conformant = all(is_graph_group_id(group) for group in groups) if groups else None
+        conformant = _scope_conformance(sample)
         analytics_version, missing_procedures = self._probe_analytics()
         analytics_available = analytics_version is not None and not missing_procedures
+        catalog_active = self._catalog_active() if analytics_available else None
 
-        supported: list[GraphCapability] = []
-        if schema_compatible and conformant is not False:
-            supported.extend(BASELINE_CAPABILITIES)
-            if analytics_available:
-                supported.extend(
-                    capability
-                    for capability in ANALYTICS_CAPABILITIES
-                    if capability is not GraphCapability.LINK_PREDICTION
-                    or self.config.link_prediction_enabled
-                )
+        supported = self._supported_capabilities(
+            schema_compatible and conformant is not False, analytics_available
+        )
         served = tuple(c for c in supported if c in self.implemented_capabilities)
-        problems: list[str] = []
-        if missing_labels or missing_types:
-            problems.append("required Graphiti constructs missing")
-        if expected is not None and expected != fingerprint:
-            problems.append("schema fingerprint differs from the qualified binding")
-        if conformant is False:
-            problems.append("projection groups do not use the GraphScopeKey v1 scheme")
+        problems = _health_problems(
+            bool(missing_labels or missing_types),
+            expected is not None and expected != fingerprint,
+            conformant is False,
+        )
         return GraphBackendHealth(
             name=self.name,
             enabled=True,
@@ -440,6 +470,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
             analytics_available=analytics_available,
             analytics_version=analytics_version,
             missing_procedures=missing_procedures,
+            gds_catalog_active=catalog_active,
             scope_scheme=GRAPH_SCOPE_SCHEME,
             scope_scheme_conformant=conformant,
             supported_capabilities=tuple(supported),
@@ -711,6 +742,23 @@ class Neo4jGraphIntelligence(UnservedOperations):
                 supporting_episode_ids=support.get(uuid, ()),
             )
             for uuid, node in sorted(found.items())
+        )
+
+    def describe_entities(
+        self, request: GraphProviderRequest, entity_uuids: tuple[UUID, ...]
+    ) -> GraphProviderResult:
+        token = None
+        if _REQUEST_DEADLINE.get() is None:
+            token = _REQUEST_DEADLINE.set(self._monotonic() + request.limits.max_runtime_ms / 1_000)
+        try:
+            nodes = self._nodes_for(request, sorted({str(uuid) for uuid in entity_uuids}))
+        finally:
+            if token is not None:
+                _REQUEST_DEADLINE.reset(token)
+        return GraphProviderResult(
+            operation=request.operation,
+            nodes=nodes,
+            provider_metadata={"backend": self.name, "database": self.config.database},
         )
 
     def _analytic_result(
@@ -994,3 +1042,19 @@ _LINK_SCORES: dict[str, Callable[[list[int]], float]] = {
     "common-neighbors": lambda degrees: float(len(degrees)),
     "resource-allocation": _resource_allocation,
 }
+
+
+def _kernel_component(components: list[dict[str, Any]]) -> dict[str, Any]:
+    """The Neo4j Kernel row of ``dbms.components()``, else the first row."""
+
+    return next(
+        (row for row in components if row.get("name") == "Neo4j Kernel"),
+        components[0] if components else {},
+    )
+
+
+def _scope_conformance(sample: list[dict[str, Any]]) -> bool | None:
+    """Whether sampled group ids follow GraphScopeKey v1; None when none were sampled."""
+
+    groups = [str(row.get("group_id")) for row in sample if row.get("group_id") is not None]
+    return all(is_graph_group_id(group) for group in groups) if groups else None

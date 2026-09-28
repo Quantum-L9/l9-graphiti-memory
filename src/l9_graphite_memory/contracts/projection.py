@@ -145,6 +145,47 @@ class LegacyProjectionReleaseReceipt(BaseModel):
     reason: str = Field(min_length=1, max_length=2_000)
     actor: str = Field(min_length=1, max_length=400)
     created_at: datetime = Field(default_factory=utc_now)
+    #: The graph cutover whose closed rollback window authorized this release
+    #: (ADR-092). None only on receipts written before cutover receipts existed.
+    cutover_receipt_id: UUID | None = None
+
+
+class GraphCutoverReceipt(BaseModel):
+    """Operator record that a namespace's projection cut over to a new binding.
+
+    GI-090: the cutover is recorded before the previous projection store may
+    be destroyed, and it fixes the rollback window during which that store is
+    kept. ``release-legacy-projection`` refuses to apply until a cutover
+    receipt exists for the namespace and its window has ended (ADR-092).
+    Bindings are opaque references to deployments (for example a database
+    name or change-managed URI), never credentials.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    receipt_id: UUID = Field(default_factory=uuid4)
+    #: Receipts are scoped like the records they govern: tenant and namespace.
+    tenant_id: str = Field(min_length=1, max_length=255)
+    namespace: str = Field(min_length=1, max_length=255)
+    projection_name: str = Field(min_length=1, max_length=128)
+    applied: bool = False
+    previous_binding: str = Field(min_length=1, max_length=400)
+    new_binding: str = Field(min_length=1, max_length=400)
+    change_reference: str = Field(min_length=1, max_length=400)
+    cut_over_at: datetime
+    rollback_window_ends_at: datetime
+    scope_scheme: str | None = None
+    active_record_count: int = Field(ge=0)
+    projected_record_count: int = Field(ge=0)
+    unprojected_record_ids: tuple[UUID, ...] = ()
+    outbox_backlog: int = Field(ge=0)
+    schema_fingerprint: str | None = Field(default=None, max_length=128)
+    graph_capabilities: tuple[str, ...] = ()
+    ready: bool
+    authorization: AuthorizationReceipt
+    reason: str = Field(min_length=1, max_length=2_000)
+    actor: str = Field(min_length=1, max_length=400)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class ProjectionRebuildReceipt(BaseModel):

@@ -108,6 +108,7 @@ def world():
         },
         "records": {"a": a_ep, "b": b_ep},
         "graph": graph,
+        "memory": memory,
     }
     adapter.close()
     graph.cleanup()
@@ -288,3 +289,51 @@ def test_unknown_anchor_id_is_empty_complete_not_failure(world) -> None:
         limits=GraphLimits(max_depth=1),
     )
     assert receipt.status is GraphReceiptStatus.COMPLETE and receipt.results == ()
+
+
+class _EntityProjection:
+    """Stands in for Graphiti's search_nodes: returns entity hits only."""
+
+    name = "graphiti"
+    capabilities = ("graph-search",)
+
+    def __init__(self, hits) -> None:
+        self.hits = hits
+
+    def search_entities(self, query, namespaces, *, limit, tenant_id):
+        return list(self.hits)
+
+
+def test_graph_search_entity_hits_bind_support_on_live_neo4j(world) -> None:
+    """ADR-092: entity hits bind through MENTIONS; foreign and orphan entities do not."""
+
+    from l9_graphite_memory.ports import ProjectionEntityHit
+
+    ns, ids = world["ns"], world["ids"]
+    projection = _EntityProjection(
+        [
+            ProjectionEntityHit(entity_uuid=ids["falcon"], score=0.9, namespace=ns),
+            ProjectionEntityHit(entity_uuid=ids["orphan"], score=0.8, namespace=ns),
+            # Another tenant's entity, as a hostile provider might return it.
+            ProjectionEntityHit(entity_uuid=ids["bravo"], score=0.7, namespace=ns),
+        ]
+    )
+    base = world["service"]
+    service = GraphIntelligenceService(
+        base.store, base.port, namespace_policy=base.namespace_policy, projection=projection
+    )
+    receipt = service.execute(
+        world["principal"]("tenant-a"),
+        GraphIntelligenceRequest(
+            operation=GraphOperation.SEARCH,
+            namespaces=(ns,),
+            anchor=GraphAnchor(query="falcon"),
+        ),
+    )
+    assert receipt.status is GraphReceiptStatus.COMPLETE
+    assert [(item["kind"], item["name"]) for item in receipt.results] == [("entity_hit", "Falcon")]
+    assert receipt.supporting_record_ids == (world["records"]["a"],)
+    reasons = {u["entity_uuid"]: u["reason"] for u in receipt.unsupported_projection_observations}
+    assert reasons[str(ids["orphan"])] == "no_canonical_support"
+    assert reasons[str(ids["bravo"])] == "entity_not_found"
+    assert str(world["records"]["b"]) not in receipt.model_dump_json()

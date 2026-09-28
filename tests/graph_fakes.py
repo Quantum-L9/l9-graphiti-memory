@@ -192,6 +192,16 @@ class FakeGraphPort:
     traverse = path = neighborhood = structural_similarity = _serve
     community = centrality = link_prediction = structural_embedding = _serve
 
+    def describe_entities(self, request, entity_uuids):
+        self.requests.append(request)
+        self.described = tuple(entity_uuids)
+        outcome = self.results.get("describe_entities")
+        if outcome is None:
+            raise AssertionError("no scripted result for describe_entities")
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome(request, entity_uuids) if callable(outcome) else outcome
+
 
 def seeded_memory():
     """MemoryService with active records in two tenants that share a namespace."""
