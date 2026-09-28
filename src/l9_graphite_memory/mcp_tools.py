@@ -51,6 +51,8 @@ from l9_graphite_memory.curation.procedural import (
 )
 from l9_graphite_memory.errors import AuthorizationError
 from l9_graphite_memory.extraction import SourceDistiller
+from l9_graphite_memory.graph.contracts import GraphIntelligenceRequest, GraphOperation
+from l9_graphite_memory.graph.service import GraphIntelligenceService, graph_service_for
 from l9_graphite_memory.ingestion import RepositoryBootstrapper
 from l9_graphite_memory.services import GeneratedDataService, MemoryService
 
@@ -126,6 +128,100 @@ def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
 #: The agent lane's canonical tool name, referenced by the inventory, the
 #: handler map, the alias table and the write-request provenance.
 WRITE_AGENT_TOOL = "memory.write_agent"
+
+
+def _graph_anchor_schema() -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "maxProperties": 1,
+        "properties": {
+            "record_id": {"type": "string", "format": "uuid"},
+            "entity_uuid": {"type": "string", "format": "uuid"},
+            "query": {"type": "string", "minLength": 1, "maxLength": 1000},
+        },
+    }
+
+
+def _graph_request_schema() -> dict[str, Any]:
+    """Tool input mirroring ``graph-intelligence-request.schema.json`` (ADR-086).
+
+    There is no tenant, group id, or query-text field: scope is derived from
+    the authenticated principal and statements are fixed server-side.
+    """
+
+    return _object_schema(
+        {
+            "namespaces": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": True,
+                "items": {"type": "string", "minLength": 1},
+            },
+            "anchor": _graph_anchor_schema(),
+            "target": _graph_anchor_schema(),
+            "relationship_types": {
+                "type": "array",
+                "uniqueItems": True,
+                "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$"},
+            },
+            "direction": {"enum": ["out", "in", "both"], "default": "both"},
+            "as_of": {"type": "string", "format": "date-time"},
+            "recorded_before": {"type": "string", "format": "date-time"},
+            "algorithm": {"type": "string", "maxLength": 100},
+            "required": {"type": "boolean", "default": False},
+            "profile_ref": {"type": "string", "maxLength": 300},
+            "limits": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "max_depth": {"type": "integer", "minimum": 0, "maximum": 6},
+                    "max_nodes": {"type": "integer", "minimum": 1, "maximum": 1000},
+                    "max_edges": {"type": "integer", "minimum": 1, "maximum": 5000},
+                    "max_paths": {"type": "integer", "minimum": 1, "maximum": 100},
+                    "max_runtime_ms": {"type": "integer", "minimum": 10, "maximum": 30000},
+                },
+            },
+        },
+        ["namespaces"],
+    )
+
+
+#: MCP tool -> graph-intelligence operation (ADR-089). Memory-owned names; a
+#: future Gate action registry maps to these, never to a provider.
+GRAPH_OPERATION_TOOLS: dict[str, GraphOperation] = {
+    f"memory.{operation.value}": operation for operation in GraphOperation
+}
+_GRAPH_TOOL_DESCRIPTIONS: dict[GraphOperation, str] = {
+    GraphOperation.SEARCH: "Graph candidate search through the Graphiti projection, rehydrated.",
+    GraphOperation.SEMANTIC_SEARCH: "Semantic fact search through the Graphiti projection, rehydrated.",
+    GraphOperation.TRAVERSE: "Bounded directed traversal from an anchor.",
+    GraphOperation.PATH: "Bounded shortest paths between two anchors.",
+    GraphOperation.NEIGHBORHOOD: "Bounded 0..N-hop neighborhood around an anchor.",
+    GraphOperation.STRUCTURAL_SIMILARITY: "Nodes in similar structural positions (FastRP cosine).",
+    GraphOperation.COMMUNITY: "Community assignment (Louvain or Leiden).",
+    GraphOperation.CENTRALITY: "Importance scores (PageRank, Degree, or Betweenness).",
+    GraphOperation.LINK_PREDICTION: "Advisory candidate links; alpha, feature-gated, never written.",
+    GraphOperation.STRUCTURAL_EMBEDDING: "Structural embedding digests (FastRP).",
+}
+GRAPH_TOOLS: tuple[dict[str, Any], ...] = (
+    *(
+        {
+            "name": name,
+            "description": (
+                f"{_GRAPH_TOOL_DESCRIPTIONS[operation]} Advisory projection intelligence "
+                "bound to canonical records; returns a typed receipt."
+            ),
+            "inputSchema": _graph_request_schema(),
+        }
+        for name, operation in GRAPH_OPERATION_TOOLS.items()
+    ),
+    {
+        "name": "memory.graph.capabilities",
+        "description": "Graph-intelligence capabilities, backend health, and algorithm gates.",
+        "inputSchema": _object_schema({}),
+    },
+)
 
 CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     {
@@ -424,6 +520,8 @@ _CANONICAL_HANDLER_METHODS: dict[str, str] = {
     "memory.record_reuse": "_record_reuse",
     "memory.invalidate_source": "_invalidate_source",
     "memory.generated_data_capabilities": "_generated_data_capabilities",
+    **{name: "_graph_operation" for name in GRAPH_OPERATION_TOOLS},
+    "memory.graph.capabilities": "_graph_capabilities",
 }
 
 
@@ -442,7 +540,7 @@ ALIASES: dict[str, str] = {
 
 
 def canonical_tool_names() -> tuple[str, ...]:
-    return tuple(item["name"] for item in CANONICAL_TOOLS)
+    return tuple(item["name"] for item in (*CANONICAL_TOOLS, *GRAPH_TOOLS))
 
 
 def canonical_handler_names() -> tuple[str, ...]:
@@ -463,7 +561,7 @@ def mcp_capabilities() -> ControlPlaneCapabilities:
 
 
 def tool_definitions() -> list[dict[str, Any]]:
-    definitions = list(CANONICAL_TOOLS)
+    definitions = [*CANONICAL_TOOLS, *GRAPH_TOOLS]
     by_name = {item["name"]: item for item in CANONICAL_TOOLS}
     for alias, canonical in ALIASES.items():
         base = by_name[canonical]
@@ -515,8 +613,21 @@ def _consent_from_payload(
 class MCPToolApplication:
     """Convert tool payloads to typed requests and call MemoryService."""
 
-    def __init__(self, service: MemoryService) -> None:
+    def __init__(
+        self, service: MemoryService, graph: GraphIntelligenceService | None = None
+    ) -> None:
         self.service = service
+        self._graph = graph
+
+    @property
+    def graph(self) -> GraphIntelligenceService:
+        """Graph service, composed lazily so construction touches no service state."""
+
+        if self._graph is None:
+            from l9_graphite_memory.adapters import NullGraphIntelligence
+
+            self._graph = graph_service_for(self.service, NullGraphIntelligence())
+        return self._graph
 
     def call(self, principal: MemoryPrincipal, name: str, arguments: dict[str, Any]) -> Any:
         canonical = ALIASES.get(name, name)
@@ -525,6 +636,8 @@ class MCPToolApplication:
             raise KeyError(f"unknown tool: {name}")
         handler = getattr(self, handler_name)
         try:
+            if handler_name == "_graph_operation":
+                return self._graph_operation(principal, arguments, tool=canonical)
             return handler(principal, arguments)
         except ValidationError as exc:
             raise ValueError(f"invalid {canonical} arguments: {exc}") from exc
@@ -771,6 +884,18 @@ class MCPToolApplication:
 
     def _capabilities(self, _principal: MemoryPrincipal, _args: dict[str, Any]) -> Any:
         return mcp_capabilities()
+
+    def _graph_operation(
+        self, principal: MemoryPrincipal, args: dict[str, Any], *, tool: str = ""
+    ) -> Any:
+        """One typed graph-intelligence operation; scope is never an argument."""
+
+        operation = GRAPH_OPERATION_TOOLS[tool]
+        request = GraphIntelligenceRequest.model_validate({**args, "operation": operation.value})
+        return self.graph.execute(principal, request)
+
+    def _graph_capabilities(self, _principal: MemoryPrincipal, _args: dict[str, Any]) -> Any:
+        return self.graph.capability_report()
 
     def _close(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         return self.service.close(

@@ -180,8 +180,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # live cases in integration/test_neo4j_gds_analytics.py that CI
         # skips without L9_MEMORY_TEST_NEO4J_URI. 1162 + 24 = 1186 collected,
         # CI skips 28 + 11 = 39, so 1186 - 39 = 1147.
-        "1147 tests pass",
-        r"1147 passed",
+        #
+        # Re-pinned 1147 -> 1160 for ADR-089 (graph-intelligence public
+        # surfaces and observability, campaign PR-F): 13 cases in
+        # test_graph_public_surfaces.py, none skipped in CI.
+        # 1186 + 13 = 1199 collected, 1199 - 39 = 1160.
+        "1160 tests pass",
+        r"1160 passed",
     ),
     CheckSpec(
         "V-002",
@@ -207,8 +212,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 85 -> 86 for ADR-086 (graph contracts and evidence).
         # Re-pinned 86 -> 87 for ADR-087 (bounded structural operations).
         # Re-pinned 87 -> 88 for ADR-088 (stream-only GDS analytics).
-        "88 ADRs complete and indexed",
-        r"PASS: 88 ADRs",
+        # Re-pinned 88 -> 89 for ADR-089 (graph public surfaces, metrics).
+        "89 ADRs complete and indexed",
+        r"PASS: 89 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -297,8 +303,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # graph/algorithm_policy.py, graph/evidence.py, graph/service.py.
         # Re-pinned 137 -> 138 for ADR-087: adapters/neo4j_graph_templates.py.
         # Re-pinned 138 -> 139 for ADR-088: adapters/neo4j_gds_templates.py.
-        "139 production files pass",
-        r"PASS: 139 production Python files",
+        # Re-pinned 139 -> 140 for ADR-089: observability/graph_metrics.py.
+        "140 production files pass",
+        r"PASS: 140 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -380,8 +387,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/installed_mcp.txt",
         # Re-pinned 30 -> 31 for ADR-082: memory.capabilities joins the
         # canonical tool inventory.
-        "33 tools and required surfaces load",
-        r"33 tools loaded",
+        # Re-pinned 33 -> 44 for ADR-089: ten memory.graph.<operation> tools
+        # plus memory.graph.capabilities join the canonical inventory.
+        "44 tools and required surfaces load",
+        r"44 tools loaded",
     ),
     CheckSpec(
         "V-021",
