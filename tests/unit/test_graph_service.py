@@ -257,3 +257,106 @@ def test_backend_health_is_cached_between_operations() -> None:
     graph.execute(principal("tenant-a"), _request())
     graph.execute(principal("tenant-a"), _request())
     assert port.health_calls == 1
+
+
+def test_caps_apply_even_when_the_provider_reports_truncation() -> None:
+    """Regression: provider truncation must not short-circuit the service caps."""
+
+    record_ref: list = []
+
+    def truncated_many(request):
+        return GraphProviderResult(
+            operation=request.operation,
+            truncated=True,
+            nodes=tuple(
+                GraphProviderNode(
+                    entity_uuid=uuid4(),
+                    group_id=request.group_ids[0],
+                    supporting_episode_ids=(record_ref[0],),
+                )
+                for _ in range(4)
+            ),
+        )
+
+    graph, _port, principal, record, _foreign, _ = _world(truncated_many)
+    record_ref.append(record)
+    receipt = graph.execute(principal("tenant-a"), _request(limits=GraphLimits(max_nodes=1)))
+    assert receipt.status is GraphReceiptStatus.PARTIAL
+    assert len(receipt.results) == 1
+
+
+class _SearchProjection:
+    name = "graphiti"
+    capabilities: tuple[str, ...] = ("graph-search", "semantic-search")
+
+    def __init__(self, hits=(), error: Exception | None = None) -> None:
+        self.hits = hits
+        self.error = error
+        self.calls: list[dict] = []
+
+    def search_strategy(self, strategy, query, namespaces, *, limit, tenant_id):
+        self.calls.append(
+            {"strategy": strategy, "query": query, "namespaces": namespaces, "tenant_id": tenant_id}
+        )
+        if self.error is not None:
+            raise self.error
+        return list(self.hits)
+
+
+def _search_world(projection):
+    service, store, principal, write = seeded_memory()
+    own = write("tenant-a", "falcon depends on osprey")
+    foreign = write("tenant-b", "bravo secret")
+    graph = GraphIntelligenceService(
+        store, FakeGraphPort({}), namespace_policy=service.namespace_policy, projection=projection
+    )
+    return graph, principal, own, foreign
+
+
+def test_graph_search_rehydrates_projection_hits_with_the_principal_tenant() -> None:
+    from l9_graphite_memory.ports import ProjectionHit
+
+    projection = _SearchProjection()
+    graph, principal, own, foreign = _search_world(projection)
+    projection.hits = (
+        ProjectionHit(record_id=own, score=0.9),
+        ProjectionHit(record_id=foreign, score=1.0),
+    )
+    receipt = graph.execute(
+        principal("tenant-a"),
+        _request(operation=GraphOperation.SEARCH, anchor=GraphAnchor(query="falcon")),
+    )
+    assert projection.calls[0]["tenant_id"] == "tenant-a"
+    assert projection.calls[0]["strategy"] == "graph-search"
+    assert receipt.status is GraphReceiptStatus.COMPLETE
+    assert [item["record_id"] for item in receipt.results] == [str(own)]
+    assert receipt.supporting_record_ids == (own,)
+    assert str(foreign) not in receipt.model_dump_json()
+    assert receipt.algorithm is not None and receipt.algorithm.id == "graphiti-graph-search"
+    assert GraphCapability.SEARCH in graph.capabilities()
+    jsonschema.validate(receipt.contract_payload(), RECEIPT_SCHEMA)
+
+
+def test_semantic_search_failure_and_missing_query_are_failed() -> None:
+    graph, principal, *_ = _search_world(_SearchProjection(error=RuntimeError("down")))
+    failed = graph.execute(
+        principal("tenant-a"),
+        _request(operation=GraphOperation.SEMANTIC_SEARCH, anchor=GraphAnchor(query="x")),
+    )
+    assert failed.status is GraphReceiptStatus.FAILED
+    assert failed.failures[0]["class"] == "provider_error:RuntimeError"
+    no_query = graph.execute(
+        principal("tenant-a"),
+        _request(operation=GraphOperation.SEMANTIC_SEARCH, anchor=GraphAnchor(entity_uuid=uuid4())),
+    )
+    assert no_query.failures[0]["class"] == "search_requires_query_anchor"
+
+
+def test_search_without_a_projection_strategy_is_unavailable() -> None:
+    graph, principal, *_ = _search_world(None)
+    receipt = graph.execute(
+        principal("tenant-a"),
+        _request(operation=GraphOperation.SEARCH, anchor=GraphAnchor(query="falcon")),
+    )
+    assert receipt.failures[0]["class"] == "capability_unavailable"
+    assert GraphCapability.SEARCH not in graph.capabilities()

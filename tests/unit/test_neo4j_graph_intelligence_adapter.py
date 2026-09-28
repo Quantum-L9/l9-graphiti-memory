@@ -60,8 +60,9 @@ def test_healthy_backend_reports_every_dimension_separately() -> None:
         *(c for c in ANALYTICS_CAPABILITIES if c is not GraphCapability.LINK_PREDICTION),
     )
     assert health.supported_capabilities == expected
-    # Nothing is served until an operation is implemented (PR-D/PR-E).
-    assert health.capabilities == ()
+    # Served = supported AND implemented: the baseline structural operations
+    # (ADR-087); analytics are supported by the backend but not yet served.
+    assert health.capabilities == BASELINE_CAPABILITIES
 
 
 def test_every_probe_runs_in_a_bounded_read_session_on_the_bound_database() -> None:

@@ -27,10 +27,20 @@ import json
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
+from datetime import datetime
 from types import ModuleType
 from typing import Any, Protocol, cast
+from uuid import UUID
 
-from l9_graphite_memory.errors import ConfigurationError
+from l9_graphite_memory.errors import ConfigurationError, GraphQueryPolicyViolation
+from l9_graphite_memory.graph.contracts import (
+    GraphAnchor,
+    GraphProviderEdge,
+    GraphProviderNode,
+    GraphProviderPath,
+    GraphProviderRequest,
+    GraphProviderResult,
+)
 from l9_graphite_memory.graph.ports import (
     ANALYTICS_CAPABILITIES,
     BASELINE_CAPABILITIES,
@@ -41,6 +51,12 @@ from l9_graphite_memory.graph.ports import (
 )
 from l9_graphite_memory.graph.scope import GRAPH_SCOPE_SCHEME, is_graph_group_id
 
+from .neo4j_graph_templates import (
+    STRUCTURAL_TEMPLATES,
+    expand_template_name,
+    lucene_escape,
+    shortest_path_template_name,
+)
 from .neo4j_query_policy import QueryRegistry, QueryTemplate, TemplateKind
 
 _neo4j_module: ModuleType | None
@@ -190,7 +206,15 @@ class Neo4jGraphIntelligence(UnservedOperations):
     name = "neo4j"
     #: Structural operations this adapter implements. Supported-by-backend and
     #: implemented are reported separately; only their intersection is served.
-    implemented_capabilities: tuple[GraphCapability, ...] = ()
+    implemented_capabilities: tuple[GraphCapability, ...] = (
+        GraphCapability.TRAVERSE,
+        GraphCapability.PATH,
+        GraphCapability.NEIGHBORHOOD,
+    )
+    #: Canonical support ids collected per entity or edge.
+    support_limit = 50
+    #: Entities a record or text anchor may resolve to.
+    anchor_resolution_limit = 10
 
     def __init__(
         self,
@@ -209,7 +233,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
         self.config = config
         self._driver_factory = driver_factory or self._default_driver_factory
         self._driver: _Driver | None = None
-        self.registry = QueryRegistry((*HEALTH_TEMPLATES, *templates))
+        self.registry = QueryRegistry((*HEALTH_TEMPLATES, *STRUCTURAL_TEMPLATES, *templates))
 
     def _default_driver_factory(self) -> _Driver:
         assert _neo4j_module is not None
@@ -359,7 +383,198 @@ class Neo4jGraphIntelligence(UnservedOperations):
             self._driver.close()
             self._driver = None
 
+    # -- structural operations (ADR-087) ---------------------------------
+
+    def _base_parameters(self, request: GraphProviderRequest) -> dict[str, Any]:
+        return {
+            "group_ids": list(request.group_ids),
+            "relationship_types": list(request.relationship_types),
+            "as_of": request.as_of,
+            "recorded_before": request.recorded_before,
+            "support_limit": self.support_limit,
+        }
+
+    def _resolve_anchor(
+        self, anchor: GraphAnchor | None, request: GraphProviderRequest
+    ) -> list[str]:
+        if anchor is None:
+            raise GraphQueryPolicyViolation(f"{request.operation.value} requires an anchor")
+        group_ids = list(request.group_ids)
+        if anchor.entity_uuid is not None:
+            return [str(anchor.entity_uuid)]
+        if anchor.record_id is not None:
+            rows = self._read(
+                "episode_entities_v1",
+                {
+                    "record_id": str(anchor.record_id),
+                    "group_ids": group_ids,
+                    "limit": self.anchor_resolution_limit,
+                },
+                timeout_ms=request.limits.max_runtime_ms,
+            )
+        else:
+            rows = self._read(
+                "entity_lookup_v1",
+                {
+                    "query": lucene_escape(anchor.query or ""),
+                    "group_ids": group_ids,
+                    "scan_limit": self.anchor_resolution_limit * 10,
+                    "limit": self.anchor_resolution_limit,
+                },
+                timeout_ms=request.limits.max_runtime_ms,
+            )
+        return [str(row["uuid"]) for row in rows if row.get("uuid")]
+
+    def _expand(self, request: GraphProviderRequest, direction: str) -> GraphProviderResult:
+        anchors = self._resolve_anchor(request.anchor, request)
+        parameters = {**self._base_parameters(request), "anchor_uuids": anchors}
+        limits = request.limits
+        budget = limits.max_edges + 1
+        rows = self._read("anchor_entities_v1", parameters, timeout_ms=limits.max_runtime_ms)
+        path_rows: list[dict[str, Any]] = []
+        if anchors and limits.max_depth > 0:
+            path_rows = self._read(
+                expand_template_name(direction, limits.max_depth),
+                {**parameters, "path_budget": budget},
+                timeout_ms=limits.max_runtime_ms,
+            )
+        return self._assemble(request, [*rows, *path_rows], len(path_rows) >= budget)
+
+    def traverse(self, request: GraphProviderRequest) -> GraphProviderResult:
+        return self._expand(request, request.direction)
+
+    def neighborhood(self, request: GraphProviderRequest) -> GraphProviderResult:
+        # A neighborhood is direction-agnostic by definition.
+        return self._expand(request, "both")
+
+    def path(self, request: GraphProviderRequest) -> GraphProviderResult:
+        if request.limits.max_depth < 1:
+            raise GraphQueryPolicyViolation("graph.path requires max_depth >= 1")
+        sources = self._resolve_anchor(request.anchor, request)
+        targets = self._resolve_anchor(request.target, request)
+        if not sources or not targets:
+            return GraphProviderResult(operation=request.operation)
+        budget = request.limits.max_paths + 1
+        rows = self._read(
+            shortest_path_template_name(request.direction, request.limits.max_depth),
+            {
+                **self._base_parameters(request),
+                "anchor_uuids": sources,
+                "target_uuids": targets,
+                "path_budget": budget,
+            },
+            timeout_ms=request.limits.max_runtime_ms,
+        )
+        return self._assemble(request, rows, len(rows) >= budget, as_paths=True)
+
+    def _assemble(
+        self,
+        request: GraphProviderRequest,
+        rows: list[dict[str, Any]],
+        truncated: bool,
+        *,
+        as_paths: bool = False,
+    ) -> GraphProviderResult:
+        nodes: dict[str, dict[str, Any]] = {}
+        edges: dict[str, dict[str, Any]] = {}
+        paths: list[GraphProviderPath] = []
+        for row in rows:
+            row_nodes = [n for n in row.get("nodes") or [] if n and n.get("uuid")]
+            row_edges = [e for e in row.get("edges") or [] if e and e.get("source")]
+            for node in row_nodes:
+                nodes.setdefault(str(node["uuid"]), node)
+            for edge in row_edges:
+                key = str(edge.get("uuid") or (edge["source"], edge["type"], edge["target"]))
+                edges.setdefault(key, edge)
+            if as_paths and row_nodes:
+                paths.append(
+                    GraphProviderPath(
+                        node_uuids=tuple(UUID(str(n["uuid"])) for n in row_nodes),
+                        edge_uuids=tuple(UUID(str(e["uuid"])) for e in row_edges if e.get("uuid")),
+                        length=len(row_edges),
+                    )
+                )
+        limits = request.limits
+        if len(nodes) > limits.max_nodes or len(edges) > limits.max_edges:
+            truncated = True
+        support = self._entity_support(request, list(nodes)) if nodes else {}
+        provider_nodes = tuple(
+            GraphProviderNode(
+                entity_uuid=UUID(uuid),
+                group_id=str(node.get("group_id")),
+                labels=tuple(sorted(str(label) for label in node.get("labels") or ())),
+                name=node.get("name"),
+                supporting_episode_ids=support.get(uuid, ()),
+            )
+            for uuid, node in sorted(nodes.items())
+        )
+        provider_edges = tuple(
+            GraphProviderEdge(
+                edge_uuid=UUID(str(edge["uuid"])) if edge.get("uuid") else None,
+                source_uuid=UUID(str(edge["source"])),
+                target_uuid=UUID(str(edge["target"])),
+                relationship_type=str(edge.get("type")),
+                group_id=str(edge.get("group_id")),
+                fact=edge.get("fact"),
+                valid_at=_as_datetime(edge.get("valid_at")),
+                invalid_at=_as_datetime(edge.get("invalid_at")),
+                supporting_episode_ids=_uuids(edge.get("episodes")),
+            )
+            for _, edge in sorted(edges.items())
+        )
+        return GraphProviderResult(
+            operation=request.operation,
+            nodes=provider_nodes,
+            edges=provider_edges,
+            paths=tuple(paths),
+            truncated=truncated,
+            provider_metadata={"backend": self.name, "database": self.config.database},
+        )
+
+    def _entity_support(
+        self, request: GraphProviderRequest, entity_uuids: list[str]
+    ) -> dict[str, tuple[UUID, ...]]:
+        rows = self._read(
+            "entity_supporting_episodes_v1",
+            {
+                "entity_uuids": entity_uuids,
+                "group_ids": list(request.group_ids),
+                "support_limit": self.support_limit,
+            },
+            timeout_ms=request.limits.max_runtime_ms,
+        )
+        return {str(row["uuid"]): _uuids(row.get("episodes")) for row in rows}
+
     def template_names(self) -> Iterator[str]:
         """Audit hook: every statement this adapter can execute, by name."""
 
         yield from self.registry.names()
+
+
+def _uuids(values: Any) -> tuple[UUID, ...]:
+    """Parse provider id lists; anything that is not a UUID is not evidence."""
+
+    if isinstance(values, str):
+        values = [part for part in values.split(",") if part]
+    parsed: list[UUID] = []
+    for value in values or ():
+        try:
+            parsed.append(UUID(str(value)))
+        except ValueError:
+            continue
+    return tuple(parsed)
+
+
+def _as_datetime(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    to_native = getattr(value, "to_native", None)
+    if callable(to_native):
+        native = to_native()
+        return native if isinstance(native, datetime) else None
+    try:
+        return datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
