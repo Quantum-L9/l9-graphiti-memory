@@ -322,3 +322,307 @@ def test_a_stalled_provider_search_is_abandoned_at_the_deadline() -> None:
     assert time.monotonic() - started < 1.0
     assert receipt.status is GraphReceiptStatus.FAILED
     assert receipt.failures[0]["class"] == "runtime_budget_exhausted"
+
+
+# -- audit F-03: the budget bounds the caller's wall-clock time -------------
+
+_BUDGET = GraphLimits(max_runtime_ms=150)
+_CEILING_S = 0.6  # budget plus scheduling slack; every stall below is 5 s
+
+
+def _timed(graph, principal, request):
+    import time
+
+    started = time.monotonic()
+    receipt = graph.execute(principal, request)
+    return receipt, time.monotonic() - started
+
+
+def _assert_bounded(receipt, elapsed) -> None:
+    assert elapsed < _CEILING_S, f"request took {elapsed:.2f}s against a 150 ms budget"
+    assert receipt.status is GraphReceiptStatus.FAILED
+    assert receipt.failures[0]["class"] == "runtime_budget_exceeded"
+    assert receipt.results == ()
+
+
+def test_slow_backend_health_is_bounded_by_the_request_budget() -> None:
+    import threading
+
+    release = threading.Event()
+
+    class SlowHealthPort(FakeGraphPort):
+        def health(self):
+            release.wait(5)
+            return super().health()
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        SlowHealthPort(
+            {GraphOperation.NEIGHBORHOOD: GraphProviderResult(operation="graph.neighborhood")}
+        ),
+        namespace_policy=service.namespace_policy,
+    )
+    try:
+        receipt, elapsed = _timed(graph, principal("tenant-a"), _request(limits=_BUDGET))
+    finally:
+        release.set()
+    _assert_bounded(receipt, elapsed)
+
+
+def test_slow_canonical_evidence_rehydration_is_bounded() -> None:
+    import threading
+
+    from l9_graphite_memory.graph.contracts import GraphProviderNode
+
+    release = threading.Event()
+    service, store, principal, write = seeded_memory()
+    record = write("tenant-a", "falcon")
+    real_get = store.get_record
+
+    def slow_get(record_id):
+        release.wait(5)
+        return real_get(record_id)
+
+    def result(request):
+        return GraphProviderResult(
+            operation=request.operation,
+            nodes=(
+                GraphProviderNode(
+                    entity_uuid=uuid4(),
+                    group_id=request.group_ids[0],
+                    name="falcon",
+                    supporting_episode_ids=(record,),
+                ),
+            ),
+        )
+
+    graph = GraphIntelligenceService(
+        store,
+        FakeGraphPort({GraphOperation.NEIGHBORHOOD: result}),
+        namespace_policy=service.namespace_policy,
+    )
+    store.get_record = slow_get  # evidence rehydration reads canonical records
+    try:
+        receipt, elapsed = _timed(graph, principal("tenant-a"), _request(limits=_BUDGET))
+    finally:
+        release.set()
+    _assert_bounded(receipt, elapsed)
+
+
+def test_slow_gds_catalog_cleanup_is_bounded_and_still_runs() -> None:
+    import threading
+
+    from tests.unit.test_neo4j_gds_operations import _analytics_responses
+
+    release, dropped = threading.Event(), threading.Event()
+    responses = _analytics_responses([{"uuid": str(uuid4()), "score": 1.0}])
+
+    def slow_drop(_parameters):
+        release.wait(5)
+        dropped.set()
+        return [{"graphName": "x"}]
+
+    responses["gds_drop_v1"] = slow_drop
+    driver = FakeNeo4jDriver(responses={**responses, **_health_rows()})
+    adapter = Neo4jGraphIntelligence(
+        Neo4jGraphIntelligenceConfig(uri="bolt://graph.invalid:7687"), driver_factory=lambda: driver
+    )
+    driver.bind(adapter)
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(store, adapter, namespace_policy=service.namespace_policy)
+    try:
+        receipt, elapsed = _timed(
+            graph,
+            principal("tenant-a"),
+            _request(operation=GraphOperation.CENTRALITY, anchor=None, limits=_BUDGET),
+        )
+    finally:
+        release.set()
+    _assert_bounded(receipt, elapsed)
+    # Cleanup is not abandoned: it completes after the caller was answered.
+    assert dropped.wait(5)
+
+
+def _health_rows():
+    from tests.graph_fakes import healthy_graphiti_responses
+
+    return healthy_graphiti_responses(group_ids=(GROUP,))
+
+
+def test_stalled_projection_transport_is_bounded_on_every_search_strategy() -> None:
+    import threading
+
+    release = threading.Event()
+
+    class StalledProjection(Projection):
+        def search_strategy(self, strategy, query, namespaces, *, limit, tenant_id):
+            release.wait(5)
+            return []
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        FakeGraphPort(),
+        namespace_policy=service.namespace_policy,
+        projection=StalledProjection(Clock(), {}),
+    )
+    try:
+        for operation in (GraphOperation.SEARCH, GraphOperation.SEMANTIC_SEARCH):
+            receipt, elapsed = _timed(
+                graph, principal("tenant-a"), _search(operation=operation, limits=_BUDGET)
+            )
+            assert elapsed < _CEILING_S
+            assert receipt.status is GraphReceiptStatus.FAILED
+    finally:
+        release.set()
+
+
+def test_graph_requests_beyond_pool_capacity_are_refused_immediately(monkeypatch) -> None:
+    """Codex review on #73: admission is bounded instead of queueing without limit."""
+
+    import threading
+
+    from l9_graphite_memory.graph import service as service_module
+
+    monkeypatch.setattr(
+        service_module, "_REQUEST_POOL", service_module._BoundedPool(1, 0, "test-graph")
+    )
+    release = threading.Event()
+
+    class HungPort(FakeGraphPort):
+        def health(self):
+            release.wait(5)
+            return super().health()
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        HungPort(
+            {GraphOperation.NEIGHBORHOOD: GraphProviderResult(operation="graph.neighborhood")}
+        ),
+        namespace_policy=service.namespace_policy,
+    )
+    try:
+        first, _ = _timed(graph, principal("tenant-a"), _request(limits=_BUDGET))
+        second, elapsed = _timed(graph, principal("tenant-a"), _request(limits=_BUDGET))
+    finally:
+        release.set()
+    assert first.failures[0]["class"] == "runtime_budget_exceeded"
+    assert second.failures == ({"class": "graph_capacity_exhausted", "stage": "admission"},)
+    assert elapsed < 0.1  # refused at admission, not after waiting out the budget
+
+
+def test_search_beyond_pool_capacity_is_refused(monkeypatch) -> None:
+    from l9_graphite_memory.graph import service as service_module
+
+    class FullPool:
+        def try_submit(self, *args, **kwargs):
+            return None
+
+    monkeypatch.setattr(service_module, "_SEARCH_POOL", FullPool())
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        FakeGraphPort(),
+        namespace_policy=service.namespace_policy,
+        projection=Projection(Clock(), {}),
+    )
+    receipt = graph.execute(principal("tenant-a"), _search())
+    assert receipt.status is GraphReceiptStatus.FAILED
+    assert receipt.failures[0]["class"] == "graph_capacity_exhausted"
+
+
+def test_bounded_pool_releases_slots_when_work_finishes() -> None:
+    from l9_graphite_memory.graph.service import _BoundedPool
+
+    pool = _BoundedPool(1, 0, "test-slots")
+    first = pool.try_submit(lambda: 1)
+    assert first is not None
+    assert first.result(1) == 1
+    second = pool.try_submit(lambda: 2)
+    assert second is not None
+    assert second.result(1) == 2
+
+
+# -- third audit F-02: authorization precedes admission and deadlines ------
+
+
+def _unauthorized(principal):
+    # Holds READ on "other" only; every request below targets "shared".
+    return principal("tenant-a", namespaces=("other",))
+
+
+def test_unauthorized_caller_is_refused_even_when_the_request_pool_is_full(monkeypatch) -> None:
+    from l9_graphite_memory.errors import AuthorizationError
+    from l9_graphite_memory.graph import service as service_module
+
+    class FullPool:
+        submitted = 0
+
+        def try_submit(self, *args, **kwargs):
+            FullPool.submitted += 1
+
+    monkeypatch.setattr(service_module, "_REQUEST_POOL", FullPool())
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store, FakeGraphPort(), namespace_policy=service.namespace_policy
+    )
+    intruder, request = _unauthorized(principal), _request(limits=_BUDGET)
+    with pytest.raises(AuthorizationError):
+        graph.execute(intruder, request)
+    assert FullPool.submitted == 0  # never reached admission; no receipt produced
+
+
+def test_unauthorized_caller_is_refused_before_queueing_or_deadline(monkeypatch) -> None:
+    import threading
+    import time
+
+    from l9_graphite_memory.errors import AuthorizationError
+    from l9_graphite_memory.graph import service as service_module
+
+    monkeypatch.setattr(
+        service_module, "_REQUEST_POOL", service_module._BoundedPool(1, 1, "test-authz")
+    )
+    release = threading.Event()
+
+    class HungPort(FakeGraphPort):
+        def health(self):
+            release.wait(5)
+            return super().health()
+
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store,
+        HungPort(
+            {GraphOperation.NEIGHBORHOOD: GraphProviderResult(operation="graph.neighborhood")}
+        ),
+        namespace_policy=service.namespace_policy,
+    )
+    try:
+        # Occupy the only worker so the next accepted request would queue and
+        # then hit its deadline.
+        occupied = graph.execute(principal("tenant-a"), _request(limits=_BUDGET))
+        assert occupied.failures[0]["class"] == "runtime_budget_exceeded"
+        intruder, request = _unauthorized(principal), _request(limits=_BUDGET)
+        started = time.monotonic()
+        with pytest.raises(AuthorizationError):
+            graph.execute(intruder, request)
+        assert time.monotonic() - started < 0.1  # decided before queueing or waiting
+    finally:
+        release.set()
+
+
+def test_scope_denial_is_counted_once_when_refused_before_admission(monkeypatch) -> None:
+    from l9_graphite_memory.errors import AuthorizationError
+    from l9_graphite_memory.observability.graph_metrics import GraphMetrics
+
+    metrics = GraphMetrics()
+    service, store, principal, _ = seeded_memory()
+    graph = GraphIntelligenceService(
+        store, FakeGraphPort(), namespace_policy=service.namespace_policy, metrics=metrics
+    )
+    intruder, request = _unauthorized(principal), _request()
+    with pytest.raises(AuthorizationError):
+        graph.execute(intruder, request)
+    assert metrics.value("memory_graph_scope_denied_total") == 1

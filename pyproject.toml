@@ -91,6 +91,10 @@ dev = [
   # The graph-intelligence adapter's unit tests and mypy run against the real
   # driver types; the package itself imports and runs without it (ADR-085).
   "neo4j>=5.26,<7",
+  # The active-store conformance suite runs against real Redis. An environment
+  # synced with only `--extra dev` (the governed session-deps hook) otherwise
+  # drops it, and every redis case errors on import.
+  "redis>=5,<7",
 ]
 
 [project.scripts]

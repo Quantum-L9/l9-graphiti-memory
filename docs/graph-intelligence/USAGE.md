@@ -60,14 +60,15 @@ support: Graphiti entities carry no episode reference. Prefer
 There is no tenant field: the tenant is the authenticated principal's. There
 is no query-text field for the database: statements are fixed server-side.
 
-`max_runtime_ms` is one budget for the whole request (ADR-091). Every provider
-statement draws on what is left of it, and an answer that arrives after it
-is refused (`runtime_budget_exceeded`). A multi-namespace search that runs
+`max_runtime_ms` is a hard ceiling on how long a call waits (ADR-091). An
+operation still running at the ceiling returns FAILED
+`runtime_budget_exceeded`. Every provider statement draws on what is left
+of the budget, and an answer that arrives after it is refused. A multi-namespace search that runs
 out of budget returns what completed in time as `PARTIAL`
 (`runtime_budget_exhausted`). Search operations refuse `target`,
 `relationship_types` and a non-default `direction`
 (`request_field_not_applicable`). A path is returned only when every
-relationship on it has canonical support.
+relationship on it has canonical support and connects that hop's two nodes.
 
 ## SDK
 

@@ -199,8 +199,17 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1195 -> 1201 for the #72 review fixes: 2 stale-link window
         # cases and 3 store-matrix release cases (memory, sqlite, postgres) in
         # test_legacy_projection_erasure.py, 1 stalled-search case.
-        "1201 tests pass",
-        r"1201 passed",
+        # Re-pinned 1201 -> 1217 for the second PR-H audit (PR-I): 6 store-matrix
+        # failure-injection/restart and stale-plan cases, 6 path-hop binding
+        # cases, 4 wall-clock request-ceiling cases.
+        # Re-pinned 1217 -> 1221 for the #73 review fixes: in-memory link-writer
+        # lock, request and search admission refusal, pool slot release.
+        # Re-pinned 1221 -> 1227 for the third audit: 3 store-matrix
+        # projection/deletion race cases, 3 authorization-ordering cases.
+        # Re-pinned 1227 -> 1231 for the legacy-carry race: 3 store-matrix
+        # release-between-read-and-write cases, 1 link-install contention case.
+        "1231 tests pass",
+        r"1231 passed",
     ),
     CheckSpec(
         "V-002",

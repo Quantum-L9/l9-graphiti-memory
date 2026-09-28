@@ -320,3 +320,309 @@ def test_release_is_atomic_persisted_and_capability_gated(tmp_path, backend) -> 
     assert persisted.completed_deletion_record_ids == (record,)
     assert deletion.receipt_id is not None
     store.close()
+
+
+def _open_store(backend: str, tmp_path, schema: str | None = None):
+    """Open (or reopen, to model a process restart) one durable store."""
+
+    if backend == "memory":
+        return InMemoryRecordStore()
+    if backend == "sqlite":
+        from l9_graphite_memory.adapters import SQLiteRecordStore
+
+        return SQLiteRecordStore(tmp_path / "release.sqlite3")
+    from tests.conftest import make_postgres_store
+
+    return make_postgres_store(schema)
+
+
+def _reopen(backend: str, tmp_path, store):
+    if backend == "memory":
+        return store  # no process boundary to cross; state is the object
+    schema = getattr(store, "test_schema", None)
+    store.close()
+    return _open_store(backend, tmp_path, schema)
+
+
+def _pending_deletion(migration: Migration) -> UUID:
+    record = migration.write("falcon plan")
+    migration.drain()
+    migration.cut_over(record)
+    migration.service.delete(
+        ADMIN,
+        DeletionRequest(record_id=record, reason="subject request", verification_reference="r"),
+    )
+    migration.drain()
+    assert migration.store.get_record(record).state is MemoryState.DELETION_PENDING
+    return record
+
+
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
+def test_injected_failure_mid_release_changes_nothing_and_survives_restart(
+    tmp_path, backend, monkeypatch
+) -> None:
+    """Audit F-01: all-or-nothing under failure, durable across restart, retry idempotent."""
+
+    migration = Migration(_open_store(backend, tmp_path))
+    record = _pending_deletion(migration)
+    before = migration.link(record)
+    hook = "complete_deletion" if backend == "memory" else "_complete_deletion_tx"
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("injected failure after receipt and link changes were staged")
+
+    monkeypatch.setattr(migration.store, hook, fail)
+    with pytest.raises(RuntimeError, match="injected failure"):
+        migration.service.release_legacy_projection_copies(
+            ADMIN, NAMESPACE, store_destruction_reference="CHG-7", apply=True
+        )
+    monkeypatch.undo()
+
+    migration.store = _reopen(backend, tmp_path, migration.store)
+    migration.service, migration.worker = migration._bind(migration.new)
+    assert migration.link(record) == before
+    assert migration.store.get_record(record).state is MemoryState.DELETION_PENDING
+    assert migration.store.list_legacy_projection_releases(NAMESPACE) == []
+
+    released = migration.service.release_legacy_projection_copies(
+        ADMIN, NAMESPACE, store_destruction_reference="CHG-7", apply=True
+    )
+    assert released.completed_deletion_record_ids == (record,)
+
+    migration.store = _reopen(backend, tmp_path, migration.store)
+    migration.service, migration.worker = migration._bind(migration.new)
+    assert migration.store.get_record(record).state is MemoryState.DELETED
+    assert migration.link(record) is None
+    (persisted,) = migration.store.list_legacy_projection_releases(NAMESPACE)
+    assert persisted.receipt_id == released.receipt_id
+
+    again = migration.service.release_legacy_projection_copies(
+        ADMIN, NAMESPACE, store_destruction_reference="CHG-7", apply=True
+    )
+    assert again.released_record_ids == ()
+    assert len(migration.store.list_legacy_projection_releases(NAMESPACE)) == 1
+    migration.store.close()
+
+
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
+def test_release_refuses_a_plan_overtaken_by_a_concurrent_erasure(tmp_path, backend) -> None:
+    """A link rewritten after the release read it must not be overwritten by the stale plan."""
+
+    migration = Migration(_open_store(backend, tmp_path))
+    record = migration.write("falcon plan")
+    migration.drain()
+    migration.cut_over(record)
+    store = migration.store
+    original = store.commit_legacy_projection_release
+
+    def erase_first(*args, **kwargs):
+        # The outbox worker erases the record between the release's read and
+        # its commit, turning the live link into a pending withdrawn one.
+        migration.service.delete(
+            ADMIN,
+            DeletionRequest(record_id=record, reason="subject request", verification_reference="r"),
+        )
+        migration.drain()
+        return original(*args, **kwargs)
+
+    store.commit_legacy_projection_release = erase_first  # type: ignore[method-assign]
+    with pytest.raises(StoreError, match="changed since the release was planned"):
+        migration.service.release_legacy_projection_copies(
+            ADMIN, NAMESPACE, store_destruction_reference="CHG-8", apply=True
+        )
+    store.commit_legacy_projection_release = original  # type: ignore[method-assign]
+    link = migration.link(record)
+    assert link_withdrawn(link)
+    assert legacy_copies(link)
+    assert store.get_record(record).state is MemoryState.DELETION_PENDING
+    assert store.list_legacy_projection_releases(NAMESPACE) == []
+
+    migration.service.release_legacy_projection_copies(
+        ADMIN, NAMESPACE, store_destruction_reference="CHG-8", apply=True
+    )
+    assert store.get_record(record).state is MemoryState.DELETED
+    store.close()
+
+
+def test_in_memory_link_writers_wait_for_an_in_flight_release(monkeypatch) -> None:
+    """Codex review on #73: link writes cannot interleave with the release's plan check."""
+
+    import threading
+
+    migration = Migration()
+    record = _pending_deletion(migration)
+    store = migration.store
+    inside, proceed = threading.Event(), threading.Event()
+    real_complete = store.complete_deletion
+
+    def paused_complete(*args, **kwargs):
+        inside.set()
+        proceed.wait(5)
+        return real_complete(*args, **kwargs)
+
+    before = migration.link(record)
+    late = before.model_copy(update={"locator": "written-during-release"})
+    monkeypatch.setattr(store, "complete_deletion", paused_complete)
+    release = threading.Thread(
+        target=migration.service.release_legacy_projection_copies,
+        args=(ADMIN, NAMESPACE),
+        kwargs={"store_destruction_reference": "CHG-9", "apply": True},
+    )
+    release.start()
+    assert inside.wait(5)
+    outcome: list[bool] = []
+    # The outbox worker's link write is lifecycle-conditional.
+    writer = threading.Thread(
+        target=lambda: outcome.append(
+            store.save_projection_link_if_active(late, expected_previous=before)
+        )
+    )
+    writer.start()
+    writer.join(0.2)
+    assert writer.is_alive(), "link write must block while the release holds the store"
+    proceed.set()
+    release.join(5)
+    writer.join(5)
+    assert store.get_record(record).state is MemoryState.DELETED
+    # Third audit F-01: once deletion is complete, a late link write is refused;
+    # a DELETED record never regains a projection link.
+    assert outcome == [False]
+    assert migration.link(record) is None
+
+
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
+def test_projection_losing_the_race_to_deletion_withdraws_its_fresh_copy(tmp_path, backend) -> None:
+    """Third audit F-01: rebuild/project, provider write, pause, delete, release, resume.
+
+    The projection worker has written the fresh provider copy and seen the
+    record ACTIVE; before it installs the link, the record is deleted, its
+    legacy copy erased-and-released, and deletion completes. On resuming, the
+    worker must withdraw the fresh copy and must not install a link.
+    """
+
+    migration = Migration(_open_store(backend, tmp_path))
+    record = migration.write("falcon plan")
+    migration.drain()
+    migration.switch_provider(record)
+    migration.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
+    store = migration.store
+    real_get = store.get_record
+    reads = {"count": 0}
+
+    def get_record_then_race(record_id):
+        current = real_get(record_id)
+        if record_id == record:
+            reads["count"] += 1
+            if reads["count"] == 2:
+                # The worker's post-provider-write lifecycle check has just
+                # read ACTIVE. Everything below lands before its link write.
+                store.get_record = real_get
+                racer = Migration(store)
+                racer.old, racer.new = migration.old, migration.new
+                racer.service, racer.worker = racer._bind(migration.new)
+                racer.service.delete(
+                    ADMIN,
+                    DeletionRequest(
+                        record_id=record, reason="subject request", verification_reference="r"
+                    ),
+                )
+                racer.drain()
+                racer.service.release_legacy_projection_copies(
+                    ADMIN, NAMESPACE, store_destruction_reference="CHG-10", apply=True
+                )
+                assert real_get(record).state is MemoryState.DELETED
+        return current
+
+    store.get_record = get_record_then_race
+    try:
+        migration.drain()
+    finally:
+        store.get_record = real_get
+    assert reads["count"] >= 2, "the race window was not reached"
+    assert store.get_record(record).state is MemoryState.DELETED
+    assert migration.link(record) is None
+    assert str(record) not in migration.new.episodes  # fresh copy withdrawn
+    store.close()
+
+
+@pytest.mark.parametrize("backend", STORE_BACKENDS)
+def test_release_between_link_read_and_write_is_not_undone(tmp_path, backend) -> None:
+    """A release that lands after the worker read the old link must stay released.
+
+    The worker derives the new link's legacy obligations from the link it
+    replaces. If the release clears them between that read and the write, the
+    write must not carry them back; otherwise a later deletion would wait for
+    a second release of a store that is already destroyed.
+    """
+
+    migration = Migration(_open_store(backend, tmp_path))
+    record = migration.write("falcon plan")
+    migration.drain()
+    migration.cut_over(record)
+    store = migration.store
+    # A retirement withdrew the new copy, keeping the obligation; the record is
+    # active again, so the rebuild re-projects it.
+    link = migration.link(record)
+    store.save_projection_link(
+        link.model_copy(update={"metadata": {**link.metadata, "withdrawn": True}})
+    )
+    migration.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
+
+    original = store.save_projection_link_if_active
+    released: list[object] = []
+
+    def release_first(*args, **kwargs):
+        if not released:
+            # The worker has read the old link; the operator releases now.
+            migration.old.episodes.clear()
+            released.append(
+                migration.service.release_legacy_projection_copies(
+                    ADMIN, NAMESPACE, store_destruction_reference="CHG-11", apply=True
+                )
+            )
+        return original(*args, **kwargs)
+
+    store.save_projection_link_if_active = release_first  # type: ignore[method-assign]
+    try:
+        migration.drain()
+    finally:
+        store.save_projection_link_if_active = original  # type: ignore[method-assign]
+    assert len(released) == 1
+    assert released[0].applied
+    assert store.get_record(record).state is MemoryState.ACTIVE
+    final = migration.link(record)
+    assert final is not None
+    assert not link_withdrawn(final)
+    assert legacy_copies(final) == []
+    assert str(record) in migration.new.episodes
+
+    # With no obligation left, a deletion completes without another release.
+    migration.service.delete(
+        ADMIN,
+        DeletionRequest(record_id=record, reason="subject request", verification_reference="r"),
+    )
+    migration.drain()
+    assert store.get_record(record).state is MemoryState.DELETED
+    store.close()
+
+
+def test_link_install_gives_up_under_persistent_contention(migration) -> None:
+    """Exhausted retries withdraw the fresh copy and leave the event to the outbox."""
+
+    from l9_graphite_memory.errors import ProjectionLinkConflict
+
+    record = migration.write("falcon plan")
+    store = migration.store
+    attempts = {"count": 0}
+
+    def always_conflict(*args, **kwargs):
+        attempts["count"] += 1
+        raise ProjectionLinkConflict("projection link changed since it was read")
+
+    store.save_projection_link_if_active = always_conflict  # type: ignore[method-assign]
+    stats = migration.worker.run_once()
+    assert attempts["count"] == OutboxWorker._LINK_INSTALL_ATTEMPTS
+    assert stats["delivered"] == 0
+    assert stats["retried"] == 1
+    assert migration.link(record) is None
+    assert str(record) not in migration.old.episodes

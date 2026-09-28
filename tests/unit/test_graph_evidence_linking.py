@@ -15,6 +15,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
+import pytest
+
 from l9_graphite_memory.graph import graph_group_id
 from l9_graphite_memory.graph.contracts import (
     GraphOperation,
@@ -234,3 +236,92 @@ def test_store_failure_is_a_rehydration_error_not_an_answer() -> None:
     )
     assert linked.rehydration_error == "ConnectionError"
     assert linked.results == [] and linked.supporting_record_ids == []
+
+
+def _path_world():
+    _service, store, _p, write = seeded_memory()
+    record = write("tenant-a", "fact")
+    return store, record
+
+
+def _link_path(store, nodes, edges, path, **scope):
+    return CanonicalEvidenceLinker(store).link(
+        GraphProviderResult(operation=GraphOperation.PATH, nodes=nodes, edges=edges, paths=(path,)),
+        _scope(**scope),
+    )
+
+
+def test_a_supported_edge_between_other_nodes_cannot_carry_a_hop() -> None:
+    """Audit F-02: path A->B citing a fully supported edge C->D is refused."""
+
+    store, record = _path_world()
+    a, b, c, d = (_node(record) for _ in range(4))
+    elsewhere = _edge(c, d, record)
+    path = GraphProviderPath(
+        node_uuids=(a.entity_uuid, b.entity_uuid), edge_uuids=(elsewhere.edge_uuid,), length=1
+    )
+    linked = _link_path(store, (a, b, c, d), (elsewhere,), path)
+    assert "path" not in {item["kind"] for item in linked.results}
+    (refused,) = [item for item in linked.unsupported if item["kind"] == "path"]
+    assert refused["reason"] == "relationship_does_not_connect_hop"
+
+
+def test_hop_orientation_follows_the_requested_direction() -> None:
+    store, record = _path_world()
+    a, b = _node(record), _node(record)
+    b_to_a = _edge(b, a, record)
+    path = GraphProviderPath(
+        node_uuids=(a.entity_uuid, b.entity_uuid), edge_uuids=(b_to_a.edge_uuid,), length=1
+    )
+    served = {
+        direction: "path"
+        in {
+            item["kind"]
+            for item in _link_path(store, (a, b), (b_to_a,), path, path_direction=direction).results
+        }
+        for direction in ("out", "in", "both")
+    }
+    assert served == {"out": False, "in": True, "both": True}
+
+
+@pytest.mark.parametrize(
+    "shape",
+    ["too_few_nodes", "repeated_node", "repeated_edge"],
+)
+def test_malformed_path_shapes_are_refused(shape) -> None:
+    store, record = _path_world()
+    a, b, c = _node(record), _node(record), _node(record)
+    ab, bc = _edge(a, b, record), _edge(b, c, record)
+    paths = {
+        "too_few_nodes": GraphProviderPath(
+            node_uuids=(a.entity_uuid, b.entity_uuid),
+            edge_uuids=(ab.edge_uuid, bc.edge_uuid),
+            length=2,
+        ),
+        "repeated_node": GraphProviderPath(
+            node_uuids=(a.entity_uuid, b.entity_uuid, a.entity_uuid),
+            edge_uuids=(ab.edge_uuid, ab.edge_uuid),
+            length=2,
+        ),
+        "repeated_edge": GraphProviderPath(
+            node_uuids=(a.entity_uuid, b.entity_uuid, c.entity_uuid),
+            edge_uuids=(ab.edge_uuid, ab.edge_uuid),
+            length=2,
+        ),
+    }
+    linked = _link_path(store, (a, b, c), (ab, bc), paths[shape])
+    assert "path" not in {item["kind"] for item in linked.results}
+    assert [i["reason"] for i in linked.unsupported if i["kind"] == "path"] == ["malformed_path"]
+
+
+def test_a_two_hop_path_with_matching_edges_is_served() -> None:
+    store, record = _path_world()
+    a, b, c = _node(record), _node(record), _node(record)
+    ab, bc = _edge(a, b, record), _edge(b, c, record)
+    path = GraphProviderPath(
+        node_uuids=(a.entity_uuid, b.entity_uuid, c.entity_uuid),
+        edge_uuids=(ab.edge_uuid, bc.edge_uuid),
+        length=2,
+    )
+    linked = _link_path(store, (a, b, c), (ab, bc), path, path_direction="out")
+    assert [item["kind"] for item in linked.results].count("path") == 1

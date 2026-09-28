@@ -44,6 +44,7 @@ from l9_graphite_memory.errors import (
     ConfigurationError,
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
+    ProjectionLinkConflict,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -975,26 +976,65 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
+                self._upsert_projection_link(tx, link)
+        except psycopg2.Error as exc:
+            raise StoreError(f"projection link persistence failed: {exc}") from exc
+
+    def _upsert_projection_link(self, tx: Any, link: ProjectionLink) -> None:
+        tx.execute(
+            """
+            INSERT INTO projection_links (
+                record_id, projection_name, namespace, locator, created_at, link_json
+            ) VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT(record_id, projection_name) DO UPDATE SET
+                namespace = excluded.namespace,
+                locator = excluded.locator,
+                created_at = excluded.created_at,
+                link_json = excluded.link_json
+            """,
+            (
+                str(link.record_id),
+                link.projection_name,
+                link.namespace,
+                link.locator,
+                link.created_at,
+                _json(link.model_dump(mode="json")),
+            ),
+        )
+
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                # Row lock: a concurrent deletion or lifecycle commit on this
+                # record serializes with the link write (ADR-091).
                 tx.execute(
-                    """
-                    INSERT INTO projection_links (
-                        record_id, projection_name, namespace, locator, created_at, link_json
-                    ) VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT(record_id, projection_name) DO UPDATE SET
-                        namespace = excluded.namespace,
-                        locator = excluded.locator,
-                        created_at = excluded.created_at,
-                        link_json = excluded.link_json
-                    """,
-                    (
-                        str(link.record_id),
-                        link.projection_name,
-                        link.namespace,
-                        link.locator,
-                        link.created_at,
-                        _json(link.model_dump(mode="json")),
-                    ),
+                    "SELECT record_json FROM memory_records WHERE record_id = %s FOR UPDATE",
+                    (str(link.record_id),),
                 )
+                row = tx.fetchone()
+                if row is None:
+                    return False
+                record = schema_registry.read_record(json.loads(str(row["record_json"])))
+                if record.state is not MemoryState.ACTIVE:
+                    return False
+                tx.execute(
+                    "SELECT link_json FROM projection_links "
+                    "WHERE record_id = %s AND projection_name = %s FOR UPDATE",
+                    (str(link.record_id), link.projection_name),
+                )
+                current_row = tx.fetchone()
+                current = (
+                    ProjectionLink.model_validate_json(str(current_row["link_json"]))
+                    if current_row
+                    else None
+                )
+                if current != expected_previous:
+                    raise ProjectionLinkConflict("projection link changed since it was read")
+                self._upsert_projection_link(tx, link)
+                return True
         except psycopg2.Error as exc:
             raise StoreError(f"projection link persistence failed: {exc}") from exc
 
@@ -1104,6 +1144,7 @@ class PostgresRecordStore:
         link_updates: tuple[ProjectionLink, ...] = (),
         link_removals: tuple[tuple[UUID, str], ...] = (),
         deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
     ) -> None:
         require_service_write_capability(capability)
         if not receipt.applied:
@@ -1111,6 +1152,18 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
+                for expected in expected_links:
+                    tx.execute(
+                        "SELECT link_json FROM projection_links "
+                        "WHERE record_id = %s AND projection_name = %s FOR UPDATE",
+                        (str(expected.record_id), expected.projection_name),
+                    )
+                    row = tx.fetchone()
+                    current = (
+                        ProjectionLink.model_validate_json(str(row["link_json"])) if row else None
+                    )
+                    if current != expected:
+                        raise StoreError("projection link changed since the release was planned")
                 self._insert_operation_receipt(
                     tx,
                     receipt_id=receipt.receipt_id,
