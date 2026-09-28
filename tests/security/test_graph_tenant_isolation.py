@@ -56,7 +56,11 @@ class GroupedGraphitiTransport:
         return ["add_memory", "search_memory_facts", "search_nodes", "delete_episode"]
 
     def write(self, body: str, group_id: str, kind: str = "observation", **kwargs: Any) -> Any:
-        uuid = str(kwargs["uuid"])
+        # Graphiti would treat a supplied uuid as an update (ADR-090); the
+        # projection names the episode instead. This provider keys episodes by
+        # the record id in that name and issues it back as the episode uuid.
+        assert "uuid" not in kwargs
+        uuid = str(kwargs["name"]).removeprefix("memory:")
         self.episodes[uuid] = {"uuid": uuid, "group_id": group_id, "body": body}
         return {"uuid": uuid}
 

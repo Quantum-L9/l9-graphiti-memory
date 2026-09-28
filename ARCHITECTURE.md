@@ -155,7 +155,7 @@ Consumers reach graph intelligence through `MemorySDK.graph` and the typed `memo
 
 ## Projection erasure
 
-Projection writes must return or establish a stable episode locator. The locator is stored in the canonical store as a `ProjectionLink`. A deletion outbox event loads that locator and invokes the provider deletion operation. Graphiti uses `delete_episode`; Zep uses `graph.episode.delete`. The link is removed only after provider confirmation, then the canonical deletion receipt becomes complete.
+Projection writes must return or establish a stable episode locator. The locator is stored in the canonical store as a `ProjectionLink`. A deletion outbox event loads that locator and invokes the provider deletion operation. Graphiti uses `delete_episode`; Zep uses `graph.episode.delete`. Graphiti issues its own episode uuids (a caller-supplied uuid means "update"), so a Graphiti link without a provider-returned id carries a name locator `graphiti-episode-name:<group_id>:memory:<record_id>`, resolved in that group with `get_episodes` at removal time and failing closed when unresolved (ADR-090). Live qualification against `graphiti-core` 0.30.2 is recorded in `docs/graph-intelligence/QUALIFICATION.md`. The link is removed only after provider confirmation, then the canonical deletion receipt becomes complete.
 
 ## Failure and recovery
 

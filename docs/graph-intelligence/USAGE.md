@@ -13,7 +13,7 @@ updated: 2026-07-22
 
 Decisions: ADR-084 (scope key) · ADR-085 (port, Neo4j) · ADR-086 (contracts,
 evidence) · ADR-087 (traversal, paths) · ADR-088 (GDS analytics) · ADR-089
-(surfaces, observability).
+(surfaces, observability) · ADR-090 (Graphiti episode identity).
 
 Graph intelligence is advisory projection intelligence. Every result item is
 `authority_class: advisory_projection` and names the canonical records that
@@ -37,6 +37,11 @@ as authority.
 
 `memory.graph.capabilities` reports what is served right now and why the rest
 is not.
+
+On real Graphiti, `graph.search` (entity-node search) returns no canonical
+support: Graphiti entities carry no episode reference. Prefer
+`graph.semantic_search`, or a structural operation with `anchor.query`
+(see [QUALIFICATION.md](QUALIFICATION.md)).
 
 ## Request
 
