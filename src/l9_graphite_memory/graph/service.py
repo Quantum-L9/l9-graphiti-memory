@@ -46,7 +46,12 @@ from l9_graphite_memory.contracts import AuthorizationAction, MemoryPrincipal, M
 from l9_graphite_memory.errors import GraphCapabilityUnavailable, GraphQueryPolicyViolation
 from l9_graphite_memory.ports import ProjectionAdapter, RecordStore
 
-from .algorithm_policy import AlgorithmPolicy, GraphAlgorithm, algorithm_identity
+from .algorithm_policy import (
+    AlgorithmPolicy,
+    GraphAlgorithm,
+    algorithm_identity,
+    algorithm_parameters,
+)
 from .contracts import (
     GraphAlgorithmIdentity,
     GraphIntelligenceReceipt,
@@ -281,6 +286,8 @@ class GraphIntelligenceService:
         truncated = result.truncated or capped
         if truncated:
             failures.append({"class": "truncated", "stage": "limits"})
+        if result.provider_metadata.get("catalog_cleanup") == "failed":
+            failures.append({"class": "gds_catalog_cleanup_failed", "stage": "provider"})
         if linked.out_of_scope_dropped:
             failures.append(
                 {
@@ -409,6 +416,7 @@ class GraphIntelligenceService:
     @staticmethod
     def _algorithm_config(algorithm: GraphAlgorithm, limits: dict[str, Any]) -> dict[str, Any]:
         return {
+            **algorithm_parameters(algorithm),
             "algorithm": algorithm.id,
             "max_depth": limits["max_depth"],
             "max_nodes": limits["max_nodes"],

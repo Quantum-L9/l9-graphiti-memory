@@ -60,9 +60,9 @@ def test_healthy_backend_reports_every_dimension_separately() -> None:
         *(c for c in ANALYTICS_CAPABILITIES if c is not GraphCapability.LINK_PREDICTION),
     )
     assert health.supported_capabilities == expected
-    # Served = supported AND implemented: the baseline structural operations
-    # (ADR-087); analytics are supported by the backend but not yet served.
-    assert health.capabilities == BASELINE_CAPABILITIES
+    # Served = supported AND implemented: baseline structural operations
+    # (ADR-087) and GDS analytics (ADR-088); link prediction stays off by default.
+    assert health.capabilities == expected
 
 
 def test_every_probe_runs_in_a_bounded_read_session_on_the_bound_database() -> None:

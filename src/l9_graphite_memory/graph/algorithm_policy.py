@@ -103,6 +103,22 @@ ALGORITHMS: tuple[GraphAlgorithm, ...] = (
 _BY_ID = {algorithm.id: algorithm for algorithm in ALGORITHMS}
 
 
+#: Deterministic V1 parameters: fixed seed, single-threaded GDS execution, and
+#: a fixed FastRP dimension, so identical scopes give identical receipts.
+FASTRP_EMBEDDING_DIMENSION = 64
+RANDOM_SEED = 42
+
+
+def algorithm_parameters(algorithm: GraphAlgorithm) -> dict[str, Any]:
+    """Provider-neutral parameters bound into the algorithm config digest."""
+
+    if algorithm.id in {"fastrp", "fastrp-cosine"}:
+        return {"embedding_dimension": FASTRP_EMBEDDING_DIMENSION, "random_seed": RANDOM_SEED}
+    if algorithm.id == "leiden":
+        return {"random_seed": RANDOM_SEED}
+    return {}
+
+
 @dataclass(frozen=True)
 class AlgorithmPolicy:
     """Deployment-level gates (ADR-086). Profiles narrow this, never widen it."""
