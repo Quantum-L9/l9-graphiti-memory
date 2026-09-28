@@ -28,6 +28,13 @@ from l9_graphite_memory.contracts import (
     ProjectionLink,
     ProjectionRetirementReceipt,
 )
+from l9_graphite_memory.contracts.projection import (
+    LEGACY_COPIES_KEY,
+    LINK_WITHDRAWN_KEY,
+    PENDING_DELETION_RECEIPT_KEY,
+    legacy_copies,
+    link_withdrawn,
+)
 from l9_graphite_memory.errors import StoreError
 from l9_graphite_memory.observability import configure_logging, get_logger
 from l9_graphite_memory.ports import Clock, ProjectionAdapter, RecordStore, SystemClock
@@ -92,6 +99,76 @@ class OutboxWorker:
             )
             return False
         return True
+
+    def _carried_legacy_copies(
+        self, record_id: UUID, scope_scheme: object, now: datetime
+    ) -> list[dict[str, object]]:
+        """Legacy obligations a new link inherits from the one it replaces.
+
+        Replacing a live link written under another provider scope scheme
+        leaves that copy behind in the retained legacy store (ADR-084), so it
+        becomes an obligation instead of being forgotten (ADR-091).
+        """
+
+        previous = self.store.get_projection_link(record_id, self.projection.name)
+        copies: list[dict[str, object]] = list(legacy_copies(previous))
+        if (
+            previous is not None
+            and not link_withdrawn(previous)
+            and previous.metadata.get("scope_scheme") != scope_scheme
+        ):
+            copies.append(
+                {
+                    "locator": previous.locator,
+                    "scope_scheme": previous.metadata.get("scope_scheme"),
+                    "superseded_at": now.isoformat(),
+                }
+            )
+        return copies
+
+    def _retain_stale_link(self, link: ProjectionLink, now: datetime) -> ProjectionLink:
+        """Treat a link written under another scope scheme as a legacy copy.
+
+        Between a migration rebuild being queued and its projection event
+        running, a record's link still points at the retained legacy store.
+        Removing that copy through the current provider is impossible, so the
+        link becomes a withdrawn legacy obligation instead (ADR-091).
+        """
+
+        scheme = getattr(self.projection, "scope_scheme", None)
+        if link_withdrawn(link) or link.metadata.get("scope_scheme") == scheme:
+            return link
+        copies = [
+            *legacy_copies(link),
+            {
+                "locator": link.locator,
+                "scope_scheme": link.metadata.get("scope_scheme"),
+                "superseded_at": now.isoformat(),
+            },
+        ]
+        retained = link.model_copy(
+            update={
+                "metadata": {**link.metadata, LEGACY_COPIES_KEY: copies, LINK_WITHDRAWN_KEY: True},
+                "created_at": now,
+            }
+        )
+        self.store.save_projection_link(retained)
+        return retained
+
+    def _drop_live_copy(
+        self, link: ProjectionLink, now: datetime, *, pending_receipt_id: str | None = None
+    ) -> None:
+        """Forget the live copy; keep the link only while legacy copies remain."""
+
+        if not legacy_copies(link):
+            self.store.delete_projection_link(link.record_id, self.projection.name)
+            return
+        metadata = {**link.metadata, LINK_WITHDRAWN_KEY: True}
+        if pending_receipt_id is not None:
+            metadata[PENDING_DELETION_RECEIPT_KEY] = pending_receipt_id
+        self.store.save_projection_link(
+            link.model_copy(update={"metadata": metadata, "created_at": now})
+        )
 
     def run_once(self) -> dict[str, int]:
         if self.projection.name == "none":
@@ -165,22 +242,27 @@ class OutboxWorker:
                                 reason="post-project-race-stale",
                             )
                         else:
+                            scope_scheme = getattr(self.projection, "scope_scheme", None)
+                            metadata: dict[str, object] = {
+                                "transport_result": result,
+                                "outbox_event_id": str(event.event_id),
+                                # Provider group scheme the copy was
+                                # written under (ADR-084); None for a
+                                # provider without scoped groups.
+                                "scope_scheme": scope_scheme,
+                            }
+                            carried = self._carried_legacy_copies(
+                                record.record_id, scope_scheme, now
+                            )
+                            if carried:
+                                metadata[LEGACY_COPIES_KEY] = carried
                             self.store.save_projection_link(
                                 ProjectionLink(
                                     record_id=record.record_id,
                                     namespace=record.namespace,
                                     projection_name=self.projection.name,
                                     locator=locator,
-                                    metadata={
-                                        "transport_result": result,
-                                        "outbox_event_id": str(event.event_id),
-                                        # Provider group scheme the copy was
-                                        # written under (ADR-084); None for a
-                                        # provider without scoped groups.
-                                        "scope_scheme": getattr(
-                                            self.projection, "scope_scheme", None
-                                        ),
-                                    },
+                                    metadata=metadata,
                                     created_at=now,
                                 )
                             )
@@ -191,6 +273,10 @@ class OutboxWorker:
                     # projection is withdrawn (ADR-074).
                     link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
                     current = self.store.get_record(event.aggregate_id)
+                    if link is not None and (
+                        current is None or current.state is not MemoryState.ACTIVE
+                    ):
+                        link = self._retain_stale_link(link, now)
                     if current is not None and current.state is MemoryState.ACTIVE:
                         # Governance restored the record after this retirement
                         # was queued (or the retirement is a late retry); it is
@@ -203,9 +289,10 @@ class OutboxWorker:
                                 "record_id": str(event.aggregate_id),
                             },
                         )
-                    elif link is None:
-                        # Nothing was ever projected, so there is nothing to
-                        # withdraw. Retirement is satisfied.
+                    elif link is None or link_withdrawn(link):
+                        # Nothing was ever projected (or the live copy is
+                        # already withdrawn), so there is nothing to withdraw.
+                        # Retirement is satisfied.
                         log.info(
                             "projection_retire_noop",
                             extra={
@@ -222,7 +309,7 @@ class OutboxWorker:
                             locator=link.locator,
                             reason=reason_text,
                         )
-                        self.store.delete_projection_link(event.aggregate_id, self.projection.name)
+                        self._drop_live_copy(link, now)
                         # A provider whose only removal primitive is deletion
                         # cannot distinguish this from a privacy erasure in its
                         # own logs. Record the distinction in canonical state,
@@ -246,6 +333,9 @@ class OutboxWorker:
                     if not isinstance(receipt_id, str):
                         raise RuntimeError("deletion outbox event lacks deletion_receipt_id")
                     link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
+                    if link is not None:
+                        link = self._retain_stale_link(link, now)
+                    complete = True
                     if link is None:
                         # No projected copy is known to canonical state: the
                         # record was never projected, or its projection was
@@ -264,18 +354,38 @@ class OutboxWorker:
                             },
                         )
                     else:
-                        self.projection.erase(
+                        if not link_withdrawn(link):
+                            self.projection.erase(
+                                event.aggregate_id,
+                                event.namespace,
+                                locator=link.locator,
+                            )
+                        if legacy_copies(link):
+                            # A copy survives in a retained legacy provider
+                            # store this projection cannot reach. Verified
+                            # deletion is not complete until an operator
+                            # releases it after destroying that store (ADR-091).
+                            self._drop_live_copy(link, now, pending_receipt_id=receipt_id)
+                            log.info(
+                                "projection_erase_waiting_on_legacy_copies",
+                                extra={
+                                    "event_id": str(event.event_id),
+                                    "record_id": str(event.aggregate_id),
+                                    "legacy_copy_count": len(legacy_copies(link)),
+                                },
+                            )
+                            complete = False
+                        else:
+                            self.store.delete_projection_link(
+                                event.aggregate_id, self.projection.name
+                            )
+                    if complete:
+                        self.store.complete_deletion(
                             event.aggregate_id,
-                            event.namespace,
-                            locator=link.locator,
+                            UUID(receipt_id),
+                            completed_at=now,
+                            actor=f"memory.outbox-worker:{self.worker_id}",
                         )
-                        self.store.delete_projection_link(event.aggregate_id, self.projection.name)
-                    self.store.complete_deletion(
-                        event.aggregate_id,
-                        UUID(receipt_id),
-                        completed_at=now,
-                        actor=f"memory.outbox-worker:{self.worker_id}",
-                    )
                 else:
                     raise RuntimeError(f"unsupported outbox event type: {event.event_type}")
                 settled = self._settle(

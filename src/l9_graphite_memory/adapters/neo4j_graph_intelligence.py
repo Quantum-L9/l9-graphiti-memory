@@ -25,11 +25,14 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import time
 import uuid as uuid_module
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import AbstractContextManager
+from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import wraps
 from types import ModuleType
 from typing import Any, Protocol, cast
 from uuid import UUID
@@ -38,6 +41,7 @@ from l9_graphite_memory.errors import (
     ConfigurationError,
     GraphCapabilityUnavailable,
     GraphQueryPolicyViolation,
+    GraphRuntimeBudgetExceeded,
 )
 from l9_graphite_memory.graph.contracts import (
     GraphAnchor,
@@ -189,6 +193,30 @@ class Neo4jGraphIntelligenceConfig:
     scope_group_sample_size: int = 50
 
 
+# Absolute monotonic deadline of the provider operation in progress. Every
+# statement an operation runs draws on one request-wide budget instead of each
+# receiving the whole ``max_runtime_ms`` (ADR-091).
+_REQUEST_DEADLINE: ContextVar[float | None] = ContextVar("l9_graph_request_deadline", default=None)
+
+
+def _within_request_budget(
+    method: Callable[[Any, GraphProviderRequest], GraphProviderResult],
+) -> Callable[[Any, GraphProviderRequest], GraphProviderResult]:
+    """Bind one deadline for a whole provider operation (outermost call wins)."""
+
+    @wraps(method)
+    def bounded(self: Any, request: GraphProviderRequest) -> GraphProviderResult:
+        if _REQUEST_DEADLINE.get() is not None:
+            return method(self, request)
+        token = _REQUEST_DEADLINE.set(self._monotonic() + request.limits.max_runtime_ms / 1_000)
+        try:
+            return method(self, request)
+        finally:
+            _REQUEST_DEADLINE.reset(token)
+
+    return bounded
+
+
 def schema_fingerprint(
     labels: tuple[str, ...] | list[str],
     relationship_types: tuple[str, ...] | list[str],
@@ -247,6 +275,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
         *,
         driver_factory: Callable[[], _Driver] | None = None,
         templates: tuple[QueryTemplate, ...] = (),
+        monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
         if not config.uri.strip():
             raise ConfigurationError("graph intelligence neo4j backend requires a URI")
@@ -262,6 +291,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
             (*HEALTH_TEMPLATES, *STRUCTURAL_TEMPLATES, *GDS_TEMPLATES, *templates)
         )
         self.catalog_cleanup_failures = 0
+        self._monotonic = monotonic
 
     def _default_driver_factory(self) -> _Driver:
         assert _neo4j_module is not None
@@ -292,12 +322,26 @@ class Neo4jGraphIntelligence(UnservedOperations):
         parameters: Mapping[str, Any] | None = None,
         *,
         timeout_ms: int | None = None,
+        budgeted: bool = True,
     ) -> list[dict[str, Any]]:
-        """Run one registered template in a read transaction. No text by value."""
+        """Run one registered template in a read transaction. No text by value.
+
+        Inside a provider operation the statement gets at most what is left of
+        the request-wide budget, and none is started once it is spent.
+        ``budgeted=False`` is reserved for cleanup that must run regardless.
+        """
 
         template = self.registry.get(template_name)
         bound = dict(parameters or {})
         timeout = (timeout_ms or self.config.query_timeout_ms) / 1_000
+        deadline = _REQUEST_DEADLINE.get()
+        if budgeted and deadline is not None:
+            remaining = deadline - self._monotonic()
+            if remaining <= 0:
+                raise GraphRuntimeBudgetExceeded(
+                    f"request runtime budget spent before {template_name}"
+                )
+            timeout = min(timeout, remaining)
 
         def work(tx: _Transaction) -> list[dict[str, Any]]:
             return tx.run(template.cypher, bound).data()
@@ -469,13 +513,16 @@ class Neo4jGraphIntelligence(UnservedOperations):
             )
         return self._assemble(request, [*rows, *path_rows], len(path_rows) >= budget)
 
+    @_within_request_budget
     def traverse(self, request: GraphProviderRequest) -> GraphProviderResult:
         return self._expand(request, request.direction)
 
+    @_within_request_budget
     def neighborhood(self, request: GraphProviderRequest) -> GraphProviderResult:
         # A neighborhood is direction-agnostic by definition.
         return self._expand(request, "both")
 
+    @_within_request_budget
     def path(self, request: GraphProviderRequest) -> GraphProviderResult:
         if request.limits.max_depth < 1:
             raise GraphQueryPolicyViolation("graph.path requires max_depth >= 1")
@@ -618,7 +665,10 @@ class Neo4jGraphIntelligence(UnservedOperations):
 
     def _drop_catalog_graph(self, graph_name: str, timeout_ms: int) -> str:
         try:
-            self._read("gds_drop_v1", {"graph_name": graph_name}, timeout_ms=timeout_ms)
+            # Cleanup runs even when the request budget is spent.
+            self._read(
+                "gds_drop_v1", {"graph_name": graph_name}, timeout_ms=timeout_ms, budgeted=False
+            )
         except Exception:  # noqa: BLE001 - reported, and swept by cleanup_stale_catalog
             self.catalog_cleanup_failures += 1
             return "failed"
@@ -682,6 +732,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
             provider_metadata=metadata,
         )
 
+    @_within_request_budget
     def centrality(self, request: GraphProviderRequest) -> GraphProviderResult:
         template = _CENTRALITY_TEMPLATES.get(request.algorithm_id or "")
         if template is None:
@@ -705,6 +756,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
         ]
         return self._analytic_result(request, scores, metadata, truncated=len(rows) > limit)
 
+    @_within_request_budget
     def community(self, request: GraphProviderRequest) -> GraphProviderResult:
         algorithm = request.algorithm_id or ""
         template = _COMMUNITY_TEMPLATES.get(algorithm)
@@ -754,6 +806,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
             ),
         )
 
+    @_within_request_budget
     def structural_embedding(self, request: GraphProviderRequest) -> GraphProviderResult:
         anchors = set(self._resolve_anchor(request.anchor, request)) if request.anchor else None
         limit = request.limits.max_nodes
@@ -772,6 +825,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
         ]
         return self._analytic_result(request, scores, metadata, truncated=len(rows) > limit)
 
+    @_within_request_budget
     def structural_similarity(self, request: GraphProviderRequest) -> GraphProviderResult:
         anchors = self._resolve_anchor(request.anchor, request)
         if not anchors:
@@ -805,6 +859,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
         metadata["similarity"] = "cosine over streamed FastRP vectors"
         return self._analytic_result(request, scores, metadata, truncated=len(ranked) > limit)
 
+    @_within_request_budget
     def link_prediction(self, request: GraphProviderRequest) -> GraphProviderResult:
         # Feature-gated at the adapter too, not only by the service policy.
         if not self.config.link_prediction_enabled:

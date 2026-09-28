@@ -115,6 +115,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-088 | [Stream-Only GDS Graph Analytics](ADR-088-stream-only-gds-graph-analytics.md) | Accepted |
 | ADR-089 | [Graph Intelligence Public Surfaces and Observability](ADR-089-graph-intelligence-public-surfaces-and-observability.md) | Accepted |
 | ADR-090 | [Graphiti Episode Identity and Live Qualification](ADR-090-graphiti-episode-identity-and-live-qualification.md) | Accepted |
+| ADR-091 | [Graph Campaign Audit Remediation](ADR-091-graph-campaign-audit-remediation.md) | Accepted |
 
 ## Validation
 
@@ -124,4 +125,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-090 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-091 ledger and all mandatory sections.

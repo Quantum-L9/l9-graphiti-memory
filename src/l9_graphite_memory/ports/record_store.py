@@ -20,6 +20,7 @@ from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     ConflictLinkReceipt,
     DeletionReceipt,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
@@ -206,6 +207,30 @@ class RecordStore(Protocol):
         A canonical mutation, so it requires the service-issued capability
         like the other four (ADR-036).
         """
+        ...
+
+    def commit_legacy_projection_release(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LegacyProjectionReleaseReceipt,
+        *,
+        link_updates: tuple[ProjectionLink, ...] = (),
+        link_removals: tuple[tuple[UUID, str], ...] = (),
+        deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+    ) -> None:
+        """Atomically record a legacy-copy release and apply its effects (ADR-091).
+
+        One transaction persists the receipt, rewrites or removes the affected
+        projection links, and completes each ``(record_id, deletion_receipt_id)``
+        deletion that was waiting only on the released copies. A canonical
+        mutation, so it requires the service-issued capability (ADR-036).
+        """
+        ...
+
+    def list_legacy_projection_releases(
+        self, namespace: str
+    ) -> list[LegacyProjectionReleaseReceipt]:
+        """Applied legacy-copy releases for one namespace, oldest first."""
         ...
 
     def stats(self) -> dict[str, Any]: ...

@@ -67,6 +67,7 @@ from .profiles import (
     SessionContext,
 )
 from .projection import (
+    LegacyProjectionReleaseReceipt,
     ProjectionLink,
     ProjectionRebuildReceipt,
     ProjectionRetirementReceipt,
@@ -149,6 +150,7 @@ __all__ = [
     "HydrationRequest",
     "HydrationResult",
     "IdentityProfile",
+    "LegacyProjectionReleaseReceipt",
     "LifecycleTransition",
     "LifecycleTransitionReceipt",
     "LineSourceLocator",
