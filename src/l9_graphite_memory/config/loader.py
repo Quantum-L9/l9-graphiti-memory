@@ -43,6 +43,18 @@ _ENV_TO_FIELD = {
     "ZEP_API_KEY": "zep_api_key",
     "ZEP_API_URL": "zep_api_url",
     "L9_MEMORY_PROJECTION_REQUIRED": "projection_required",
+    "L9_MEMORY_GRAPH_BACKEND": "graph_intelligence_backend",
+    "L9_MEMORY_GRAPH_REQUIRED": "graph_intelligence_required",
+    "L9_MEMORY_GRAPH_NEO4J_URI": "graph_neo4j_uri",
+    "L9_MEMORY_GRAPH_NEO4J_DATABASE": "graph_neo4j_database",
+    "L9_MEMORY_GRAPH_NEO4J_USER": "graph_neo4j_user",
+    "L9_MEMORY_GRAPH_NEO4J_PASSWORD": "graph_neo4j_password",
+    "L9_MEMORY_GRAPH_QUERY_TIMEOUT_MS": "graph_query_timeout_ms",
+    "L9_MEMORY_GRAPH_GDS_MAX_NODES": "graph_gds_max_nodes",
+    "L9_MEMORY_GRAPH_RELATIONSHIP_ALLOWLIST": "graph_relationship_allowlist",
+    "L9_MEMORY_GRAPH_SCHEMA_FINGERPRINT": "graph_expected_schema_fingerprint",
+    "L9_MEMORY_GRAPH_LINK_PREDICTION": "graph_link_prediction_enabled",
+    "L9_MEMORY_GRAPH_MATURITY_CEILING": "graph_algorithm_maturity_ceiling",
     "L9_MEMORY_HTTP_AUTH_REQUIRED": "http_auth_required",
     "L9_MEMORY_LOCAL_PRINCIPAL_ID": "local_principal_id",
     "L9_MEMORY_LOCAL_TENANT_ID": "local_tenant_id",
@@ -71,12 +83,15 @@ _BOOL_FIELDS = {
     "memory_enabled",
     "write_gates_enabled",
     "projection_required",
+    "graph_intelligence_required",
+    "graph_link_prediction_enabled",
     "http_auth_required",
     "json_logs",
     "local_is_admin",
     "local_is_global_admin",
 }
 _LIST_FIELDS = {
+    "graph_relationship_allowlist",
     "local_read_namespaces",
     "local_write_namespaces",
     "local_promote_namespaces",
@@ -85,6 +100,8 @@ _LIST_FIELDS = {
 
 
 _INT_FIELDS = {
+    "graph_query_timeout_ms",
+    "graph_gds_max_nodes",
     "postgres_statement_timeout_ms",
     "gate_ttl_minutes",
     "outbox_batch_size",

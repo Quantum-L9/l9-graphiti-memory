@@ -141,6 +141,10 @@ Every lifecycle transition outside `write` and `apply_retention` goes through `M
 
 Provider group identity is tenant-safe (ADR-084). `graph.scope` derives every Graphiti `group_id` from both scope components as `l9g-v1-` + sha256 of the canonical JSON `{namespace, tenant_id}`; the namespace alone is never a provider group. Writes use the record's tenant and namespace; searches take the server-derived `tenant_id` of the authenticated principal and query exactly one derived group per authorized namespace. Projection links record the `scope_scheme` they were written under, and `rebuild-projection` re-projects records linked under an older scheme.
 
+## Graph intelligence
+
+Structural graph intelligence is a sibling of the projection adapter (ADR-085). `GraphIntelligencePort` owns bounded traversal, paths, neighborhoods, and analytics over the Graphiti-managed graph; `ProjectionAdapter` keeps project/retire/erase and graph/semantic candidate retrieval. Graphiti remains the only writer of the semantic graph: the Neo4j adapter executes only registered static templates in read-access sessions under a separate least-privilege credential, and GDS is stream-only with ephemeral catalog graphs. The backend is optional (`graph_intelligence_backend: none | neo4j`); its health reports reachability, schema fingerprint, analytics availability, and GraphScopeKey conformance as separate dimensions, and a failing backend never affects canonical memory or `memory.search`.
+
 ## Projection erasure
 
 Projection writes must return or establish a stable episode locator. The locator is stored in the canonical store as a `ProjectionLink`. A deletion outbox event loads that locator and invokes the provider deletion operation. Graphiti uses `delete_episode`; Zep uses `graph.episode.delete`. The link is removed only after provider confirmation, then the canonical deletion receipt becomes complete.

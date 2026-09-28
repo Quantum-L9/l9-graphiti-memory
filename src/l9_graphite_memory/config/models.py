@@ -12,10 +12,15 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from l9_graphite_memory.graph.ports import DEFAULT_RELATIONSHIP_ALLOWLIST
+
+_RELATIONSHIP_TYPE = re.compile(r"^[A-Z][A-Z0-9_]{0,63}$")
 
 
 class TokenPrincipalConfig(BaseModel):
@@ -74,6 +79,21 @@ class MemorySettings(BaseModel):
     zep_api_url: str | None = None
     projection_required: bool = False
 
+    # Structural graph intelligence over the Graphiti projection (ADR-085).
+    # A separate least-privilege reader credential; never Graphiti's writer.
+    graph_intelligence_backend: Literal["none", "neo4j"] = "none"
+    graph_intelligence_required: bool = False
+    graph_neo4j_uri: str | None = None
+    graph_neo4j_database: str = "neo4j"
+    graph_neo4j_user: str | None = None
+    graph_neo4j_password: str | None = Field(default=None, repr=False)
+    graph_query_timeout_ms: int = Field(default=3_000, ge=10, le=30_000)
+    graph_gds_max_nodes: int = Field(default=50_000, ge=1, le=5_000_000)
+    graph_relationship_allowlist: tuple[str, ...] = DEFAULT_RELATIONSHIP_ALLOWLIST
+    graph_expected_schema_fingerprint: str | None = None
+    graph_link_prediction_enabled: bool = False
+    graph_algorithm_maturity_ceiling: Literal["production", "beta", "alpha"] = "production"
+
     http_auth_required: bool = True
     auth_tokens: dict[str, TokenPrincipalConfig] = Field(default_factory=dict)
     local_principal_id: str = "local-operator"
@@ -119,6 +139,23 @@ class MemorySettings(BaseModel):
         if normalized not in allowed:
             raise ValueError(f"unsupported log level: {value}")
         return normalized
+
+    @field_validator("graph_relationship_allowlist")
+    @classmethod
+    def validate_relationship_allowlist(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        for relationship in value:
+            if not _RELATIONSHIP_TYPE.fullmatch(relationship):
+                raise ValueError(f"invalid graph relationship type: {relationship!r}")
+        return value
+
+    @model_validator(mode="after")
+    def validate_graph_intelligence(self) -> MemorySettings:
+        if self.graph_intelligence_backend == "neo4j" and not (self.graph_neo4j_uri or "").strip():
+            raise ValueError(
+                "graph_intelligence_backend 'neo4j' requires graph_neo4j_uri "
+                "(set L9_MEMORY_GRAPH_NEO4J_URI)"
+            )
+        return self
 
     @model_validator(mode="after")
     def validate_store_backend(self) -> MemorySettings:
