@@ -19,6 +19,11 @@ from uuid import UUID
 
 from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
 from l9_graphite_memory.errors import ProjectionError
+from l9_graphite_memory.graph import (
+    GRAPH_SCOPE_SCHEME,
+    graph_group_id,
+    graph_scope_digest,
+)
 from l9_graphite_memory.ports import ProjectionHit
 from l9_graphite_memory.transport import MemoryTransport
 
@@ -32,6 +37,9 @@ class GraphitiProjection:
     # retirement removes the projected episode and is undone by re-projection
     # rather than by reactivating in place (ADR-076).
     retirement_mode = RetirementMode.WITHDRAW
+    # Provider group identity scheme (ADR-084). Persisted on each projection
+    # link so a rebuild can find records projected under an older scheme.
+    scope_scheme: str = GRAPH_SCOPE_SCHEME
 
     def __init__(self, transport: MemoryTransport) -> None:
         self.transport = transport
@@ -46,6 +54,10 @@ class GraphitiProjection:
             "record_id": str(record.record_id),
             "schema_version": record.schema_version,
             "namespace": record.namespace,
+            # Scope binding is carried as a digest only; the raw tenant id is
+            # never written into the provider graph (ADR-084).
+            "scope_scheme": GRAPH_SCOPE_SCHEME,
+            "scope_digest": graph_scope_digest(record.tenant_id, record.namespace),
             "memory_class": record.memory_class.value,
             "content": record.content,
             "assertion": record.assertion.model_dump(mode="json") if record.assertion else None,
@@ -74,7 +86,7 @@ class GraphitiProjection:
         payload = self._projection_payload(record)
         result = self.transport.write(
             json.dumps(payload, sort_keys=True),
-            record.namespace,
+            graph_group_id(record.tenant_id, record.namespace),
             kind=record.memory_class.value,
             name=f"memory:{record.record_id}",
             source="json",
@@ -91,7 +103,12 @@ class GraphitiProjection:
         if result.get("error"):
             raise ProjectionError(f"projection write failed: {result['error']}")
         locator = self._extract_locator(result) or str(record.record_id)
-        return {**result, "locator": locator, "record_id": str(record.record_id)}
+        return {
+            **result,
+            "locator": locator,
+            "record_id": str(record.record_id),
+            "scope_scheme": GRAPH_SCOPE_SCHEME,
+        }
 
     def retire(
         self,
@@ -202,6 +219,7 @@ class GraphitiProjection:
         namespaces: tuple[str, ...],
         *,
         limit: int,
+        tenant_id: str,
     ) -> list[ProjectionHit]:
         if strategy not in self.capabilities:
             raise ProjectionError(f"unsupported projection strategy: {strategy}")
@@ -218,11 +236,14 @@ class GraphitiProjection:
         hits: dict[UUID, ProjectionHit] = {}
         per_namespace = max(1, limit // max(1, len(namespaces)))
         for namespace in namespaces:
+            # Each authorized namespace maps to exactly one tenant-bound group;
+            # no request field can widen or replace it (ADR-084).
+            group_id = graph_group_id(tenant_id, namespace)
             arguments: dict[str, Any] = {"query": query, limit_key: per_namespace}
             if official_dialect:
-                arguments["group_ids"] = [namespace]
+                arguments["group_ids"] = [group_id]
             else:
-                arguments["group_id"] = namespace
+                arguments["group_id"] = group_id
             result = self.transport.call_tool(tool, arguments)
             for item in self._result_items(result, strategy):
                 record_id = self._extract_record_id(item)
@@ -241,6 +262,7 @@ class GraphitiProjection:
                     )[:1_000],
                     metadata={
                         "namespace": namespace,
+                        "scope_scheme": GRAPH_SCOPE_SCHEME,
                         "transport": self.transport.name,
                         "strategy": strategy,
                         "tool": tool,
@@ -251,12 +273,21 @@ class GraphitiProjection:
                     hits[record_id] = hit
         return sorted(hits.values(), key=lambda item: item.score, reverse=True)[:limit]
 
-    def search(self, query: str, namespaces: tuple[str, ...], *, limit: int) -> list[ProjectionHit]:
+    def search(
+        self,
+        query: str,
+        namespaces: tuple[str, ...],
+        *,
+        limit: int,
+        tenant_id: str,
+    ) -> list[ProjectionHit]:
         combined: dict[UUID, ProjectionHit] = {}
         failures: list[str] = []
         for strategy in self.capabilities:
             try:
-                for hit in self.search_strategy(strategy, query, namespaces, limit=limit):
+                for hit in self.search_strategy(
+                    strategy, query, namespaces, limit=limit, tenant_id=tenant_id
+                ):
                     existing = combined.get(hit.record_id)
                     if existing is None or hit.score > existing.score:
                         combined[hit.record_id] = hit

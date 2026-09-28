@@ -174,6 +174,12 @@ class OutboxWorker:
                                     metadata={
                                         "transport_result": result,
                                         "outbox_event_id": str(event.event_id),
+                                        # Provider group scheme the copy was
+                                        # written under (ADR-084); None for a
+                                        # provider without scoped groups.
+                                        "scope_scheme": getattr(
+                                            self.projection, "scope_scheme", None
+                                        ),
                                     },
                                     created_at=now,
                                 )

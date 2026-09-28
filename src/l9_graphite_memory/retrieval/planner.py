@@ -160,6 +160,7 @@ class RetrievalPlanner:
                         request.query,
                         namespaces,
                         limit=request.limit * 2,
+                        tenant_id=tenant_id,
                     )
                 else:
                     strategy_hits = strategy_search(
@@ -167,6 +168,7 @@ class RetrievalPlanner:
                         request.query,
                         namespaces,
                         limit=request.limit * 2,
+                        tenant_id=tenant_id,
                     )
                 stores_succeeded.append(store_label)
                 strategies_succeeded.append(strategy)

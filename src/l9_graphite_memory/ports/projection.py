@@ -81,7 +81,17 @@ class ProjectionAdapter(Protocol):
         namespaces: tuple[str, ...],
         *,
         limit: int,
-    ) -> list[ProjectionHit]: ...
+        tenant_id: str,
+    ) -> list[ProjectionHit]:
+        """Search one strategy inside the tenant-bound scope of ``namespaces``.
+
+        ``tenant_id`` is server-derived from the authenticated principal and
+        ``namespaces`` are already authorized. A provider that partitions its
+        graph by group must derive each group from both components through
+        GraphScopeKey v1 (``graph.scope``) and never from the namespace alone
+        (ADR-084).
+        """
+        ...
 
     def search(
         self,
@@ -89,4 +99,5 @@ class ProjectionAdapter(Protocol):
         namespaces: tuple[str, ...],
         *,
         limit: int,
+        tenant_id: str,
     ) -> list[ProjectionHit]: ...

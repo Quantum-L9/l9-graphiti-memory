@@ -115,6 +115,10 @@ class ProjectionRebuildReceipt(BaseModel):
     considered_record_count: int = Field(default=0, ge=0)
     already_projected_count: int = Field(default=0, ge=0)
     queued_record_ids: tuple[UUID, ...] = ()
+    # Records whose live link was written under an older provider scope
+    # scheme and are re-projected into the current one (ADR-084). A subset of
+    # ``queued_record_ids``.
+    stale_scope_record_ids: tuple[UUID, ...] = ()
     outbox_event_ids: tuple[UUID, ...] = ()
     authorization: AuthorizationReceipt
     reason: str = Field(min_length=1, max_length=2_000)

@@ -146,8 +146,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # (open-PR audit 2026-09-24): +5 handler-parity cases, and ADR-083's
         # namespace suite rewritten for F-64-AUTHZ-001 (26 cases -> 15). Same
         # arithmetic: 1030 + 5 - 26 + 15 = 1024 collected, 1024 - 16 = 1008.
-        "1008 tests pass",
-        r"1008 passed",
+        #
+        # Re-pinned 1008 -> 1026 for ADR-084 (GraphScopeKey v1, graph
+        # intelligence campaign PR-A): 13 cases in test_graph_scope_key.py
+        # and 5 in tests/security/test_graph_tenant_isolation.py, none
+        # skipped in CI. Same arithmetic: 1024 + 18 = 1042 collected,
+        # 1042 - 16 = 1026.
+        "1026 tests pass",
+        r"1026 passed",
     ),
     CheckSpec(
         "V-002",
@@ -168,8 +174,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
         # parity).
-        "83 ADRs complete and indexed",
-        r"PASS: 83 ADRs",
+        # Re-pinned 83 -> 84 for ADR-084 (tenant-safe graph scope key).
+        "84 ADRs complete and indexed",
+        r"PASS: 84 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -249,8 +256,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         #
         # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
         # the control-plane capability receipt.
-        "127 production files pass",
-        r"PASS: 127 production Python files",
+        # Re-pinned 127 -> 129 for ADR-084: graph/__init__.py and
+        # graph/scope.py carry the GraphScopeKey v1 derivation.
+        "129 production files pass",
+        r"PASS: 129 production Python files",
     ),
     CheckSpec(
         "V-012",
