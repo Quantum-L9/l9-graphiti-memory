@@ -1,5 +1,5 @@
 {
-  "file_count": 759,
+  "file_count": 753,
   "files": [
     {
       "category": "ci",
@@ -359,54 +359,6 @@
         "l9_schema": 1,
         "layer": "repository_root",
         "owner": "memory-control-plane",
-        "path": "CONVERGENCE_REPORT.yaml",
-        "repo": "Quantum-L9/l9-graphiti-memory",
-        "status": "active",
-        "updated": "2026-07-22",
-        "version": "2.5.0"
-      },
-      "path": "CONVERGENCE_REPORT.yaml",
-      "sha256": "1b049f9264b7fa1ffbbf65ee663c10ccad1a3ed15b9bd1d457e1965baf66bc49",
-      "size_bytes": 2369
-    },
-    {
-      "category": "repository_root",
-      "l9_meta": {
-        "l9_schema": 1,
-        "layer": "repository_root",
-        "owner": "memory-control-plane",
-        "path": "DELTA_REPORT.md",
-        "repo": "Quantum-L9/l9-graphiti-memory",
-        "status": "active",
-        "updated": "2026-07-22",
-        "version": "2.5.0"
-      },
-      "path": "DELTA_REPORT.md",
-      "sha256": "6a387ff4ea95b5cc034deed28cc3cc8255c85595d07364842c19b347df579b22",
-      "size_bytes": 2642
-    },
-    {
-      "category": "repository_root",
-      "l9_meta": {
-        "l9_schema": 1,
-        "layer": "repository_root",
-        "owner": "memory-control-plane",
-        "path": "IMPROVEMENT_REPORT.md",
-        "repo": "Quantum-L9/l9-graphiti-memory",
-        "status": "active",
-        "updated": "2026-07-22",
-        "version": "2.5.0"
-      },
-      "path": "IMPROVEMENT_REPORT.md",
-      "sha256": "351078f7327e2579509baec85a809b9a636f02636cc76612f0f598d33d4b9876",
-      "size_bytes": 3181
-    },
-    {
-      "category": "repository_root",
-      "l9_meta": {
-        "l9_schema": 1,
-        "layer": "repository_root",
-        "owner": "memory-control-plane",
         "path": "LICENSE",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -446,8 +398,8 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "108dfc745bc3ff0bb89468c0d60eb551933de632ca7198159cb218105ce49244",
-      "size_bytes": 128404
+      "sha256": "746f226f517e514b6d03dd934d05b582c209a32c74ccc150a411a9589f06f298",
+      "size_bytes": 127500
     },
     {
       "category": "repository_root",
@@ -4624,54 +4576,6 @@
       "path": "hooks/graphiti_gate_runner.sh",
       "sha256": "58203955f07dd049ed12c117f13405c7b651aa4f8d8df099a2e698d8a4e7174a",
       "size_bytes": 880
-    },
-    {
-      "category": "repository_root",
-      "l9_meta": {
-        "l9_schema": 1,
-        "layer": "repository_root",
-        "owner": "memory-control-plane",
-        "path": "improvement_log.jsonl",
-        "repo": "Quantum-L9/l9-graphiti-memory",
-        "status": "active",
-        "updated": "2026-07-22",
-        "version": "2.5.0"
-      },
-      "path": "improvement_log.jsonl",
-      "sha256": "7a1b20557352284372622d9b11bc363a92b04286d61fecc2c4b2105f0280cab4",
-      "size_bytes": 2364
-    },
-    {
-      "category": "repository_root",
-      "l9_meta": {
-        "l9_schema": 1,
-        "layer": "repository_root",
-        "owner": "memory-control-plane",
-        "path": "install_generated_data_deployment_wave1.sh",
-        "repo": "Quantum-L9/l9-graphiti-memory",
-        "status": "active",
-        "updated": "2026-07-22",
-        "version": "2.5.0"
-      },
-      "path": "install_generated_data_deployment_wave1.sh",
-      "sha256": "486163f4e655a2805d0fd4b2a1d7100008fc5e185e561b5644f35ad31733efd3",
-      "size_bytes": 70578
-    },
-    {
-      "category": "repository_root",
-      "l9_meta": {
-        "l9_schema": 1,
-        "layer": "repository_root",
-        "owner": "memory-control-plane",
-        "path": "install_generated_data_deployment_wave2.sh",
-        "repo": "Quantum-L9/l9-graphiti-memory",
-        "status": "active",
-        "updated": "2026-07-22",
-        "version": "2.5.0"
-      },
-      "path": "install_generated_data_deployment_wave2.sh",
-      "sha256": "567923821aff28225a19882dd61683abd55118cc62e81f2c850274600990a684",
-      "size_bytes": 58737
     },
     {
       "category": "repository_root",
@@ -10318,8 +10222,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/check_recursive_alignment.py",
-      "sha256": "4944c9ad00ea5328f781d4906fb75b75a76863f64e92cd44b8b9456f3929c9dc",
-      "size_bytes": 12612
+      "sha256": "793bdeb83a5ac0cb3ba6ee1c54ad032afc307940cdc4bba0891fd5393a58ad92",
+      "size_bytes": 12400
     },
     {
       "category": "assurance",

@@ -42,12 +42,12 @@ updated: 2026-07-22
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 132 |
-| `repository_root` | 76 |
+| `repository_root` | 70 |
 | `skill` | 2 |
 | `tests` | 179 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **758**
+- Hashed inventory files below: **752**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -78,9 +78,6 @@ updated: 2026-07-22
 | `ARCHITECTURE.md` | `repository_root` | `repository_root` | 12244 | `6e7ef5a6fe4346e4d1c18f49062502f45cdb873d7e50fdb148ce2a58b8866607` |
 | `CHANGE_SUMMARY.md` | `repository_root` | `repository_root` | 5523 | `14f28f4788a7eacc9977dc073abdea91c595182df902a08fc0c0ac7c3b3f8991` |
 | `CONTRIBUTING.md` | `repository_root` | `repository_root` | 666 | `052f310924cad01f2f4735d476f54b1b75058b15249bc2ad0b4a42d467acaf67` |
-| `CONVERGENCE_REPORT.yaml` | `repository_root` | `repository_root` | 2369 | `1b049f9264b7fa1ffbbf65ee663c10ccad1a3ed15b9bd1d457e1965baf66bc49` |
-| `DELTA_REPORT.md` | `repository_root` | `repository_root` | 2642 | `6a387ff4ea95b5cc034deed28cc3cc8255c85595d07364842c19b347df579b22` |
-| `IMPROVEMENT_REPORT.md` | `repository_root` | `repository_root` | 3181 | `351078f7327e2579509baec85a809b9a636f02636cc76612f0f598d33d4b9876` |
 | `LICENSE` | `repository_root` | `repository_root` | 4658 | `40480115927c1985499925b32072e1bcb4f48e86432af9bffbf9d2a718e28a2d` |
 | `MANIFEST.in` | `repository_root` | `repository_root` | 624 | `0b09fe70fcf48900117c6dfd3a56a4037d93e3b1c50f2dad9cfa1e5286b54986` |
 | `MIGRATION.md` | `repository_root` | `repository_root` | 3582 | `42e6541954e4b4b1003e5eb7d41f9b040a81eb279fabd58a371ee8a798a6f293` |
@@ -344,9 +341,6 @@ updated: 2026-07-22
 | `hooks/graphiti-session-end.sh` | `hooks` | `hooks` | 1591 | `78101e683885431565db87f8d81aef59cece7308f4d5045d86cef5fe9ff3d91a` |
 | `hooks/graphiti_common.sh` | `hooks` | `hooks` | 1345 | `76ee5c40245b76f699fc5d6ec767a570da4b376ce9d61b59f5fa8e1ad7b3c71d` |
 | `hooks/graphiti_gate_runner.sh` | `hooks` | `hooks` | 880 | `58203955f07dd049ed12c117f13405c7b651aa4f8d8df099a2e698d8a4e7174a` |
-| `improvement_log.jsonl` | `repository_root` | `repository_root` | 2364 | `7a1b20557352284372622d9b11bc363a92b04286d61fecc2c4b2105f0280cab4` |
-| `install_generated_data_deployment_wave1.sh` | `repository_root` | `repository_root` | 70578 | `486163f4e655a2805d0fd4b2a1d7100008fc5e185e561b5644f35ad31733efd3` |
-| `install_generated_data_deployment_wave2.sh` | `repository_root` | `repository_root` | 58737 | `567923821aff28225a19882dd61683abd55118cc62e81f2c850274600990a684` |
 | `pyproject.toml` | `repository_root` | `repository_root` | 5037 | `4d1eb0f6bb8b45cf481cffd5ef8f91bdc5608fb9562e34c0dc35e93073f72ea8` |
 | `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository_root` | 5739 | `ce072ae10b4c8722da70ab49ef4be3af00eb6b093a70922caa654a9d67c48357` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository_root` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
@@ -699,7 +693,7 @@ updated: 2026-07-22
 | `tools/assurance/check_l9_meta.py` | `assurance` | `assurance` | 5716 | `d995cac5bdd5642fc9df399e894ec7ad465532f3d243205dc8a11bf73ebbbda9` |
 | `tools/assurance/check_layer_boundaries.py` | `assurance` | `assurance` | 3327 | `153fe922a3a7b0060e497073a8c44c83239072e75f64c33a47ae9f320d26fef3` |
 | `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 10928 | `8a1ef5e818d0434057035ec1c8ebc084239c0b0b3349dc7018840bcbf3e7fbce` |
-| `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12612 | `4944c9ad00ea5328f781d4906fb75b75a76863f64e92cd44b8b9456f3929c9dc` |
+| `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12400 | `793bdeb83a5ac0cb3ba6ee1c54ad032afc307940cdc4bba0891fd5393a58ad92` |
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 8677 | `d736b5a0efc317838a80da921868db36559baacc24919a3039202895dbc67d98` |
