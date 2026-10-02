@@ -36,6 +36,9 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_ENABLED": "memory_enabled",
     "L9_MEMORY_WRITE_GATES": "write_gates_enabled",
     "L9_MEMORY_GATE_TTL_MINUTES": "gate_ttl_minutes",
+    "L9_MEMORY_PROJECTION_RUNTIME": "projection_runtime",
+    "L9_MEMORY_PROJECTION_MANIFEST": "projection_manifest",
+    "L9_MEMORY_PROJECTION_MANIFEST_HISTORY": "projection_manifest_history",
     "L9_MEMORY_PROJECTION_BACKEND": "projection_backend",
     "L9_MEMORY_QUARANTINE_REVIEW_PROVIDER": "quarantine_review_provider",
     "GRAPHITI_MCP_URL": "graphiti_mcp_url",
@@ -77,6 +80,7 @@ _BOOL_FIELDS = {
     "local_is_global_admin",
 }
 _LIST_FIELDS = {
+    "projection_manifest_history",
     "local_read_namespaces",
     "local_write_namespaces",
     "local_promote_namespaces",

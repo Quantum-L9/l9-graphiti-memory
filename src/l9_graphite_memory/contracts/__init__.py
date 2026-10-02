@@ -67,6 +67,7 @@ from .profiles import (
     SessionContext,
 )
 from .projection import (
+    LEGACY_PROVIDER_TYPE,
     ProjectionLink,
     ProjectionRebuildReceipt,
     ProjectionRetirementReceipt,
@@ -89,6 +90,7 @@ from .receipts import (
     OutboxEvent,
     PhaseLockReceipt,
     PhaseLockVerification,
+    ProjectionStrategyEvidence,
     RetentionDecision,
     RetentionReceipt,
     ScoreFactors,
@@ -117,6 +119,7 @@ __all__ = [
     "ALL_MAINTENANCE_OPERATIONS",
     "CLI_EXIT_CODES",
     "CLI_OPERATION_COMMANDS",
+    "LEGACY_PROVIDER_TYPE",
     "LIFECYCLE_OPERATIONS",
     "MCP_OPERATION_TOOLS",
     "QUARANTINE_REVIEW_POLICY_VERSION",
@@ -179,6 +182,7 @@ __all__ = [
     "ProjectionLink",
     "ProjectionRebuildReceipt",
     "ProjectionRetirementReceipt",
+    "ProjectionStrategyEvidence",
     "PromotionRequest",
     "Provenance",
     "QuarantineReviewPolicy",

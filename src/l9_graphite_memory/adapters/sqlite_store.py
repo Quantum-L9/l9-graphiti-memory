@@ -23,6 +23,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
+    LEGACY_PROVIDER_TYPE,
     ArchiveReceipt,
     ConflictLinkReceipt,
     DeletionReceipt,
@@ -56,7 +57,23 @@ from l9_graphite_memory.schema import schema_registry
 # Register built-in migrations.
 from l9_graphite_memory.schema import upcasters as _upcasters  # noqa: F401
 
-_SCHEMA_VERSION = 7
+_SCHEMA_VERSION = 8
+
+# One row per durable provider copy, keyed by target identity (ADR-084).
+_PROJECTION_LINKS_DDL = """
+CREATE TABLE IF NOT EXISTS {table} (
+    record_id TEXT NOT NULL,
+    target_identity TEXT NOT NULL,
+    projection_name TEXT NOT NULL,
+    provider_type TEXT NOT NULL,
+    namespace TEXT NOT NULL,
+    locator TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    link_json TEXT NOT NULL,
+    PRIMARY KEY (record_id, target_identity),
+    FOREIGN KEY(record_id) REFERENCES memory_records(record_id)
+)
+"""
 
 
 def _json(value: Any) -> str:
@@ -194,19 +211,9 @@ class SQLiteRecordStore:
             """,
             "CREATE INDEX IF NOT EXISTS idx_outbox_due ON outbox_events(status, next_attempt_at)",
             "CREATE INDEX IF NOT EXISTS idx_outbox_lease ON outbox_events(status, lease_expires_at)",
-            """
-            CREATE TABLE IF NOT EXISTS projection_links (
-                record_id TEXT NOT NULL,
-                projection_name TEXT NOT NULL,
-                namespace TEXT NOT NULL,
-                locator TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                link_json TEXT NOT NULL,
-                PRIMARY KEY (record_id, projection_name),
-                FOREIGN KEY(record_id) REFERENCES memory_records(record_id)
-            )
-            """,
+            _PROJECTION_LINKS_DDL.format(table="projection_links"),
             "CREATE INDEX IF NOT EXISTS idx_projection_links_locator ON projection_links(projection_name, locator)",
+            "CREATE INDEX IF NOT EXISTS idx_projection_links_target ON projection_links(target_identity, locator)",
             """
             CREATE TABLE IF NOT EXISTS maintenance_runs (
                 run_id TEXT PRIMARY KEY,
@@ -259,6 +266,7 @@ class SQLiteRecordStore:
             }
             if phase_lock_columns and "tenant_id" not in phase_lock_columns:
                 tx.execute("DROP TABLE phase_locks")
+            self._migrate_projection_links_to_targets(tx)
             for statement in statements:
                 tx.execute(statement)
             columns = {
@@ -279,6 +287,45 @@ class SQLiteRecordStore:
                 (_SCHEMA_VERSION, datetime.now(timezone.utc).isoformat()),
             )
         self._initialized = True
+
+    @staticmethod
+    def _migrate_projection_links_to_targets(tx: sqlite3.Connection) -> None:
+        """Rekey schema-7 links from projection name to target identity.
+
+        Schema 7 keyed a link by ``(record_id, projection_name)``, so a record
+        could hold one provider copy per projection name. Every existing row is
+        copied unchanged, locator and link JSON included, with the projection
+        name it was keyed by as its target identity; that is the identity the
+        legacy runtime resolves, so no copy is orphaned. Runs only while the
+        legacy table shape is present (ADR-084).
+        """
+
+        columns = {
+            str(row[1]) for row in tx.execute("PRAGMA table_info(projection_links)").fetchall()
+        }
+        if not columns or "target_identity" in columns:
+            return
+        tx.execute(_PROJECTION_LINKS_DDL.format(table="projection_links_v8"))
+        tx.execute(
+            """
+            INSERT INTO projection_links_v8 (
+                record_id, target_identity, projection_name, provider_type,
+                namespace, locator, created_at, link_json
+            )
+            SELECT record_id, projection_name, projection_name, ?,
+                   namespace, locator, created_at, link_json
+            FROM projection_links
+            """,
+            (LEGACY_PROVIDER_TYPE,),
+        )
+        copied = tx.execute("SELECT COUNT(*) FROM projection_links_v8").fetchone()[0]
+        original = tx.execute("SELECT COUNT(*) FROM projection_links").fetchone()[0]
+        if copied != original:
+            raise StoreError(
+                f"projection link migration copied {copied} of {original} links; aborted"
+            )
+        tx.execute("DROP TABLE projection_links")
+        tx.execute("ALTER TABLE projection_links_v8 RENAME TO projection_links")
 
     def close(self) -> None:
         connection = getattr(self._local, "connection", None)
@@ -892,9 +939,12 @@ class SQLiteRecordStore:
                 tx.execute(
                     """
                     INSERT INTO projection_links (
-                        record_id, projection_name, namespace, locator, created_at, link_json
-                    ) VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(record_id, projection_name) DO UPDATE SET
+                        record_id, target_identity, projection_name, provider_type,
+                        namespace, locator, created_at, link_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(record_id, target_identity) DO UPDATE SET
+                        projection_name = excluded.projection_name,
+                        provider_type = excluded.provider_type,
                         namespace = excluded.namespace,
                         locator = excluded.locator,
                         created_at = excluded.created_at,
@@ -902,7 +952,9 @@ class SQLiteRecordStore:
                     """,
                     (
                         str(link.record_id),
+                        link.target_identity,
                         link.projection_name,
+                        link.provider_type,
                         link.namespace,
                         link.locator,
                         _dt(link.created_at),
@@ -912,29 +964,69 @@ class SQLiteRecordStore:
         except sqlite3.Error as exc:
             raise StoreError(f"projection link persistence failed: {exc}") from exc
 
+    @staticmethod
+    def _row_to_link(row: sqlite3.Row) -> ProjectionLink:
+        # The columns are the durable key; the JSON of a migrated schema-7 row
+        # predates target identity and is read under the key it is stored at.
+        data = json.loads(str(row["link_json"]))
+        data["target_identity"] = str(row["target_identity"])
+        data["provider_type"] = str(row["provider_type"])
+        return ProjectionLink.model_validate(data)
+
     def get_projection_link(
         self,
         record_id: UUID,
-        projection_name: str,
+        target_identity: str,
     ) -> ProjectionLink | None:
         row = (
             self._connection()
             .execute(
-                "SELECT link_json FROM projection_links WHERE record_id = ? AND projection_name = ?",
-                (str(record_id), projection_name),
+                "SELECT target_identity, provider_type, link_json FROM projection_links "
+                "WHERE record_id = ? AND target_identity = ?",
+                (str(record_id), target_identity),
             )
             .fetchone()
         )
         if row is None:
             return None
-        return ProjectionLink.model_validate_json(str(row["link_json"]))
+        return self._row_to_link(row)
 
-    def delete_projection_link(self, record_id: UUID, projection_name: str) -> None:
+    def list_projection_links(self, record_id: UUID) -> list[ProjectionLink]:
+        rows = (
+            self._connection()
+            .execute(
+                "SELECT target_identity, provider_type, link_json FROM projection_links "
+                "WHERE record_id = ? ORDER BY target_identity",
+                (str(record_id),),
+            )
+            .fetchall()
+        )
+        return [self._row_to_link(row) for row in rows]
+
+    def list_projection_target_identities(self) -> tuple[str, ...]:
+        connection = self._connection()
+        identities = {
+            str(row[0])
+            for row in connection.execute(
+                "SELECT DISTINCT target_identity FROM projection_links"
+            ).fetchall()
+        }
+        rows = connection.execute(
+            "SELECT event_json FROM outbox_events WHERE status NOT IN (?, ?)",
+            (OutboxStatus.DELIVERED.value, OutboxStatus.DEAD.value),
+        ).fetchall()
+        for row in rows:
+            identity = OutboxEvent.model_validate_json(str(row[0])).payload.get("target_identity")
+            if isinstance(identity, str) and identity.strip():
+                identities.add(identity.strip())
+        return tuple(sorted(identities))
+
+    def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
         try:
             with self._transaction() as tx:
                 tx.execute(
-                    "DELETE FROM projection_links WHERE record_id = ? AND projection_name = ?",
-                    (str(record_id), projection_name),
+                    "DELETE FROM projection_links WHERE record_id = ? AND target_identity = ?",
+                    (str(record_id), target_identity),
                 )
         except sqlite3.Error as exc:
             raise StoreError(f"projection link deletion failed: {exc}") from exc
@@ -1036,7 +1128,7 @@ class SQLiteRecordStore:
         self,
         tenant_id: str,
         namespace: str,
-        projection_name: str,
+        target_identity: str,
         *,
         limit: int = 1_000,
     ) -> list[MemoryRecord]:
@@ -1046,13 +1138,13 @@ class SQLiteRecordStore:
                 """
                 SELECT r.record_json FROM memory_records AS r
                 LEFT JOIN projection_links AS l
-                  ON l.record_id = r.record_id AND l.projection_name = ?
+                  ON l.record_id = r.record_id AND l.target_identity = ?
                 WHERE r.tenant_id = ? AND r.namespace = ? AND r.state = ?
                   AND l.record_id IS NULL
                 ORDER BY r.recorded_at ASC LIMIT ?
                 """,
                 (
-                    projection_name,
+                    target_identity,
                     tenant_id,
                     namespace,
                     MemoryState.ACTIVE.value,
@@ -1166,7 +1258,8 @@ class SQLiteRecordStore:
         receipt: DeletionReceipt,
         redacted_record: MemoryRecord,
         *,
-        outbox_event: OutboxEvent | None,
+        outbox_event: OutboxEvent | None = None,
+        outbox_events: tuple[OutboxEvent, ...] = (),
         status_event: MemoryStatusEvent,
     ) -> None:
         require_service_write_capability(capability)
@@ -1218,8 +1311,11 @@ class SQLiteRecordStore:
                     ),
                 )
                 self._insert_deletion_receipt(tx, receipt)
-                if outbox_event is not None:
-                    self._insert_outbox(tx, outbox_event)
+                for event in (
+                    *((outbox_event,) if outbox_event is not None else ()),
+                    *outbox_events,
+                ):
+                    self._insert_outbox(tx, event)
         except sqlite3.IntegrityError as exc:
             raise StoreError(f"atomic deletion request violated store constraints: {exc}") from exc
         except sqlite3.Error as exc:
@@ -1245,6 +1341,15 @@ class SQLiteRecordStore:
                 ).fetchone()
                 if record_row is None or receipt_row is None:
                     raise StoreError("deletion record or receipt not found")
+                remaining = tx.execute(
+                    "SELECT COUNT(*) FROM projection_links WHERE record_id = ?",
+                    (str(record_id),),
+                ).fetchone()[0]
+                if remaining:
+                    raise StoreError(
+                        f"deletion of {record_id} cannot complete while {remaining} "
+                        "projection link(s) remain unerased"
+                    )
                 record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
                 receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
                 updated_receipt = receipt.model_copy(

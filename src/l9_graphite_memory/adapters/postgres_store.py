@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from l9_graphite_memory.contracts import (
+    LEGACY_PROVIDER_TYPE,
     ArchiveReceipt,
     ConflictLinkReceipt,
     DeletionReceipt,
@@ -60,7 +61,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 else:  # pragma: no cover - runtime alias
     _Connection = Any
 
-_SCHEMA_VERSION = 7
+_SCHEMA_VERSION = 8
 
 
 # Fixed query text. Retrieval varies only by selecting one of these constants,
@@ -277,18 +278,23 @@ class PostgresRecordStore:
             "ALTER TABLE outbox_events ADD COLUMN IF NOT EXISTS lease_id TEXT",
             "ALTER TABLE outbox_events ADD COLUMN IF NOT EXISTS lease_owner TEXT",
             "ALTER TABLE outbox_events ADD COLUMN IF NOT EXISTS lease_expires_at TIMESTAMPTZ",
+            # One row per durable provider copy, keyed by target identity
+            # (ADR-084).
             """
             CREATE TABLE IF NOT EXISTS projection_links (
                 record_id TEXT NOT NULL REFERENCES memory_records(record_id),
+                target_identity TEXT NOT NULL,
                 projection_name TEXT NOT NULL,
+                provider_type TEXT NOT NULL,
                 namespace TEXT NOT NULL,
                 locator TEXT NOT NULL,
                 created_at TIMESTAMPTZ NOT NULL,
                 link_json TEXT NOT NULL,
-                PRIMARY KEY (record_id, projection_name)
+                PRIMARY KEY (record_id, target_identity)
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_projection_links_locator ON projection_links(projection_name, locator)",
+            "CREATE INDEX IF NOT EXISTS idx_projection_links_target ON projection_links(target_identity, locator)",
             """
             CREATE TABLE IF NOT EXISTS maintenance_runs (
                 run_id TEXT PRIMARY KEY,
@@ -332,6 +338,7 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
+                self._migrate_projection_links_to_targets(tx)
                 for statement in statements:
                     tx.execute(statement)
                 tx.execute(
@@ -342,6 +349,66 @@ class PostgresRecordStore:
         except psycopg2.Error as exc:
             raise StoreError(f"postgres schema initialization failed: {exc}") from exc
         self._initialized = True
+
+    @staticmethod
+    def _projection_link_columns(tx: Any) -> set[str]:
+        tx.execute(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_schema = current_schema() AND table_name = 'projection_links'"
+        )
+        return {str(row["column_name"]) for row in tx.fetchall()}
+
+    @classmethod
+    def _migrate_projection_links_to_targets(cls, tx: Any) -> None:
+        """Rekey schema-7 links from projection name to target identity.
+
+        Identical in meaning to the SQLite migration: every existing row keeps
+        its locator and link JSON, gains the projection name it was keyed by as
+        its target identity, and the primary key becomes
+        ``(record_id, target_identity)``. The table is locked and re-inspected
+        first so concurrent initializers cannot both migrate (ADR-084).
+        """
+
+        columns = cls._projection_link_columns(tx)
+        if not columns or "target_identity" in columns:
+            return
+        from psycopg2 import sql
+
+        tx.execute("LOCK TABLE projection_links IN ACCESS EXCLUSIVE MODE")
+        if "target_identity" in cls._projection_link_columns(tx):
+            return
+        tx.execute("SELECT COUNT(*) AS count FROM projection_links")
+        original = int(tx.fetchone()["count"])
+        tx.execute("ALTER TABLE projection_links ADD COLUMN target_identity TEXT")
+        tx.execute("ALTER TABLE projection_links ADD COLUMN provider_type TEXT")
+        tx.execute(
+            "UPDATE projection_links SET target_identity = projection_name, provider_type = %s",
+            (LEGACY_PROVIDER_TYPE,),
+        )
+        tx.execute("ALTER TABLE projection_links ALTER COLUMN target_identity SET NOT NULL")
+        tx.execute("ALTER TABLE projection_links ALTER COLUMN provider_type SET NOT NULL")
+        tx.execute(
+            "SELECT conname FROM pg_constraint "
+            "WHERE conrelid = 'projection_links'::regclass AND contype = 'p'"
+        )
+        primary = tx.fetchone()
+        if primary is not None:
+            tx.execute(
+                sql.SQL("ALTER TABLE projection_links DROP CONSTRAINT {}").format(
+                    sql.Identifier(str(primary["conname"]))
+                )
+            )
+        tx.execute("ALTER TABLE projection_links ADD PRIMARY KEY (record_id, target_identity)")
+        tx.execute(
+            "SELECT COUNT(*) AS count FROM projection_links "
+            "WHERE target_identity = projection_name AND provider_type = %s",
+            (LEGACY_PROVIDER_TYPE,),
+        )
+        migrated = int(tx.fetchone()["count"])
+        if migrated != original:
+            raise StoreError(
+                f"projection link migration rekeyed {migrated} of {original} links; aborted"
+            )
 
     def close(self) -> None:
         connection = getattr(self._local, "connection", None)
@@ -977,9 +1044,12 @@ class PostgresRecordStore:
                 tx.execute(
                     """
                     INSERT INTO projection_links (
-                        record_id, projection_name, namespace, locator, created_at, link_json
-                    ) VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT(record_id, projection_name) DO UPDATE SET
+                        record_id, target_identity, projection_name, provider_type,
+                        namespace, locator, created_at, link_json
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT(record_id, target_identity) DO UPDATE SET
+                        projection_name = excluded.projection_name,
+                        provider_type = excluded.provider_type,
                         namespace = excluded.namespace,
                         locator = excluded.locator,
                         created_at = excluded.created_at,
@@ -987,7 +1057,9 @@ class PostgresRecordStore:
                     """,
                     (
                         str(link.record_id),
+                        link.target_identity,
                         link.projection_name,
+                        link.provider_type,
                         link.namespace,
                         link.locator,
                         link.created_at,
@@ -997,28 +1069,64 @@ class PostgresRecordStore:
         except psycopg2.Error as exc:
             raise StoreError(f"projection link persistence failed: {exc}") from exc
 
+    @staticmethod
+    def _row_to_link(row: Any) -> ProjectionLink:
+        # The columns are the durable key; the JSON of a migrated schema-7 row
+        # predates target identity and is read under the key it is stored at.
+        data = json.loads(str(row["link_json"]))
+        data["target_identity"] = str(row["target_identity"])
+        data["provider_type"] = str(row["provider_type"])
+        return ProjectionLink.model_validate(data)
+
     def get_projection_link(
         self,
         record_id: UUID,
-        projection_name: str,
+        target_identity: str,
     ) -> ProjectionLink | None:
         with self._cursor() as cursor:
             cursor.execute(
-                "SELECT link_json FROM projection_links WHERE record_id = %s AND projection_name = %s",
-                (str(record_id), projection_name),
+                "SELECT target_identity, provider_type, link_json FROM projection_links "
+                "WHERE record_id = %s AND target_identity = %s",
+                (str(record_id), target_identity),
             )
             row = cursor.fetchone()
         if row is None:
             return None
-        return ProjectionLink.model_validate_json(str(row["link_json"]))
+        return self._row_to_link(row)
 
-    def delete_projection_link(self, record_id: UUID, projection_name: str) -> None:
+    def list_projection_links(self, record_id: UUID) -> list[ProjectionLink]:
+        with self._cursor() as cursor:
+            cursor.execute(
+                "SELECT target_identity, provider_type, link_json FROM projection_links "
+                "WHERE record_id = %s ORDER BY target_identity",
+                (str(record_id),),
+            )
+            rows = cursor.fetchall()
+        return [self._row_to_link(row) for row in rows]
+
+    def list_projection_target_identities(self) -> tuple[str, ...]:
+        with self._cursor() as cursor:
+            cursor.execute("SELECT DISTINCT target_identity FROM projection_links")
+            identities = {str(row["target_identity"]) for row in cursor.fetchall()}
+            cursor.execute(
+                "SELECT event_json FROM outbox_events WHERE status NOT IN (%s, %s)",
+                (OutboxStatus.DELIVERED.value, OutboxStatus.DEAD.value),
+            )
+            rows = cursor.fetchall()
+        for row in rows:
+            event = OutboxEvent.model_validate_json(str(row["event_json"]))
+            identity = event.payload.get("target_identity")
+            if isinstance(identity, str) and identity.strip():
+                identities.add(identity.strip())
+        return tuple(sorted(identities))
+
+    def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
                 tx.execute(
-                    "DELETE FROM projection_links WHERE record_id = %s AND projection_name = %s",
-                    (str(record_id), projection_name),
+                    "DELETE FROM projection_links WHERE record_id = %s AND target_identity = %s",
+                    (str(record_id), target_identity),
                 )
         except psycopg2.Error as exc:
             raise StoreError(f"projection link deletion failed: {exc}") from exc
@@ -1043,7 +1151,7 @@ class PostgresRecordStore:
         self,
         tenant_id: str,
         namespace: str,
-        projection_name: str,
+        target_identity: str,
         *,
         limit: int = 1_000,
     ) -> list[MemoryRecord]:
@@ -1052,13 +1160,13 @@ class PostgresRecordStore:
                 """
                 SELECT r.record_json FROM memory_records AS r
                 LEFT JOIN projection_links AS l
-                  ON l.record_id = r.record_id AND l.projection_name = %s
+                  ON l.record_id = r.record_id AND l.target_identity = %s
                 WHERE r.tenant_id = %s AND r.namespace = %s AND r.state = %s
                   AND l.record_id IS NULL
                 ORDER BY r.recorded_at ASC LIMIT %s
                 """,
                 (
-                    projection_name,
+                    target_identity,
                     tenant_id,
                     namespace,
                     MemoryState.ACTIVE.value,
@@ -1234,7 +1342,8 @@ class PostgresRecordStore:
         receipt: DeletionReceipt,
         redacted_record: MemoryRecord,
         *,
-        outbox_event: OutboxEvent | None,
+        outbox_event: OutboxEvent | None = None,
+        outbox_events: tuple[OutboxEvent, ...] = (),
         status_event: MemoryStatusEvent,
     ) -> None:
         require_service_write_capability(capability)
@@ -1295,8 +1404,11 @@ class PostgresRecordStore:
                     created_at=receipt.created_at,
                     payload=receipt.model_dump(mode="json"),
                 )
-                if outbox_event is not None:
-                    self._insert_outbox(tx, outbox_event)
+                for event in (
+                    *((outbox_event,) if outbox_event is not None else ()),
+                    *outbox_events,
+                ):
+                    self._insert_outbox(tx, event)
         except psycopg2.IntegrityError as exc:
             raise StoreError(f"atomic deletion request violated store constraints: {exc}") from exc
         except psycopg2.Error as exc:
@@ -1326,6 +1438,16 @@ class PostgresRecordStore:
                 receipt_row = tx.fetchone()
                 if record_row is None or receipt_row is None:
                     raise StoreError("deletion record or receipt not found")
+                tx.execute(
+                    "SELECT COUNT(*) AS count FROM projection_links WHERE record_id = %s",
+                    (str(record_id),),
+                )
+                remaining = int(tx.fetchone()["count"])
+                if remaining:
+                    raise StoreError(
+                        f"deletion of {record_id} cannot complete while {remaining} "
+                        "projection link(s) remain unerased"
+                    )
                 record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
                 receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
                 updated_receipt = receipt.model_copy(

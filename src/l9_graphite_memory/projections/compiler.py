@@ -63,6 +63,7 @@ def compile_projection(manifest: ProjectionManifest) -> CompiledProjection:
             provider_id=provider.id,
             provider_type=provider.type,
             target=provider.target,
+            mode=provider.mode,
             required=provider.required,
         )
         for provider in sorted(

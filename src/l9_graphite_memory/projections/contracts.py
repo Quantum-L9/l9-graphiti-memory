@@ -44,6 +44,21 @@ class ProviderType(str, Enum):
     ZEP = "zep"
 
 
+class TargetMode(str, Enum):
+    """Rollout mode of one provider target (ADR-084).
+
+    ``active`` targets receive deliveries, take part in lifecycle, and may
+    contribute to normal retrieval. ``shadow`` targets receive deliveries and
+    take part in lifecycle but never influence returned retrieval results.
+    ``disabled`` targets receive no new deliveries and are never queried; any
+    copy they already hold remains in the record's erasure set.
+    """
+
+    ACTIVE = "active"
+    SHADOW = "shadow"
+    DISABLED = "disabled"
+
+
 class DistanceMetric(str, Enum):
     COSINE = "cosine"
     DOT_PRODUCT = "dot_product"
@@ -60,7 +75,20 @@ class ProviderTarget(StrictFrozenModel):
     id: str = Field(pattern=r"^[a-z][a-z0-9-]{0,61}$")
     type: ProviderType
     target: str = Field(pattern=r"^[a-z][a-z0-9-]{0,126}$")
+    # Unset means no delivery: a target only receives writes once its rollout
+    # mode is declared.
+    mode: TargetMode = TargetMode.DISABLED
+    # Whether a failure of this target fails the operation. Independent of
+    # mode, but only meaningful for an active target (ADR-084).
     required: bool = False
+
+    @model_validator(mode="after")
+    def reject_required_outside_active(self) -> ProviderTarget:
+        if self.required and self.mode != TargetMode.ACTIVE:
+            raise ValueError(
+                f"provider {self.id} is {self.mode}; only an active target can be required"
+            )
+        return self
 
 
 class ProjectionSource(StrictFrozenModel):
@@ -265,12 +293,32 @@ class ProjectionManifest(StrictFrozenModel):
     metadata: ProjectionMetadata
     spec: ProjectionSpec
 
+    @model_validator(mode="after")
+    def validate_status_against_target_modes(self) -> ProjectionManifest:
+        """Bind projection status to its targets' rollout modes (ADR-084).
+
+        A ``shadow`` projection may not expose an active target, a ``retired``
+        projection may not deliver at all, and an ``active`` projection must
+        have at least one active target.
+        """
+
+        modes = {provider.mode for provider in self.spec.providers}
+        status = self.metadata.status
+        if status == ProjectionStatus.SHADOW and TargetMode.ACTIVE in modes:
+            raise ValueError("a shadow projection cannot declare an active target")
+        if status == ProjectionStatus.RETIRED and modes - {TargetMode.DISABLED}:
+            raise ValueError("a retired projection can only declare disabled targets")
+        if status == ProjectionStatus.ACTIVE and TargetMode.ACTIVE not in modes:
+            raise ValueError("an active projection requires at least one active target")
+        return self
+
 
 class CompiledProjectionTarget(StrictFrozenModel):
     identity: str
     provider_id: str
     provider_type: ProviderType
     target: str
+    mode: TargetMode
     required: bool
 
 

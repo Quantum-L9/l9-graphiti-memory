@@ -12,7 +12,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 from l9_graphite_memory.admission import AdmissionEngine, normalize_candidate
@@ -86,6 +86,7 @@ from l9_graphite_memory.ports import (
     SystemClock,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
+from l9_graphite_memory.projections.runtime import ProjectionRuntime, ProjectionTargetBinding
 from l9_graphite_memory.retrieval import ContextBudgetAllocator, RetrievalPlanner
 from l9_graphite_memory.version import MEMORY_SCHEMA_VERSION, PACKAGE_VERSION
 
@@ -119,7 +120,7 @@ class MemoryService:
     def __init__(
         self,
         store: RecordStore,
-        projection: ProjectionAdapter,
+        projection: ProjectionAdapter | ProjectionRuntime,
         *,
         namespace_policy: NamespacePolicy | None = None,
         admission: AdmissionEngine | None = None,
@@ -132,15 +133,14 @@ class MemoryService:
         projection_required: bool = False,
     ) -> None:
         self.store = store
-        self.projection = projection
+        # Every projection decision below is made per target identity; the
+        # runtime says which targets exist, never what a provider means
+        # (ADR-084).
+        self.projections = ProjectionRuntime.coerce(projection, required=projection_required)
         self.namespace_policy = namespace_policy or NamespacePolicy()
         self.admission = admission or AdmissionEngine()
         self.clock = clock or SystemClock()
-        self.retrieval = retrieval or RetrievalPlanner(
-            store,
-            projection,
-            projection_required=projection_required,
-        )
+        self.retrieval = retrieval or RetrievalPlanner(store, self.projections)
         self.budget_allocator = budget_allocator or ContextBudgetAllocator()
         self.promotion_policy = promotion_policy or PromotionPolicy()
         self.retention_policy = retention_policy or RetentionPolicy()
@@ -149,6 +149,51 @@ class MemoryService:
 
     def initialize(self) -> None:
         self.store.initialize()
+
+    def _delivery_targets(self) -> tuple[str, ...]:
+        return tuple(binding.identity for binding in self.projections.delivery_targets())
+
+    def _copy_holders(self, record_id: UUID) -> tuple[str, ...]:
+        """Targets that may hold a projected copy of this record.
+
+        Every target with a persisted link holds one, whatever its current
+        mode, and is listed even if it is no longer configured. Every
+        delivering target is listed too, because its copy may be in flight.
+        Retirement and erasure address exactly this set, one event per target
+        (ADR-084).
+        """
+
+        identities = dict.fromkeys(self._delivery_targets())
+        identities.update(
+            dict.fromkeys(
+                link.target_identity for link in self.store.list_projection_links(record_id)
+            )
+        )
+        return tuple(identities)
+
+    @staticmethod
+    def _target_events(
+        event_type: str,
+        record_id: UUID,
+        namespace: str,
+        payload: dict[str, object],
+        targets: tuple[str, ...],
+        *,
+        now: datetime,
+    ) -> list[OutboxEvent]:
+        """One independently retryable outbox intent per target."""
+
+        return [
+            OutboxEvent(
+                event_type=event_type,
+                aggregate_id=record_id,
+                namespace=namespace,
+                payload={**payload, "target_identity": target_identity},
+                created_at=now,
+                next_attempt_at=now,
+            )
+            for target_identity in targets
+        ]
 
     @staticmethod
     def _operation_identity(request: MemoryWriteRequest) -> str:
@@ -313,39 +358,37 @@ class MemoryService:
             )
 
         outbox_events: tuple[OutboxEvent, ...] = ()
-        if state is MemoryState.ACTIVE and self.projection.name != "none":
-            events = [
-                OutboxEvent(
-                    event_type="memory.record.project",
-                    aggregate_id=record.record_id,
-                    namespace=record.namespace,
-                    payload={
-                        "record_id": str(record.record_id),
-                        "schema_version": record.schema_version,
-                    },
-                    created_at=now,
-                    next_attempt_at=now,
-                )
-            ]
+        if state is MemoryState.ACTIVE:
+            events = self._target_events(
+                "memory.record.project",
+                record.record_id,
+                record.namespace,
+                {
+                    "record_id": str(record.record_id),
+                    "schema_version": record.schema_version,
+                },
+                self._delivery_targets(),
+                now=now,
+            )
             # A superseded record must stop being projected, or retrieval keeps
             # surfacing truth the canonical store has already replaced. The
             # retirement intent commits in the same transaction as the
             # supersession itself, so the two cannot diverge (ADR-074).
-            events.extend(
-                OutboxEvent(
-                    event_type="memory.record.retire",
-                    aggregate_id=superseded_id,
-                    namespace=record.namespace,
-                    payload={
-                        "record_id": str(superseded_id),
-                        "reason": f"superseded by {record.record_id}",
-                        "superseded_by": str(record.record_id),
-                    },
-                    created_at=now,
-                    next_attempt_at=now,
+            for superseded_id in effective_supersedes:
+                events.extend(
+                    self._target_events(
+                        "memory.record.retire",
+                        superseded_id,
+                        record.namespace,
+                        {
+                            "record_id": str(superseded_id),
+                            "reason": f"superseded by {record.record_id}",
+                            "superseded_by": str(record.record_id),
+                        },
+                        self._copy_holders(superseded_id),
+                        now=now,
+                    )
                 )
-                for superseded_id in effective_supersedes
-            )
             outbox_events = tuple(events)
 
         receipt = WriteReceipt(
@@ -555,36 +598,35 @@ class MemoryService:
         for action in sorted(required, key=lambda item: item.value):
             authorization = self.namespace_policy.require(principal, action, namespace)
 
-        outbox_events: tuple[OutboxEvent, ...] = ()
-        if self.projection.name != "none":
+        lifecycle_events: list[OutboxEvent] = []
+        for item in transitions:
             if new_state is MemoryState.ACTIVE:
-                outbox_events = tuple(
-                    OutboxEvent(
-                        event_type="memory.record.project",
-                        aggregate_id=item.record_id,
-                        namespace=namespace,
-                        payload={
+                lifecycle_events.extend(
+                    self._target_events(
+                        "memory.record.project",
+                        item.record_id,
+                        namespace,
+                        {
                             "record_id": str(item.record_id),
                             "reason": reason,
                             "reactivated": True,
                         },
-                        created_at=now,
-                        next_attempt_at=now,
+                        self._delivery_targets(),
+                        now=now,
                     )
-                    for item in transitions
                 )
             else:
-                outbox_events = tuple(
-                    OutboxEvent(
-                        event_type="memory.record.retire",
-                        aggregate_id=item.record_id,
-                        namespace=namespace,
-                        payload={"record_id": str(item.record_id), "reason": reason},
-                        created_at=now,
-                        next_attempt_at=now,
+                lifecycle_events.extend(
+                    self._target_events(
+                        "memory.record.retire",
+                        item.record_id,
+                        namespace,
+                        {"record_id": str(item.record_id), "reason": reason},
+                        self._copy_holders(item.record_id),
+                        now=now,
                     )
-                    for item in transitions
                 )
+        outbox_events: tuple[OutboxEvent, ...] = tuple(lifecycle_events)
         receipt = LifecycleTransitionReceipt(
             namespace=namespace,
             transitions=tuple(transitions),
@@ -1080,24 +1122,21 @@ class MemoryService:
             # Archiving withdraws the record from active retrieval, so its
             # projection must be withdrawn too. This is retirement, not privacy
             # erasure: the canonical content is preserved (ADR-074).
-            retire_events = (
-                tuple(
-                    OutboxEvent(
-                        event_type="memory.record.retire",
-                        aggregate_id=record_id,
-                        namespace=namespace,
-                        payload={
-                            "record_id": str(record_id),
-                            "reason": archive_receipt.reason,
-                            "archive_receipt_id": str(archive_receipt.receipt_id),
-                        },
-                        created_at=now,
-                        next_attempt_at=now,
-                    )
-                    for record_id in archived_ids
+            retire_events = tuple(
+                event
+                for record_id in archived_ids
+                for event in self._target_events(
+                    "memory.record.retire",
+                    record_id,
+                    namespace,
+                    {
+                        "record_id": str(record_id),
+                        "reason": archive_receipt.reason,
+                        "archive_receipt_id": str(archive_receipt.receipt_id),
+                    },
+                    self._copy_holders(record_id),
+                    now=now,
                 )
-                if self.projection.name != "none"
-                else ()
             )
             self.store.commit_archive(
                 SERVICE_WRITE_CAPABILITY,
@@ -1147,6 +1186,10 @@ class MemoryService:
                 }
             )
         )
+        # The erasure set is every provider copy canonical state knows about,
+        # not the targets configured today: a copy held by a target that has
+        # since been disabled or removed must still be erased (ADR-084).
+        erase_targets = self._copy_holders(record.record_id)
         if request.dry_run:
             return DeletionReceipt(
                 record_id=record.record_id,
@@ -1156,27 +1199,31 @@ class MemoryService:
                 authorization=authorization,
                 reason=request.reason,
                 verification_reference=request.verification_reference,
+                projection_targets=erase_targets,
                 requested_by=principal.audit_subject,
                 created_at=now,
             )
 
-        projection_enabled = self.projection.name != "none"
-        event = (
-            OutboxEvent(
-                event_type="memory.record.erase",
-                aggregate_id=record.record_id,
-                namespace=record.namespace,
-                payload={},
-                created_at=now,
-                next_attempt_at=now,
+        projection_enabled = bool(erase_targets)
+        receipt_id = uuid4()
+        events = tuple(
+            self._target_events(
+                "memory.record.erase",
+                record.record_id,
+                record.namespace,
+                {
+                    "record_id": str(record.record_id),
+                    "deletion_receipt_id": str(receipt_id),
+                },
+                erase_targets,
+                now=now,
             )
-            if projection_enabled
-            else None
         )
         status = (
             DeletionStatus.PENDING_PROJECTION if projection_enabled else DeletionStatus.COMPLETE
         )
         receipt = DeletionReceipt(
+            receipt_id=receipt_id,
             record_id=record.record_id,
             namespace=record.namespace,
             status=status,
@@ -1184,20 +1231,13 @@ class MemoryService:
             authorization=authorization,
             reason=request.reason,
             verification_reference=request.verification_reference,
-            projection_event_id=event.event_id if event else None,
+            projection_event_id=events[0].event_id if events else None,
+            projection_event_ids=tuple(event.event_id for event in events),
+            projection_targets=erase_targets,
             requested_by=principal.audit_subject,
             created_at=now,
             completed_at=now if not projection_enabled else None,
         )
-        if event is not None:
-            event = event.model_copy(
-                update={
-                    "payload": {
-                        "record_id": str(record.record_id),
-                        "deletion_receipt_id": str(receipt.receipt_id),
-                    }
-                }
-            )
         redacted_state = MemoryState.DELETION_PENDING if projection_enabled else MemoryState.DELETED
         redacted_record = record.model_copy(
             update={
@@ -1227,7 +1267,7 @@ class MemoryService:
             SERVICE_WRITE_CAPABILITY,
             receipt,
             redacted_record,
-            outbox_event=event,
+            outbox_events=events,
             status_event=MemoryStatusEvent(
                 record_id=record.record_id,
                 previous_state=record.state,
@@ -1253,6 +1293,7 @@ class MemoryService:
         apply: bool,
         limit: int = 1_000,
         reason: str = "projection rebuild",
+        target: str | None = None,
     ) -> ProjectionRebuildReceipt:
         """Re-project active canonical records that have no live projection.
 
@@ -1261,6 +1302,12 @@ class MemoryService:
         projection link is queued for projection again. Projections are
         derivations, so rebuilding is always safe and never touches canonical
         state.
+
+        Missing copies are found per target: a record that lacks a link for
+        one target is queued for that target only, and a healthy copy in
+        another target is left alone. ``target`` limits the rebuild to one
+        target identity; by default every delivering target is considered
+        (ADR-084).
         """
 
         authorization = self.namespace_policy.require(
@@ -1268,15 +1315,46 @@ class MemoryService:
             AuthorizationAction.MAINTAIN if apply else AuthorizationAction.READ,
             namespace,
         )
-        if self.projection.name == "none":
+        selected: tuple[ProjectionTargetBinding, ...]
+        if target is not None:
+            binding = self.projections.target(target)
+            if not binding.delivers:
+                raise StoreError(
+                    f"projection target {target} is {binding.mode.value}; it receives no deliveries"
+                )
+            selected = (binding,)
+        else:
+            selected = self.projections.delivery_targets()
+        if not selected:
             raise StoreError("projection backend is 'none'; there is nothing to rebuild")
         now = self.clock.now()
-        candidates = self.store.list_unprojected_records(
-            principal.tenant_id,
-            namespace,
-            self.projection.name,
-            limit=limit,
-        )
+        queued_by_target: dict[str, tuple[UUID, ...]] = {}
+        event_list: list[OutboxEvent] = []
+        queued: dict[UUID, None] = {}
+        for binding in selected:
+            candidates = self.store.list_unprojected_records(
+                principal.tenant_id,
+                namespace,
+                binding.identity,
+                limit=limit,
+            )
+            queued_by_target[binding.identity] = tuple(record.record_id for record in candidates)
+            for record in candidates:
+                queued[record.record_id] = None
+                event_list.extend(
+                    self._target_events(
+                        "memory.record.project",
+                        record.record_id,
+                        namespace,
+                        {
+                            "record_id": str(record.record_id),
+                            "schema_version": record.schema_version,
+                            "rebuild": True,
+                        },
+                        (binding.identity,),
+                        now=now,
+                    )
+                )
         total_active = len(
             self.store.list_records(
                 principal.tenant_id,
@@ -1285,29 +1363,17 @@ class MemoryService:
                 limit=limit,
             )
         )
-        events = tuple(
-            OutboxEvent(
-                event_type="memory.record.project",
-                aggregate_id=record.record_id,
-                namespace=namespace,
-                payload={
-                    "record_id": str(record.record_id),
-                    "schema_version": record.schema_version,
-                    "rebuild": True,
-                },
-                created_at=now,
-                next_attempt_at=now,
-            )
-            for record in candidates
-        )
+        events = tuple(event_list)
         receipt = ProjectionRebuildReceipt(
             namespace=namespace,
-            projection_name=self.projection.name,
+            projection_name=selected[0].projection_name,
             applied=apply,
             considered_record_count=total_active,
-            already_projected_count=max(total_active - len(candidates), 0),
-            queued_record_ids=tuple(record.record_id for record in candidates),
+            already_projected_count=max(total_active - len(queued), 0),
+            queued_record_ids=tuple(queued),
             outbox_event_ids=tuple(event.event_id for event in events),
+            target_identities=tuple(binding.identity for binding in selected),
+            queued_by_target=queued_by_target,
             authorization=authorization,
             reason=reason,
             actor=principal.audit_subject,
@@ -1321,12 +1387,12 @@ class MemoryService:
 
     def health(self) -> HealthReport:
         store_health = self.store.health()
-        projection_health = self.projection.health()
+        projection_health = self.projections.health()
         degraded: list[str] = []
         if not store_health.get("healthy"):
             status = OperationStatus.FAILED
             degraded.append("canonical store is unhealthy")
-        elif self.projection.name != "none" and not projection_health.get("healthy"):
+        elif self.projections.enabled and not projection_health.get("healthy"):
             status = OperationStatus.PARTIAL
             degraded.append("projection is unhealthy")
         else:
