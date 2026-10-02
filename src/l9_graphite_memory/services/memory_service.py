@@ -66,6 +66,13 @@ from l9_graphite_memory.contracts import (
     WriteReceipt,
     WriteStatus,
 )
+from l9_graphite_memory.contracts.generated_data import (
+    RevalidationRequirement,
+    SourceInvalidationEvent,
+    SourceInvalidationReceipt,
+    SourceInvalidationRequest,
+    SourceInvalidationStatus,
+)
 from l9_graphite_memory.curation import (
     PromotionPolicy,
     RetentionEngine,
@@ -536,9 +543,47 @@ class MemoryService:
         clean RELEASE never lowers the authority required.
         """
 
+        receipt, status_events, outbox_events = self._plan_lifecycle_transition(
+            principal,
+            namespace,
+            record_ids=record_ids,
+            new_state=new_state,
+            reason=reason,
+            review=review,
+            evidence=evidence,
+        )
+        self.store.commit_lifecycle(
+            SERVICE_WRITE_CAPABILITY,
+            receipt,
+            status_events=status_events,
+            outbox_events=outbox_events,
+        )
+        return receipt
+
+    def _plan_lifecycle_transition(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        record_ids: tuple[UUID, ...],
+        new_state: MemoryState,
+        reason: str,
+        review: QuarantineReviewVerdict | None,
+        evidence: tuple[EvidenceRef, ...],
+        now: datetime | None = None,
+    ) -> tuple[LifecycleTransitionReceipt, tuple[MemoryStatusEvent, ...], tuple[OutboxEvent, ...]]:
+        """Validate, authorize, and assemble one governed transition; commit nothing.
+
+        Every check of ``transition_lifecycle`` happens here: the governed
+        transition table, tenant and namespace confinement, and the authority
+        each transition requires. A caller that must commit several planned
+        transitions as one operation, such as source invalidation across
+        namespaces, plans them all before committing any (ADR-086).
+        """
+
         if not record_ids:
             raise AdmissionError("lifecycle transition requires at least one record")
-        now = self.clock.now()
+        now = now or self.clock.now()
         transitions: list[LifecycleTransition] = []
         status_events: list[MemoryStatusEvent] = []
         required: set[AuthorizationAction] = set()
@@ -637,16 +682,211 @@ class MemoryService:
             evidence=tuple(evidence_items),
             created_at=now,
         )
-        self.store.commit_lifecycle(
-            SERVICE_WRITE_CAPABILITY,
+        return (
             receipt,
-            status_events=tuple(
+            tuple(
                 event.model_copy(update={"receipt_id": receipt.receipt_id})
                 for event in status_events
             ),
-            outbox_events=outbox_events,
+            outbox_events,
         )
-        return receipt
+
+    def invalidate_by_source(
+        self, principal: MemoryPrincipal, request: SourceInvalidationRequest
+    ) -> SourceInvalidationReceipt:
+        """Archive the current records a structured source change invalidates.
+
+        Matching is equality on persisted structured selectors only, never on
+        statement text. Every matching ACTIVE record is resolved first, then
+        every affected namespace, then the principal is authorized for each
+        through the governed lifecycle table (ACTIVE -> ARCHIVED needs READ and
+        MAINTAIN). Only then is anything mutated, and the whole operation --
+        operation record, one lifecycle receipt per namespace, status events,
+        target-aware retirement intents, revalidation requirements and
+        selector deactivation -- commits in one store transaction or not at
+        all. Nothing is deleted and no replacement is created.
+
+        The operation identity is ``request.operation_id()``. Replaying the
+        same identity with the same body returns the established result
+        without mutating again; the same identity with a different body is a
+        conflict and is rejected (ADR-086).
+        """
+
+        operation_id = request.operation_id()
+        digest = request.request_digest()
+        existing = self.store.get_source_invalidation(principal.tenant_id, operation_id)
+        if existing is not None:
+            return self._replayed_invalidation(principal, request, existing, digest)
+
+        record_ids: dict[UUID, None] = {}
+        for selector in request.normalized_selectors():
+            for record_id in self.store.find_source_selector_matches(
+                principal.tenant_id,
+                repository=request.repository,
+                selector_type=selector.selector_type,
+                selector_value=selector.selector_value,
+            ):
+                record_ids[record_id] = None
+        by_namespace: dict[str, list[UUID]] = {}
+        for record_id in record_ids:
+            record = self.store.get_record(record_id)
+            if record is None or record.tenant_id != principal.tenant_id:
+                continue
+            by_namespace.setdefault(record.namespace, []).append(record_id)
+        matched = sum(len(ids) for ids in by_namespace.values())
+
+        def rejected(reason: str) -> SourceInvalidationReceipt:
+            return SourceInvalidationReceipt(
+                status=SourceInvalidationStatus.REJECTED,
+                event_type=request.event_type,
+                event_id=operation_id,
+                matched=matched,
+                reason=reason,
+            )
+
+        for namespace in sorted(by_namespace):
+            for action in (AuthorizationAction.READ, AuthorizationAction.MAINTAIN):
+                decision = self.namespace_policy.evaluate(principal, action, namespace)
+                if not decision.allowed:
+                    return rejected(
+                        f"not authorized to invalidate records in {namespace!r}: "
+                        + "; ".join(decision.reasons)
+                    )
+
+        now = self.clock.now()
+        reason = f"source invalidation {request.event_type} ({operation_id})"
+        evidence = (
+            EvidenceRef(
+                kind=EvidenceKind.EXPLICIT,
+                description=(
+                    f"structured source invalidation {request.event_type}"
+                    f" repository={request.repository or '*'}"
+                    f" from={request.from_sha or '-'} to={request.to_sha or '-'}"
+                )[:2_000],
+                source_id=operation_id,
+                observed_at=now,
+            ),
+        )
+        receipts: list[LifecycleTransitionReceipt] = []
+        status_events: list[MemoryStatusEvent] = []
+        outbox_events: list[OutboxEvent] = []
+        requirements: list[RevalidationRequirement] = []
+        try:
+            for namespace in sorted(by_namespace):
+                receipt, events, intents = self._plan_lifecycle_transition(
+                    principal,
+                    namespace,
+                    record_ids=tuple(by_namespace[namespace]),
+                    new_state=MemoryState.ARCHIVED,
+                    reason=reason,
+                    review=None,
+                    evidence=evidence,
+                    now=now,
+                )
+                receipts.append(receipt)
+                status_events.extend(events)
+                outbox_events.extend(intents)
+                requirements.extend(
+                    RevalidationRequirement(
+                        tenant_id=principal.tenant_id,
+                        namespace=namespace,
+                        record_id=record_id,
+                        invalidation_event_id=operation_id,
+                        reason=reason,
+                        created_at=now,
+                    )
+                    for record_id in by_namespace[namespace]
+                )
+        except (AuthorizationError, AdmissionError, StoreError) as exc:
+            return rejected(f"source invalidation not applied: {exc}")
+
+        transitioned = tuple(item.record_id for item in status_events)
+        event = SourceInvalidationEvent(
+            event_id=operation_id,
+            tenant_id=principal.tenant_id,
+            request_digest=digest,
+            compatibility_form=request.compatibility_form,
+            event_type=request.event_type,
+            repository=request.repository,
+            from_sha=request.from_sha,
+            to_sha=request.to_sha,
+            selectors=request.normalized_selectors(),
+            namespaces=tuple(sorted(by_namespace)),
+            matched=matched,
+            transitioned=len(transitioned),
+            record_ids=transitioned,
+            lifecycle_receipt_ids=tuple(item.receipt_id for item in receipts),
+            revalidation_requirement_ids=tuple(item.requirement_id for item in requirements),
+            actor=principal.audit_subject,
+            created_at=now,
+        )
+        try:
+            self.store.commit_source_invalidation(
+                SERVICE_WRITE_CAPABILITY,
+                event,
+                lifecycle_receipts=tuple(receipts),
+                status_events=tuple(status_events),
+                outbox_events=tuple(outbox_events),
+                revalidation_requirements=tuple(requirements),
+            )
+        except IdempotencyConflict:
+            # A concurrent replay of this operation committed first; the
+            # stored operation is the authority (ADR-008).
+            winner = self.store.get_source_invalidation(principal.tenant_id, operation_id)
+            if winner is None:
+                raise
+            return self._replayed_invalidation(principal, request, winner, digest)
+        except StoreError as exc:
+            # A record left ACTIVE between resolution and commit: nothing was
+            # committed, and a retry resolves the matches again.
+            return rejected(f"source invalidation not applied: {exc}")
+        return self._invalidation_receipt(event)
+
+    @staticmethod
+    def _invalidation_receipt(event: SourceInvalidationEvent) -> SourceInvalidationReceipt:
+        return SourceInvalidationReceipt(
+            status=SourceInvalidationStatus.APPLIED,
+            event_type=event.event_type,
+            event_id=event.event_id,
+            matched=event.matched,
+            transitioned=event.transitioned,
+            record_ids=list(event.record_ids),
+            lifecycle_receipt_ids=list(event.lifecycle_receipt_ids),
+            revalidation_requirement_ids=list(event.revalidation_requirement_ids),
+        )
+
+    def _replayed_invalidation(
+        self,
+        principal: MemoryPrincipal,
+        request: SourceInvalidationRequest,
+        existing: SourceInvalidationEvent,
+        digest: str,
+    ) -> SourceInvalidationReceipt:
+        """The established result of an applied operation, or a conflict."""
+
+        if existing.request_digest != digest:
+            return SourceInvalidationReceipt(
+                status=SourceInvalidationStatus.REJECTED,
+                event_type=request.event_type,
+                event_id=existing.event_id,
+                reason=(
+                    f"invalidation operation identity {existing.event_id!r} was already "
+                    "applied with a different request body; send a new event_id"
+                ),
+            )
+        # The established result names records; disclose it only to a
+        # principal that could have applied it.
+        for namespace in existing.namespaces:
+            for action in (AuthorizationAction.READ, AuthorizationAction.MAINTAIN):
+                decision = self.namespace_policy.evaluate(principal, action, namespace)
+                if not decision.allowed:
+                    return SourceInvalidationReceipt(
+                        status=SourceInvalidationStatus.REJECTED,
+                        event_type=request.event_type,
+                        event_id=existing.event_id,
+                        reason=f"not authorized to read invalidation results in {namespace!r}",
+                    )
+        return self._invalidation_receipt(existing)
 
     def write_governed(
         self,

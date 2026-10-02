@@ -75,6 +75,9 @@ _GUARDED_STORE_METHODS = {
     "transition_state",
     # Writes conflict links onto canonical records under a receipt (ADR-081).
     "commit_conflict_links",
+    # Archives selector-matched records with receipts, retirement intents,
+    # and revalidation requirements in one transaction (ADR-086).
+    "commit_source_invalidation",
 }
 # Only these modules may reference the service write capability. Anything else
 # forwarding it would be minting proof-of-service for a bypass.
