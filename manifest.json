@@ -398,7 +398,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "d4daf9091aae6b848001163a10ea0358dab916f84643a746d8d22a154e0a810a",
+      "sha256": "74ca8ffd6d3a45a6b20331aff927120da6ba9811b46d60ddaa81354044da0031",
       "size_bytes": 125233
     },
     {
@@ -9182,8 +9182,8 @@
         "version": "2.5.0"
       },
       "path": "tests/regression/test_release_version_consistency.py",
-      "sha256": "ebcd4c9fc68764263fc7ca5d0cf9adba43d7e3a99f55ce8f088de4f5bd4935a7",
-      "size_bytes": 4187
+      "sha256": "69b0e55d10ec0eab657ff6247ed42cb930c01059e914eb80ae1f81c816e6177f",
+      "size_bytes": 4150
     },
     {
       "category": "tests",

@@ -626,7 +626,7 @@ updated: 2026-07-22
 | `tests/regression/test_phase6_operator.py` | `tests` | `test` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `test` | 1699 | `b00c392c218b7cbda7adf9fbf5d436a73a796547b43aab926111b49e238a5ac0` |
 | `tests/regression/test_release_shell.py` | `tests` | `test` | 12603 | `a7f810114e8538da25e6aec7bcc37baab8a716db8dac10e723878daec32e3d71` |
-| `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 4187 | `ebcd4c9fc68764263fc7ca5d0cf9adba43d7e3a99f55ce8f088de4f5bd4935a7` |
+| `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 4150 | `69b0e55d10ec0eab657ff6247ed42cb930c01059e914eb80ae1f81c816e6177f` |
 | `tests/regression/test_skill_pack.py` | `tests` | `test` | 1031 | `9c4348e93021b99d60e6b74e0a115dce2ccf52e2ad25eb3c11891b3ab4d9c61b` |
 | `tests/unit/__init__.py` | `tests` | `test` | 210 | `c94d0d5b48d740a0068f24bf8fd4414127dcb200c9c43122e45fdd1b465acc2c` |
 | `tests/unit/active/__init__.py` | `tests` | `test` | 217 | `33394e626e14853c40015571f215145dbc32e33eccbaf303dda9645b6874f582` |

@@ -58,6 +58,14 @@ def test_release_version_is_written_identically_everywhere() -> None:
         "preflight.sh": _preflight_version(),
     }
     assert len(set(seen.values())) == 1, seen
+    # The provider initialize handshake reports the running release. A literal
+    # there survived the 2.3.0-2.5.0 bumps unnoticed, so the wire identity must
+    # come from PACKAGE_VERSION rather than be one more carrier to keep in sync.
+    transport = (REPO_ROOT / "src" / "l9_graphite_memory" / "transport.py").read_text(
+        encoding="utf-8"
+    )
+    assert '"clientInfo": {"name": "l9-graphite-memory", "version": PACKAGE_VERSION}' in transport
+    assert not re.search(r'"clientInfo":\s*\{[^}]*"version":\s*"', transport)
 
 
 def _preflight_version() -> str:
@@ -76,15 +84,6 @@ def test_validation_evidence_pins_name_the_release_wheel() -> None:
     escaped = PACKAGE_VERSION.replace(".", r"\.")
     assert f"l9_graphite_memory-{escaped}-py3-none-any" in text
     assert f"l9-graphite-memory=={escaped}" in text
-
-
-def test_runtime_wire_identity_has_no_version_literal() -> None:
-    # The provider initialize handshake reports the running release. A literal
-    # here survived the 2.3.0-2.5.0 bumps unnoticed, so the wire identity must
-    # come from PACKAGE_VERSION rather than be one more carrier to keep in sync.
-    text = (REPO_ROOT / "src" / "l9_graphite_memory" / "transport.py").read_text(encoding="utf-8")
-    assert '"clientInfo": {"name": "l9-graphite-memory", "version": PACKAGE_VERSION}' in text
-    assert not re.search(r'"clientInfo":\s*\{[^}]*"version":\s*"', text)
 
 
 def test_published_optional_dependencies_have_no_direct_url() -> None:
