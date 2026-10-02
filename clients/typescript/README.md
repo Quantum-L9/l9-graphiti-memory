@@ -1,8 +1,8 @@
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/README.md
-layer: documentation
+path: clients/typescript/README.md
+layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0

@@ -2,7 +2,7 @@
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
 path: release-work/repository-review/projection-control-reconciliation.md
-layer: repository_review
+layer: repository
 owner: memory-control-plane
 status: accepted
 version: 2.3.0

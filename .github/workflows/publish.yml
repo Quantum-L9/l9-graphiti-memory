@@ -5,8 +5,8 @@
 #   layer: ci
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.3.0
-#   updated: 2026-09-07
+#   version: 2.5.0
+#   updated: 2026-10-02
 
 name: Publish
 on:
@@ -54,9 +54,17 @@ jobs:
     env:
       L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
       L9_MEMORY_TEST_REDIS_URL: redis://localhost:6379/0
-      # Match scripts/validate_release.sh so the uploaded wheel is the same
-      # bytes the release proof hashed (SOURCE_DATE_EPOCH default there).
+      # Reproducible build epoch (audit P1-01): setuptools takes zip timestamps
+      # from SOURCE_DATE_EPOCH, so the digests recorded below are stable for a
+      # consumer pin. Reproducibility is not artifact identity, though: the
+      # bytes published are the bytes validated because they are the SAME
+      # files, built once below and handed to validation and publication.
       SOURCE_DATE_EPOCH: "1784592000"
+      # The artifact set is built once into dist/. Validation inspects exactly
+      # that directory (publication mode: no rebuild) and publication uploads
+      # exactly that directory.
+      L9_RELEASE_ARTIFACT_DIR: dist
+      L9_RELEASE_EVIDENCE_DIR: build/release-validation
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,24 +83,27 @@ jobs:
         run: echo "PYTHONPATH=$PWD/src${PYTHONPATH:+:$PYTHONPATH}" >> "$GITHUB_ENV"
       - run: ruff check .
       - run: mypy src/l9_graphite_memory
-      - run: bash scripts/validate_release.sh
-      # Release evidence (audit P1-01): the published artifacts must be
-      # byte-identical to the wheel the consumer proved against this commit
-      # (Cursor-Governance ops/config/memory-binding.json release_evidence,
-      # built with `uv build --wheel` under the same epoch). setuptools takes
-      # zip timestamps from SOURCE_DATE_EPOCH; without it every build has a new
-      # digest and no consumer pin can assert the published wheel.
-      - name: Build release artifacts (reproducible)
-        env:
-          SOURCE_DATE_EPOCH: "1784592000"
+      # The one and only build of the release artifact set. Nothing after
+      # this step builds; validation and publication consume these files.
+      - name: Build release artifacts once (wheel and sdist)
         run: python -m build --outdir dist
-      - name: Record artifact digests
+      - name: Record candidate artifact digests
+        run: sha256sum dist/* | tee build-digests.txt
+      - name: Validate the exact release artifact set
+        run: bash scripts/validate_release.sh
+      - name: Prove the validated artifact set is the publication set
         run: |
+          set -euo pipefail
+          sha256sum dist/* | diff - build-digests.txt
+          diff <(cut -d' ' -f1 build-digests.txt | sort) \
+               <(cut -d' ' -f1 build/release-validation/SHA256SUMS | sort)
           {
             echo "## Release artifacts (SOURCE_DATE_EPOCH=1784592000)"
             echo
+            echo "Built once, validated as-is, published as-is."
+            echo
             echo '```'
-            sha256sum dist/*
+            cat build-digests.txt
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
@@ -100,7 +111,8 @@ jobs:
           name: release-artifacts
           path: |
             dist/
-            validation/
+            build-digests.txt
+            build/release-validation/
             CHANGE_SUMMARY.md
             MANIFEST.md
             VALIDATION.md
@@ -108,3 +120,6 @@ jobs:
         if: >-
           startsWith(github.ref, 'refs/tags/v') ||
           (github.event_name == 'workflow_dispatch' && startsWith(inputs.release_tag, 'v'))
+        with:
+          packages-dir: dist/
+          print-hash: true

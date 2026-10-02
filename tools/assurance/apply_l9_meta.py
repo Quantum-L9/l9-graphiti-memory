@@ -6,127 +6,45 @@
 #   layer: assurance
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.5.0
+#   updated: 2026-10-02
 
-"""Apply canonical inline L9 metadata to comment-safe tracked files."""
+"""Apply canonical inline L9 metadata to comment-safe tracked files.
+
+This is a PREPARATION tool. It may insert a missing block and reconcile the
+structural identity (repo, path, layer, owner) of a stale one. With
+``--check`` it only reports what it would change and writes nothing; release
+validation runs that mode, never the mutating one.
+
+Derivation, parsing and rendering belong to ``l9_meta``; this module owns
+only where a new block is placed in a file.
+"""
 
 from __future__ import annotations
 
 import argparse
 import sys
-from datetime import date
 from pathlib import Path
 
-REPOSITORY = "Quantum-L9/l9-graphiti-memory"
+import l9_meta
+
+REPOSITORY = l9_meta.REPOSITORY
 VERSION = "2.5.0"
-COMMENT_EXTENSIONS = {
-    ".py": "#",
-    ".sh": "#",
-    ".yaml": "#",
-    ".yml": "#",
-    ".toml": "#",
-    ".gitignore": "#",
-    ".in": "#",
-}
-MARKDOWN_EXTENSIONS = {".md", ".mdc"}
-EXCLUDED_PARTS = {
-    ".git",
-    ".pytest_cache",
-    "__pycache__",
-    "build",
-    "dist",
-    "validation",
-    ".venv",
-}
-EXCLUDED_FILES = {"manifest.json"}
-# Strict-JSON documents that use a .yaml extension for readability but are
-# parsed with json.loads (which rejects comments) by the PR pack's own
-# validate-pack.sh. Kept in sync with tools/assurance/check_l9_meta.py.
-EXCLUDED_RELATIVE_PATHS = {
-    "docs/WIP/l9-bot-memory-integration-pr-pack/PACK_CONTRACT.yaml",
-    "docs/WIP/l9-bot-memory-integration-pr-pack/CONVERGENCE_REPORT.yaml",
-    "docs/WIP/l9-bot-memory-integration-pr-pack/PR_STACK.yaml",
-}
-# Whole subtrees of strict-JSON documents. check_l9_meta.py exempts
-# .github/governance/* from the inline-header requirement because
-# resolve-governance parses those files with json.loads, which rejects the
-# comment this writer would prepend. Expressing it as a prefix rather than
-# named paths keeps the writer aligned with the validator when the org seeder
-# adds a governance file this list has never heard of -- the divergence that
-# let an org-seeded .github/governance/ tree be written into invalid JSON.
-EXCLUDED_PATH_PREFIXES = (".github/governance/",)
+# Artifact fields stamped on a block this tool inserts. An existing block keeps
+# its own artifact fields: reconciliation never rewrites them from location.
+INSERTED_STATUS = "active"
+INSERTED_UPDATED = "2026-07-22"
 
 
-def _layer(path: Path) -> str:
-    parts = path.parts
-    if parts[0] == "src" and "contracts" in parts:
-        return "contract"
-    if parts[0] == "src" and "ports" in parts:
-        return "port"
-    if parts[0] == "src" and "integrations" in parts:
-        return "integration"
-    if parts[0] == "src" and "adapters" in parts:
-        return "adapter"
-    if parts[0] == "src" and "services" in parts:
-        return "service"
-    if parts[0] == "src":
-        return "package"
-    if parts[0] == "tests":
-        return "test"
-    if parts[0] == "tools":
-        return "assurance"
-    if parts[0] == "scripts":
-        return "operations"
-    if parts[0] == "hooks":
-        return "hook"
-    if parts[0] == ".github":
-        return "ci"
-    if parts[0] == "docs" and len(parts) > 1 and parts[1] == "adr":
-        return "adr"
-    if parts[0] == "docs":
-        return "documentation"
-    if parts[0] in {"config", "rules"}:
-        return "configuration"
-    if parts[0] == "skill":
-        return "skill"
-    return "repository"
-
-
-def _metadata_lines(relative: Path, prefix: str) -> list[str]:
-    updated = date(2026, 7, 22).isoformat()
-    values = (
-        ("l9_schema", "1"),
-        ("repo", REPOSITORY),
-        ("path", relative.as_posix()),
-        ("layer", _layer(relative)),
-        ("owner", "memory-control-plane"),
-        ("status", "active"),
-        ("version", VERSION),
-        ("updated", updated),
+def _new_block(relative: Path, style: str, prefix: str) -> list[str]:
+    fields = l9_meta.canonical_fields(
+        relative, status=INSERTED_STATUS, version=VERSION, updated=INSERTED_UPDATED
     )
-    return [
-        f"{prefix} L9_META",
-        *(f"{prefix}   {key}: {value}" for key, value in values),
-    ]
+    return l9_meta.render_block(fields, style=style, prefix=prefix)
 
 
 def _insert_markdown(text: str, relative: Path) -> str:
-    if "L9_META" in "\n".join(text.splitlines()[:40]):
-        return text
-    block = [
-        "<!-- L9_META",
-        "l9_schema: 1",
-        f"repo: {REPOSITORY}",
-        f"path: {relative.as_posix()}",
-        f"layer: {_layer(relative)}",
-        "owner: memory-control-plane",
-        "status: active",
-        f"version: {VERSION}",
-        "updated: 2026-07-22",
-        "/L9_META -->",
-        "",
-    ]
+    block = [*_new_block(relative, "markdown", ""), ""]
     lines = text.splitlines()
     if relative.parts[:2] == ("docs", "adr") and lines and lines[0].startswith("# ADR-"):
         lines[1:1] = ["", *block]
@@ -145,58 +63,90 @@ def _insert_markdown(text: str, relative: Path) -> str:
 
 
 def _insert_comments(text: str, relative: Path, prefix: str) -> str:
-    if "L9_META" in "\n".join(text.splitlines()[:40]):
-        return text
     lines = text.splitlines()
-    block = _metadata_lines(relative, prefix)
+    block = _new_block(relative, "comment", prefix)
     insertion = 1 if lines and lines[0].startswith("#!") else 0
     lines[insertion:insertion] = [*block, ""]
     return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
 
 
 def tracked_comment_safe_files(root: Path) -> tuple[Path, ...]:
-    paths: list[Path] = []
-    for path in root.rglob("*"):
-        if not path.is_file():
-            continue
-        relative = path.relative_to(root)
-        if (
-            any(part in EXCLUDED_PARTS for part in relative.parts)
-            or relative.as_posix() in EXCLUDED_FILES
-            or relative.as_posix() in EXCLUDED_RELATIVE_PATHS
-            or relative.as_posix().startswith(EXCLUDED_PATH_PREFIXES)
-        ):
-            continue
-        if (
-            path.suffix in MARKDOWN_EXTENSIONS
-            or path.suffix in COMMENT_EXTENSIONS
-            or path.name == ".gitignore"
-        ):
-            paths.append(path)
-    return tuple(sorted(paths))
+    return tuple(
+        path
+        for path in l9_meta.repository_files(root)
+        if l9_meta.is_inline_capable(path.relative_to(root))
+    )
 
 
-def apply(root: Path) -> int:
-    changed = 0
+def plan(root: Path) -> tuple[list[tuple[Path, str, str]], list[str]]:
+    """Decide, without writing, what each inline-capable file needs.
+
+    Returns ``(changes, failures)``: ``changes`` holds ``(path, action,
+    new_text)`` for files that are missing or stale, ``failures`` names files
+    whose block is malformed or ambiguous and must be repaired by hand.
+    """
+
+    changes: list[tuple[Path, str, str]] = []
+    failures: list[str] = []
     for path in tracked_comment_safe_files(root):
         relative = path.relative_to(root)
         text = path.read_text(encoding="utf-8")
-        if path.suffix in MARKDOWN_EXTENSIONS:
-            updated = _insert_markdown(text, relative)
+        try:
+            meta = l9_meta.parse_inline(text, relative)
+        except l9_meta.MetaError as error:
+            failures.append(f"malformed inline L9_META: {relative.as_posix()}: {error}")
+            continue
+        if meta is None:
+            if l9_meta.is_markdown(relative):
+                updated = _insert_markdown(text, relative)
+            else:
+                prefix = l9_meta.comment_prefix(relative) or "#"
+                updated = _insert_comments(text, relative, prefix)
+            changes.append((path, "insert", updated))
+            continue
+        mismatches = l9_meta.compare(meta, relative)
+        if mismatches:
+            changes.append((path, "reconcile", l9_meta.reconcile_text(text, relative)))
+    return changes, failures
+
+
+def apply(root: Path, *, check: bool) -> int:
+    changes, failures = plan(root)
+    for path, action, text in changes:
+        relative = path.relative_to(root).as_posix()
+        if check:
+            sys.stdout.write(f"{action} needed: {relative}\n")
         else:
-            prefix = COMMENT_EXTENSIONS.get(path.suffix, "#")
-            updated = _insert_comments(text, relative, prefix)
-        if updated != text:
-            path.write_text(updated, encoding="utf-8")
-            changed += 1
-    sys.stdout.write(f"Applied L9_META to {changed} files\n")
+            path.write_text(text, encoding="utf-8")
+            sys.stdout.write(f"{action}: {relative}\n")
+    for failure in failures:
+        sys.stdout.write(failure + "\n")
+    if check:
+        if changes or failures:
+            sys.stdout.write(
+                f"FAIL: {len(changes)} files need metadata preparation, "
+                f"{len(failures)} malformed; nothing written\n"
+            )
+            return 1
+        sys.stdout.write("PASS: inline L9_META is current on every inline-capable file\n")
+        return 0
+    sys.stdout.write(f"Applied L9_META to {len(changes)} files\n")
+    if failures:
+        sys.stdout.write(f"FAIL: {len(failures)} malformed blocks were not touched\n")
+        return 1
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
-    return apply(parser.parse_args().repo_root.resolve())
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="report missing, stale or malformed metadata and exit non-zero; write nothing",
+    )
+    args = parser.parse_args()
+    return apply(args.repo_root.resolve(), check=args.check)
 
 
 if __name__ == "__main__":

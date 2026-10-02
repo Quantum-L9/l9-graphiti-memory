@@ -1,5 +1,5 @@
 {
-  "file_count": 758,
+  "file_count": 760,
   "files": [
     {
       "category": "ci",
@@ -94,8 +94,8 @@
         "version": "2.5.0"
       },
       "path": ".github/workflows/publish.yml",
-      "sha256": "695726f3b32ba729f593e18aca998595e1ea4d199acbb1a6c383edcc31c82624",
-      "size_bytes": 3969
+      "sha256": "d3ff80bb60030f31cda036abb3a4ea5db6408174d31ba1b3a42ea85f30511a25",
+      "size_bytes": 4741
     },
     {
       "category": "ci",
@@ -110,8 +110,8 @@
         "version": "2.5.0"
       },
       "path": ".github/workflows/typescript-client-publish.yml",
-      "sha256": "6e9febe7a4d4c57a954dcb2065d11c200ed6b0419e92f3e69a5f3bf771cd9319",
-      "size_bytes": 1549
+      "sha256": "c3e86cde7cd4edabbfbc43a6133b076c3d61640abf22ad22514f914ba5ce09ed",
+      "size_bytes": 1464
     },
     {
       "category": "ci",
@@ -126,14 +126,14 @@
         "version": "2.5.0"
       },
       "path": ".github/workflows/typescript-client.yml",
-      "sha256": "c89466f9930d3d4628bc2d8ed3df9c0248a7d2e692fd2a34b4f288fa1b26cc5e",
-      "size_bytes": 1147
+      "sha256": "5f12f20714980847b42ba383db9c308a10cf9deda89c2d5e8914556c835de714",
+      "size_bytes": 1062
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".gitignore",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -149,7 +149,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".l9/generated-data-bind-receipt.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -165,7 +165,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".l9/generated-data-deployment-wave1-preflight.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -181,7 +181,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".l9/generated-data-repository-binding-preflight.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -197,7 +197,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".l9/generated-data-write-path-preflight.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -213,7 +213,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".l9/memory-foundation-microscope.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -229,7 +229,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".l9/memory-foundation-preflight.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -245,7 +245,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".pre-commit-config.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -261,7 +261,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": ".python-version",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -277,7 +277,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "AGENTS.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -293,7 +293,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "ALIGNMENT.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -302,14 +302,14 @@
         "version": "2.5.0"
       },
       "path": "ALIGNMENT.md",
-      "sha256": "792d69d4f16e2595de5bc6d1ba209ce9fbd2caf2ae9ced5cc6a729339d2235b8",
-      "size_bytes": 1836
+      "sha256": "a843615299bec29aa988eacf5689585b0e77c7daf13e64d4a8d19f0166c46bf9",
+      "size_bytes": 2027
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "ARCHITECTURE.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -325,7 +325,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "CHANGE_SUMMARY.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -341,7 +341,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "CONTRIBUTING.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -357,7 +357,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "LICENSE",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -373,7 +373,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "MANIFEST.in",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -389,7 +389,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "MANIFEST.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -398,14 +398,14 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "59650dada1ab76a8cb831981b075700ad34ea9d3e834c007b2cf25de14b7a67e",
-      "size_bytes": 128321
+      "sha256": "977f28de8e30bf97e5654532e46d4a039498bf19a4cd7748196912e86fa8b71a",
+      "size_bytes": 125233
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "MIGRATION.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -421,7 +421,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "QUICKSTART.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -437,7 +437,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -453,7 +453,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "ROADMAP.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -469,7 +469,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "RUNBOOK.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -485,7 +485,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "SECURITY.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -501,7 +501,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "VALIDATION.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -517,7 +517,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "campaigns/canonical-memory-lifecycle-convergence-v1/intent.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -533,7 +533,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "campaigns/canonical-memory-lifecycle-convergence-v1/program-execution.intent.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -549,7 +549,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "clients/typescript/.gitignore",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -558,14 +558,14 @@
         "version": "2.5.0"
       },
       "path": "clients/typescript/.gitignore",
-      "sha256": "1d5b064bd1c842c4de03f06db85b14a3592e57fe45030462e6341e69b621f432",
-      "size_bytes": 241
+      "sha256": "f623aba69c9b5741543279b74980c42e7872915e20545e1e4eaa68e269e8ef3d",
+      "size_bytes": 238
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "clients/typescript/README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -574,14 +574,14 @@
         "version": "2.5.0"
       },
       "path": "clients/typescript/README.md",
-      "sha256": "c636e0e4d17694f217dade705c2bb35af22b313132136dc7f403c4c18f2df822",
-      "size_bytes": 741
+      "sha256": "7fb37e6c6db609e6d88e095eab949b7f4849a1db1bbd9a6e02bea31d9d01e642",
+      "size_bytes": 664
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "clients/typescript/package-lock.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -597,7 +597,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "clients/typescript/package.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -613,7 +613,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "clients/typescript/src/index.ts",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -629,7 +629,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "clients/typescript/tests/client.test.ts",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -645,7 +645,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "clients/typescript/tsconfig.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -741,7 +741,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/activation-runbook.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -757,7 +757,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/capability-manifest.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -773,7 +773,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/cursor-command-env.example",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -789,7 +789,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/fixtures/capability-response.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -805,7 +805,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/fixtures/governed-candidate.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -821,7 +821,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/fixtures/path-invalidation.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -837,7 +837,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/fixtures/reuse-event.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -853,7 +853,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/live_end_to_end_proof.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -869,7 +869,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/load_test_generated_data.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -885,7 +885,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/migration-runbook.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -901,7 +901,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/namespace-mapping.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -917,7 +917,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/principal-policy.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -933,7 +933,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/retention-policy.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -949,7 +949,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/rollback-runbook.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -965,7 +965,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/verify_backup_restore.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -981,7 +981,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/verify_cross_repo_contract.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -997,7 +997,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/verify_generated_data_tools.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -1013,7 +1013,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/verify_migration.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -1029,7 +1029,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "deployment/generated-data/verify_selector_indexes.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -1166,8 +1166,8 @@
         "version": "2.5.0"
       },
       "path": "docs/META_SCHEMA_REFERENCE.md",
-      "sha256": "500f1fda5b436d6589d3fed31f173220b11a5db853741ef119674d71e92d1598",
-      "size_bytes": 8453
+      "sha256": "3e15066af33bfcbaa6ebf7cced4b5c391eb8c446257e1ecfd15106f0214e1be0",
+      "size_bytes": 8457
     },
     {
       "category": "documentation",
@@ -1182,8 +1182,8 @@
         "version": "2.5.0"
       },
       "path": "docs/RECURSIVE_ALIGNMENT_UPDATE.md",
-      "sha256": "692b41643f4f81d6c70606bf9b5decb1f5f03173035ca881683991c0b4104703",
-      "size_bytes": 10670
+      "sha256": "9b16a086b9100c0b70d7296c4d87a32f95ddc8fbfe837ff8e2bd602311420328",
+      "size_bytes": 10886
     },
     {
       "category": "documentation",
@@ -1214,8 +1214,8 @@
         "version": "2.5.0"
       },
       "path": "docs/REMAINING_PRODUCTION_PROOF.md",
-      "sha256": "dafdd5c6268d2cdb89ccc183b7c127f4fa7a0d8a21cd6b1587bdd0f71406426e",
-      "size_bytes": 2088
+      "sha256": "d1d007c4b2fa9fec4b50d7b5ca4bf45986003e3e8edae46d0438c0da21ba4bef",
+      "size_bytes": 2091
     },
     {
       "category": "documentation",
@@ -2606,8 +2606,8 @@
         "version": "2.5.0"
       },
       "path": "docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/clients/typescript/.gitignore",
-      "sha256": "1d5b064bd1c842c4de03f06db85b14a3592e57fe45030462e6341e69b621f432",
-      "size_bytes": 241
+      "sha256": "dcb92278b6711b9b90c455b585cb121c88d5160c12750535bf59eb5272270097",
+      "size_bytes": 315
     },
     {
       "category": "documentation",
@@ -2702,8 +2702,8 @@
         "version": "2.5.0"
       },
       "path": "docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/tools/assurance/check_recursive_alignment.py",
-      "sha256": "8841e220172ae81a632ec901ee875741b4879bea418ce88fdb62b3dce3fe178e",
-      "size_bytes": 12546
+      "sha256": "ae70ae5385e9db059fbe6e2c0ed7543ac420c8ba73dc1a38abe1228670775d1d",
+      "size_bytes": 12624
     },
     {
       "category": "documentation",
@@ -2965,7 +2965,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-001-repository-role-and-boundaries.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -2981,7 +2981,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-002-canonical-memory-service.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -2997,7 +2997,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-003-memory-contract-and-taxonomy.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3013,7 +3013,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-004-bi-temporal-semantics.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3029,7 +3029,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-005-provenance-and-evidence.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3045,7 +3045,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-006-namespace-authorization.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3061,7 +3061,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-007-admission-and-quarantine.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3077,7 +3077,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-008-idempotency-deduplication-and-supersession.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3093,7 +3093,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-009-memory-promotion-and-curation.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3109,7 +3109,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-010-retention-decay-and-pruning.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3125,7 +3125,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-011-hydration-and-context-budgeting.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3141,7 +3141,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-012-hybrid-retrieval-strategy.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3157,7 +3157,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3173,7 +3173,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-014-mcp-tool-contracts.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3189,7 +3189,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-015-failure-and-degradation-policy.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3205,7 +3205,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-016-secret-and-credential-boundaries.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3221,7 +3221,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-017-hook-and-agent-integration.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3237,7 +3237,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-018-outbox-and-write-recovery.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3253,7 +3253,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-019-observability-and-evidence-receipts.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3269,7 +3269,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-020-package-and-configuration-layout.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3285,7 +3285,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-021-testing-and-adapter-conformance.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3301,7 +3301,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-022-release-publishing-and-rollback.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3317,7 +3317,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-023-legacy-migration-and-compatibility.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3333,7 +3333,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-024-memory-privacy-consent-and-deletion.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3349,7 +3349,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3365,7 +3365,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-026-transportpacket-constellation-boundary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3381,7 +3381,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-027-semantic-episodic-and-meta-memory-ownership.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3397,7 +3397,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-028-agent-checkpointing-boundary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3413,7 +3413,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-029-temporal-coordinate-model.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3429,7 +3429,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-030-rls-and-transaction-scoped-authorization.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3445,7 +3445,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-031-reasoning-lineage-versus-private-reasoning.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3461,7 +3461,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-032-performance-slos-and-partial-result-policy.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3477,7 +3477,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-033-legacy-monolith-harvest-and-rejection-record.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3493,7 +3493,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-034-private-data-fixtures-and-repository-hygiene.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3509,7 +3509,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-035-schema-registry-and-upcasting.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3525,7 +3525,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-036-canonical-write-bypass-enforcement.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3541,7 +3541,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-037-configuration-authority-and-drift-prevention.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3557,7 +3557,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3573,7 +3573,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-039-retrieval-planning-and-tier-fusion.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3589,7 +3589,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-040-importance-ranking-and-decay-policy.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3605,7 +3605,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-041-llm-extraction-and-typed-failure-semantics.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3621,7 +3621,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-042-offline-source-ingestion.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3637,7 +3637,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-043-package-wiring-and-public-api-governance.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3653,7 +3653,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-044-authority-trust-confidence-and-relevance-separation.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3669,7 +3669,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-045-procedural-synthesis-approval-boundary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3685,7 +3685,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-046-core-commit-versus-asynchronous-enrichment.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3701,7 +3701,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-047-schema-migration-and-legacy-record-compatibility.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3717,7 +3717,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-048-atomic-extraction-and-evidence-binding.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3733,7 +3733,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-049-sensitive-profiles-and-purpose-bound-consent.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3749,7 +3749,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-050-phase-lock-snapshot-verification.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3765,7 +3765,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-051-explicit-references-and-lineage-replay.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3781,7 +3781,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-052-procedural-synthesis-worker-and-approval-boundary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3797,7 +3797,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-053-checkpoint-integrity-utility-boundary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3813,7 +3813,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-054-strategy-specific-hybrid-retrieval-receipts.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3829,7 +3829,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-055-canonical-ingress-write-recovery-queue.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3845,7 +3845,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-056-recursive-harvest-convergence.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3861,7 +3861,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-057-verified-deletion-and-projection-erasure.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3877,7 +3877,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-058-graphiti-repository-name-and-graphite-package-compatibility.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3893,7 +3893,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-059-recursive-alignment-authority-and-applicability.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3909,7 +3909,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-060-gate-only-constellation-dispatch.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3925,7 +3925,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-061-local-receipt-guard-boundary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3941,7 +3941,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-062-l9-meta-and-file-provenance.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3950,14 +3950,14 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/ADR-062-l9-meta-and-file-provenance.md",
-      "sha256": "fd4ec23e57b08a925736f5b60e77d9aff7ce296ace4e87e529750e45914c36fd",
-      "size_bytes": 2076
+      "sha256": "40a1c1ae975c5fcc06fa74503e2db1a6edbfe39ca3e913a81b959d8dfd85aac7",
+      "size_bytes": 2296
     },
     {
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-063-projection-manifest-compiler-and-control-plane-boundaries.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3973,7 +3973,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-064-cursor-client-instantiation-and-proof-boundary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -3982,14 +3982,14 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/ADR-064-cursor-client-instantiation-and-proof-boundary.md",
-      "sha256": "8c265ff642f904a0208d128a8c35212b67ed856fcaea4ff1d542dca25603a714",
-      "size_bytes": 7203
+      "sha256": "2991172a3c0dd450716294d3edee895016290f4f2a63b8a1820c917dce76f635",
+      "size_bytes": 7184
     },
     {
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-065-active-memory-deployment-identity.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4005,7 +4005,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-066-secret-file-credential-resolution.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4021,7 +4021,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-067-active-memory-public-sdk-and-lifecycle.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4037,7 +4037,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-068-redis-acl-capability-contract.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4053,7 +4053,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-069-uv-package-manager.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4069,7 +4069,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-070-immediate-canonical-ingestion.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4085,7 +4085,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-071-operation-identity-versus-semantic-digest.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4101,7 +4101,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-072-shared-canonical-store-backend.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4117,7 +4117,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-073-leased-outbox-claims.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4133,7 +4133,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-074-projection-retirement-lifecycle.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4149,7 +4149,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-075-scheduled-canonical-memory-maintenance.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4165,7 +4165,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-076-projection-retirement-capability-ceiling.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4181,7 +4181,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-077-canonical-store-backend-transition-safety.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4197,7 +4197,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-078-topology-publication-admission.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4213,7 +4213,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-079-governed-write-phase-lock-atomicity.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4229,7 +4229,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-080-automated-quarantine-review.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4245,7 +4245,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-081-canonical-conflict-links.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4261,7 +4261,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-082-consumer-control-plane-transport-parity.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4277,7 +4277,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4293,7 +4293,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/ADR-084-projection-runtime-and-target-aware-lifecycle.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4309,7 +4309,7 @@
       "category": "architecture_decisions",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "architecture_decisions",
+        "layer": "adr",
         "owner": "memory-control-plane",
         "path": "docs/adr/README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4453,7 +4453,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti-gate-edits.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4469,7 +4469,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti-gate-shell.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4485,7 +4485,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti-gate-subagent.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4501,7 +4501,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti-mark-ok.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4517,7 +4517,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti-prefetch.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4533,7 +4533,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti-reset-generation.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4549,7 +4549,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti-session-end.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4565,7 +4565,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti_common.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4581,7 +4581,7 @@
       "category": "hooks",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "hooks",
+        "layer": "hook",
         "owner": "memory-control-plane",
         "path": "hooks/graphiti_gate_runner.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4597,7 +4597,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "pyproject.toml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4613,7 +4613,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/handoffs/VALIDATION_RECORD.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4622,14 +4622,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/handoffs/VALIDATION_RECORD.md",
-      "sha256": "ce072ae10b4c8722da70ab49ef4be3af00eb6b093a70922caa654a9d67c48357",
-      "size_bytes": 5739
+      "sha256": "28e993329fca424d3ede848f45d96a8cb335162388ce5036fa24cf6f3445e95b",
+      "size_bytes": 5732
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4645,7 +4645,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/INDEX.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4654,14 +4654,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/INDEX.md",
-      "sha256": "860cdfa56635dcb9d659c6f6191831f19b18adfd09d49068249636e4eb3ee903",
-      "size_bytes": 2795
+      "sha256": "f24c6e0168fc6eec88116f0ba97d85a55b3cba612c459229f9ab664e60a5846f",
+      "size_bytes": 2788
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/architecture-summary.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4670,14 +4670,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/architecture-summary.md",
-      "sha256": "2e3e394ee3b5ce496ae45416b769603ed329f7671c259fa0924a05032f480bdf",
-      "size_bytes": 7805
+      "sha256": "a2568d87dbb6baf9c3aef5901ebfaa96ccbf7332c7e1761420ebefc4784fc243",
+      "size_bytes": 7798
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/authority-map.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4686,14 +4686,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/authority-map.md",
-      "sha256": "a861a54da602b1b042de2cb63df95f5129a140d39eca54920196a6fde84d54db",
-      "size_bytes": 6055
+      "sha256": "71208da6337ec2934955f2b2bd34d7516d698956bd93c173c03f2f3b20510109",
+      "size_bytes": 6048
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/document-index.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4709,7 +4709,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/open-questions.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4718,14 +4718,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/open-questions.md",
-      "sha256": "6d16535ea49b1958bc5822fb49a6fb4789b213372a3edd65ae22474cf9b43367",
-      "size_bytes": 5463
+      "sha256": "ad31d08e8b2697cbba9d89ca0ed51858eb0eb998bafbc0090507797e9efb0d6d",
+      "size_bytes": 5456
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/persistence-map.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4734,14 +4734,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/persistence-map.md",
-      "sha256": "9a0cc764aadd21db988e94c71fffb89b2d01a4ed331d6d48a451ccf5e19806e3",
-      "size_bytes": 5705
+      "sha256": "94e18772e76a89fdc2729a819b05f8d787439ce16f3e7fac04b0d01053769e00",
+      "size_bytes": 5698
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/projection-control-reconciliation.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4757,7 +4757,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/projection-control-reconciliation.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4766,14 +4766,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/projection-control-reconciliation.md",
-      "sha256": "9b93cf59b0309efc261c38718ffce4d8f4ad8d94f84d4fd8107802a9f8e4014a",
-      "size_bytes": 4205
+      "sha256": "9257bf41cb11ac560dff9a984e47cb80e0f29719b00bc81b2c19818e72b129de",
+      "size_bytes": 4198
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/provider-capability-matrix.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4782,14 +4782,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/provider-capability-matrix.md",
-      "sha256": "046cc99b872986f3f1b7a50b9b8c022781a6966ca7988aa5f0e0d7077efd8844",
-      "size_bytes": 4722
+      "sha256": "37173b4fc673a3ff044c52a693988a0dc43aa0f6ef34f5c5bd646bf30b36b588",
+      "size_bytes": 4715
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/reconciliation-ledger.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4805,7 +4805,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/runtime-dependency-map.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4814,14 +4814,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/runtime-dependency-map.md",
-      "sha256": "2fbcd40b9a2aa2500fac1563b99b713a7ca5fda3959519c02fadcb55330c8715",
-      "size_bytes": 5649
+      "sha256": "3350348eff518f62127251c9409d4b8a1e92f969e7561a1696654755c8319b30",
+      "size_bytes": 5642
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/source-citations.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4837,7 +4837,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/supersession-map.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4846,14 +4846,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/supersession-map.md",
-      "sha256": "dfbbff339dec837a4a2f4d70e1721b26963d3c1c86c131325c8ecfaa00c2abee",
-      "size_bytes": 6234
+      "sha256": "a87867314791da84924bf67736895fc6e34a490a5992c8a43af81203a414c968",
+      "size_bytes": 6227
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "release-work/repository-review/validation-map.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -4862,14 +4862,14 @@
         "version": "2.5.0"
       },
       "path": "release-work/repository-review/validation-map.md",
-      "sha256": "1ac32caa1b8e54a248e2f087380ae60da993cb178ec5205ce6ef2ed8254a4ff9",
-      "size_bytes": 5817
+      "sha256": "334debfc955def55c1886cb10a179947099cc14844e55c347449ca95634536f3",
+      "size_bytes": 5810
     },
     {
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "ruff.toml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5054,8 +5054,8 @@
         "version": "2.5.0"
       },
       "path": "scripts/validate_release.sh",
-      "sha256": "90ec72e94b6c831ae6dc339fee6908758581053127373a0fcde960b5fecdd76c",
-      "size_bytes": 6935
+      "sha256": "c5a987111d99ba9588b7103488bb93f4feb0165aa77514499a2bc1587c34b996",
+      "size_bytes": 11566
     },
     {
       "category": "operations",
@@ -5125,7 +5125,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5141,7 +5141,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/__main__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5157,7 +5157,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5173,7 +5173,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/client.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5189,7 +5189,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/credentials.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5205,7 +5205,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/deployment.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5221,7 +5221,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/errors.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5237,7 +5237,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/inmemory.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5253,7 +5253,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/lifecycle.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5269,7 +5269,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/models.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5285,7 +5285,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/null_adapters.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5301,7 +5301,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/ports.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5317,7 +5317,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/active/redis_adapters.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5445,7 +5445,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/admission/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5461,7 +5461,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/admission/engine.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5477,7 +5477,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/admission/normalization.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5493,7 +5493,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/admission/policy.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5509,7 +5509,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/authz/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5525,7 +5525,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/authz/authenticator.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5541,7 +5541,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/authz/policy.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5557,7 +5557,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/authz/signed_assertion.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5573,7 +5573,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/circuit_breaker.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5589,7 +5589,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/cli.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5605,7 +5605,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/client_config/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5621,7 +5621,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "contract",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/client_config/contracts.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5637,7 +5637,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/client_config/cursor.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5653,7 +5653,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/client_config/mcp_probe.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5669,7 +5669,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/config/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5685,7 +5685,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/config/loader.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5701,7 +5701,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/config/models.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5973,7 +5973,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/curation/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -5982,14 +5982,14 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/curation/__init__.py",
-      "sha256": "2c84edb3c4e1998c501377f4c22285049922d2236783b149241a74bbe2aa91e4",
-      "size_bytes": 879
+      "sha256": "b7f0eee6665e523e760460b55373931d0b028d58798a6f9051a6e9e56fc97320",
+      "size_bytes": 878
     },
     {
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/curation/procedural.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6005,7 +6005,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/curation/promotion.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6021,7 +6021,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/curation/quarantine.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6030,14 +6030,14 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/curation/quarantine.py",
-      "sha256": "4d51522dc7f5e9ae91b15e683a81c9da2cb9e485ad1bbec0c131e725ad42fbf6",
-      "size_bytes": 10222
+      "sha256": "528d32d6752d146a3c6d305699a8cd92166134c3a41eb2143626c9d88f4541ec",
+      "size_bytes": 10221
     },
     {
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/curation/retention.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6053,7 +6053,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/episode_contract.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6069,7 +6069,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/errors.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6085,7 +6085,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/extraction/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6101,7 +6101,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/extraction/atomic.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6117,7 +6117,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/extraction/distiller.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6133,7 +6133,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/graphiti_gate_lib.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6149,7 +6149,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/graphiti_memory_client.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6165,7 +6165,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/group_resolver.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6181,7 +6181,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/ingestion/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6197,7 +6197,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/ingestion/document.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6213,7 +6213,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/ingestion/profiles.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6229,7 +6229,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/ingestion/publication_identity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6238,14 +6238,14 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ingestion/publication_identity.py",
-      "sha256": "0737e411c182837deaf13419a6723aca3a21817daae7e5bf8a32a997a4ce0b8c",
-      "size_bytes": 18833
+      "sha256": "860ea28eabf412beb6e6cdb0ed90caf96faf28c21b2c3d862cb88b4f1420779e",
+      "size_bytes": 18829
     },
     {
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/ingestion/repository.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6261,7 +6261,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/ingestion/topology_publication.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6270,8 +6270,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ingestion/topology_publication.py",
-      "sha256": "c25a2f88b3944df154ddfbea44d911235a060f455e1e322d50d696d20b872d61",
-      "size_bytes": 26054
+      "sha256": "68fffeed621cd11cf21e1f8e8c49d524348691ab65915e0439d01a7f228e9e2c",
+      "size_bytes": 26050
     },
     {
       "category": "production_source",
@@ -6357,7 +6357,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/integrity/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6373,7 +6373,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/integrity/checkpoint.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6389,7 +6389,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/lineage/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6405,7 +6405,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/lineage/replay.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6421,7 +6421,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/maintenance/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6437,7 +6437,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/maintenance/planner.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6453,7 +6453,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/maintenance/service.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6469,7 +6469,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/mcp_tools.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6485,7 +6485,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/memory_guard.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6501,7 +6501,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/migration/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6517,7 +6517,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/migration/backend_transition.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6533,7 +6533,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/migration/legacy_write_queue.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6549,7 +6549,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/observability/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6565,7 +6565,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/observability/logging.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6725,7 +6725,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/projections/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6741,7 +6741,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/projections/compiler.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6757,7 +6757,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "contract",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/projections/contracts.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6773,7 +6773,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/projections/manifest.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6789,7 +6789,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/projections/render.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6805,7 +6805,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/projections/runtime.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6821,7 +6821,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/prune.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6837,7 +6837,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/rate_limiter.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6853,7 +6853,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/resources/active_memory_redis_capabilities.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6869,7 +6869,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/resources/defaults.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6885,7 +6885,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/resources/group_registry.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6901,7 +6901,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/resources/memory_contract.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6917,7 +6917,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/resources/projections/schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6933,7 +6933,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/retrieval/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6949,7 +6949,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/retrieval/budget.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6965,7 +6965,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/retrieval/planner.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6981,7 +6981,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/retrieval/query_classifier.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -6997,7 +6997,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/retrieval/ranking.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7013,7 +7013,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/runtime.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7029,7 +7029,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/schema/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7045,7 +7045,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/schema/registry.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7061,7 +7061,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/schema/upcasters.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7077,7 +7077,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/sdk.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7093,7 +7093,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/secrets.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7109,7 +7109,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/server.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7189,7 +7189,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/transport.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7205,7 +7205,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/trust_boundary.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7221,7 +7221,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/version.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7237,7 +7237,7 @@
       "category": "production_source",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "production_source",
+        "layer": "package",
         "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/zep_transport.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7253,7 +7253,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7269,7 +7269,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7285,7 +7285,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/active/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7301,7 +7301,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/active/conftest.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7317,7 +7317,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/active/test_awareness_bus_contract.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7333,7 +7333,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/active/test_store_contract.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7349,7 +7349,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/test_maintenance_ledger.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7365,7 +7365,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/test_phase_lock_snapshot_scale.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7381,7 +7381,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/test_phase_lock_write_atomicity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7397,7 +7397,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/test_shared_canonical_store.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7413,7 +7413,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/test_source_locator_roundtrip.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7429,7 +7429,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conformance/test_store_contract.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7445,7 +7445,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/conftest.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7461,7 +7461,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7477,7 +7477,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_backup_restore.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7493,7 +7493,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_capability_manifest.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7509,7 +7509,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_command_protocols.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7525,7 +7525,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_cross_repo_contract.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7541,7 +7541,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_live_proof_fail_closed.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7557,7 +7557,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_load_harness.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7573,7 +7573,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_migration_verifier.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7589,7 +7589,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_namespace_mapping.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7605,7 +7605,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_principal_policy.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7621,7 +7621,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_runtime_status_protocol.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7637,7 +7637,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/deployment/generated_data/test_selector_indexes.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7653,7 +7653,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/external_runtime/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7669,7 +7669,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/external_runtime/conftest.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7685,7 +7685,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/external_runtime/test_backend_outage.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7701,7 +7701,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/external_runtime/test_graceful_shutdown.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7717,7 +7717,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/external_runtime/test_lease_expiration.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7733,7 +7733,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/external_runtime/test_startup.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7749,7 +7749,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/control_plane/README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7765,7 +7765,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/control_plane/continuation_candidate.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7781,7 +7781,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/publication_identity/golden-vectors.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7797,7 +7797,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/PROVENANCE.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7813,7 +7813,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/plan-bundle/intents/memory-ingest.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7829,7 +7829,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/plan-bundle/manifest.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7845,7 +7845,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/plan-bundle/publication-plan.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7861,7 +7861,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/manifest.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7877,7 +7877,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/packet.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7893,7 +7893,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/artifact-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7909,7 +7909,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/candidate-clusters.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7925,7 +7925,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/candidate-relations.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7941,7 +7941,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/capability-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7957,7 +7957,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/conflicts.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7973,7 +7973,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/corpus-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -7989,7 +7989,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/diagnostics.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8005,7 +8005,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/edge-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8021,7 +8021,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/evidence.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8037,7 +8037,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/flow-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8053,7 +8053,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/graph-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8069,7 +8069,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/impact-indexes.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8085,7 +8085,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/maturity.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8101,7 +8101,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/readiness-evidence.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8117,7 +8117,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/repository-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8133,7 +8133,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/risks.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8149,7 +8149,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/root-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8165,7 +8165,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/semantic-claims.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8181,7 +8181,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/topology-reasoning-candidates.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8197,7 +8197,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/payload/unknowns.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8213,7 +8213,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication/topology-bundle/receipts/validation-receipt.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8229,7 +8229,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/PROVENANCE.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8245,7 +8245,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/plan-bundle/intents/memory-ingest.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8261,7 +8261,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/plan-bundle/manifest.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8277,7 +8277,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/plan-bundle/publication-plan.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8293,7 +8293,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/manifest.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8309,7 +8309,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/packet.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8325,7 +8325,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/artifact-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8341,7 +8341,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-clusters.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8357,7 +8357,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/candidate-relations.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8373,7 +8373,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/capability-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8389,7 +8389,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/conflicts.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8405,7 +8405,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/corpus-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8421,7 +8421,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/diagnostics.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8437,7 +8437,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/edge-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8453,7 +8453,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/evidence.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8469,7 +8469,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/flow-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8485,7 +8485,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/graph-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8501,7 +8501,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/impact-indexes.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8517,7 +8517,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/maturity.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8533,7 +8533,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/readiness-evidence.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8549,7 +8549,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/repository-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8565,7 +8565,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/risks.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8581,7 +8581,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/root-records.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8597,7 +8597,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/semantic-claims.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8613,7 +8613,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/topology-reasoning-candidates.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8629,7 +8629,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/payload/unknowns.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8645,7 +8645,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/fixtures/topology_publication_v2/topology-bundle/receipts/validation-receipt.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8661,7 +8661,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_conflict_links.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8677,7 +8677,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_cursor_mcp_instantiation.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8693,7 +8693,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_distillation_profiles_sdk.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8709,7 +8709,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_graphiti_http_projection_loop.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8725,7 +8725,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_idempotency_race_and_drift.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8741,7 +8741,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_immediate_canonical_ingestion.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8757,7 +8757,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_installed_wheel_lifecycle.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8773,7 +8773,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_lifecycle_projection_consistency.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8789,7 +8789,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_maintenance_engine.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8805,7 +8805,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_mcp.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8821,7 +8821,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_mcp_harvest_tools.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8837,7 +8837,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_memory_service.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8853,7 +8853,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_operation_identity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8869,7 +8869,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_outbox.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8885,7 +8885,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_outbox_leases.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8901,7 +8901,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_privacy_deletion.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8917,7 +8917,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_procedural_synthesis.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8933,7 +8933,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_projection_lifecycle.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8949,7 +8949,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_projection_link_migration.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8965,7 +8965,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_projection_retirement_recovery.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8981,7 +8981,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_projection_targets.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -8997,7 +8997,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_quarantine_review_maintenance.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9013,7 +9013,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_retention_lineage_phase_lock.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9029,7 +9029,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_runtime_enforcement_audit.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9045,7 +9045,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_topology_publication_e2e.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9061,7 +9061,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/integration/test_topology_publication_e2e_v2.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9077,7 +9077,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/regression/test_assurance_tools.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9093,7 +9093,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/regression/test_cursor_instantiation_assurance.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9109,7 +9109,23 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
+        "owner": "memory-control-plane",
+        "path": "tests/regression/test_l9_meta_assurance.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/regression/test_l9_meta_assurance.py",
+      "sha256": "5c532fe76ff94d640be73a05a618d00ad2c7085c8ad37d63651072e168b5ee27",
+      "size_bytes": 15788
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/regression/test_phase6_operator.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9125,7 +9141,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/regression/test_recursive_alignment.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9141,7 +9157,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/regression/test_release_shell.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9150,14 +9166,14 @@
         "version": "2.5.0"
       },
       "path": "tests/regression/test_release_shell.py",
-      "sha256": "05af7477632142a181ddf878cb15ce854ff2d8457007ac96b960d13159b49e03",
-      "size_bytes": 3471
+      "sha256": "2319cdb1c3eaa01fa2368509370483bad61d2c63b5019022d35a315503335cea",
+      "size_bytes": 12015
     },
     {
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/regression/test_release_version_consistency.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9173,7 +9189,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/regression/test_skill_pack.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9189,7 +9205,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9205,7 +9221,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/active/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9221,7 +9237,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/active/test_credentials.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9237,7 +9253,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/active/test_deployment.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9253,7 +9269,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/active/test_lifecycle.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9269,7 +9285,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/active/test_public_subscription.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9285,7 +9301,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/active/test_redis_acl_renderer.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9301,7 +9317,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_atomic_extraction.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9317,7 +9333,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_authz.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9333,7 +9349,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_backend_transition_guard.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9349,7 +9365,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_canonical_gate_client.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9365,7 +9381,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_canonical_transport_packet.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9381,7 +9397,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_checkpoint_integrity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9397,7 +9413,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_class_vocabulary.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9413,7 +9429,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_cli_parser.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9429,7 +9445,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_cli_state.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9445,7 +9461,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_config.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9461,7 +9477,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_constellation_bridge.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9477,7 +9493,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_consumer_conformance.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9493,7 +9509,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_contracts.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9509,7 +9525,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_control_plane_transport_parity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9525,7 +9541,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_cursor_client_config.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9541,7 +9557,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_gate.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9557,7 +9573,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_group_resolver.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9573,7 +9589,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_http_mcp_request_injection.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9589,7 +9605,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_http_mcp_transport_wire.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9605,7 +9621,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_http_transport_dialect.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9621,7 +9637,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_ingestion.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9637,7 +9653,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_maintenance_authority.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9653,7 +9669,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_nightly_maintenance_schedule.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9669,7 +9685,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_normalization.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9685,7 +9701,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_probe_redaction.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9701,7 +9717,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_profiles.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9717,7 +9733,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_projection_compiler.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9733,7 +9749,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_projection_manifest_assurance.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9749,7 +9765,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_projection_render.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9765,7 +9781,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_projection_runtime.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9781,7 +9797,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_projection_strategies.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9797,7 +9813,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_quarantine_review.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9813,7 +9829,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_query_classifier.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9829,7 +9845,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_release_b_capability.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9845,7 +9861,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_retrieval_projection_hydration.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9861,7 +9877,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_schema_registry.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9877,7 +9893,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_search_request_identity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9893,7 +9909,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_server_principal.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9909,7 +9925,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_signed_assertion.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9925,7 +9941,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_source_locator_contract.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9941,7 +9957,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_stdio_namespace_resolution.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9957,7 +9973,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_temporal_law.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9973,7 +9989,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_write_agent_mcp.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -9989,7 +10005,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/test_zep_transport.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10005,7 +10021,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/__init__.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10021,7 +10037,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/conftest.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10037,7 +10053,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_containment_and_identity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10053,7 +10069,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_execution_modes.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10069,7 +10085,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_gate_and_architecture.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10085,7 +10101,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_identity_golden_vectors.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10101,7 +10117,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_locator_future_conformance.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10117,7 +10133,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_plan_integrity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10133,7 +10149,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_plan_parser.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10149,7 +10165,7 @@
       "category": "tests",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "tests",
+        "layer": "test",
         "owner": "memory-control-plane",
         "path": "tests/unit/topology_publication/test_publication_identity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10174,8 +10190,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/apply_l9_meta.py",
-      "sha256": "a9ab38f964aeec0c3ab555fa422ef8a2bb52d93d0e02b8517bb048be5571a317",
-      "size_bytes": 6636
+      "sha256": "66ddd31e687dca7d6ffdac6b1fdfcfc8c6f297d3dd110a05e4e6ab353ea14e9c",
+      "size_bytes": 5573
     },
     {
       "category": "assurance",
@@ -10254,8 +10270,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/check_l9_meta.py",
-      "sha256": "d995cac5bdd5642fc9df399e894ec7ad465532f3d243205dc8a11bf73ebbbda9",
-      "size_bytes": 5716
+      "sha256": "3891c5111bc5e1b5d97a54ef193e42be94c0fd5210c9db190310ae99649633c8",
+      "size_bytes": 3578
     },
     {
       "category": "assurance",
@@ -10350,8 +10366,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_manifest.py",
-      "sha256": "d736b5a0efc317838a80da921868db36559baacc24919a3039202895dbc67d98",
-      "size_bytes": 8677
+      "sha256": "ea1725f52033612043d5f8640950f363d3f0b8fe04350aa8d35a1c8fb698419a",
+      "size_bytes": 11208
     },
     {
       "category": "assurance",
@@ -10366,8 +10382,24 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "8201d293a6cfbe2043815d342cd4ff4c5dd5f8f6a8250738eae5b9c3e32c8dc0",
-      "size_bytes": 20440
+      "sha256": "7e876d6b4132f55a0d700ad73ed71662c85313f92092b6ece9f2142fd40255c3",
+      "size_bytes": 22358
+    },
+    {
+      "category": "assurance",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "assurance",
+        "owner": "memory-control-plane",
+        "path": "tools/assurance/l9_meta.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tools/assurance/l9_meta.py",
+      "sha256": "7dd0cd6ceaf73deb76d1da22aa2239f99e4b682dea43ee6fc6b86710c645fb57",
+      "size_bytes": 15343
     },
     {
       "category": "assurance",
@@ -10469,7 +10501,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/AGENT_EXECUTION_PROMPT.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10485,7 +10517,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/BUILD_REPORT.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10501,7 +10533,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/CHANGE_REPORT.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10517,7 +10549,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/CONVERGENCE_REPORT.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10533,7 +10565,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/DELTA_REPORT.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10549,7 +10581,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/IMPROVEMENT_REPORT.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10565,7 +10597,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/MANIFEST.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10581,7 +10613,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/MANIFEST.sha256",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10597,7 +10629,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/MANIFEST.sha256.meta.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10613,7 +10645,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/PACKAGE_TREE.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10629,7 +10661,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10645,7 +10677,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/RUNBOOK.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10661,7 +10693,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/SKILL.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10677,7 +10709,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/VALIDATION.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10693,7 +10725,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/assets/INCIDENT_RECORD.template.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10709,7 +10741,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/assets/STAGING_INVENTORY.template.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10725,7 +10757,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/assets/oidc-negative-probe.yml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10741,7 +10773,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/config/phase6-inputs.example.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10757,7 +10789,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/ACCESS_MATRIX.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10773,7 +10805,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/CURRENT_STATE_AND_UNKNOWNS.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10789,7 +10821,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/EVIDENCE_CONTRACT.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10805,7 +10837,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/EXECUTION_CONTRACT.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10821,7 +10853,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/GO_NO_GO_POLICY.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10837,7 +10869,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/HANDOFF_CHECKLIST.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10853,7 +10885,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/LIVE_COMMANDS.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10869,7 +10901,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/OIDC_PROOF.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10885,7 +10917,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/PREFLIGHT.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10901,7 +10933,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/REPOSITORY_BASELINE.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10917,7 +10949,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/REPO_WIRING_DECISION.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10933,7 +10965,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/ROLLBACK_RECOVERY.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10949,7 +10981,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/SCENARIO_MATRIX.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10965,7 +10997,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/SECRET_SAFETY.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10981,7 +11013,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/TRUST_MODEL.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -10997,7 +11029,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/references/repository-baseline-manifest.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11013,7 +11045,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/requirements.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11029,7 +11061,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/deployment-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11045,7 +11077,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/final-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11061,7 +11093,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/github-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11077,7 +11109,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/host-health.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11093,7 +11125,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/infisical-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11109,7 +11141,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/leakage-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11125,7 +11157,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/oidc-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11141,7 +11173,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/phase6-input.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11157,7 +11189,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/proof-envelope.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11173,7 +11205,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/receipts-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11189,7 +11221,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/repository-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11205,7 +11237,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/schemas/rollback-evidence.schema.json",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11221,7 +11253,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/build_dispatch_payload.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11237,7 +11269,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/build_evidence_record.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11253,7 +11285,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/collect_final_convergence.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11269,7 +11301,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/collect_github_evidence.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11285,7 +11317,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/collect_host_evidence.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11301,7 +11333,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/collect_infisical_audit.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11317,7 +11349,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/collect_repository_evidence.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11333,7 +11365,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/collect_run_evidence.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11349,7 +11381,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/collect_workflow_evidence.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11365,7 +11397,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/generate_signing_key.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11381,7 +11413,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/package_evidence.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11397,7 +11429,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/phase6_integrity.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11413,7 +11445,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/phase6ctl.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11429,7 +11461,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/run_adversarial_tests.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11445,7 +11477,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/self_test.sh",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11461,7 +11493,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/validate_pack.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11477,7 +11509,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/validate_receipts.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11493,7 +11525,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/scripts/verify_oidc_claims.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11509,7 +11541,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/source-evidence/PHASE1_VALIDATION.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11525,7 +11557,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/source-evidence/PHASE2_VALIDATION.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11541,7 +11573,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/source-evidence/PHASE3_VALIDATION.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11557,7 +11589,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/source-evidence/PHASE4_VALIDATION.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11573,7 +11605,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/source-evidence/PLAN_LOCKED.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11589,7 +11621,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/source-evidence/README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11605,7 +11637,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/tests/test_hardening.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11621,7 +11653,7 @@
       "category": "assurance",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "assurance",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "tools/phase6/validation_report.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11637,7 +11669,7 @@
       "category": "repository_root",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "repository_root",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "uv.lock",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11653,7 +11685,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/SHA256SUMS",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11669,7 +11701,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/adr_validation.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11685,7 +11717,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/bypass_check.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11701,7 +11733,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/committed_secrets.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11717,7 +11749,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/compileall.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11733,7 +11765,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/config_drift.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11749,7 +11781,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/harvest_coverage.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11765,7 +11797,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/installed_cursor_client.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11781,7 +11813,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/installed_cursor_probe.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11797,7 +11829,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/installed_health.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11813,7 +11845,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/installed_mcp.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11829,7 +11861,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/installed_resolve.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11845,7 +11877,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/l9_meta.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11861,7 +11893,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/l9_meta_apply.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11877,7 +11909,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/layer_boundaries.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11893,7 +11925,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/local_benchmark.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11909,7 +11941,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/manifest_validation.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11925,7 +11957,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/preflight.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11941,7 +11973,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/projection_manifests.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11957,7 +11989,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/pytest.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11973,7 +12005,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/recursive_alignment.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -11989,7 +12021,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/shell_syntax.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12005,7 +12037,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/source_quality.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12021,7 +12053,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/validation_evidence.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12037,7 +12069,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/wheel_build.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12053,7 +12085,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/wheel_install.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12069,7 +12101,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/logs/wiring_audit.txt",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12085,7 +12117,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/validation_checks.jsonl",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12101,7 +12133,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/validation_findings.jsonl",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12117,7 +12149,7 @@
       "category": "validation_evidence",
       "l9_meta": {
         "l9_schema": 1,
-        "layer": "validation_evidence",
+        "layer": "repository",
         "owner": "memory-control-plane",
         "path": "validation/validation_report.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
@@ -12132,7 +12164,7 @@
   ],
   "l9_meta": {
     "l9_schema": 1,
-    "layer": "repository_root",
+    "layer": "repository",
     "owner": "memory-control-plane",
     "path": "manifest.json",
     "repo": "Quantum-L9/l9-graphiti-memory",

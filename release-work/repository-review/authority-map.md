@@ -2,7 +2,7 @@
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
 path: release-work/repository-review/authority-map.md
-layer: repository_review
+layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0

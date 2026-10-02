@@ -2,7 +2,7 @@
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
 path: docs/META_SCHEMA_REFERENCE.md
-layer: reference
+layer: documentation
 owner: memory-control-plane
 status: active
 version: 1.0.0
