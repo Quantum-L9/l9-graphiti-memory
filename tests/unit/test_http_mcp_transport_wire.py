@@ -31,6 +31,7 @@ import pytest
 
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.transport import HttpMcpTransport
+from l9_graphite_memory.version import PACKAGE_VERSION
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -102,9 +103,11 @@ def test_initialize_then_tools_list_reuses_session_id() -> None:
     ]
 
     def fake_urlopen(request, timeout=None, context=None):
+        payload = json.loads(request.data)
         calls.append(
             {
-                "method": json.loads(request.data)["method"],
+                "method": payload["method"],
+                "params": payload.get("params"),
                 "headers": dict(request.headers),
             }
         )
@@ -114,6 +117,8 @@ def test_initialize_then_tools_list_reuses_session_id() -> None:
         tools = transport.list_tools()
 
     assert tools == ["add_memory"]
+    # The provider sees the release that is actually running, never a stale literal.
+    assert calls[0]["params"]["clientInfo"]["version"] == PACKAGE_VERSION
     assert [c["method"] for c in calls] == [
         "initialize",
         "notifications/initialized",
