@@ -28,12 +28,40 @@ from l9_graphite_memory.contracts import (
     ProjectionLink,
     ProjectionRetirementReceipt,
 )
-from l9_graphite_memory.errors import StoreError
+from l9_graphite_memory.errors import ConfigurationError, ProjectionError, StoreError
 from l9_graphite_memory.observability import configure_logging, get_logger
 from l9_graphite_memory.ports import Clock, ProjectionAdapter, RecordStore, SystemClock
+from l9_graphite_memory.ports.projection import RenderedProjectionAdapter
 from l9_graphite_memory.projections.runtime import ProjectionRuntime
 
 log = get_logger("l9.memory.outbox")
+
+
+def verify_projection_runtime(store: RecordStore, projections: ProjectionRuntime) -> None:
+    """Refuse a runtime that cannot address every copy or queued event it owes.
+
+    Target identities carry the manifest version, so a version bump, a target
+    removal, or a legacy-to-manifest cutover can leave persisted links and
+    pending retire or erase events naming identities the new runtime does not
+    bind. Those events would fail on every retry and dead-letter, and a
+    verified deletion would stay pending with no runtime able to finish it.
+    Activation therefore fails first, naming the identities, so the operator
+    retains the earlier manifest revision (``projection_manifest_history``)
+    or drains them with the runtime that wrote them (ADR-057, ADR-084).
+
+    The runtime itself never reads canonical state; this check happens at the
+    composition boundary, where the worker holds both.
+    """
+
+    unresolved = projections.unresolved_identities(store.list_projection_target_identities())
+    if unresolved:
+        raise ConfigurationError(
+            "projection runtime cannot address target identities that still own "
+            "projection links or pending outbox events: "
+            + ", ".join(unresolved)
+            + "; retain the manifest revision that declares them "
+            "(projection_manifest_history) or drain them with that runtime first"
+        )
 
 
 class OutboxWorker:
@@ -56,6 +84,9 @@ class OutboxWorker:
     ) -> None:
         self.store = store
         self.projections = ProjectionRuntime.coerce(projection)
+        # A worker that cannot resolve an identity canonical state still owes
+        # work to must not start: it would retry that event until it died.
+        verify_projection_runtime(store, self.projections)
         self.settings = settings
         self.clock = clock or SystemClock()
         # Identifies this worker in outbox leases so an operator can see which
@@ -157,7 +188,19 @@ class OutboxWorker:
                         )
                     else:
                         adapter = self.projections.adapter_for(target.identity)
-                        result = adapter.project(record)
+                        # Manifest mode delivers the compiled rendering, the
+                        # one the link's digest attests; legacy mode has no
+                        # contract and the adapter delivers as it always has.
+                        rendered = self.projections.render(record)
+                        if rendered is None:
+                            result = adapter.project(record)
+                        elif isinstance(adapter, RenderedProjectionAdapter):
+                            result = adapter.project_rendered(record, rendered)
+                        else:
+                            raise ProjectionError(
+                                f"projection target {target.identity} adapter cannot deliver "
+                                "a compiled render contract"
+                            )
                         locator = result.get("locator") if isinstance(result, dict) else None
                         if not isinstance(locator, str) or not locator.strip():
                             raise RuntimeError(
@@ -188,6 +231,12 @@ class OutboxWorker:
                                 reason="post-project-race-stale",
                             )
                         else:
+                            link_metadata: dict[str, object] = {
+                                "transport_result": result,
+                                "outbox_event_id": str(event.event_id),
+                            }
+                            if rendered is not None:
+                                link_metadata["render_content_digest"] = rendered.content_digest
                             self.store.save_projection_link(
                                 ProjectionLink(
                                     record_id=record.record_id,
@@ -198,11 +247,13 @@ class OutboxWorker:
                                     provider_type=target.provider_type,
                                     locator=locator,
                                     manifest_digest=target.manifest_digest,
-                                    render_contract_digest=target.render_contract_digest,
-                                    metadata={
-                                        "transport_result": result,
-                                        "outbox_event_id": str(event.event_id),
-                                    },
+                                    # The digest of the contract that produced
+                                    # the delivered bytes, not merely the one
+                                    # the target was bound with.
+                                    render_contract_digest=(
+                                        None if rendered is None else rendered.template_digest
+                                    ),
+                                    metadata=link_metadata,
                                     created_at=now,
                                 )
                             )

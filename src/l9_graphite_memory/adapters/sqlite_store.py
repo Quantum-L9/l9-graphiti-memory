@@ -1003,6 +1003,24 @@ class SQLiteRecordStore:
         )
         return [self._row_to_link(row) for row in rows]
 
+    def list_projection_target_identities(self) -> tuple[str, ...]:
+        connection = self._connection()
+        identities = {
+            str(row[0])
+            for row in connection.execute(
+                "SELECT DISTINCT target_identity FROM projection_links"
+            ).fetchall()
+        }
+        rows = connection.execute(
+            "SELECT event_json FROM outbox_events WHERE status NOT IN (?, ?)",
+            (OutboxStatus.DELIVERED.value, OutboxStatus.DEAD.value),
+        ).fetchall()
+        for row in rows:
+            identity = OutboxEvent.model_validate_json(str(row[0])).payload.get("target_identity")
+            if isinstance(identity, str) and identity.strip():
+                identities.add(identity.strip())
+        return tuple(sorted(identities))
+
     def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
         try:
             with self._transaction() as tx:

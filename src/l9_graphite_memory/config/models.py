@@ -68,6 +68,11 @@ class MemorySettings(BaseModel):
     # mutually exclusive and never auto-detected (ADR-084).
     projection_runtime: Literal["legacy", "manifest"] = "legacy"
     projection_manifest: Path | None = None
+    # Earlier revisions of ``projection_manifest`` whose targets may still hold
+    # copies or own queued lifecycle events. Their targets stay addressable for
+    # retirement and erasure only; a runtime that cannot address a persisted
+    # identity refuses to start (ADR-084).
+    projection_manifest_history: tuple[Path, ...] = ()
     projection_backend: Literal["none", "http", "zep"] = "none"
     # ``package.module:factory`` returning a StructuredReviewProvider; the
     # model binding stays outside this package (ADR-080). Unset means every
@@ -123,6 +128,17 @@ class MemorySettings(BaseModel):
             return Path(value).expanduser()
         return value
 
+    @field_validator("projection_manifest_history", mode="before")
+    @classmethod
+    def expand_history_paths(cls, value: object) -> object:
+        if isinstance(value, str):
+            value = [item.strip() for item in value.split(",") if item.strip()]
+        if isinstance(value, list | tuple):
+            return tuple(
+                Path(item).expanduser() if isinstance(item, str) else item for item in value
+            )
+        return value
+
     @field_validator("log_level")
     @classmethod
     def normalize_log_level(cls, value: str) -> str:
@@ -147,7 +163,16 @@ class MemorySettings(BaseModel):
                 raise ValueError(
                     "projection_manifest is only valid with projection_runtime 'manifest'"
                 )
+            if self.projection_manifest_history:
+                raise ValueError(
+                    "projection_manifest_history is only valid with projection_runtime 'manifest'"
+                )
             return self
+        if self.projection_manifest in self.projection_manifest_history:
+            raise ValueError(
+                "projection_manifest_history lists the current projection_manifest; "
+                "history holds earlier revisions only"
+            )
         if self.projection_manifest is None:
             raise ValueError(
                 "projection_runtime 'manifest' requires projection_manifest "

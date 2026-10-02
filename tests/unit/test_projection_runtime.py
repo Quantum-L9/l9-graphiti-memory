@@ -64,6 +64,21 @@ class StubAdapter:
         self.health_calls += 1
         return {"name": self.name, "healthy": self._healthy}
 
+    def project_rendered(self, record: Any, rendered: Any) -> dict[str, Any]:
+        return {"locator": f"{self.name}-{record.record_id}"}
+
+
+class LegacyOnlyAdapter:
+    """An adapter that can only deliver its own payload, never a rendering."""
+
+    capabilities: tuple[str, ...] = ()
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def health(self) -> dict[str, Any]:
+        return {"name": self.name, "healthy": True}
+
 
 # -- T-01 compiler determinism ----------------------------------------------
 
@@ -190,6 +205,114 @@ def test_delivering_target_without_adapter_fails_closed() -> None:
         _runtime(graphiti=StubAdapter("graphiti"), zep=None)
 
 
+def test_delivering_target_needs_an_adapter_that_takes_the_rendering() -> None:
+    # Manifest delivery writes the compiled rendering; an adapter that cannot
+    # accept one would write bytes the link's digest does not describe.
+    with pytest.raises(ConfigurationError, match="cannot deliver a compiled render contract"):
+        _runtime(graphiti=LegacyOnlyAdapter("graphiti"), zep=StubAdapter("zep"))
+    # A disabled target never delivers, so it may bind such an adapter for
+    # lifecycle work alone.
+    runtime = _runtime(
+        "active", "disabled", graphiti=StubAdapter("graphiti"), zep=LegacyOnlyAdapter("zep")
+    )
+    assert runtime.target(ZEP).mode is TargetMode.DISABLED
+
+
+def test_render_is_the_compiled_contract_in_manifest_mode_and_absent_in_legacy() -> None:
+    from l9_graphite_memory.contracts import (
+        EvidenceKind,
+        EvidenceRef,
+        MemoryClass,
+        MemoryRecord,
+        Provenance,
+    )
+    from l9_graphite_memory.projections import render_projection
+
+    record = MemoryRecord(
+        tenant_id="tenant-a",
+        namespace="repo-a",
+        memory_class=MemoryClass.OBSERVATION,
+        content="rendered through the manifest",
+        provenance=Provenance(source="test"),
+        evidence=(EvidenceRef(kind=EvidenceKind.EXPLICIT, description="t"),),
+        confidence={"score": 0.9},
+        normalized_digest="a" * 64,
+        original_digest="b" * 64,
+        idempotency_key="k",
+        created_by="test",
+    )
+    runtime = _runtime(graphiti=StubAdapter("graphiti"), zep=StubAdapter("zep"))
+    rendered = runtime.render(record)
+    assert rendered == render_projection(runtime.compiled, record)
+    assert rendered.template_digest == runtime.compiled.render_contract_digest
+    assert ProjectionRuntime.legacy(StubAdapter("graphiti")).render(record) is None
+
+
+# -- historical identities -------------------------------------------------
+
+
+def _compiled(version: int, *, providers: list[int] | None = None):
+    data = with_modes("active", "shadow")
+    data["metadata"]["version"] = version
+    if providers is not None:
+        data["spec"]["providers"] = [data["spec"]["providers"][index] for index in providers]
+    return compile_projection(parse_projection_manifest_data(data))
+
+
+def test_retained_revision_targets_are_lifecycle_only_and_never_duplicate_current() -> None:
+    v8_graphiti, v8_zep = StubAdapter("graphiti-v8"), StubAdapter("zep-v8")
+    v9 = _compiled(9)
+    runtime = ProjectionRuntime.from_compiled(
+        v9,
+        {
+            "facts:v9:graphiti_mcp:primary": StubAdapter("graphiti"),
+            "facts:v9:zep:primary": StubAdapter("zep"),
+        },
+        retained=[(_compiled(8), {GRAPHITI: v8_graphiti, ZEP: v8_zep})],
+    )
+
+    assert [binding.identity for binding in runtime.delivery_targets()] == [
+        "facts:v9:graphiti_mcp:primary",
+        "facts:v9:zep:primary",
+    ]
+    assert runtime.active_targets()[0].identity == "facts:v9:graphiti_mcp:primary"
+    old = runtime.target(GRAPHITI)
+    assert old.retained and old.mode is TargetMode.DISABLED and not old.delivers
+    assert (old.projection_version, old.manifest_digest) == (8, _compiled(8).manifest_digest)
+    assert runtime.adapter_for(GRAPHITI) is v8_graphiti
+    assert runtime.unresolved_identities([GRAPHITI, ZEP, "facts:v9:zep:primary"]) == ()
+    entry = {item["target_identity"]: item for item in runtime.health()["targets"]}[ZEP]
+    assert entry["retained"] is True and entry["mode"] == "disabled"
+
+    # A target the current revision still declares is served by the current
+    # binding; the retained copy of it is not bound twice.
+    same_version = ProjectionRuntime.from_compiled(
+        _compiled(8, providers=[0]),
+        {GRAPHITI: StubAdapter("graphiti")},
+        retained=[(_compiled(8), {ZEP: v8_zep})],
+    )
+    assert [binding.identity for binding in same_version.targets] == [GRAPHITI, ZEP]
+    assert not same_version.target(GRAPHITI).retained and same_version.target(ZEP).retained
+    with pytest.raises(ConfigurationError, match="does not declare"):
+        ProjectionRuntime.from_compiled(
+            _compiled(8, providers=[0]),
+            {GRAPHITI: StubAdapter("graphiti")},
+            retained=[(_compiled(8), {"facts:v8:zep:secondary": v8_zep})],
+        )
+
+
+def test_unresolved_identities_names_what_the_runtime_cannot_address() -> None:
+    runtime = _runtime(graphiti=StubAdapter("graphiti"), zep=StubAdapter("zep"))
+
+    assert runtime.unresolved_identities([GRAPHITI, "graphiti", "facts:v7:zep:primary"]) == (
+        "facts:v7:zep:primary",
+        "graphiti",
+    )
+    assert ProjectionRuntime.legacy(StubAdapter("graphiti")).unresolved_identities(
+        ["graphiti", GRAPHITI]
+    ) == (GRAPHITI,)
+
+
 def test_unknown_target_fails_closed() -> None:
     runtime = _runtime(graphiti=StubAdapter("graphiti"), zep=StubAdapter("zep"))
 
@@ -275,8 +398,7 @@ def _manifest_settings(tmp_path: Path, **overrides: Any) -> MemorySettings:
         data_dir=tmp_path / "data",
         state_dir=tmp_path / "state",
         projection_runtime="manifest",
-        projection_manifest=MANIFEST_PATH,
-        **overrides,
+        **{"projection_manifest": MANIFEST_PATH, **overrides},
     )
 
 
@@ -301,6 +423,77 @@ def test_factory_fails_closed_when_a_delivering_target_is_unconfigured(tmp_path:
         build_projection_runtime(
             _manifest_settings(tmp_path, graphiti_mcp_url="http://127.0.0.1:9/mcp")
         )
+
+
+def _write_manifest(path: Path, data: dict[str, Any]) -> Path:
+    path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+    return path
+
+
+def test_factory_retains_history_revisions_for_lifecycle_only(
+    tmp_path: Path, fake_zep_sdk: None
+) -> None:
+    v9 = with_modes("active", "shadow")
+    v9["metadata"]["version"] = 9
+    current = _write_manifest(tmp_path / "facts-v9.yaml", v9)
+    runtime = build_projection_runtime(
+        _manifest_settings(
+            tmp_path,
+            projection_manifest=current,
+            projection_manifest_history=(MANIFEST_PATH,),
+            graphiti_mcp_url="http://127.0.0.1:9/mcp",
+            zep_api_key="test-key",
+        )
+    )
+
+    assert [binding.identity for binding in runtime.delivery_targets()] == [
+        "facts:v9:graphiti_mcp:primary",
+        "facts:v9:zep:primary",
+    ]
+    retained = runtime.target(ZEP)
+    assert retained.retained and retained.mode is TargetMode.DISABLED
+    assert isinstance(runtime.adapter_for(GRAPHITI), GraphitiProjection)
+    assert isinstance(runtime.adapter_for(ZEP), GraphitiProjection)
+
+    # A retained target whose provider is not configured binds no adapter:
+    # it cannot block startup the way a delivering target would, and lifecycle
+    # work against it fails explicitly until it is configured.
+    v9_graphiti_only = dict(v9, spec={**v9["spec"], "providers": [v9["spec"]["providers"][0]]})
+    partial = build_projection_runtime(
+        _manifest_settings(
+            tmp_path,
+            projection_manifest=_write_manifest(tmp_path / "facts-v9-only.yaml", v9_graphiti_only),
+            projection_manifest_history=(MANIFEST_PATH,),
+            graphiti_mcp_url="http://127.0.0.1:9/mcp",
+        )
+    )
+    assert partial.target(ZEP).retained and partial.target(ZEP).adapter is None
+    with pytest.raises(ProjectionError, match="not configured"):
+        partial.adapter_for(ZEP)
+
+
+def test_manifest_history_is_manifest_mode_only_and_excludes_the_current_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with pytest.raises(ValueError, match="history is only valid with projection_runtime"):
+        MemorySettings(
+            data_dir=tmp_path / "data",
+            state_dir=tmp_path / "state",
+            projection_manifest_history=(MANIFEST_PATH,),
+        )
+    with pytest.raises(ValueError, match="lists the current projection_manifest"):
+        _manifest_settings(tmp_path, projection_manifest_history=(MANIFEST_PATH,))
+
+    monkeypatch.setenv("L9_MEMORY_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setenv("L9_MEMORY_STATE_DIR", str(tmp_path / "state"))
+    monkeypatch.setenv("L9_MEMORY_PROJECTION_RUNTIME", "manifest")
+    monkeypatch.setenv("L9_MEMORY_PROJECTION_MANIFEST", str(tmp_path / "facts-v9.yaml"))
+    monkeypatch.setenv(
+        "L9_MEMORY_PROJECTION_MANIFEST_HISTORY",
+        f"{tmp_path / 'facts-v7.yaml'}, {MANIFEST_PATH}",
+    )
+    settings = load_settings()
+    assert settings.projection_manifest_history == (tmp_path / "facts-v7.yaml", MANIFEST_PATH)
 
 
 # -- T-16 runtime selection and legacy mode ---------------------------------

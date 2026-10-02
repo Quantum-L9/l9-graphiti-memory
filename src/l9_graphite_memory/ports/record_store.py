@@ -175,7 +175,6 @@ class RecordStore(Protocol):
         A record holds one link per target it is projected into; saving a link
         for one target never replaces another target's link (ADR-084).
         """
-        ...
 
     def get_projection_link(
         self,
@@ -189,9 +188,18 @@ class RecordStore(Protocol):
         This, not the currently configured targets, is the erasure set of a
         privacy deletion (ADR-084).
         """
-        ...
 
-    def delete_projection_link(self, record_id: UUID, target_identity: str) -> None: ...
+    def list_projection_target_identities(self) -> tuple[str, ...]:
+        """Every target identity canonical state still owes lifecycle work to.
+
+        The distinct identities of all persisted projection links plus those
+        named by outbox events that are still pending, retrying, or leased. A
+        runtime that cannot address one of them would strand that copy or
+        event, so composition checks this set before activating (ADR-084).
+        """
+
+    def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
+        """Remove one target's link; a link that does not exist is not an error."""
 
     def save_projection_retirement(self, receipt: ProjectionRetirementReceipt) -> None:
         """Record that a projection was withdrawn, and why, in canonical state."""

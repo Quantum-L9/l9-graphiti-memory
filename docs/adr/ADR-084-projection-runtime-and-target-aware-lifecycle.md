@@ -195,3 +195,61 @@ backup or rekeyed back by hand.
 Extends ADR-063 (projection manifest compiler), ADR-057 (verified deletion),
 ADR-074 (projection retirement lifecycle), and ADR-054 (strategy receipts).
 Supersedes none. Superseded by none.
+
+## Amendments
+
+**2026-10-02 — delivery executes the attested render contract; historical
+target identities stay addressable or activation is refused.**
+
+Review of the first implementation found two edges where the runtime did not
+execute the semantics it recorded.
+
+1. **Manifest delivery bypassed the render contract.** The worker handed the
+   raw `MemoryRecord` to the adapter's legacy payload while the link recorded
+   the compiled `render_contract_digest`, so provider bytes could differ from
+   the contract the digest attested and a render-field change left delivery
+   unchanged. Now, in manifest mode, the worker renders the record through
+   `render_projection`, the one renderer the compiler owns, and the adapter
+   delivers that rendering byte for byte through `project_rendered`; the link
+   records the digest of the contract that produced those bytes and the
+   rendering's content digest. A delivering manifest target must bind an
+   adapter that implements `project_rendered`, or the runtime refuses to
+   compose. The legacy runtime renders nothing and delivers exactly as before.
+
+2. **Historical target identities could strand lifecycle work.** Target
+   identity carries the manifest version, but the runtime bound only the
+   current revision's targets, so a version bump, a target removal, or a
+   legacy-to-manifest cutover left persisted links and queued retire or erase
+   events naming identities no runtime could resolve: those events retried
+   until they died and a verified deletion stayed pending for good. Two
+   mechanisms close this, and neither gives the runtime store access.
+
+   - `projection_manifest_history` names earlier revisions of the manifest.
+     Each of their targets that the current revision no longer declares is
+     bound *retained*: disabled, lifecycle-only, never delivering or
+     retrieving, so its copies can still be retired and erased. A target the
+     current revision still declares is served by the current binding and is
+     not bound twice.
+   - The worker refuses to start while canonical state still holds a
+     projection link, or a pending, retrying, or leased outbox event, naming
+     an identity the runtime does not bind (`verify_projection_runtime`). The
+     store supplies the identities (`list_projection_target_identities`);
+     the runtime answers only which of them it cannot address. The refusal
+     names the identities and the remedy.
+
+   This supersedes the Migration Impact statement that legacy-link retire
+   and erase events "fail closed and retry" under a manifest runtime, and the
+   Rollback statement that deletions of manifest-identity links "stay pending
+   and visible" under a legacy runtime: in both directions the runtime that
+   cannot address the identities does not start, and the runtime that wrote
+   them drains them first. A retained target's copies remain in the provider
+   until their records are retired or deleted; draining a retained target
+   wholesale is a follow-up decision, not part of this amendment.
+
+   Validation: `tests/unit/test_projection_runtime.py` (render in manifest
+   mode only, adapter requirement, retained bindings, unresolved identities,
+   factory history, settings) and `tests/integration/test_projection_targets.py`
+   (delivery equals the compiled rendering, a render-field change changes
+   delivery and the recorded digest, legacy delivery unchanged, refused
+   cutover with legacy links or queued events, version bump and target
+   removal erasable through history).

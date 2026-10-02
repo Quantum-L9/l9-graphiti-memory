@@ -51,9 +51,12 @@ def _strategy_hits(
     limit: int,
 ) -> list[ProjectionHit]:
     strategy_search = getattr(adapter, "search_strategy", None)
-    if strategy_search is None:
+    if not callable(strategy_search):
         return adapter.search(query, namespaces, limit=limit)
-    return strategy_search(strategy, query, namespaces, limit=limit)
+    # The attribute is looked up dynamically so an adapter predating per-strategy
+    # search still works; the port fixes the type of what it returns.
+    hits: list[ProjectionHit] = strategy_search(strategy, query, namespaces, limit=limit)
+    return hits
 
 
 class RetrievalPlanner:

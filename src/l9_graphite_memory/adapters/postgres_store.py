@@ -1104,6 +1104,22 @@ class PostgresRecordStore:
             rows = cursor.fetchall()
         return [self._row_to_link(row) for row in rows]
 
+    def list_projection_target_identities(self) -> tuple[str, ...]:
+        with self._cursor() as cursor:
+            cursor.execute("SELECT DISTINCT target_identity FROM projection_links")
+            identities = {str(row["target_identity"]) for row in cursor.fetchall()}
+            cursor.execute(
+                "SELECT event_json FROM outbox_events WHERE status NOT IN (%s, %s)",
+                (OutboxStatus.DELIVERED.value, OutboxStatus.DEAD.value),
+            )
+            rows = cursor.fetchall()
+        for row in rows:
+            event = OutboxEvent.model_validate_json(str(row["event_json"]))
+            identity = event.payload.get("target_identity")
+            if isinstance(identity, str) and identity.strip():
+                identities.add(identity.strip())
+        return tuple(sorted(identities))
+
     def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
         psycopg2 = _driver()
         try:

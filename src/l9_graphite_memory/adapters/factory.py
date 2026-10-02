@@ -16,6 +16,7 @@ from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.errors import ConfigurationError
 from l9_graphite_memory.ports import ProjectionAdapter, RecordStore
 from l9_graphite_memory.projections import (
+    CompiledProjection,
     CompiledProjectionTarget,
     ProjectionRuntime,
     TargetMode,
@@ -112,12 +113,14 @@ def build_target_adapter(
         raise ConfigurationError(f"projection target {target.identity}: {reason}")
 
     if target.target != _CREDENTIALED_TARGET:
-        return unconfigured(
+        unconfigured(
             f"only the '{_CREDENTIALED_TARGET}' target binds to configured provider credentials"
         )
+        return None
     if target.provider_type == "graphiti_mcp":
         if not settings.graphiti_mcp_url:
-            return unconfigured("GRAPHITI_MCP_URL is required")
+            unconfigured("GRAPHITI_MCP_URL is required")
+            return None
         from l9_graphite_memory.transport import HttpMcpTransport
 
         from .graphiti_projection import GraphitiProjection
@@ -127,7 +130,8 @@ def build_target_adapter(
         )
     if target.provider_type == "zep":
         if not settings.zep_api_key:
-            return unconfigured("ZEP_API_KEY is required")
+            unconfigured("ZEP_API_KEY is required")
+            return None
         from l9_graphite_memory.zep_transport import ZepCloudTransport
 
         from .graphiti_projection import GraphitiProjection
@@ -157,4 +161,25 @@ def build_projection_runtime(settings: MemorySettings) -> ProjectionRuntime:
     adapters = {
         target.identity: build_target_adapter(settings, target) for target in compiled.targets
     }
-    return ProjectionRuntime.from_compiled(compiled, adapters)
+    # Earlier manifest revisions whose targets may still hold copies or own
+    # queued lifecycle events. Their targets are bound lifecycle-only: they
+    # never deliver or retrieve, so an unconfigured one yields no adapter
+    # rather than failing startup, exactly like a disabled target (ADR-084).
+    current = {target.identity for target in compiled.targets}
+    retained: list[tuple[CompiledProjection, dict[str, ProjectionAdapter | None]]] = []
+    for path in settings.projection_manifest_history:
+        previous = compile_projection(load_projection_manifest(path))
+        retained.append(
+            (
+                previous,
+                {
+                    target.identity: build_target_adapter(
+                        settings,
+                        target.model_copy(update={"mode": TargetMode.DISABLED, "required": False}),
+                    )
+                    for target in previous.targets
+                    if target.identity not in current
+                },
+            )
+        )
+    return ProjectionRuntime.from_compiled(compiled, adapters, retained=retained)

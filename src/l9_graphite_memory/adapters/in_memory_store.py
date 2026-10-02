@@ -376,6 +376,16 @@ class InMemoryRecordStore:
             key=lambda link: link.target_identity,
         )
 
+    def list_projection_target_identities(self) -> tuple[str, ...]:
+        identities = {identity for (_, identity) in self.projection_links}
+        for event in self.outbox.values():
+            if event.status in {OutboxStatus.DELIVERED, OutboxStatus.DEAD}:
+                continue
+            identity = event.payload.get("target_identity")
+            if isinstance(identity, str) and identity.strip():
+                identities.add(identity.strip())
+        return tuple(sorted(identities))
+
     def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
         self.projection_links.pop((record_id, target_identity), None)
 

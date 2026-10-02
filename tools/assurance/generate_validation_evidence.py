@@ -151,8 +151,18 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # unit cases, +51 target-lifecycle cases (17 x 3 store backends), and
         # +3 schema-8 migration cases. Measured with postgres + redis: 1104
         # collected, and CI's same 16 skips give 1104 - 16 = 1088.
-        "1088 tests pass",
-        r"1088 passed",
+        #
+        # Re-pinned 1088 -> 1113 for the ADR-084 amendment (PR #76 review):
+        # +6 runtime unit cases (render in manifest mode, rendered-adapter
+        # requirement, retained bindings, unresolved identities, factory
+        # history, settings), +1 adapter rendering case, and +18
+        # target-lifecycle cases (6 x 3 store backends: rendered delivery,
+        # render-field change, legacy delivery, refused cutover, refused
+        # queued events, version bump and target removal through history).
+        # Measured with postgres + redis: 1129 collected, and CI's same 16
+        # skips give 1129 - 16 = 1113.
+        "1113 tests pass",
+        r"1113 passed",
     ),
     CheckSpec(
         "V-002",

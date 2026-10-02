@@ -22,11 +22,12 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from l9_graphite_memory.contracts import LEGACY_PROVIDER_TYPE
+from l9_graphite_memory.contracts import LEGACY_PROVIDER_TYPE, MemoryRecord
 from l9_graphite_memory.errors import ConfigurationError, ProjectionError
-from l9_graphite_memory.ports.projection import ProjectionAdapter
+from l9_graphite_memory.ports.projection import ProjectionAdapter, RenderedProjectionAdapter
 
 from .contracts import CompiledProjection, TargetMode
+from .render import RenderedProjection, render_projection
 
 RuntimeMode = Literal["legacy", "manifest"]
 
@@ -38,6 +39,11 @@ class ProjectionTargetBinding:
     ``adapter`` is None only for a disabled target whose provider is not
     configured; lifecycle work against such a target fails explicitly rather
     than being treated as done.
+
+    A ``retained`` binding belongs to an earlier manifest revision. It is kept
+    only so copies and queued events that still carry its identity can be
+    retired and erased: it is always disabled, never delivers, and never
+    retrieves (ADR-084).
     """
 
     identity: str
@@ -50,6 +56,7 @@ class ProjectionTargetBinding:
     adapter: ProjectionAdapter | None
     manifest_digest: str | None = None
     render_contract_digest: str | None = None
+    retained: bool = False
 
     @property
     def delivers(self) -> bool:
@@ -78,9 +85,25 @@ class ProjectionRuntime:
         if mode == "manifest" and compiled is None:
             raise ConfigurationError("manifest projection runtime requires a compiled projection")
         for binding in targets:
+            if binding.retained and binding.delivers:
+                raise ConfigurationError(
+                    f"retained projection target {binding.identity} cannot deliver"
+                )
             if binding.delivers and binding.adapter is None:
                 raise ConfigurationError(
                     f"projection target {binding.identity} is {binding.mode} but has no adapter"
+                )
+            # Manifest delivery writes the compiled rendering, so a delivering
+            # target must bind an adapter that accepts one; otherwise provider
+            # bytes could not match the digest the link attests.
+            if (
+                mode == "manifest"
+                and binding.delivers
+                and not isinstance(binding.adapter, RenderedProjectionAdapter)
+            ):
+                raise ConfigurationError(
+                    f"projection target {binding.identity} adapter cannot deliver a compiled "
+                    "render contract (project_rendered is not implemented)"
                 )
         self.mode: RuntimeMode = mode
         self.compiled = compiled
@@ -116,8 +139,17 @@ class ProjectionRuntime:
         cls,
         compiled: CompiledProjection,
         adapters: Mapping[str, ProjectionAdapter | None],
+        *,
+        retained: Iterable[tuple[CompiledProjection, Mapping[str, ProjectionAdapter | None]]] = (),
     ) -> ProjectionRuntime:
-        """Bind every compiled target to the adapter constructed for it."""
+        """Bind every compiled target to the adapter constructed for it.
+
+        ``retained`` names earlier revisions of the projection whose targets
+        may still hold copies or own queued events. Each of their targets that
+        the current revision no longer declares is bound disabled, for
+        lifecycle work only; a target the current revision still declares is
+        served by the current binding and needs no retained one.
+        """
 
         unknown = set(adapters) - {target.identity for target in compiled.targets}
         if unknown:
@@ -143,6 +175,34 @@ class ProjectionRuntime:
                     render_contract_digest=compiled.render_contract_digest,
                 )
             )
+        bound = {binding.identity for binding in bindings}
+        for previous, previous_adapters in retained:
+            previous_identities = {target.identity for target in previous.targets}
+            unknown = set(previous_adapters) - previous_identities
+            if unknown:
+                raise ConfigurationError(
+                    f"adapters supplied for targets {previous.name} v{previous.version} does "
+                    "not declare: " + ", ".join(sorted(unknown))
+                )
+            for target in previous.targets:
+                if target.identity in bound:
+                    continue
+                bound.add(target.identity)
+                bindings.append(
+                    ProjectionTargetBinding(
+                        identity=target.identity,
+                        projection_name=previous.name,
+                        projection_version=previous.version,
+                        provider_type=str(target.provider_type),
+                        target=target.target,
+                        mode=TargetMode.DISABLED,
+                        required=False,
+                        adapter=previous_adapters.get(target.identity),
+                        manifest_digest=previous.manifest_digest,
+                        render_contract_digest=previous.render_contract_digest,
+                        retained=True,
+                    )
+                )
         return cls(bindings, mode="manifest", compiled=compiled)
 
     @classmethod
@@ -214,6 +274,31 @@ class ProjectionRuntime:
             )
         return binding.adapter
 
+    def unresolved_identities(self, identities: Iterable[str]) -> tuple[str, ...]:
+        """The given identities this runtime cannot address, sorted.
+
+        Canonical state supplies the identities; the runtime only answers
+        which of them have no binding. A non-empty answer means activating
+        this runtime would strand those copies or events (ADR-084).
+        """
+
+        return tuple(sorted({item for item in identities if item not in self._by_identity}))
+
+    def render(self, record: MemoryRecord) -> RenderedProjection | None:
+        """Render a record under the compiled render contract.
+
+        Manifest delivery writes this rendering, produced by the one renderer
+        the compiler owns, so the digest a link records is the contract that
+        produced the provider bytes (ADR-063, ADR-084). A legacy runtime has
+        no contract and renders nothing: its adapter delivers as before.
+        """
+
+        if self.mode == "legacy":
+            return None
+        compiled = self.compiled
+        assert compiled is not None
+        return render_projection(compiled, record)
+
     def health(self) -> dict[str, Any]:
         """Report each target's probed health; configuration is not health."""
 
@@ -262,6 +347,7 @@ class ProjectionRuntime:
             "provider_type": binding.provider_type,
             "mode": str(binding.mode.value),
             "required": binding.required,
+            "retained": binding.retained,
             "configured": binding.adapter is not None,
             "verified": bool(probe and probe.get("healthy")),
             "health": probe,

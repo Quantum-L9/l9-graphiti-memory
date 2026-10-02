@@ -40,12 +40,15 @@ from l9_graphite_memory.contracts import (
     Provenance,
     RetirementMode,
 )
-from l9_graphite_memory.errors import ProjectionError, StoreError
+from l9_graphite_memory.errors import ConfigurationError, ProjectionError, StoreError
 from l9_graphite_memory.ports import ProjectionHit
 from l9_graphite_memory.projections import (
+    CompiledProjection,
     ProjectionRuntime,
+    RenderedProjection,
     compile_projection,
     parse_projection_manifest_data,
+    render_projection,
 )
 from l9_graphite_memory.retrieval import RetrievalPlanner
 from l9_graphite_memory.services import MemoryService, OutboxWorker
@@ -55,6 +58,8 @@ ROOT = Path(__file__).resolve().parents[2]
 MANIFEST_PATH = ROOT / "config" / "projections" / "facts-v8.yaml"
 GRAPHITI = "facts:v8:graphiti_mcp:primary"
 ZEP = "facts:v8:zep:primary"
+GRAPHITI_V9 = "facts:v9:graphiti_mcp:primary"
+ZEP_V9 = "facts:v9:zep:primary"
 
 
 class FakeProvider:
@@ -69,6 +74,7 @@ class FakeProvider:
         self.fail_erase = False
         self.fail_search = False
         self.projected: list[UUID] = []
+        self.delivered: dict[UUID, RenderedProjection] = {}
         self.retired: list[UUID] = []
         self.erased: list[UUID] = []
         self.search_hits: list[UUID] = []
@@ -81,6 +87,11 @@ class FakeProvider:
         if self.fail_project:
             raise ProjectionError(f"{self.name} unavailable")
         return {"locator": f"{self.name}-{record.record_id}"}
+
+    def project_rendered(self, record, rendered: RenderedProjection) -> dict[str, Any]:
+        # The provider receives the rendering, never the canonical record.
+        self.delivered[record.record_id] = rendered
+        return self.project(record)
 
     def retire(self, record_id, namespace, *, locator=None, reason="") -> dict[str, Any]:
         self.retired.append(record_id)
@@ -113,18 +124,47 @@ class Clock:
         self.current += timedelta(seconds=seconds)
 
 
+def compile_facts(
+    *,
+    graphiti_mode: str = "active",
+    zep_mode: str = "shadow",
+    version: int = 8,
+    providers: tuple[int, ...] = (0, 1),
+    render_fields: tuple[str, ...] | None = None,
+) -> CompiledProjection:
+    data = yaml.safe_load(MANIFEST_PATH.read_text(encoding="utf-8"))
+    data["metadata"]["version"] = version
+    data["spec"]["providers"][0]["mode"] = graphiti_mode
+    data["spec"]["providers"][1]["mode"] = zep_mode
+    data["spec"]["providers"] = [data["spec"]["providers"][index] for index in providers]
+    if render_fields is not None:
+        data["spec"]["render"]["fields"] = list(render_fields)
+    return compile_projection(parse_projection_manifest_data(data))
+
+
 def build_runtime(
     graphiti: FakeProvider | None,
     zep: FakeProvider | None,
     *,
     graphiti_mode: str = "active",
     zep_mode: str = "shadow",
+    version: int = 8,
+    providers: tuple[int, ...] = (0, 1),
+    render_fields: tuple[str, ...] | None = None,
+    retained: list[tuple[CompiledProjection, dict[str, Any]]] | None = None,
 ) -> ProjectionRuntime:
-    data = yaml.safe_load(MANIFEST_PATH.read_text(encoding="utf-8"))
-    data["spec"]["providers"][0]["mode"] = graphiti_mode
-    data["spec"]["providers"][1]["mode"] = zep_mode
-    compiled = compile_projection(parse_projection_manifest_data(data))
-    return ProjectionRuntime.from_compiled(compiled, {GRAPHITI: graphiti, ZEP: zep})
+    compiled = compile_facts(
+        graphiti_mode=graphiti_mode,
+        zep_mode=zep_mode,
+        version=version,
+        providers=providers,
+        render_fields=render_fields,
+    )
+    adapters = (
+        {GRAPHITI: graphiti, ZEP: zep} if version == 8 else {GRAPHITI_V9: graphiti, ZEP_V9: zep}
+    )
+    bound = {target.identity: adapters[target.identity] for target in compiled.targets}
+    return ProjectionRuntime.from_compiled(compiled, bound, retained=retained or [])
 
 
 class Harness:
@@ -135,12 +175,14 @@ class Harness:
         self.rebind(runtime)
 
     def rebind(self, runtime: ProjectionRuntime, **planner: Any) -> None:
-        """Compose a new service and worker over the same canonical store."""
+        """Compose a new worker and service over the same canonical store.
 
-        self.runtime = runtime
-        retrieval = RetrievalPlanner(self.store, runtime, **planner) if planner else None
-        self.service = MemoryService(self.store, runtime, clock=self.clock, retrieval=retrieval)
-        self.worker = OutboxWorker(
+        The worker comes first: it refuses a runtime that cannot address
+        every identity the store still owes work to, and a refused rebind
+        must leave the previous composition in place.
+        """
+
+        worker = OutboxWorker(
             self.store,
             runtime,
             MemorySettings(
@@ -151,6 +193,10 @@ class Harness:
             clock=self.clock,
             worker_id="test",
         )
+        self.runtime = runtime
+        self.worker = worker
+        retrieval = RetrievalPlanner(self.store, runtime, **planner) if planner else None
+        self.service = MemoryService(self.store, runtime, clock=self.clock, retrieval=retrieval)
 
     def run(self) -> dict[str, int]:
         result = self.worker.run_once()
@@ -246,6 +292,85 @@ def test_one_record_holds_one_link_per_target(harness, principal) -> None:
     )
     assert link.manifest_digest == harness.runtime.compiled.manifest_digest
     assert link.render_contract_digest == harness.runtime.compiled.render_contract_digest
+
+
+# -- render contract is the delivery -----------------------------------------
+
+
+def test_manifest_delivery_is_the_compiled_rendering(harness, principal, graphiti, zep) -> None:
+    written = _write(harness, principal, "delivered as rendered", tags=("rendered",))
+    harness.run()
+
+    record = harness.store.get_record(written.record_id)
+    expected = render_projection(harness.runtime.compiled, record)
+    for provider in (graphiti, zep):
+        delivered = provider.delivered[written.record_id]
+        assert delivered == expected
+        # facts-v8 declares fields the legacy payload omits or reshapes.
+        assert delivered.metadata["tenant_id"] == record.tenant_id
+        assert delivered.metadata["temporal"]["recorded_at"]
+        assert delivered.metadata["provenance"]["source"] == "test"
+        assert delivered.metadata["confidence"]["score"] == record.confidence.score
+        assert delivered.metadata["tags"] == ["rendered"]
+    for identity in (GRAPHITI, ZEP):
+        link = harness.store.get_projection_link(written.record_id, identity)
+        # The link attests the contract that produced the delivered bytes.
+        assert link.render_contract_digest == expected.template_digest
+        assert link.metadata["render_content_digest"] == expected.content_digest
+
+
+def test_changing_a_declared_render_field_changes_what_is_delivered(
+    harness, principal, graphiti, zep
+) -> None:
+    written = _write(harness, principal, "render contract drives delivery", tags=("v8",))
+    harness.run()
+    before = graphiti.delivered[written.record_id]
+
+    narrowed = compile_facts(render_fields=("record_id", "tenant_id", "namespace", "content"))
+    harness.rebind(
+        ProjectionRuntime.from_compiled(narrowed, {GRAPHITI: graphiti, ZEP: zep}),
+    )
+    harness.store.delete_projection_link(written.record_id, GRAPHITI)
+    harness.store.delete_projection_link(written.record_id, ZEP)
+    harness.service.rebuild_projection(harness_maintainer(), "repo-a", apply=True)
+    harness.run()
+    after = graphiti.delivered[written.record_id]
+
+    assert narrowed.render_contract_digest != harness_v8_digest()
+    assert after != before
+    assert after.template_digest == narrowed.render_contract_digest
+    assert set(after.metadata) == {"record_id", "tenant_id", "namespace", "content"}
+    assert "tags" in before.metadata and "tags" not in after.metadata
+    assert after.content_digest != before.content_digest
+    link = harness.store.get_projection_link(written.record_id, GRAPHITI)
+    assert link.render_contract_digest == narrowed.render_contract_digest
+    assert link.metadata["render_content_digest"] == after.content_digest
+
+
+def harness_maintainer() -> MemoryPrincipal:
+    return MemoryPrincipal(
+        principal_id="operator",
+        tenant_id="tenant-a",
+        read_namespaces=("repo-a",),
+        write_namespaces=("repo-a",),
+        maintain_namespaces=("repo-a",),
+    )
+
+
+def harness_v8_digest() -> str:
+    return compile_facts().render_contract_digest
+
+
+def test_legacy_runtime_delivers_the_adapter_payload_unrendered(harness, principal) -> None:
+    legacy = FakeProvider("graphiti")
+    harness.rebind(ProjectionRuntime.legacy(legacy))
+    written = _write(harness, principal, "legacy stays legacy")
+
+    assert harness.run()["delivered"] == 1
+    assert legacy.projected == [written.record_id]
+    assert legacy.delivered == {}
+    link = harness.store.get_projection_link(written.record_id, "graphiti")
+    assert link.render_contract_digest is None and "render_content_digest" not in link.metadata
 
 
 # -- T-04 independent delivery ----------------------------------------------
@@ -442,7 +567,10 @@ def test_unconfigured_disabled_target_blocks_completion_until_reconfigured(
     assert harness.store.get_record(written.record_id).state is MemoryState.DELETED
 
 
-def test_legacy_link_after_cutover_fails_closed_until_a_legacy_runtime_erases_it(
+# -- historical identities stay addressable or activation is refused ---------
+
+
+def test_manifest_cutover_is_refused_while_legacy_links_exist(
     harness, principal, admin_principal, graphiti, zep
 ) -> None:
     legacy = FakeProvider("graphiti")
@@ -451,18 +579,108 @@ def test_legacy_link_after_cutover_fails_closed_until_a_legacy_runtime_erases_it
     harness.run()
     assert harness.links(written.record_id) == {"graphiti": f"graphiti-{written.record_id}"}
 
-    harness.rebind(build_runtime(graphiti, zep))
-    receipt = _delete(harness, admin_principal, written.record_id)
-    harness.run()
-    harness.run()
+    # The manifest runtime cannot address the legacy identity, so it must not
+    # start: its erase events would retry until they died.
+    with pytest.raises(ConfigurationError, match="graphiti") as refused:
+        harness.rebind(build_runtime(graphiti, zep))
+    assert "projection_manifest_history" in str(refused.value)
+    assert harness.runtime.mode == "legacy"
 
-    assert "graphiti" in receipt.projection_targets
-    assert harness.links(written.record_id) == {"graphiti": f"graphiti-{written.record_id}"}
-    assert harness.store.get_record(written.record_id).state is MemoryState.DELETION_PENDING
-
-    harness.rebind(ProjectionRuntime.legacy(legacy))
+    # The runtime that wrote the copy still drains it, and once no legacy
+    # identity remains the cutover is accepted.
+    _delete(harness, admin_principal, written.record_id)
     harness.run()
     assert legacy.erased == [written.record_id]
+    assert harness.store.get_record(written.record_id).state is MemoryState.DELETED
+    harness.rebind(build_runtime(graphiti, zep))
+    assert harness.runtime.mode == "manifest"
+
+
+def test_queued_events_for_an_unknown_identity_also_refuse_activation(
+    harness, principal, graphiti, zep
+) -> None:
+    legacy = FakeProvider("graphiti")
+    harness.rebind(ProjectionRuntime.legacy(legacy))
+    _write(harness, principal, "queued but not yet delivered")
+    assert harness.store.outbox_backlog() == 1
+
+    with pytest.raises(ConfigurationError, match="pending outbox events"):
+        harness.rebind(build_runtime(graphiti, zep))
+
+    harness.run()
+    assert harness.store.outbox_backlog() == 0
+    # Delivery left a link, which still names the legacy identity.
+    with pytest.raises(ConfigurationError, match="graphiti"):
+        harness.rebind(build_runtime(graphiti, zep))
+
+
+def test_manifest_version_bump_keeps_prior_links_erasable_through_history(
+    harness, principal, admin_principal, graphiti, zep
+) -> None:
+    v8 = harness.runtime.compiled
+    written = _write(harness, principal, "projected under v8")
+    harness.run()
+    assert set(harness.links(written.record_id)) == {GRAPHITI, ZEP}
+    zep.fail_project = True
+    retried = _write(harness, principal, "v8 zep delivery still queued")
+    harness.run()
+    assert harness.store.outbox_backlog() == 1
+
+    graphiti_v9, zep_v9 = FakeProvider("graphiti-v9"), FakeProvider("zep-v9")
+    # Without the v8 revision the v9 runtime would strand both the links and
+    # the queued v8 event.
+    with pytest.raises(ConfigurationError, match=f"{GRAPHITI}, {ZEP}"):
+        harness.rebind(build_runtime(graphiti_v9, zep_v9, version=9))
+
+    harness.rebind(
+        build_runtime(
+            graphiti_v9, zep_v9, version=9, retained=[(v8, {GRAPHITI: graphiti, ZEP: zep})]
+        )
+    )
+    assert [binding.identity for binding in harness.runtime.delivery_targets()] == [
+        GRAPHITI_V9,
+        ZEP_V9,
+    ]
+    # The queued v8 project event is skipped: a retained target delivers
+    # nothing new, and v9 copies come from a rebuild under v9.
+    zep.fail_project = False
+    assert harness.run()["delivered"] == 1
+    assert zep.projected == [written.record_id, retried.record_id]
+    assert set(harness.links(retried.record_id)) == {GRAPHITI}
+
+    receipt = _delete(harness, admin_principal, written.record_id)
+    assert set(receipt.projection_targets) == {GRAPHITI_V9, ZEP_V9, GRAPHITI, ZEP}
+    harness.run()
+
+    assert graphiti.erased == [written.record_id] and zep.erased == [written.record_id]
+    assert graphiti_v9.erased == [] and zep_v9.erased == []
+    assert harness.links(written.record_id) == {}
+    assert harness.store.get_record(written.record_id).state is MemoryState.DELETED
+    assert harness.store.outbox_backlog() == 0
+
+
+def test_removed_target_stays_erasable_through_history(
+    harness, principal, admin_principal, graphiti, zep
+) -> None:
+    v8 = harness.runtime.compiled
+    written = _write(harness, principal, "zep removed from the manifest")
+    harness.run()
+
+    with pytest.raises(ConfigurationError, match=ZEP):
+        harness.rebind(build_runtime(graphiti, None, providers=(0,)))
+
+    harness.rebind(build_runtime(graphiti, None, providers=(0,), retained=[(v8, {ZEP: zep})]))
+    assert [binding.identity for binding in harness.runtime.delivery_targets()] == [GRAPHITI]
+    assert harness.runtime.target(ZEP).retained
+    # The retained binding is lifecycle-only: nothing new is written there.
+    later = _write(harness, principal, "written after zep was removed")
+    harness.run()
+    assert set(harness.links(later.record_id)) == {GRAPHITI}
+
+    receipt = _delete(harness, admin_principal, written.record_id)
+    assert set(receipt.projection_targets) == {GRAPHITI, ZEP}
+    harness.run()
+    assert zep.erased == [written.record_id]
     assert harness.store.get_record(written.record_id).state is MemoryState.DELETED
 
 

@@ -10,15 +10,15 @@ PASS  MCP inventory
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/private/tmp/l9-ci-shape/repo/.venv/bin/python3",
+    "/home/user/l9-graphiti-memory-pr76/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-10-02T01:36:55.229751Z",
+  "created_at": "2026-10-02T02:48:13.453856Z",
   "managed_entry_present": true,
-  "path": "/var/folders/3m/0j6pb5k50k79kt8zpbwryf3c0000gn/T/tmp.qCFCcz3fDN/cursor/mcp.json",
+  "path": "/tmp/tmp.Fm1uT8mdBQ/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,29 +26,29 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "9008ae02-f1d3-4411-bb1c-2050d7209908",
+  "receipt_id": "aa5f2a8a-cab7-43d7-a18f-bff406ef7c7a",
   "status": "dry_run",
   "warnings": []
 }
 PASS  cursor client dry-run
 {
-  "argv_source": "installed",
+  "argv_source": "generated",
   "command_argv": [
-    "/Users/ib-mac/.cursor-governance/.venv/bin/python3",
+    "/home/user/l9-graphiti-memory-pr76/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "config_path": "/Users/ib-mac/.cursor/mcp.json",
-  "created_at": "2026-10-02T01:36:55.683152Z",
+  "config_path": null,
+  "created_at": "2026-10-02T02:48:15.417599Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "7fc5e448-8104-4291-b5f1-de9fbcc74ae0",
+  "receipt_id": "8a0293d2-34f3-4335-af57-079b3dc25f23",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.5.0",
@@ -125,25 +125,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.1817,
-      "p50_ms": 0.1468,
-      "p95_ms": 0.1817,
+      "max_ms": 0.7549,
+      "p50_ms": 0.6713,
+      "p95_ms": 0.7549,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.1809,
-      "p50_ms": 0.11,
-      "p95_ms": 0.1322,
+      "max_ms": 0.7507,
+      "p50_ms": 0.4995,
+      "p95_ms": 0.7342,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.412,
-      "p50_ms": 0.0371,
-      "p95_ms": 0.0781,
+      "max_ms": 0.8302,
+      "p50_ms": 0.1456,
+      "p95_ms": 0.3846,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0

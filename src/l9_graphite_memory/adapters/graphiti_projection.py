@@ -20,9 +20,12 @@ from uuid import UUID
 from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.ports import ProjectionHit
+from l9_graphite_memory.projections.render import RenderedProjection
 from l9_graphite_memory.transport import MemoryTransport
 
-_RECORD_ID_PATTERN = re.compile(r'"record_id"\s*:\s*"([0-9a-fA-F-]{36})"')
+# Matches the legacy JSON payload (``"record_id": "<uuid>"``) and the compiled
+# rendering's ``record_id="<uuid>"`` line, so hits from either delivery resolve.
+_RECORD_ID_PATTERN = re.compile(r'"?record_id"?\s*[:=]\s*"([0-9a-fA-F-]{36})"')
 
 
 class GraphitiProjection:
@@ -70,7 +73,17 @@ class GraphitiProjection:
                     return nested
         return None
 
+    def _settle_write(self, record: MemoryRecord, result: Any) -> dict[str, Any]:
+        if not isinstance(result, dict):
+            result = {"result": result}
+        if result.get("error"):
+            raise ProjectionError(f"projection write failed: {result['error']}")
+        locator = self._extract_locator(result) or str(record.record_id)
+        return {**result, "locator": locator, "record_id": str(record.record_id)}
+
     def project(self, record: MemoryRecord) -> dict[str, Any]:
+        """Legacy scalar delivery: the adapter's own JSON payload."""
+
         payload = self._projection_payload(record)
         result = self.transport.write(
             json.dumps(payload, sort_keys=True),
@@ -86,12 +99,42 @@ class GraphitiProjection:
                 "memory_class": record.memory_class.value,
             },
         )
-        if not isinstance(result, dict):
-            result = {"result": result}
-        if result.get("error"):
-            raise ProjectionError(f"projection write failed: {result['error']}")
-        locator = self._extract_locator(result) or str(record.record_id)
-        return {**result, "locator": locator, "record_id": str(record.record_id)}
+        return self._settle_write(record, result)
+
+    def project_rendered(
+        self, record: MemoryRecord, rendered: RenderedProjection
+    ) -> dict[str, Any]:
+        """Manifest delivery: the compiled rendering, byte for byte.
+
+        The episode body is ``rendered.normalized_text``, the deterministic
+        text the render contract produced and ``content_digest`` identifies.
+        The adapter adds nothing to it and reshapes nothing, so the provider
+        holds exactly what the link's ``render_contract_digest`` attests
+        (ADR-063, ADR-084).
+        """
+
+        result = self.transport.write(
+            rendered.normalized_text,
+            record.namespace,
+            kind=record.memory_class.value,
+            name=f"memory:{record.record_id}",
+            source="text",
+            source_description=f"l9-memory canonical projection {rendered.template}",
+            uuid=str(record.record_id),
+            metadata={
+                "record_id": str(record.record_id),
+                "schema_version": record.schema_version,
+                "memory_class": record.memory_class.value,
+                "render_template": rendered.template,
+                "render_contract_digest": rendered.template_digest,
+                "content_digest": rendered.content_digest,
+            },
+        )
+        return {
+            **self._settle_write(record, result),
+            "render_contract_digest": rendered.template_digest,
+            "content_digest": rendered.content_digest,
+        }
 
     def retire(
         self,
