@@ -398,7 +398,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "6b7abb79a843d9df6a16a8d981faf3fb2cc8eb5714531e8de43230f458e9839b",
+      "sha256": "03d702c2ad64617bcd3cfaf51a7f9f076c628b9ee54739c7cb97dda43b99129f",
       "size_bytes": 126651
     },
     {
@@ -9118,8 +9118,8 @@
         "version": "2.5.0"
       },
       "path": "tests/integration/test_source_invalidation.py",
-      "sha256": "c93ee2225844675de0393c01a9adb6b91e935931814da9075aa4c671059f2732",
-      "size_bytes": 21861
+      "sha256": "0b60e8563b3382b00d143e05f6a591fdf98b0315c653c05e7382f9495687ab0b",
+      "size_bytes": 20914
     },
     {
       "category": "tests",
@@ -10606,8 +10606,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/validate_product_topology.py",
-      "sha256": "253f31cf29ef859f5b3f32501094e342b5925d951ee45c81c14ae8f56cd3e614",
-      "size_bytes": 10678
+      "sha256": "2e28a5a91374775c2527f2e11c431f1dad395c110e31b57ebc859256fb76cbe4",
+      "size_bytes": 12036
     },
     {
       "category": "assurance",
