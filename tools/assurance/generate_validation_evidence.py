@@ -161,12 +161,21 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # validator, single-build publication). None backend-parameterized.
         # Same arithmetic: 1024 + 51 = 1075 collected, 1075 - 16 = 1059.
         #
-        # Re-pinned 1059 -> 1062 for the review findings on that change: an
-        # interrupted comment block fails closed, a blank-separated following
-        # header is unrelated, and the validator canonicalizes its evidence
-        # root before guarding. 1075 + 3 = 1078 collected, 1078 - 16 = 1062.
-        "1062 tests pass",
-        r"1062 passed",
+        # Re-pinned 1059 -> 1164 when ADR-084 (projection runtime, PR #76)
+        # merged over release-assurance integrity. ADR-084 adds 80 cases
+        # (26 runtime unit, 51 target-lifecycle = 17 x 3 store backends,
+        # 3 schema-8 migration) and its review remediation adds 25 (6 runtime
+        # unit, 1 adapter rendering, 18 target-lifecycle = 6 x 3 backends).
+        # Measured with postgres + redis on the merged tree: 1180 collected,
+        # and CI's same 16 skips give 1180 - 16 = 1164.
+        #
+        # Re-pinned 1164 -> 1167 for the review findings on release-assurance
+        # integrity (PR #78): an interrupted comment block fails closed, a
+        # blank-separated following header is unrelated, and the validator
+        # canonicalizes its evidence root before guarding. Same arithmetic:
+        # 1180 + 3 = 1183 collected, 1183 - 16 = 1167.
+        "1167 tests pass",
+        r"1167 passed",
     ),
     CheckSpec(
         "V-002",
@@ -186,9 +195,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 79 -> 81 for GMP-001: ADR-080 (automated quarantine
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
-        # parity).
-        "83 ADRs complete and indexed",
-        r"PASS: 83 ADRs",
+        # parity). Re-pinned 83 -> 84 for ADR-084 (projection runtime and
+        # target-aware lifecycle).
+        "84 ADRs complete and indexed",
+        r"PASS: 84 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -268,8 +278,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         #
         # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
         # the control-plane capability receipt.
-        "127 production files pass",
-        r"PASS: 127 production Python files",
+        #
+        # Re-pinned 127 -> 128 for ADR-084: projections/runtime.py carries the
+        # projection runtime.
+        "128 production files pass",
+        r"PASS: 128 production Python files",
     ),
     CheckSpec(
         "V-012",

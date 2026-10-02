@@ -12,12 +12,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
+
+if TYPE_CHECKING:
+    from l9_graphite_memory.projections.render import RenderedProjection
 
 
 class ProjectionHit(BaseModel):
@@ -90,3 +93,26 @@ class ProjectionAdapter(Protocol):
         *,
         limit: int,
     ) -> list[ProjectionHit]: ...
+
+
+@runtime_checkable
+class RenderedProjectionAdapter(Protocol):
+    """A provider adapter that can deliver a compiled render contract.
+
+    In manifest mode the bytes written to a provider are the deterministic
+    rendering of the declared canonical fields, produced by the one renderer
+    the compiler owns, so the link's ``render_contract_digest`` attests the
+    contract that actually produced them (ADR-063, ADR-084). A delivering
+    manifest target must bind an adapter with this operation; ``project``
+    remains the legacy scalar delivery and renders nothing.
+    """
+
+    def project_rendered(
+        self, record: MemoryRecord, rendered: RenderedProjection
+    ) -> dict[str, Any]:
+        """Write ``rendered`` for ``record`` and return a result with a stable ``locator``.
+
+        The provider must receive the rendering as produced, with no fields
+        added, dropped, or reshaped by the adapter; the canonical record is
+        passed only for identity, namespace, and provider metadata.
+        """

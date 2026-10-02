@@ -82,3 +82,71 @@ def test_render_rejects_missing_declared_field() -> None:
     del record["namespace"]
     with pytest.raises(ProjectionError, match="namespace"):
         render_projection(projection, record)
+
+
+class RecordingTransport:
+    name = "recording"
+
+    def __init__(self) -> None:
+        self.writes: list[tuple[str, str, dict[str, object]]] = []
+
+    def health(self) -> dict[str, object]:
+        return {"healthy": True}
+
+    def write(self, body: str, group_id: str, kind: str = "observation", **kwargs: object):
+        self.writes.append((body, group_id, dict(kwargs)))
+        return {"episode_uuid": f"episode-{len(self.writes)}"}
+
+    def call_tool(self, name: str, arguments: dict[str, object] | None = None) -> object:
+        return {}
+
+    def list_tools(self) -> list[str]:
+        return ["add_memory"]
+
+
+def test_graphiti_adapter_delivers_the_rendering_byte_for_byte() -> None:
+    from l9_graphite_memory.adapters import GraphitiProjection
+    from l9_graphite_memory.contracts import (
+        EvidenceKind,
+        EvidenceRef,
+        MemoryClass,
+        MemoryRecord,
+        Provenance,
+    )
+
+    projection = compile_projection(load_projection_manifest(MANIFEST_PATH))
+    record = MemoryRecord(
+        tenant_id="tenant-a",
+        namespace="repo-a",
+        memory_class=MemoryClass.DECISION,
+        content="Café projection output must be deterministic.",
+        provenance=Provenance(source="unit-test"),
+        evidence=(EvidenceRef(kind=EvidenceKind.EXPLICIT, description="t"),),
+        normalized_digest="a" * 64,
+        original_digest="b" * 64,
+        idempotency_key="k",
+        created_by="test",
+        tags=("projection",),
+    )
+    rendered = render_projection(projection, record)
+    transport = RecordingTransport()
+    adapter = GraphitiProjection(transport)
+
+    result = adapter.project_rendered(record, rendered)
+
+    (body, group_id, kwargs) = transport.writes[0]
+    assert body == rendered.normalized_text
+    assert group_id == "repo-a"
+    assert kwargs["source"] == "text"
+    assert kwargs["metadata"]["render_contract_digest"] == projection.render_contract_digest
+    assert kwargs["metadata"]["content_digest"] == rendered.content_digest
+    assert result["locator"] == "episode-1"
+    assert result["render_contract_digest"] == rendered.template_digest
+    # Legacy delivery is untouched: the adapter's own JSON payload.
+    adapter.project(record)
+    legacy_body, _, legacy_kwargs = transport.writes[1]
+    assert legacy_kwargs["source"] == "json" and legacy_body.startswith("{")
+    assert "tenant_id" not in legacy_body and "tenant_id" in body
+    # A hit whose text is the rendering still resolves to the record.
+    assert GraphitiProjection._extract_record_id({"content": body}) == record.record_id
+    assert GraphitiProjection._extract_record_id({"content": legacy_body}) == record.record_id

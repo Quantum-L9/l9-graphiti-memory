@@ -140,6 +140,8 @@ l9-memory delete <record-id> \
 
 With projection `none`, the redacted tombstone and deletion receipt complete atomically. With Graphiti or Zep enabled, the record enters `deletion_pending`; the outbox worker uses the stored provider locator to erase the external episode and then completes the receipt.
 
+Under the manifest runtime the receipt lists one erase event per target that could hold a copy (`projection_targets`, `projection_event_ids`): every active or shadow target, plus any disabled target that still holds a link. Each target is erased and unlinked independently. The deletion completes only when no link remains, so one failing provider leaves the record `deletion_pending` and retryable while the others are already erased. A disabled target that holds links must stay configured until its erasures drain.
+
 ```bash
 l9-memory outbox-run
 ```
@@ -198,6 +200,48 @@ l9-memory-worker --once
 
 Zep health is `unverified` until a real operation succeeds. Configuration alone is not connectivity proof.
 
+## Manifest projection runtime
+
+The runtime is chosen explicitly (ADR-084). `legacy`, the default, runs the single `L9_MEMORY_PROJECTION_BACKEND` adapter exactly as above. `manifest` runs every provider target of a compiled projection manifest:
+
+```bash
+export L9_MEMORY_PROJECTION_RUNTIME=manifest
+export L9_MEMORY_PROJECTION_MANIFEST=config/projections/facts-v8.yaml
+export L9_MEMORY_PROJECTION_BACKEND=none   # required: the two modes are exclusive
+export GRAPHITI_MCP_URL=https://graphiti.example/mcp
+export GRAPHITI_MCP_TOKEN=...              # environment or Infisical only
+export ZEP_API_KEY=...                     # environment or Infisical only
+l9-memory health
+l9-memory-worker --once
+```
+
+`facts-v8` declares Graphiti `active` and Zep `shadow`. Each target has a mode:
+
+| Mode | Receives writes | Serves search | Erased on deletion |
+|---|---|---|---|
+| `active` | yes | yes | yes |
+| `shadow` | yes | no | yes |
+| `disabled` | no | no | yes, while it holds links |
+
+Manifests carry target names, never credentials. Only a target named `primary` binds the existing `GRAPHITI_MCP_*` or `ZEP_*` settings. An active or shadow target without its settings stops startup; a disabled one starts with no adapter. `L9_MEMORY_PROJECTION_REQUIRED` is a legacy setting and is rejected in manifest mode; mark a target `required: true` in the manifest instead (active targets only).
+
+Every write queues one outbox event per active or shadow target. The worker delivers, retries, and records a link for each target on its own, so a Zep outage never blocks or rolls back Graphiti delivery. `l9-memory health` reports `runtime_mode`, the manifest digests, and each target's mode, configuration, and probe result; disabled targets are not probed.
+
+Search uses active targets only. Strategy labels in receipts are `<target>:<strategy>`, and a failed active strategy makes the receipt `partial` rather than an empty success. Shadow results never alter hits, scores, status, or `stores_*`. The deployed runtime does not query shadow targets at all; shadow measurement is opt-in on `RetrievalPlanner(shadow_measurement=True)` and is reported only in `projection_evidence`.
+
+### Cutover from the legacy runtime
+
+1. Back up the canonical store. Schema 8 rekeys `projection_links` by target identity on first start, keeping every existing row and locator.
+2. Stop writers and drain the outbox with `l9-memory outbox-run` until the backlog is zero. Events queued before ADR-084 carry no target identity and fail closed once more than one target exists.
+3. Set the manifest settings above and restart the server and worker.
+4. Run `l9-memory rebuild-projection --group-id <ns> --target facts:v8:zep:primary` to plan filling the shadow target, then repeat with `--apply`.
+
+Links written by the legacy runtime keep the adapter name as their target identity (`graphiti` for both the HTTP and Zep backends). The manifest runtime does not adopt them: retire and erase events for such a link fail closed and retry, so deleting a record projected before cutover stays `deletion_pending` until a legacy runtime erases that copy. A rebuild under the manifest runtime also projects such records again, leaving the legacy episode beside the new one. Cut over without further steps only when the store holds no legacy links, for example a deployment that ran with `L9_MEMORY_PROJECTION_BACKEND=none`. Adopting legacy links into a manifest target is not implemented yet.
+
+### Rollback
+
+Prefer staying in manifest mode and setting the misbehaving target to `disabled`: nothing new is delivered there, and its existing links remain erasable. Returning to `L9_MEMORY_PROJECTION_RUNTIME=legacy` is safe only after every manifest-identity link has been erased; otherwise those erase events cannot resolve, and the affected deletions stay pending and visible instead of completing. Reverting to a release older than ADR-084 also requires restoring the pre-upgrade backup, since older code cannot write the schema-8 link table.
+
 ## Scheduled maintenance
 
 Semantic duplication is admitted on the hot path and resolved later (ADR-071, ADR-075). Maintenance operates only on records that are already canonical.
@@ -246,7 +290,7 @@ l9-memory rebuild-projection --group-id repo-a            # dry run
 l9-memory rebuild-projection --group-id repo-a --apply
 ```
 
-This queues a projection event for every active record with no live projection link, then the outbox worker delivers them. It requires `MAINTAIN` to apply and never touches canonical state. A large rebuild generates provider traffic proportional to the namespace, so run it deliberately.
+This queues a projection event for every active record with no live projection link, then the outbox worker delivers them. Under the manifest runtime the plan is computed per target (`queued_by_target`); add `--target <target-identity>` to rebuild one target without touching the others. Disabled and unknown targets are rejected. It requires `MAINTAIN` to apply and never touches canonical state. A large rebuild generates provider traffic proportional to the namespace, so run it deliberately.
 
 Every retirement writes a `ProjectionRetirementReceipt` to canonical state recording the mode, locator, and reason. That is what distinguishes a retirement from a privacy erasure — the provider's own log cannot, since both use `delete_episode`.
 

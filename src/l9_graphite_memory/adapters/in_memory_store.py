@@ -361,17 +361,33 @@ class InMemoryRecordStore:
         )
 
     def save_projection_link(self, link: ProjectionLink) -> None:
-        self.projection_links[(link.record_id, link.projection_name)] = link
+        self.projection_links[(link.record_id, link.target_identity)] = link
 
     def get_projection_link(
         self,
         record_id: UUID,
-        projection_name: str,
+        target_identity: str,
     ) -> ProjectionLink | None:
-        return self.projection_links.get((record_id, projection_name))
+        return self.projection_links.get((record_id, target_identity))
 
-    def delete_projection_link(self, record_id: UUID, projection_name: str) -> None:
-        self.projection_links.pop((record_id, projection_name), None)
+    def list_projection_links(self, record_id: UUID) -> list[ProjectionLink]:
+        return sorted(
+            (link for (owner, _), link in self.projection_links.items() if owner == record_id),
+            key=lambda link: link.target_identity,
+        )
+
+    def list_projection_target_identities(self) -> tuple[str, ...]:
+        identities = {identity for (_, identity) in self.projection_links}
+        for event in self.outbox.values():
+            if event.status in {OutboxStatus.DELIVERED, OutboxStatus.DEAD}:
+                continue
+            identity = event.payload.get("target_identity")
+            if isinstance(identity, str) and identity.strip():
+                identities.add(identity.strip())
+        return tuple(sorted(identities))
+
+    def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
+        self.projection_links.pop((record_id, target_identity), None)
 
     def stats(self) -> dict[str, Any]:
         by_state: dict[str, int] = {}
@@ -397,7 +413,7 @@ class InMemoryRecordStore:
         self,
         tenant_id: str,
         namespace: str,
-        projection_name: str,
+        target_identity: str,
         *,
         limit: int = 1_000,
     ) -> list[MemoryRecord]:
@@ -407,7 +423,7 @@ class InMemoryRecordStore:
             if record.tenant_id == tenant_id
             and record.namespace == namespace
             and record.state is MemoryState.ACTIVE
-            and (record.record_id, projection_name) not in self.projection_links
+            and (record.record_id, target_identity) not in self.projection_links
         ]
         candidates.sort(key=lambda item: item.temporal.recorded_at)
         return candidates[:limit]
@@ -497,7 +513,8 @@ class InMemoryRecordStore:
         receipt: DeletionReceipt,
         redacted_record: MemoryRecord,
         *,
-        outbox_event: OutboxEvent | None,
+        outbox_event: OutboxEvent | None = None,
+        outbox_events: tuple[OutboxEvent, ...] = (),
         status_event: MemoryStatusEvent,
     ) -> None:
         require_service_write_capability(capability)
@@ -515,8 +532,8 @@ class InMemoryRecordStore:
             self.status_events.append(status_event)
             self.records[redacted_record.record_id] = redacted_record
             self.deletion_receipts[receipt.receipt_id] = receipt
-            if outbox_event is not None:
-                self.outbox[outbox_event.event_id] = outbox_event
+            for event in (*((outbox_event,) if outbox_event is not None else ()), *outbox_events):
+                self.outbox[event.event_id] = event
 
     def complete_deletion(
         self,
@@ -531,6 +548,12 @@ class InMemoryRecordStore:
             receipt = self.deletion_receipts.get(receipt_id)
             if record is None or receipt is None:
                 raise StoreError("deletion record or receipt not found")
+            remaining = self.list_projection_links(record_id)
+            if remaining:
+                raise StoreError(
+                    f"deletion of {record_id} cannot complete while {len(remaining)} "
+                    "projection link(s) remain unerased"
+                )
             if record.state is not MemoryState.DELETED:
                 self._apply_transition(
                     MemoryStatusEvent(

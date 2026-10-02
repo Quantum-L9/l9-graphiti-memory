@@ -15,7 +15,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from l9_graphite_memory.adapters import build_projection, build_store
+from l9_graphite_memory.adapters import build_store
+from l9_graphite_memory.adapters.factory import build_projection_runtime
 from l9_graphite_memory.authz import build_local_principal
 from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.contracts import MemoryPrincipal
@@ -37,8 +38,15 @@ def build_runtime(config_path: str | Path | None = None) -> MemoryRuntime:
     settings = load_settings(config_path)
     configure_logging(settings.log_level, json_output=settings.json_logs)
     store = build_store(settings)
-    projection = build_projection(settings)
-    service = MemoryService(store, projection, projection_required=settings.projection_required)
+    # Legacy settings yield the one scalar adapter as a one-target runtime;
+    # manifest settings yield every compiled target. Either way the service
+    # receives the runtime, never a raw manifest (ADR-084).
+    try:
+        projections = build_projection_runtime(settings)
+    except Exception:
+        store.close()
+        raise
+    service = MemoryService(store, projections)
     service.initialize()
     return MemoryRuntime(settings=settings, service=service)
 
