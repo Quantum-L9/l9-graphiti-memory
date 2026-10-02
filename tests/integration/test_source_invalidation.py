@@ -33,50 +33,18 @@ from l9_graphite_memory.contracts import (
     MemorySearchRequest,
     MemoryState,
     OutboxStatus,
-    RetirementMode,
 )
 from l9_graphite_memory.contracts.generated_data import SourceInvalidationStatus
 from l9_graphite_memory.services import MemoryService
 from l9_graphite_memory.services.generated_data import GeneratedDataService
 from l9_graphite_memory.services.outbox_worker import OutboxWorker
 from tests.conftest import STORE_BACKENDS, make_store
+from tests.integration.test_lifecycle_projection_consistency import RecordingProjection
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = ROOT / "deployment" / "generated-data" / "fixtures"
 REPOSITORY = "Quantum-L9/l9-graphiti-memory"
 SERVICES_PATH = "src/l9_graphite_memory/services"
-
-
-class RecordingProjection:
-    name = "recording"
-    capabilities: tuple[str, ...] = ()
-    retirement_mode = RetirementMode.WITHDRAW
-
-    def __init__(self) -> None:
-        self.projected: list[UUID] = []
-        self.retired: list[UUID] = []
-        self.erased: list[UUID] = []
-
-    def health(self) -> dict[str, object]:
-        return {"healthy": True}
-
-    def project(self, record) -> dict[str, object]:
-        self.projected.append(record.record_id)
-        return {"locator": f"episode-{record.record_id}"}
-
-    def retire(self, record_id, namespace, *, locator=None, reason="") -> dict[str, object]:
-        self.retired.append(record_id)
-        return {"retired": True, "erased": False}
-
-    def erase(self, record_id, namespace, *, locator=None) -> dict[str, object]:
-        self.erased.append(record_id)
-        return {"erased": True}
-
-    def search_strategy(self, strategy, query, namespaces, *, limit):
-        return []
-
-    def search(self, query, namespaces, *, limit):
-        return []
 
 
 @pytest.fixture(params=STORE_BACKENDS)
