@@ -1,3 +1,14 @@
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: ALIGNMENT.md
+layer: repository
+owner: memory-control-plane
+status: active
+version: 2.5.0
+updated: 2026-07-22
+/L9_META -->
+
 # L9 Recursive Alignment
 
 ## Classification

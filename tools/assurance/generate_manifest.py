@@ -6,25 +6,45 @@
 #   layer: assurance
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.5.0
+#   updated: 2026-10-02
 
-"""Generate a cryptographic release manifest with L9 metadata for every file."""
+"""Generate, or check, the cryptographic release manifest.
+
+Apply mode (default) writes ``MANIFEST.md`` and ``manifest.json``; it is part
+of explicit release PREPARATION. ``--check`` renders the same bytes in memory,
+compares them with the committed artifacts, reports drift and writes nothing;
+release validation runs only that mode.
+
+The manifest owns inventory and provenance: identity, release version,
+artifact classification, file inventory, categories, sizes, digests and L9
+metadata. It states no validation or admission outcome; those are earned by
+the validators that read it, never declared by the generator.
+"""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
-import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
 
-REPOSITORY = "Quantum-L9/l9-graphiti-memory"
+import l9_meta
+
+REPOSITORY = l9_meta.REPOSITORY
 RELEASE = "2.5.0"
+META_STATUS = "active"
+META_UPDATED = "2026-07-22"
+MANIFEST_MARKDOWN = "MANIFEST.md"
+MANIFEST_JSON = "manifest.json"
 EXCLUDED_ANY_PARTS = {".git", ".pytest_cache", "__pycache__", ".venv"}
 EXCLUDED_TOP_LEVEL = {"build", "dist"}
+
+
+def _sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 def _sha256(path: Path) -> str:
@@ -62,45 +82,6 @@ def _category(relative: Path) -> str:
     return "repository_root"
 
 
-def _layer(relative: Path) -> str:
-    category = _category(relative)
-    if category == "production_source" and "contracts" in relative.parts:
-        return "contract"
-    if category == "production_source" and "ports" in relative.parts:
-        return "port"
-    if category == "production_source" and "integrations" in relative.parts:
-        return "integration"
-    if category == "production_source" and "adapters" in relative.parts:
-        return "adapter"
-    if category == "production_source" and "services" in relative.parts:
-        return "service"
-    return category
-
-
-def _tracked_paths(root: Path) -> frozenset[str]:
-    """Return git-tracked paths (posix), or empty when git cannot answer.
-
-    A release manifest describes committed repository content, and git already
-    knows exactly what that is. Deriving the file set from a hand-maintained
-    exclusion list instead let lint and type caches, editable-install
-    ``*.egg-info`` and build output into the manifest, which made it churn
-    per-machine and recorded files a clean checkout does not have.
-
-    Mirrors ``check_recursive_alignment._tracked_paths``.
-    """
-
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(root), "ls-files", "-z"],
-            capture_output=True,
-            check=True,
-            text=True,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return frozenset()
-    return frozenset(entry for entry in result.stdout.split("\0") if entry)
-
-
 def _is_repository_content(relative: Path, tracked: frozenset[str]) -> bool:
     """Whether one path counts as committed repository content.
 
@@ -116,17 +97,14 @@ def _is_repository_content(relative: Path, tracked: frozenset[str]) -> bool:
     return not (relative.parts and relative.parts[0] in EXCLUDED_TOP_LEVEL)
 
 
-def _iter_files(root: Path, *, exclude_manifest_markdown: bool = False) -> tuple[Path, ...]:
-    tracked = _tracked_paths(root)
-    self_excluded = {"manifest.json"}
-    if exclude_manifest_markdown:
-        self_excluded.add("MANIFEST.md")
+def _iter_files(root: Path) -> tuple[Path, ...]:
+    tracked = l9_meta.git_tracked(root)
     result: list[Path] = []
     for path in root.rglob("*"):
         if not path.is_file():
             continue
         relative = path.relative_to(root)
-        if relative.as_posix() in self_excluded:
+        if relative.as_posix() in {MANIFEST_JSON, MANIFEST_MARKDOWN}:
             continue
         if not _is_repository_content(relative, tracked):
             continue
@@ -134,40 +112,44 @@ def _iter_files(root: Path, *, exclude_manifest_markdown: bool = False) -> tuple
     return tuple(sorted(result))
 
 
-def _entry(root: Path, path: Path) -> dict[str, object]:
-    relative = path.relative_to(root)
+def _meta(relative: Path) -> dict[str, object]:
+    identity = l9_meta.structural_identity(relative)
     return {
-        "category": _category(relative),
-        "l9_meta": {
-            "l9_schema": 1,
-            "repo": REPOSITORY,
-            "path": relative.as_posix(),
-            "layer": _layer(relative),
-            "owner": "memory-control-plane",
-            "status": "active",
-            "version": RELEASE,
-            "updated": "2026-07-22",
-        },
-        "path": relative.as_posix(),
-        "sha256": _sha256(path),
-        "size_bytes": path.stat().st_size,
+        "l9_schema": int(identity["l9_schema"]),
+        "repo": identity["repo"],
+        "path": identity["path"],
+        "layer": identity["layer"],
+        "owner": identity["owner"],
+        "status": META_STATUS,
+        "version": RELEASE,
+        "updated": META_UPDATED,
     }
 
 
-def _write_markdown(root: Path) -> None:
-    entries = [_entry(root, path) for path in _iter_files(root, exclude_manifest_markdown=True)]
+def _entry(relative: Path, *, sha256: str, size_bytes: int) -> dict[str, object]:
+    return {
+        "category": _category(relative),
+        "l9_meta": _meta(relative),
+        "path": relative.as_posix(),
+        "sha256": sha256,
+        "size_bytes": size_bytes,
+    }
+
+
+def _file_entry(root: Path, path: Path) -> dict[str, object]:
+    return _entry(path.relative_to(root), sha256=_sha256(path), size_bytes=path.stat().st_size)
+
+
+def render_markdown(entries: list[dict[str, object]]) -> str:
     counts = Counter(str(entry["category"]) for entry in entries)
+    header = l9_meta.render_block(
+        l9_meta.canonical_fields(
+            MANIFEST_MARKDOWN, status=META_STATUS, version=RELEASE, updated=META_UPDATED
+        ),
+        style="markdown",
+    )
     lines = [
-        "<!-- L9_META",
-        "l9_schema: 1",
-        f"repo: {REPOSITORY}",
-        "path: MANIFEST.md",
-        "layer: repository_root",
-        "owner: memory-control-plane",
-        "status: active",
-        f"version: {RELEASE}",
-        "updated: 2026-07-22",
-        "/L9_META -->",
+        *header,
         "",
         "# Manifest",
         "",
@@ -176,8 +158,6 @@ def _write_markdown(root: Path) -> None:
         f"- Repository: `{REPOSITORY}`",
         f"- Release: `{RELEASE}`",
         "- Artifact class: dependency package with optional service and constellation adapters",
-        "- Local validation outcome: `PASS`",
-        "- Production release outcome: `BLOCKED_ON_EXTERNAL_VALIDATION`",
         "",
         "## Responsibility map",
         "",
@@ -217,41 +197,119 @@ def _write_markdown(root: Path) -> None:
             f"| `{entry['path']}` | `{entry['category']}` | `{meta['layer']}` | "
             f"{entry['size_bytes']} | `{entry['sha256']}` |"
         )
-    (root / "MANIFEST.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return "\n".join(lines) + "\n"
 
 
-def generate(root: Path) -> int:
-    _write_markdown(root)
-    entries = [_entry(root, path) for path in _iter_files(root)]
+def render_manifest(entries: list[dict[str, object]]) -> str:
     payload = {
         "file_count": len(entries),
         "files": entries,
-        "l9_meta": {
-            "l9_schema": 1,
-            "repo": REPOSITORY,
-            "path": "manifest.json",
-            "layer": "repository_root",
-            "owner": "memory-control-plane",
-            "status": "active",
-            "version": RELEASE,
-            "updated": "2026-07-22",
-        },
+        "l9_meta": _meta(Path(MANIFEST_JSON)),
         "manifest_self_excluded": True,
         "release": RELEASE,
         "repository": REPOSITORY,
         "schema": "l9.release-manifest/v2",
     }
-    (root / "manifest.json").write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    return json.dumps(payload, indent=2, sort_keys=True) + "\n"
+
+
+def render(root: Path) -> tuple[str, str]:
+    """Render ``(MANIFEST.md, manifest.json)`` for the tree under ``root``.
+
+    Pure: nothing is written. The manifest entry for ``MANIFEST.md`` is taken
+    from the bytes rendered here, not from whatever is on disk, so a check can
+    compare the committed artifacts with the content the tree implies.
+    """
+
+    file_entries = [_file_entry(root, path) for path in _iter_files(root)]
+    markdown = render_markdown(file_entries)
+    markdown_bytes = markdown.encode("utf-8")
+    markdown_entry = _entry(
+        Path(MANIFEST_MARKDOWN),
+        sha256=_sha256_bytes(markdown_bytes),
+        size_bytes=len(markdown_bytes),
     )
-    sys.stdout.write(f"Generated manifest for {len(entries)} files\n")
+    json_entries = sorted([*file_entries, markdown_entry], key=lambda item: str(item["path"]))
+    return markdown, render_manifest(json_entries)
+
+
+def generate(root: Path) -> int:
+    markdown, manifest = render(root)
+    (root / MANIFEST_MARKDOWN).write_text(markdown, encoding="utf-8")
+    (root / MANIFEST_JSON).write_text(manifest, encoding="utf-8")
+    count = json.loads(manifest)["file_count"]
+    sys.stdout.write(f"Generated manifest for {count} files\n")
+    return 0
+
+
+def _drift(expected_json: str, actual_json: str) -> list[str]:
+    try:
+        actual = json.loads(actual_json)
+    except json.JSONDecodeError:
+        return ["manifest.json: not valid JSON"]
+    expected = json.loads(expected_json)
+    expected_files = {str(e["path"]): e for e in expected["files"]}
+    actual_files = (
+        {str(e.get("path")): e for e in actual.get("files", []) if isinstance(e, dict)}
+        if isinstance(actual, dict)
+        else {}
+    )
+    findings: list[str] = []
+    for path in sorted(set(expected_files) | set(actual_files)):
+        exp, act = expected_files.get(path), actual_files.get(path)
+        if exp is None:
+            findings.append(f"manifest.json lists a file the tree does not have: {path}")
+        elif act is None:
+            findings.append(f"manifest.json is missing a tracked file: {path}")
+        elif exp != act:
+            changed = sorted(key for key in exp if exp.get(key) != act.get(key))
+            findings.append(f"manifest.json entry drifted: {path} ({', '.join(changed)})")
+    if isinstance(actual, dict):
+        for key in ("file_count", "l9_meta", "release", "repository", "schema"):
+            if actual.get(key) != expected.get(key):
+                findings.append(f"manifest.json field drifted: {key}")
+    return findings
+
+
+def check(root: Path) -> int:
+    """Compare rendered expectation with the committed artifacts; write nothing."""
+
+    expected_markdown, expected_manifest = render(root)
+    failures: list[str] = []
+    markdown_path = root / MANIFEST_MARKDOWN
+    manifest_path = root / MANIFEST_JSON
+    actual_markdown = markdown_path.read_text(encoding="utf-8") if markdown_path.is_file() else ""
+    actual_manifest = manifest_path.read_text(encoding="utf-8") if manifest_path.is_file() else ""
+    if actual_markdown != expected_markdown:
+        failures.append("MANIFEST.md differs from the content the tracked tree implies")
+    if actual_manifest != expected_manifest:
+        failures.append("manifest.json differs from the content the tracked tree implies")
+        failures.extend(_drift(expected_manifest, actual_manifest))
+    if failures:
+        sys.stdout.write("\n".join(failures) + "\n")
+        sys.stdout.write(
+            "FAIL: manifest drift; run tools/assurance/generate_manifest.py during "
+            "preparation and commit the result\n"
+        )
+        return 1
+    count = json.loads(expected_manifest)["file_count"]
+    sys.stdout.write(
+        f"PASS: MANIFEST.md and manifest.json match the tracked tree ({count} files)\n"
+    )
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
-    return generate(parser.parse_args().repo_root.resolve())
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="compare the committed manifest artifacts with the tree; write nothing",
+    )
+    args = parser.parse_args()
+    root = args.repo_root.resolve()
+    return check(root) if args.check else generate(root)
 
 
 if __name__ == "__main__":
