@@ -2,8 +2,8 @@
 # L9_META
 #   l9_schema: 1
 #   repo: Quantum-L9/l9-graphiti-memory
-#   path: tools/assurance/check_recursive_alignment.py
-#   layer: assurance
+#   path: docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/tools/assurance/check_recursive_alignment.py
+#   layer: documentation
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.2.0

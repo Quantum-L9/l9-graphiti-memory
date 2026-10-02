@@ -6,10 +6,17 @@
 #   layer: assurance
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.3.0
-#   updated: 2026-07-27
+#   version: 2.5.0
+#   updated: 2026-10-02
 
-"""Generate evidence-bearing validation records from executed release logs."""
+"""Generate evidence-bearing validation records from executed release logs.
+
+Logs are read from, and reports written to, one explicit evidence root
+(``--evidence-dir``). The default is the untracked release workspace
+``build/release-validation``; the generator never targets the tracked
+``validation/`` tree, so release validation emits evidence without rewriting
+the candidate it inspects.
+"""
 
 from __future__ import annotations
 
@@ -24,6 +31,7 @@ from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
 RELEASE: Final = "2.5.0"
+DEFAULT_EVIDENCE_DIR: Final = Path("build") / "release-validation"
 
 
 @dataclass(frozen=True, slots=True)
@@ -146,8 +154,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # (open-PR audit 2026-09-24): +5 handler-parity cases, and ADR-083's
         # namespace suite rewritten for F-64-AUTHZ-001 (26 cases -> 15). Same
         # arithmetic: 1030 + 5 - 26 + 15 = 1024 collected, 1024 - 16 = 1008.
-        "1008 tests pass",
-        r"1008 passed",
+        #
+        # Re-pinned 1008 -> 1059 for release-assurance integrity: 41 cases in
+        # test_l9_meta_assurance.py (structural metadata identity, manifest
+        # check purity) and 10 in test_release_shell.py (observational
+        # validator, single-build publication). None backend-parameterized.
+        # Same arithmetic: 1024 + 51 = 1075 collected, 1075 - 16 = 1059.
+        "1059 tests pass",
+        r"1059 passed",
     ),
     CheckSpec(
         "V-002",
@@ -291,11 +305,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
     CheckSpec(
         "V-016",
         "execution",
-        "Python wheel",
-        "python -m build --wheel",
-        "logs/wheel_build.txt",
-        "v2.5.0 wheel builds",
-        r"Successfully built l9_graphite_memory-2\.5\.0-py3-none-any\.whl",
+        "release artifact set",
+        # The artifact set is built once (self-contained mode) or supplied
+        # already built (publication mode); either way the validated set is
+        # recorded by digest, and the release wheel must be in it.
+        "sha256sum over the validated release artifact directory",
+        "logs/release_artifacts.txt",
+        "v2.5.0 wheel present in the validated artifact set",
+        r"l9_graphite_memory-2\.5\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -353,6 +370,25 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "stdio handshake, tool inventory, and health prove instantiation",
         r'"status": "complete"',
     ),
+    CheckSpec(
+        "V-023",
+        "execution",
+        "installed wheel identity",
+        "sha256sum of the installed wheel against the validated artifact set",
+        "logs/installed_wheel_digest.txt",
+        "the wheel proven by installed smoke is the wheel in the artifact set",
+        r"installed wheel digest matches validated artifact set",
+    ),
+    CheckSpec(
+        "V-024",
+        "structural",
+        "release candidate",
+        "apply_l9_meta.py --check, generate_manifest.py --check, check_l9_meta.py, "
+        "validate_manifest.py after substantive validation",
+        "logs/candidate_integrity_post.txt",
+        "tracked candidate unchanged by validation",
+        r"PASS: candidate integrity",
+    ),
 )
 
 EXTERNAL_BLOCKERS: Final[tuple[dict[str, str], ...]] = (
@@ -397,8 +433,15 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _evaluate(root: Path, spec: CheckSpec) -> dict[str, object]:
-    evidence_path = root / "validation" / spec.log_path
+def _evidence_label(root: Path, evidence_path: Path) -> str:
+    try:
+        return evidence_path.relative_to(root).as_posix()
+    except ValueError:
+        return evidence_path.as_posix()
+
+
+def _evaluate(root: Path, evidence_dir: Path, spec: CheckSpec) -> dict[str, object]:
+    evidence_path = evidence_dir / spec.log_path
     if not evidence_path.is_file():
         status = "UNKNOWN"
         actual = "evidence log missing"
@@ -418,7 +461,7 @@ def _evaluate(root: Path, spec: CheckSpec) -> dict[str, object]:
         "check_class": spec.check_class,
         "check_id": spec.check_id,
         "evidence": {
-            "path": f"validation/{spec.log_path}",
+            "path": _evidence_label(root, evidence_path),
             "sha256": digest,
         },
         "expected_result": spec.expected_result,
@@ -437,10 +480,10 @@ def _write_jsonl(path: Path, rows: tuple[dict[str, object], ...] | list[dict[str
     )
 
 
-def generate(root: Path) -> int:
-    validation = root / "validation"
+def generate(root: Path, evidence_dir: Path) -> int:
+    validation = evidence_dir
     validation.mkdir(parents=True, exist_ok=True)
-    checks = [_evaluate(root, spec) for spec in CHECKS]
+    checks = [_evaluate(root, evidence_dir, spec) for spec in CHECKS]
     failed = [row for row in checks if row["status"] == "FAIL"]
     unknown = [row for row in checks if row["status"] == "UNKNOWN"]
     status = "BLOCKED_ON_VALIDATION" if failed or unknown else "APPROVED_WITH_FINDINGS"
@@ -467,7 +510,10 @@ def generate(root: Path) -> int:
         "checks_failed": len(failed),
         "checks_passed": sum(1 for row in checks if row["status"] == "PASS"),
         "checks_unknown": len(unknown),
-        "generated_from": "executed files under validation/logs and explicit external blocker declarations",
+        "generated_from": (
+            f"executed files under {_evidence_label(root, evidence_dir / 'logs')} "
+            "and explicit external blocker declarations"
+        ),
         "local_deterministic_status": "PASS" if not failed and not unknown else "FAIL",
         "production_release_status": "BLOCKED_ON_EXTERNAL_VALIDATION"
         if not failed and not unknown
@@ -495,7 +541,23 @@ def generate(root: Path) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
-    return generate(parser.parse_args().repo_root.resolve())
+    parser.add_argument(
+        "--evidence-dir",
+        type=Path,
+        default=None,
+        help=(
+            "evidence root holding logs/ as input and receiving the reports "
+            f"(default: <repo-root>/{DEFAULT_EVIDENCE_DIR.as_posix()})"
+        ),
+    )
+    args = parser.parse_args()
+    root = args.repo_root.resolve()
+    evidence_dir = (
+        args.evidence_dir.resolve()
+        if args.evidence_dir is not None
+        else root / DEFAULT_EVIDENCE_DIR
+    )
+    return generate(root, evidence_dir)
 
 
 if __name__ == "__main__":

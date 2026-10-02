@@ -1,8 +1,8 @@
 # L9_META
 #   l9_schema: 1
 #   repo: Quantum-L9/l9-graphiti-memory
-#   path: docs/WIP/l9-bot-memory-integration-pr-pack/repos/l9-graphiti-memory/files/.github/workflows/typescript-client.yml
-#   layer: documentation
+#   path: .github/workflows/typescript-client.yml
+#   layer: ci
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.2.0
