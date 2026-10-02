@@ -189,9 +189,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 79 -> 81 for GMP-001: ADR-080 (automated quarantine
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
-        # parity).
-        "83 ADRs complete and indexed",
-        r"PASS: 83 ADRs",
+        # parity). Re-pinned 83 -> 84 for ADR-084 (projection runtime and
+        # target-aware lifecycle).
+        "84 ADRs complete and indexed",
+        r"PASS: 84 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -271,8 +272,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         #
         # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
         # the control-plane capability receipt.
-        "127 production files pass",
-        r"PASS: 127 production Python files",
+        #
+        # Re-pinned 127 -> 128 for ADR-084: projections/runtime.py carries the
+        # projection runtime.
+        "128 production files pass",
+        r"PASS: 128 production Python files",
     ),
     CheckSpec(
         "V-012",
