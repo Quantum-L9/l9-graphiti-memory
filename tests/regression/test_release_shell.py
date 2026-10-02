@@ -169,7 +169,8 @@ def test_release_validation_evidence_root_is_untracked_build_workspace() -> None
     assert 'OUT="$ROOT/validation"' not in script
     # The evidence generator is pointed at the workspace, never at its old default.
     evidence = _tool_invocations("generate_validation_evidence.py")
-    assert evidence and all("--evidence-dir" in tokens for tokens in evidence), evidence
+    assert evidence, "validator must run the evidence generator"
+    assert all("--evidence-dir" in tokens for tokens in evidence), evidence
     # Nothing deletes or rewrites the tracked validation/ tree.
     for tokens in _validator_commands():
         if tokens[0] == "rm":
@@ -217,6 +218,16 @@ def test_release_validation_refuses_tracked_validation_tree_as_evidence_root(
     assert result.returncode != 0
     assert "not an evidence workspace" in result.stderr
     assert {p: p.stat().st_mtime_ns for p in tracked.rglob("*") if p.is_file()} == before
+
+
+def test_release_validation_canonicalizes_evidence_root_before_guarding(tmp_path: Path) -> None:
+    # A lexical alias of the tracked tree through a component that does not
+    # exist yet must be recognized before anything is created or deleted.
+    alias = ROOT / "does-not-exist-yet" / ".." / "validation"
+    result = _run_validator(tmp_path, L9_RELEASE_EVIDENCE_DIR=str(alias))
+    assert result.returncode != 0
+    assert "not an evidence workspace" in result.stderr
+    assert not (ROOT / "does-not-exist-yet").exists()
 
 
 def test_release_validation_refuses_tracked_overlap_as_evidence_root(tmp_path: Path) -> None:
@@ -305,7 +316,8 @@ def test_publish_validation_consumes_and_publication_ships_the_same_dist() -> No
     assert "dist/" in uploaded
     assert "build/release-validation/" in uploaded
     # The tracked validation/ tree is candidate content, not this run's evidence.
-    assert "validation/" not in uploaded and "validation" not in uploaded
+    assert "validation/" not in uploaded
+    assert "validation" not in uploaded
 
 
 def test_publish_preserves_release_gates() -> None:

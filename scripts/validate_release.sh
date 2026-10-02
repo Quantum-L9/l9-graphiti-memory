@@ -38,22 +38,25 @@ case "$OUT" in
   /*) ;;
   *) OUT="$ROOT/$OUT" ;;
 esac
-OUT_PARENT="$(dirname -- "$OUT")"
-if [[ -d "$OUT_PARENT" ]]; then
-  OUT="$(cd -- "$OUT_PARENT" && pwd)/$(basename -- "$OUT")"
-fi
+# Canonicalize lexically even when components do not exist yet, so a path such
+# as "$ROOT/missing/../validation" is recognized as the tracked tree before
+# anything is created or deleted.
+OUT="$(realpath -m -- "$OUT")"
+ROOT_REAL="$(realpath -- "$ROOT")"
 case "$OUT" in
-  "$ROOT"/validation|"$ROOT"/validation/*)
+  "$ROOT_REAL"/validation|"$ROOT_REAL"/validation/*)
     fail "tracked validation/ is candidate content, not an evidence workspace (set L9_RELEASE_EVIDENCE_DIR elsewhere)" ;;
-  "$ROOT") fail "evidence workspace must not be the repository root" ;;
+  "$ROOT_REAL") fail "evidence workspace must not be the repository root" ;;
+  *) ;;
 esac
 if command -v git >/dev/null 2>&1 && git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   case "$OUT" in
-    "$ROOT"/*)
-      OUT_REL="${OUT#"$ROOT"/}"
+    "$ROOT_REAL"/*)
+      OUT_REL="${OUT#"$ROOT_REAL"/}"
       if [[ -n "$(git -C "$ROOT" ls-files -- "$OUT_REL" | head -n 1)" ]]; then
         fail "evidence workspace $OUT_REL overlaps tracked content"
       fi ;;
+    *) ;;
   esac
 fi
 

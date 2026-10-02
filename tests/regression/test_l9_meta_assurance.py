@@ -33,7 +33,8 @@ def _load(name: str) -> ModuleType:
     if name in sys.modules:
         return sys.modules[name]
     spec = importlib.util.spec_from_file_location(name, ASSURANCE / f"{name}.py")
-    assert spec and spec.loader
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
     sys.path.insert(0, str(ASSURANCE))
@@ -227,7 +228,8 @@ def test_copied_wip_header_at_active_workflow_path_fails(tmp_path: Path) -> None
     failures = check_l9_meta.validate(root)
     stale = [f for f in failures if ".github/workflows/ci.yml" in f and "stale inline" in f]
     assert stale, failures
-    assert "path=" in stale[0] and "layer='documentation' expected 'ci'" in stale[0]
+    assert "path=" in stale[0]
+    assert "layer='documentation' expected 'ci'" in stale[0]
 
 
 def test_malformed_block_fails_closed(tmp_path: Path) -> None:
@@ -259,8 +261,45 @@ def test_duplicate_block_fails_closed(tmp_path: Path) -> None:
         f.startswith("malformed inline L9_META: tools/check.py") and "duplicate" in f
         for f in failures
     ), failures
+    duplicated = target.read_text(encoding="utf-8")
     with pytest.raises(l9_meta.MetaError):
-        l9_meta.parse_inline(target.read_text(encoding="utf-8"), "tools/check.py")
+        l9_meta.parse_inline(duplicated, "tools/check.py")
+
+
+def test_interrupted_comment_block_fails_closed(tmp_path: Path) -> None:
+    root = _prepared(tmp_path)
+    target = root / "tools" / "check.py"
+    lines = target.read_text(encoding="utf-8").splitlines()
+    # Interrupt the block after `path:` with a stray comment; the stale
+    # trailing fields must not survive as a silently accepted tail.
+    cut = next(i for i, line in enumerate(lines) if line.startswith("#   layer:"))
+    lines.insert(cut, "# stray comment inside the block")
+    target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    failures = check_l9_meta.validate(root)
+    assert any(
+        f.startswith("malformed inline L9_META: tools/check.py") and "interrupted" in f
+        for f in failures
+    ), failures
+    before = _snapshot(root)
+    assert apply_l9_meta.apply(root, check=True) == 1
+    assert apply_l9_meta.apply(root, check=False) == 1
+    assert _snapshot(root) == before
+
+
+def test_blank_separated_following_comment_block_is_unrelated(tmp_path: Path) -> None:
+    root = _prepared(tmp_path)
+    target = root / "tools" / "check.py"
+    text = target.read_text(encoding="utf-8")
+    # A vendored pack carries its own header after a blank line; that is not
+    # an interruption of the L9 block and must keep parsing.
+    text = text.replace(
+        "\n\nimport sys\n", "\n\n# skill_schema: 1\n# layer: script\n\nimport sys\n"
+    )
+    target.write_text(text, encoding="utf-8")
+    meta = l9_meta.parse_inline(text, "tools/check.py")
+    assert meta is not None
+    assert meta.get("layer") == "assurance"
+    assert check_l9_meta.validate(root) == ()
 
 
 def test_apply_reconciles_stale_structural_fields_and_keeps_artifact_fields(

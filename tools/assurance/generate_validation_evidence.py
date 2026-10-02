@@ -160,8 +160,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # check purity) and 10 in test_release_shell.py (observational
         # validator, single-build publication). None backend-parameterized.
         # Same arithmetic: 1024 + 51 = 1075 collected, 1075 - 16 = 1059.
-        "1059 tests pass",
-        r"1059 passed",
+        #
+        # Re-pinned 1059 -> 1062 for the review findings on that change: an
+        # interrupted comment block fails closed, a blank-separated following
+        # header is unrelated, and the validator canonicalizes its evidence
+        # root before guarding. 1075 + 3 = 1078 collected, 1078 - 16 = 1062.
+        "1062 tests pass",
+        r"1062 passed",
     ),
     CheckSpec(
         "V-002",

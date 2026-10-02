@@ -398,7 +398,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "1f6298ed47720afdf86004e5cf6838454d1ff922faa5792e43bb6a15b005b14b",
+      "sha256": "396a4d07bc126ab2b3074b4b39539a2b3df95a515be4ca7eafe9e84f2f3d3d8a",
       "size_bytes": 124444
     },
     {
@@ -5038,8 +5038,8 @@
         "version": "2.5.0"
       },
       "path": "scripts/validate_release.sh",
-      "sha256": "c5a987111d99ba9588b7103488bb93f4feb0165aa77514499a2bc1587c34b996",
-      "size_bytes": 11566
+      "sha256": "55940084f742593745fcc1360e45bb16763e270e87b3304fafbce440340c8fdc",
+      "size_bytes": 11735
     },
     {
       "category": "operations",
@@ -9054,8 +9054,8 @@
         "version": "2.5.0"
       },
       "path": "tests/regression/test_l9_meta_assurance.py",
-      "sha256": "5c532fe76ff94d640be73a05a618d00ad2c7085c8ad37d63651072e168b5ee27",
-      "size_bytes": 15788
+      "sha256": "1a40dc95e93b550455e04fee79139cc50f22ccbd64d2bcfee412a49dfca8a8ef",
+      "size_bytes": 17453
     },
     {
       "category": "tests",
@@ -9102,8 +9102,8 @@
         "version": "2.5.0"
       },
       "path": "tests/regression/test_release_shell.py",
-      "sha256": "2319cdb1c3eaa01fa2368509370483bad61d2c63b5019022d35a315503335cea",
-      "size_bytes": 12015
+      "sha256": "a7f810114e8538da25e6aec7bcc37baab8a716db8dac10e723878daec32e3d71",
+      "size_bytes": 12603
     },
     {
       "category": "tests",
@@ -10302,8 +10302,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "d2cbe739e19aa0194feef0b3340c902718931815f1ae867064e83223910ec988",
-      "size_bytes": 21840
+      "sha256": "b0fe56db02162cfbfa48a0668cbd83b9057aa98deeb675dbbb7440464bee557e",
+      "size_bytes": 22157
     },
     {
       "category": "assurance",
@@ -10318,8 +10318,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/l9_meta.py",
-      "sha256": "7dd0cd6ceaf73deb76d1da22aa2239f99e4b682dea43ee6fc6b86710c645fb57",
-      "size_bytes": 15343
+      "sha256": "dc9513c4f28a3eccb20cb1cad4d095b44076bbf77ae2fe09dff9b96b3e7dfeae",
+      "size_bytes": 16704
     },
     {
       "category": "assurance",
