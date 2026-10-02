@@ -175,13 +175,18 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # canonicalizes its evidence root before guarding. Same arithmetic:
         # 1180 + 3 = 1183 collected, 1183 - 16 = 1167.
         #
-        # Re-pinned 1167 -> 1248 for ADR-086 (structured source invalidation):
+        # Re-pinned 1167 -> 1169 for ADR-085 (product topology and release
+        # governance): 2 cases in test_product_release_governance.py, none
+        # backend-parameterized. Same arithmetic: 1183 + 2 = 1185 collected,
+        # 1185 - 16 = 1169.
+        #
+        # Re-pinned 1169 -> 1250 for ADR-086 (structured source invalidation):
         # 45 store-matrix cases (15 x 3 backends) in test_source_invalidation,
         # 5 schema-9 migration cases, 26 request-contract and CLI cases, and
         # 5 live-proof cases. Measured with postgres + redis and no governance
-        # sibling: 1183 + 81 = 1264 collected, 1264 - 16 = 1248.
-        "1248 tests pass",
-        r"1248 passed",
+        # sibling: 1185 + 81 = 1266 collected, 1266 - 16 = 1250.
+        "1250 tests pass",
+        r"1250 passed",
     ),
     CheckSpec(
         "V-002",
@@ -202,9 +207,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
         # parity). Re-pinned 83 -> 84 for ADR-084 (projection runtime and
-        # target-aware lifecycle). Re-pinned 84 -> 86 for ADR-086 (structured
-        # source invalidation lifecycle), which lands after ADR-085 (product
-        # topology); the ledger is contiguous only once both are merged.
+        # target-aware lifecycle). Re-pinned 84 -> 85 for ADR-085 (product
+        # topology and release governance). Re-pinned 85 -> 86 for ADR-086
+        # (structured source invalidation lifecycle).
         "86 ADRs complete and indexed",
         r"PASS: 86 ADRs",
     ),

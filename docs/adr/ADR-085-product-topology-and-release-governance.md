@@ -1,0 +1,194 @@
+# ADR-085: Product Topology and Release Governance
+
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/adr/ADR-085-product-topology-and-release-governance.md
+layer: adr
+owner: memory-control-plane
+status: active
+version: 2.5.0
+updated: 2026-07-22
+/L9_META -->
+
+**Date:** 2026-10-02
+**Decision owner:** Quantum-L9 memory architecture
+**Applies to:** `Quantum-L9/l9-graphiti-memory` v2.6+
+
+## Status
+
+Accepted
+
+The decision takes effect when it merges to `main` under the product owner's
+review. It binds exactly one ProductTopology candidate:
+
+| Coordinate | Value |
+|---|---|
+| ProductTopology | `product-topology.yaml` |
+| Topology digest | `sha256:4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104` |
+| Global authority | `Quantum-L9/.github@3eaa094be0b1ec74944e832887aa1752c818fc11` |
+| Global release contract | `l9.contract/product-release@1` |
+
+The topology digest is the SHA-256 of the committed `product-topology.yaml`
+bytes, including its inline L9 metadata header. If those bytes change
+materially, this decision is stale and must be reissued for the new digest.
+`tests/regression/test_product_release_governance.py` fails while the
+committed topology digest differs from the digest recorded here and in
+`release-work/product-release-binding.yaml`.
+
+## Context
+
+The repository already owned a mature memory architecture:
+
+- one canonical `MemoryService` (ADR-002);
+- server-derived caller identity (ADR-083);
+- graph and semantic providers held as projections (ADR-013, ADR-063, ADR-084);
+- a consumer-owned process lifecycle (ADR-001, ADR-065, ADR-067);
+- Gate-only constellation dispatch (ADR-060).
+
+It had no authoritative product contract in the global L9 topology vocabulary,
+however. Its release machinery (`scripts/validate_release.sh`,
+`.github/workflows/publish.yml`) proved artifacts but bound to nothing that
+said what product was being released, which global release law applied, or
+which evidence a release owed.
+
+`Quantum-L9/.github` now publishes `l9.schema/product-topology@1`, the admitted
+ProductKinds and archetypes, and the global release contract
+`l9.contract/product-release@1`. A product consumes that law; it does not
+restate it.
+
+## Decision
+
+1. **ProductKind is `dependency`.** The archetype is
+   `l9.dependency-archetype/semantic-subsystem@1`.
+   - Consumption is `local_composition`.
+   - Deployment is `consumer_bound_artifact`.
+   - The kind follows from the canonical consumption and deployment model, not
+     from repository shape, package format or provider identity. The CLI,
+     MCP, HTTP and Gate adapters are local surfaces of a composed package.
+     They do not make the product a Node.
+2. **`product-topology.yaml` is the authoritative product contract** for this
+   repository. It encodes the accepted memory architecture.
+   - Memory owns:
+     - memory contracts, authorization policy and admission;
+     - canonical persistence, lifecycle and retrieval semantics;
+     - curation and receipts;
+     - the SDK, CLI and MCP surfaces;
+     - provider ports and projection semantics;
+     - compatibility policy.
+   - Memory does not own:
+     - agent execution or world-model semantics;
+     - cross-node or Gate routing;
+     - consumer runtime identity or business-domain semantics;
+     - provider, Cursor-Governance, Graphiti or Zep semantics.
+   - Canonical memory persistence is authoritative product state. Graphiti and
+     Zep state is derived projection state.
+3. **Identity.** ProductIdentity and ReleaseIdentity are distinct and both
+   apply.
+   - The product has no independent RuntimeIdentity:
+     `RuntimeIdentity(dependency_instance) = RuntimeIdentity(consumer)`.
+   - It has no constellation identity.
+   - Actor identity applies because memory writes are authorship. It is
+     derived server-side and fails closed when unknown or ambiguous.
+   - Surface identity does not apply, because transport parity (ADR-082) keeps
+     every surface semantically identical.
+4. **The ProductManifest is derived.** It is owned by `l9-semantic-compiler`
+   and is never hand-authored here. A manifest is current only when it was
+   compiled from this exact topology digest and the pinned global coordinates.
+5. **`release-work/product-release-binding.yaml` is derived.** It is an
+   execution and proof map, not product authority. It binds:
+   - the global release contract, the authority revision and the topology
+     digest;
+   - the ProductManifest coordinate, or its unresolved state;
+   - the release identity source, `version.PACKAGE_VERSION`;
+   - the validation and publication entrypoints and the proof entrypoints.
+
+   It defines no second release contract and no new receipt family.
+6. **Every release is governed by `l9.contract/product-release@1`.**
+   - Validation, conformance and successful execution never admit a release.
+   - Release admission is an explicit authority decision, bound to the exact
+     frozen candidate (version, source revision, wheel sha256, sdist sha256).
+   - Publication distributes only those admitted bytes.
+7. **Consumer binding is separate from product release admission.**
+   `Quantum-L9/Cursor-Governance` selects, installs, binds and proves an
+   admitted release on its own side. That outcome never redefines this
+   product's ReleaseIdentity.
+8. **Material Unknowns stay explicit.** Two requirements have no admitted
+   global coordinate, and neither is invented:
+   - MU-001: a conformance profile for dependency or semantic-subsystem;
+   - MU-002: technology coordinates for the Graphiti MCP and Zep provider
+     realizations.
+
+   Both block a resolved ProductManifest and therefore release progression,
+   which is the intended behaviour of global law.
+
+## Alternatives Considered
+
+- **Classify as a Node**, because the package exposes MCP and HTTP servers.
+- **Keep release governance implicit** in `validate_release.sh` and
+  `publish.yml`.
+- **Author the ProductManifest locally** so release progression is not blocked.
+
+## Rejected Alternatives
+
+- **Node:** rejected. The package has no independent runtime or constellation
+  identity and its process lifecycle is consumer-owned. Process presence alone
+  does not determine ProductKind.
+- **Implicit governance:** rejected. It cannot show which global law, topology
+  or manifest a release was validated against.
+- **A local ProductManifest:** rejected. The manifest is compiler-owned derived
+  authority, and a hand-written one would impersonate it.
+
+## Invariants
+
+- One ProductTopology per product. It is the authoritative product contract.
+- A ProductManifest and the release binding are derived and never authoritative.
+- No `l9.*` identifier, conformance profile or receipt family is invented here.
+- A topology change invalidates this decision until it is reissued for the new
+  digest.
+- Global release law is consumed and may be strengthened locally, never
+  weakened.
+
+## Consequences
+
+- Release progression is blocked until three things are true:
+  - MU-001 and MU-002 are resolved by their global owners;
+  - a ProductManifest compiled from this topology passes the resolved-manifest
+    gate;
+  - an explicit release admission exists.
+- The release proof set is derived from the topology, the manifest, the binding
+  and the current implementation. It no longer comes from a hand-maintained
+  blocker list.
+
+## Security Impact
+
+None at runtime. The topology states the existing secret, identity and
+authorization boundaries (ADR-016, ADR-066, ADR-083) and adds no credential
+path.
+
+## Migration Impact
+
+None. No code, schema, persisted data or public contract changes. The
+topology, this ADR and the binding are new tracked files and are listed in the
+release manifest.
+
+## Validation Requirements
+
+- `python tools/assurance/validate_product_topology.py --authority-root <Quantum-L9/.github checkout at the pinned revision>`
+  passes. It reads global law from the checkout at run time and never copies
+  it.
+- `tests/regression/test_product_release_governance.py` passes. It checks that
+  the topology digest, this decision and the release binding agree.
+- `bash scripts/validate_release.sh` passes.
+
+## Rollback Conditions
+
+Revert this ADR, `product-topology.yaml`, the release binding, the validator
+and the governance test together, then re-run explicit preparation. Roll back
+if the global authority reclassifies the product kind or withdraws
+`l9.contract/product-release@1`.
+
+## Supersedes / Superseded By
+
+Supersedes no ADR. It is superseded only by a later product-owner decision
+bound to a new topology digest.

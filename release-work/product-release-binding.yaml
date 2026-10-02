@@ -1,0 +1,119 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: release-work/product-release-binding.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.5.0
+#   updated: 2026-07-22
+
+schema: l9-graphiti-memory/product-release-binding@1
+# Derived repository execution and proof map (ADR-085). This file is NOT
+# product authority and defines no release semantics: it binds this
+# repository's executable entrypoints to the global release contract, the
+# authoritative ProductTopology, and the compiler-owned ProductManifest.
+# It may narrow or strengthen required evidence; it never weakens global law.
+derived_from:
+  product_topology: product-topology.yaml
+  decision: docs/adr/ADR-085-product-topology-and-release-governance.md
+global_release_contract:
+  ref: l9.contract/product-release@1
+authority:
+  repository: Quantum-L9/.github
+  revision: 3eaa094be0b1ec74944e832887aa1752c818fc11
+  files:
+    - path: semantics/contracts.yaml
+      blob: ac416e943545caeb6a624141ccca43277db90ebd
+      digest: sha256:fffdb91e5af79fa329a704a898deb06ba31f4c4d2b1b226e3805fa45e2b96207
+    - path: semantics/product_topology.schema.yaml
+      blob: 4fd2856bdf84c10a55a4be7e8519848c22c2bdbf
+      digest: sha256:32b820e768b8029dab0e754e5f36115d8d15b8f9a671187fca4fadf1e14a521a
+    - path: semantics/product_kinds.yaml
+      blob: 8e5aa829df8e00f89286d99ec8d9529e5da63805
+      digest: sha256:6bc39e7376650601570301fe486bdc6f2897fe461321e92c41250f9426688e7d
+    - path: semantics/dependency_archetypes.yaml
+      blob: b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a
+      digest: sha256:909db431aa0ccc7668ce3f2dcd46addc26df39c8f3e7303925469b47d6a4617d
+product:
+  kind: dependency
+  archetype_ref: l9.dependency-archetype/semantic-subsystem@1
+product_topology:
+  path: product-topology.yaml
+  digest: sha256:4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104
+  admission_decision_ref: docs/adr/ADR-085-product-topology-and-release-governance.md
+  mechanical_validation: tools/assurance/validate_product_topology.py --authority-root <Quantum-L9/.github at authority.revision>
+product_manifest:
+  status: unresolved
+  ref: null
+  digest: null
+  compiler_revision: null
+  compiler_profile_ref: l9.compilation/product-build@1
+  compiler_profile_digest: null
+  reasons:
+    - l9-semantic-compiler was not reachable from the campaign session; no ProductManifest was compiled and none is hand-authored.
+    - ProductTopology material Unknowns MU-001 (conformance profile) and MU-002 (provider technology coordinates) block the resolved-manifest gate regardless of compiler availability.
+  consequence: release progression is BLOCKED until a ProductManifest compiled from product_topology.digest passes the resolved-manifest gate.
+release_identity:
+  version_source: src/l9_graphite_memory/version.py::PACKAGE_VERSION
+  identity_tuple:
+    - PACKAGE_VERSION
+    - exact source revision
+    - wheel sha256
+    - sdist sha256
+  version_carriers_enforced_by: tests/regression/test_release_version_consistency.py
+  artifact_forms:
+    - wheel
+    - sdist
+  excluded:
+    - clients/typescript (separately versioned @quantum-l9/graphiti-memory-client)
+preparation:
+  - python3 tools/assurance/apply_l9_meta.py
+  - python3 tools/assurance/generate_manifest.py
+validation:
+  entrypoint: scripts/validate_release.sh
+  evidence_dir: build/release-validation
+  mode: observational; never mutates the frozen candidate
+  publication_mode: L9_RELEASE_ARTIFACT_DIR=<dir holding the exact admitted wheel and sdist>
+publication:
+  workflow: .github/workflows/publish.yml
+  requires: an explicit release admission for the exact candidate; published digests equal admitted digests
+proofs:
+  installed_artifact:
+    - scripts/validate_release.sh (exact-wheel install, digest match, installed smoke)
+    - tests/integration/test_installed_wheel_lifecycle.py
+  migration:
+    - tests/integration/test_projection_link_migration.py
+    - tests/conformance/test_shared_canonical_store.py
+    - tests/unit/test_backend_transition_guard.py
+    - deployment/generated-data/verify_migration.py
+  backup_restore:
+    - deployment/generated-data/verify_backup_restore.py
+    - tests/deployment/generated_data/test_backup_restore.py
+  generated_data_invalidation:
+    - deployment/generated-data/live_end_to_end_proof.py
+    - deployment/generated-data/verify_selector_indexes.py
+    - tests/deployment/generated_data/test_live_proof_fail_closed.py
+  graphiti_live:
+    status: no executable live proof entrypoint exists
+    applies_when: the resolved ProductManifest declares the Graphiti MCP provider realization (topology target facts:v8:graphiti:primary, active)
+  zep_shadow_live:
+    status: no executable live proof entrypoint exists
+    applies_when: the resolved ProductManifest declares the Zep shadow provider realization (topology target facts:v8:zep:primary, shadow)
+  secrets:
+    status: no executable secret loading or rotation proof entrypoint exists
+    implementation: src/l9_graphite_memory/secrets.py
+consumer_binding:
+  target: Quantum-L9/Cursor-Governance
+  phase: post_publication
+  required_for_product_or_release_identity: false
+  handoff_coordinates:
+    - release version
+    - exact source revision
+    - wheel sha256
+    - sdist sha256
+    - CONTROL_PLANE_CONTRACT_VERSION
+    - ProductTopology digest
+    - ProductManifest digest
+    - release admission ref
+    - publication ref

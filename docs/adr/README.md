@@ -109,6 +109,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-082 | [Consumer Control-Plane Transport Parity](ADR-082-consumer-control-plane-transport-parity.md) | Accepted |
 | ADR-083 | [Server-Side Local Authorization and One Class Vocabulary](ADR-083-server-side-local-authorization-and-one-class-vocabulary.md) | Accepted |
 | ADR-084 | [Projection Runtime and Target-Aware Lifecycle](ADR-084-projection-runtime-and-target-aware-lifecycle.md) | Accepted |
+| ADR-085 | [Product Topology and Release Governance](ADR-085-product-topology-and-release-governance.md) | Accepted |
 | ADR-086 | [Structured Source Invalidation Lifecycle](ADR-086-structured-source-invalidation-lifecycle.md) | Accepted |
 
 ## Validation

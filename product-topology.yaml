@@ -1,0 +1,668 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: product-topology.yaml
+#   layer: repository
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.5.0
+#   updated: 2026-07-22
+
+schema: l9.product-topology/v1
+# Authoritative ProductTopology for Quantum-L9/l9-graphiti-memory (ADR-085).
+# Global law is consumed, never copied: every `l9.*` reference resolves in
+# Quantum-L9/.github at the revision pinned under `provenance`. References in
+# the `l9-graphiti-memory:` namespace are product-owned semantics whose
+# authority is this repository (see unknowns.non_material: NM-001).
+product:
+  id: l9-graphiti-memory:product/l9-graphite-memory
+  kind: dependency
+  archetype_ref: l9.dependency-archetype/semantic-subsystem@1
+  name: l9-graphite-memory
+  versioning_family: semver
+  status: candidate
+identity:
+  semantic_owner: l9-graphiti-memory:authority/memory-architecture
+  semantic_scope: canonical_agent_memory_control_plane
+  canonical_repository: Quantum-L9/l9-graphiti-memory
+  dimensions:
+    product:
+      applicable: true
+      value: l9-graphiti-memory:product/l9-graphite-memory
+      distribution_name: l9-graphite-memory
+      import_package: l9_graphite_memory
+      authority_source: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-058-graphiti-repository-name-and-graphite-package-compatibility.md
+    release:
+      applicable: true
+      identity_rule: release identity is the exact (PACKAGE_VERSION, source revision, wheel sha256, sdist sha256) tuple; a version string alone is never release identity
+      version_source: src/l9_graphite_memory/version.py::PACKAGE_VERSION
+      governing_contract_ref: l9.contract/product-release@1
+    runtime:
+      applicable: false
+      inherits_from: consumer
+      rule: RuntimeIdentity(dependency_instance) = RuntimeIdentity(consumer)
+      rule_source_ref: l9.product-kinds/global@1
+    constellation:
+      applicable: false
+      rule: no_independent_constellation_runtime_identity
+      forbidden: independent_constellation_identity_as_dependency
+      rule_source_ref: l9.product-kinds/global@1
+    actor:
+      applicable: true
+      materiality: local_authorship_is_material
+      reason: every canonical memory write is attributed authorship; the caller principal is derived server-side and never accepted from request payloads
+      registry_ref: l9.actor-registry/global@1
+      unknown_or_ambiguous_outcome: fail_closed
+      authority_source: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md
+    surface:
+      applicable: false
+      reason: CLI, MCP, HTTP and SDK surfaces are transport adapters with lifecycle-operation parity into one MemoryService; a local surface does not change governance or projection semantics
+      authority_source: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md
+  bindings: []
+  resolution:
+    contract_ref: l9.contract/identity-resolution@1
+    resolver_ref: l9-graphiti-memory:resolver/server-side-principal@1
+    assertion_schema_ref: l9.schema/identity-assertion@1
+    unknown_policy: fail_closed_for_consequential_actor_identity
+    evidence_source_refs:
+      - l9.actor-registry/global@1
+  identity_contract_refs:
+    - l9.contract/identity-topology@1
+    - l9.contract/identity-resolution@1
+  aliases:
+    - Quantum-L9/l9-graphiti-memory
+  predecessor_refs: []
+  successor_refs: []
+  supersedes: []
+purpose:
+  statement: Canonical, domain-agnostic agent memory control plane. One MemoryService admits, persists, retrieves, curates and retires memory records under server-derived identity, with graph and semantic providers held as rebuildable projections.
+  capability_refs:
+    - l9-graphiti-memory:capability/memory-admission@1
+    - l9-graphiti-memory:capability/memory-retrieval@1
+    - l9-graphiti-memory:capability/memory-lifecycle@1
+    - l9-graphiti-memory:capability/memory-curation@1
+    - l9-graphiti-memory:capability/memory-projection@1
+    - l9-graphiti-memory:capability/memory-receipts@1
+  primary_responsibility: Own the semantics of agent memory and expose them through one canonical control plane composed into a consumer's process.
+  objectives:
+    - one canonical write and read path through MemoryService
+    - atomic, evidence-bearing canonical persistence
+    - valid time and transaction time kept distinct
+    - provider-neutral projections that never become canonical
+  non_goals:
+    - agent execution or checkpoint orchestration
+    - constellation routing or Gate routing authority
+    - business-domain semantics
+    - an independent runtime or constellation identity
+boundary:
+  owns:
+    - memory contracts
+    - memory authorization policy
+    - memory admission
+    - canonical memory persistence semantics
+    - memory lifecycle semantics
+    - memory retrieval semantics
+    - memory curation
+    - memory receipts
+    - memory SDK, CLI and MCP product surfaces
+    - memory provider ports
+    - memory projection semantics
+    - memory compatibility policy
+  does_not_own:
+    - agent execution
+    - world-model semantics
+    - cross-node routing
+    - Gate routing authority
+    - consumer runtime identity
+    - business-domain semantics
+    - provider semantics
+    - Cursor-Governance semantics
+    - Graphiti semantics
+    - Zep semantics
+  authority_boundary_refs:
+    - l9.contract/authority-boundary@1
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-001-repository-role-and-boundaries.md
+  semantic_boundary_refs:
+    - l9.contract/semantic-ownership@1
+  trust_boundary_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-016-secret-and-credential-boundaries.md
+  transaction_boundary_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-002-canonical-memory-service.md
+  mutation_boundary_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-036-canonical-write-bypass-enforcement.md
+requirements:
+  invariant_refs:
+    - L9-AUTH-001
+    - L9-OWNER-001
+    - L9-SEM-001
+    - L9-UNKNOWN-001
+    - L9-PROV-001
+    - L9-IDENTITY-001
+    - L9-IDENTITY-005
+    - L9-COMPAT-001
+    - L9-PROJECTION-001
+    - L9-EVIDENCE-001
+  contract_refs:
+    - l9.contract/product-topology@1
+    - l9.contract/product-kind@1
+    - l9.contract/product-release@1
+    - l9.contract/projection@1
+    - l9.contract/evidence-and-receipt@1
+  hard_constraints:
+    - id: l9-graphiti-memory:constraint/memory-service-is-canonical@1
+      class: semantic
+      hardness: hard
+      statement: MemoryService is the only production path for every memory write and read operation.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-002-canonical-memory-service.md
+    - id: l9-graphiti-memory:constraint/server-derived-caller-identity@1
+      class: authority
+      hardness: hard
+      statement: Caller identity is derived server-side; a request never asserts its own principal.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md
+    - id: l9-graphiti-memory:constraint/atomic-evidence-bearing-persistence@1
+      class: semantic
+      hardness: hard
+      statement: Canonical persistence is atomic and evidence-bearing.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md
+    - id: l9-graphiti-memory:constraint/bitemporal-distinction@1
+      class: semantic
+      hardness: hard
+      statement: Valid time and transaction time remain distinct.
+      source_ref: Quantum-L9/l9-graphiti-memory/AGENTS.md
+    - id: l9-graphiti-memory:constraint/projections-are-not-canonical@1
+      class: semantic
+      hardness: hard
+      statement: Graph and semantic provider state is a rebuildable projection and is never canonical memory.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-063-projection-manifest-compiler-and-control-plane-boundaries.md
+    - id: l9-graphiti-memory:constraint/no-write-bypass@1
+      class: authority
+      hardness: hard
+      statement: Canonical store mutations require the MemoryService-issued write capability and are gated by the release-blocking bypass scanner.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-036-canonical-write-bypass-enforcement.md
+  soft_objectives: []
+  operational_requirements:
+    - id: l9-graphiti-memory:constraint/no-secret-persistence@1
+      class: operational
+      hardness: hard
+      statement: Secrets enter only at runtime from operator environment or the secret provider; generated configuration never persists them.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-016-secret-and-credential-boundaries.md
+  security_requirements:
+    - id: l9-graphiti-memory:constraint/fail-closed-actor-attribution@1
+      class: authority
+      hardness: hard
+      statement: Unknown or ambiguous actor identity fails closed for memory attribution.
+      source_ref: L9-IDENTITY-005
+  conformance_requirements:
+    - l9.contract/conformance-resolution@1
+capabilities:
+  provides:
+    - id: l9-graphiti-memory:capability/memory-admission@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      purpose: Admit candidate memory into canonical persistence under policy, phase-lock and identity checks.
+    - id: l9-graphiti-memory:capability/memory-retrieval@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      purpose: Search and hydrate current canonical memory, with historical visibility only on explicit request.
+    - id: l9-graphiti-memory:capability/memory-lifecycle@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      purpose: Transition canonical records through lifecycle states, including supersession, archival, retention and verified deletion.
+    - id: l9-graphiti-memory:capability/memory-curation@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      purpose: Promote, distill, synthesize and maintain canonical memory.
+    - id: l9-graphiti-memory:capability/memory-projection@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      purpose: Project canonical records to provider targets through the outbox, and retire, erase or rebuild them.
+    - id: l9-graphiti-memory:capability/memory-receipts@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      purpose: Emit evidence-bearing receipts for every consequential memory operation.
+  requires:
+    - id: l9-graphiti-memory:requirement/consumer-process-host@1
+      purpose: A consuming product hosts the process, injects deployment identity and owns process lifecycle.
+      source_ref: l9.pattern/dependency-package@1
+  optional:
+    - id: l9-graphiti-memory:requirement/graph-projection-provider@1
+      purpose: A graph provider realization for the memory projection port.
+    - id: l9-graphiti-memory:requirement/shared-canonical-store@1
+      purpose: A PostgreSQL canonical store when the deployment shares canonical memory across processes.
+  degraded_without:
+    - id: l9-graphiti-memory:requirement/graph-projection-provider@1
+      purpose: Without a provider, canonical memory remains complete and projection targets stay disabled.
+  forbidden: []
+consumption:
+  model: local_composition
+  public_entry_modes:
+    - python_sdk
+    - cli
+    - mcp_stdio
+    - mcp_http
+    - gate_adapter
+  invocation_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md
+  consumer_requirements:
+    - id: l9-graphiti-memory:constraint/consumer-binds-control-plane-contract@1
+      class: interface
+      hardness: hard
+      statement: A consumer binds to CONTROL_PLANE_CONTRACT_VERSION and an exact admitted release, never to tool presence.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md
+  forbidden_consumption_modes:
+    - remote_invocation_as_canonical_consumption
+    - implicit_gate_registration
+deployment:
+  model: consumer_bound_artifact
+  deployment_unit: python distribution l9-graphite-memory
+  runtime_boundary: consuming product process
+  scaling_boundary: consuming product
+  failure_boundary: consuming product process; canonical store transaction
+  upgrade_boundary: consumer binding of an exact admitted release
+  artifact_forms:
+    - wheel
+    - sdist
+  deployment_constraints:
+    - id: l9-graphiti-memory:constraint/consumer-owned-deployment@1
+      class: operational
+      hardness: hard
+      statement: Deployment choices belong to the consuming product's own deployment repository.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/ACTIVE_MEMORY_DEPLOYMENT_CONTRACT.md
+contracts:
+  public:
+    - l9-graphiti-memory:contract/memory-control-plane@1
+    - l9-graphiti-memory:contract/memory-record-schema@2.2.0
+    - l9-graphiti-memory:contract/memory-gate-bridge@1
+  consumed:
+    - l9.contract/product-release@1
+  produced:
+    - l9-graphiti-memory:contract/memory-receipts@1
+  required: []
+  compatibility:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md
+    - Quantum-L9/l9-graphiti-memory/docs/COMPATIBILITY_MATRIX.md
+  schemas:
+    - Quantum-L9/l9-graphiti-memory/src/l9_graphite_memory/version.py
+  canonicalization: []
+architecture:
+  required_pattern_refs:
+    - l9.pattern/dependency-package@1
+  optional_pattern_refs:
+    - l9.pattern/semantic-core-provider-adapter@1
+    - l9.pattern/reference-model-conformance@1
+    - l9.pattern/fixture-backed-conformance@1
+  forbidden_pattern_refs:
+    - l9.pattern/runnable-node@1
+    - l9.pattern/semantic-core-gate-adapter@1
+  structural_constraints: []
+  layer_constraints:
+    - id: l9-graphiti-memory:constraint/layer-directions@1
+      class: architecture
+      hardness: hard
+      statement: Core, adapter, service and integration dependency directions are enforced by tools/assurance/check_layer_boundaries.py.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md
+  composition_rules:
+    - l9.compose/product-kind-dependency@1
+interfaces:
+  actions: []
+  public_programmatic_surfaces:
+    - id: l9-graphiti-memory:surface/python-sdk@1
+      entry: l9_graphite_memory.sdk.MemorySDK
+    - id: l9-graphiti-memory:surface/active-memory-sdk@1
+      entry: l9_graphite_memory.active.client.ActiveAgentClient
+  command_surfaces:
+    - id: l9-graphiti-memory:surface/cli@1
+      entry: l9-memory
+    - id: l9-graphiti-memory:surface/mcp-server@1
+      entry: l9-memory-server
+    - id: l9-graphiti-memory:surface/outbox-worker@1
+      entry: l9-memory-worker
+  event_surfaces: []
+ports:
+  inbound: []
+  outbound:
+    - id: l9-graphiti-memory:port/record-store@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      module: l9_graphite_memory.ports.record_store
+    - id: l9-graphiti-memory:port/projection@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      module: l9_graphite_memory.ports.projection
+    - id: l9-graphiti-memory:port/constellation@1
+      semantic_owner: l9-graphiti-memory:authority/memory-architecture
+      module: l9_graphite_memory.ports.constellation
+  extension: []
+  forbidden: []
+adapters:
+  inbound: []
+  outbound:
+    - id: l9-graphiti-memory:adapter/sqlite-store@1
+      port_ref: l9-graphiti-memory:port/record-store@1
+    - id: l9-graphiti-memory:adapter/postgres-store@1
+      port_ref: l9-graphiti-memory:port/record-store@1
+  provider:
+    - id: l9-graphiti-memory:adapter/graphiti-mcp-projection@1
+      port_ref: l9-graphiti-memory:port/projection@1
+    - id: l9-graphiti-memory:adapter/zep-projection@1
+      port_ref: l9-graphiti-memory:port/projection@1
+  integration:
+    - id: l9-graphiti-memory:adapter/gate-memory-bridge@1
+      port_ref: l9-graphiti-memory:port/constellation@1
+      rule: Gate-only dispatch through injected packet factory and Gate client; no peer URL or registry awareness.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-060-gate-only-constellation-dispatch.md
+  forbidden: []
+relationships:
+  products:
+    - relation: compose
+      consumer: Quantum-L9/Cursor-Governance
+      contract_ref: l9-graphiti-memory:contract/memory-control-plane@1
+      binding_owner: Quantum-L9/Cursor-Governance
+  relationship_constraints:
+    - id: l9-graphiti-memory:constraint/consumer-binding-is-separate@1
+      class: authority
+      hardness: hard
+      statement: Consumer binding is a separate downstream decision and never redefines this product's release identity.
+      source_ref: l9.product-kinds/global@1
+  forbidden_relationships:
+    - relation: invoke
+      reason: remote_invocation_as_canonical_consumption is forbidden for a dependency
+bindings:
+  product_bindings: []
+  protocol_bindings: []
+  provider_bindings:
+    - target_id: facts:v8:graphiti:primary
+      adapter_ref: l9-graphiti-memory:adapter/graphiti-mcp-projection@1
+      target_state: active
+      manifest: config/projections/facts-v8.yaml
+      technology_ref: unknown
+      unknown_ref: MU-002
+    - target_id: facts:v8:zep:primary
+      adapter_ref: l9-graphiti-memory:adapter/zep-projection@1
+      target_state: shadow
+      manifest: config/projections/facts-v8.yaml
+      rule: shadow results are measured only and never change returned canonical retrieval
+      technology_ref: unknown
+      unknown_ref: MU-002
+providers:
+  allowed:
+    - id: graphiti_mcp
+      role: projection_provider
+      authority: derived
+    - id: zep
+      role: projection_provider
+      authority: derived
+  prohibited: []
+  substitution_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md
+  provider_independence_required: true
+technology:
+  hard_constraints: []
+  preferences: []
+  runtime_requirements:
+    - id: l9-graphiti-memory:constraint/python-runtime@1
+      class: technology
+      hardness: hard
+      statement: CPython >= 3.10 (pyproject.toml requires-python).
+      source_ref: Quantum-L9/l9-graphiti-memory/pyproject.toml
+  language_constraints: []
+  platform_constraints: []
+state:
+  owns_authoritative_state: true
+  state_semantic_refs:
+    - l9-graphiti-memory:contract/memory-record-schema@2.2.0
+  persistence_ports:
+    - l9-graphiti-memory:port/record-store@1
+  consistency_requirement_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md
+  revision_model_ref: l9.contract/revision-and-supersession@1
+  transaction_model_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-002-canonical-memory-service.md
+  retention_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-074-projection-retirement-lifecycle.md
+  projection_refs:
+    - Quantum-L9/l9-graphiti-memory/config/projections/facts-v8.yaml
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-084-projection-runtime-and-target-aware-lifecycle.md
+  cache_authority: derived
+runtime:
+  participation_model: consumer_bound
+  process_model: consumer_owned_process_lifecycle
+  concurrency_model: canonical store transactions; one outbox intent per projection target
+  resource_model: consumer_owned
+  startup_requirement_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-077-canonical-store-backend-transition-safety.md
+  shutdown_requirement_refs: []
+  health_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md
+  readiness_contract_refs: []
+  degradation_contract_refs: []
+communication:
+  constellation_boundary_required: false
+  transport_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-026-transportpacket-constellation-boundary.md
+  routing_authority_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-060-gate-only-constellation-dispatch.md
+  ingress_contract_refs: []
+  egress_contract_refs: []
+  packet_refs: []
+  forbidden_paths:
+    - node-to-node calls
+    - peer URL awareness
+    - implicit Gate registration
+security:
+  identity_source_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md
+  authentication_contract_refs: []
+  authorization_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md
+  trust_source_refs: []
+  secret_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-016-secret-and-credential-boundaries.md
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-066-secret-file-credential-resolution.md
+  credential_scope:
+    - provider credentials resolved at runtime only
+  isolation_requirement_refs: []
+  data_handling_contract_refs: []
+configuration:
+  contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-064-cursor-client-instantiation-and-proof-boundary.md
+  namespaces: []
+  precedence_model_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-064-cursor-client-instantiation-and-proof-boundary.md
+  required: []
+  optional: []
+  forbidden:
+    - secrets in generated MCP configuration
+effects:
+  effect_classes: []
+  consequential_operations:
+    - l9-graphiti-memory:capability/memory-admission@1
+    - l9-graphiti-memory:capability/memory-lifecycle@1
+  idempotency_contract_refs: []
+  reconciliation_contract_refs: []
+receipts:
+  emits:
+    - family_ref: l9-graphiti-memory:contract/memory-receipts@1
+      specializes: l9.receipt-catalog/global@1
+  consumes: []
+  canonicalization_ref: null
+  preservation_requirement_refs: []
+failure:
+  taxonomy_refs:
+    - l9.error-taxonomy/global@1
+  fail_closed_conditions:
+    - unknown or ambiguous actor identity on a consequential write
+    - unacknowledged canonical store backend switch
+    - canonical write without the MemoryService write capability
+  degradable_conditions:
+    - projection provider unavailable
+  retry_authority_ref: l9-graphiti-memory:authority/memory-architecture
+  retry_contract_refs: []
+  ambiguity_contract_refs: []
+  reconciliation_contract_refs: []
+  unknown_outcome_rules:
+    - unknown outcomes are never collapsed to success
+recovery:
+  restart_semantics:
+    - outbox delivery resumes from durable intents
+  replay_semantics:
+    - projections are rebuildable from canonical records
+  compensation_semantics: []
+  restore_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/RUNBOOK.md#backup-and-restore
+  disaster_recovery_requirement_refs: []
+observability:
+  logging_contract_refs: []
+  capability_metrics: []
+  provider_metrics: []
+  tracing_requirement_refs: []
+  correlation_identity_refs: []
+  audit_requirement_refs: []
+  slo_refs: []
+governance:
+  profile_refs: []
+  profile_selection_contract_refs: []
+  autonomy_contract_refs: []
+  selection_inputs: []
+  rules: []
+admission:
+  subject: l9-graphiti-memory:product/l9-graphite-memory
+  authority_ref: l9-graphiti-memory:authority/memory-architecture
+  admission_profile_ref: l9-graphiti-memory:admission/product-owner-decision@1
+  requirements:
+    - topology admission is an explicit product-owner decision bound to the exact topology digest
+    - release admission is an explicit authority decision bound to the exact frozen candidate subject set (version, source revision, wheel sha256, sdist sha256)
+    - validation, conformance and successful execution never admit a topology or a release
+  kind_specific_requirements:
+    - dependency product release admission states follow l9.product-kinds/global@1
+    - consumer binding is a separate downstream decision owned by each consumer
+  evidence_requirement_refs:
+    - l9.receipt/validation@1
+    - l9.receipt/conformance@1
+    - l9.receipt/admission@1
+  decision_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-085-product-topology-and-release-governance.md
+lifecycle:
+  family_ref: l9.lifecycle/global@1
+  applicable_state_refs:
+    - candidate
+    - identified
+    - contract_bound
+    - validated
+    - compatibility_proven
+    - admitted
+    - current
+    - superseded
+    - retired
+  transition_contract_refs:
+    - l9.contract/product-release@1
+    - l9.contract/admission-and-promotion@1
+  supersession_contract_ref: l9.contract/revision-and-supersession@1
+  retirement_contract_ref: l9.contract/revision-and-supersession@1
+conformance:
+  profile_refs:
+    - unknown
+  required_classes:
+    - core
+  fixture_profile_refs: []
+  negative_proof_refs: []
+  provider_conformance_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-021-testing-and-adapter-conformance.md
+  final_conformance_required: true
+compatibility:
+  public_contract_policy_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md
+  semantic_compatibility_refs:
+    - l9.contract/semantic-identity-and-compatibility@1
+  runtime_compatibility_refs: []
+  provider_compatibility_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/COMPATIBILITY_MATRIX.md
+  consumer_compatibility_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md
+  breaking_change_policy_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-022-release-publishing-and-rollback.md
+distribution:
+  artifact_identity_refs:
+    - l9-graphiti-memory:product/l9-graphite-memory
+  artifact_forms:
+    - wheel
+    - sdist
+  registry_refs:
+    - pypi:l9-graphite-memory
+  release_contract_refs:
+    - l9.contract/product-release@1
+  integrity_requirement_refs:
+    - published artifact sha256 equals admitted and validated artifact sha256
+  publication_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/.github/workflows/publish.yml
+build:
+  compilation_profile_ref: l9.compilation/product-build@1
+  target_binding_refs: []
+  generated_surfaces:
+    - MANIFEST.md
+    - manifest.json
+  source_owned_surfaces:
+    - product-topology.yaml
+  build_requirement_refs:
+    - Quantum-L9/l9-graphiti-memory/scripts/validate_release.sh
+  reproducibility_requirement_refs: []
+operations:
+  owner_ref: l9-graphiti-memory:authority/memory-architecture
+  runbook_refs:
+    - Quantum-L9/l9-graphiti-memory/RUNBOOK.md
+    - Quantum-L9/l9-graphiti-memory/RUNBOOK.md#graphiti-projection
+    - Quantum-L9/l9-graphiti-memory/RUNBOOK.md#zep-projection
+    - Quantum-L9/l9-graphiti-memory/RUNBOOK.md#manifest-projection-runtime
+    - Quantum-L9/l9-graphiti-memory/RUNBOOK.md#release-validation
+    - Quantum-L9/l9-graphiti-memory/VALIDATION.md
+    - Quantum-L9/l9-graphiti-memory/deployment/generated-data/activation-runbook.md
+  maintenance_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/RUNBOOK.md#scheduled-maintenance
+  migration_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/MIGRATION.md
+    - Quantum-L9/l9-graphiti-memory/deployment/generated-data/migration-runbook.md
+  rollback_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-022-release-publishing-and-rollback.md
+    - Quantum-L9/l9-graphiti-memory/deployment/generated-data/rollback-runbook.md
+provenance:
+  authority_ref: Quantum-L9/.github@3eaa094be0b1ec74944e832887aa1752c818fc11
+  source_revision: Quantum-L9/l9-graphiti-memory@2f5f1b4ccfec09c63c8757cd8267641aef189976
+  source_refs:
+    - Quantum-L9/.github/semantics/contracts.yaml@ac416e943545caeb6a624141ccca43277db90ebd
+    - Quantum-L9/.github/semantics/product_topology.schema.yaml@4fd2856bdf84c10a55a4be7e8519848c22c2bdbf
+    - Quantum-L9/.github/semantics/product_kinds.yaml@8e5aa829df8e00f89286d99ec8d9529e5da63805
+    - Quantum-L9/.github/semantics/dependency_archetypes.yaml@b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a
+  predecessor_topology_ref: null
+unknowns:
+  material:
+    - id: MU-001
+      subject: conformance.profile_refs
+      result: unresolved
+      reason: No l9-conformance profile is admitted or published for ProductKind dependency or archetype semantic-subsystem; the archetype supplies only the conformance class `core`. A profile id is not invented.
+      governing_refs:
+        - l9.dependency-archetypes/global@1
+        - l9.conformance-model/global@1
+        - l9.contract/conformance-resolution@1
+      blocks:
+        - resolved_product_manifest
+        - release_progression
+    - id: MU-002
+      subject: bindings.provider_bindings[*].technology_ref
+      result: unresolved
+      reason: No technology coordinate for the Graphiti MCP or Zep provider realizations is admitted in technology_capabilities.yaml; an unknown provider capability is unsupported until resolved.
+      governing_refs:
+        - l9.binding-catalog/global@1
+        - l9.contract/technology-binding@1
+      blocks:
+        - resolved_product_manifest
+        - release_progression
+  non_material:
+    - id: NM-001
+      subject: product-owned reference grammar
+      result: unresolved
+      reason: The global corpus defines no reference grammar. Product-owned semantic ids use `l9-graphiti-memory:<class>/<name>@<version>` and repository documents use `Quantum-L9/l9-graphiti-memory/<path>`; both are local conventions superseded by any admitted global grammar.
+      governing_refs:
+        - l9.schema/product-topology@1
+    - id: NM-002
+      subject: inline item shapes for undefined schema field types
+      result: unresolved
+      reason: identity_dimension_declaration, unknown_list, capability and relationship item shapes are named but not defined by l9.schema/product-topology@1; the shapes here are local and carry no global authority.
+      governing_refs:
+        - l9.schema/product-topology@1
+    - id: NM-003
+      subject: lifecycle.family_ref
+      result: resolved
+      reason: No keyed product-release lifecycle family id exists; the family is addressed through l9.lifecycle/global@1 and the dependency product_release_admission states in l9.product-kinds/global@1.
+      governing_refs:
+        - l9.lifecycle/global@1
+        - l9.product-kinds/global@1
+  resolution_requirement_refs:
+    - l9.contract/conformance-resolution@1
+    - l9.contract/technology-binding@1
