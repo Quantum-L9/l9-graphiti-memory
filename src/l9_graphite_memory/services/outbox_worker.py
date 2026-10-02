@@ -31,22 +31,31 @@ from l9_graphite_memory.contracts import (
 from l9_graphite_memory.errors import StoreError
 from l9_graphite_memory.observability import configure_logging, get_logger
 from l9_graphite_memory.ports import Clock, ProjectionAdapter, RecordStore, SystemClock
+from l9_graphite_memory.projections.runtime import ProjectionRuntime
 
 log = get_logger("l9.memory.outbox")
 
 
 class OutboxWorker:
+    """Deliver one canonical outbox event to exactly one projection target.
+
+    Each event names the target it addresses. The worker resolves that one
+    target, performs one provider operation, persists or deletes that target's
+    link, and settles that event, so retries and dead letters are independent
+    per target (ADR-084).
+    """
+
     def __init__(
         self,
         store: RecordStore,
-        projection: ProjectionAdapter,
+        projection: ProjectionAdapter | ProjectionRuntime,
         settings: MemorySettings,
         *,
         clock: Clock | None = None,
         worker_id: str | None = None,
     ) -> None:
         self.store = store
-        self.projection = projection
+        self.projections = ProjectionRuntime.coerce(projection)
         self.settings = settings
         self.clock = clock or SystemClock()
         # Identifies this worker in outbox leases so an operator can see which
@@ -94,7 +103,7 @@ class OutboxWorker:
         return True
 
     def run_once(self) -> dict[str, int]:
-        if self.projection.name == "none":
+        if not self.projections.targets:
             return {
                 "claimed": 0,
                 "delivered": 0,
@@ -113,6 +122,7 @@ class OutboxWorker:
         for event in events:
             attempts = event.attempts + 1
             try:
+                target = self.projections.resolve_event_target(event.payload.get("target_identity"))
                 if event.event_type == "memory.record.project":
                     record = self.store.get_record(event.aggregate_id)
                     if record is None:
@@ -134,12 +144,24 @@ class OutboxWorker:
                                 "state": record.state.value,
                             },
                         )
+                    elif not target.delivers:
+                        # The target was disabled after this intent was queued.
+                        # A disabled target receives nothing new.
+                        log.info(
+                            "projection_project_skipped_target_disabled",
+                            extra={
+                                "event_id": str(event.event_id),
+                                "record_id": str(record.record_id),
+                                "target_identity": target.identity,
+                            },
+                        )
                     else:
-                        result = self.projection.project(record)
+                        adapter = self.projections.adapter_for(target.identity)
+                        result = adapter.project(record)
                         locator = result.get("locator") if isinstance(result, dict) else None
                         if not isinstance(locator, str) or not locator.strip():
                             raise RuntimeError(
-                                f"projection {self.projection.name} did not return a stable "
+                                f"projection target {target.identity} did not return a stable "
                                 f"locator for record {record.record_id}"
                             )
                         # Re-read canonical state after the external provider
@@ -156,9 +178,10 @@ class OutboxWorker:
                                     "fresh_state": (
                                         fresh.state.value if fresh is not None else "deleted"
                                     ),
+                                    "target_identity": target.identity,
                                 },
                             )
-                            self.projection.retire(
+                            adapter.retire(
                                 record.record_id,
                                 record.namespace,
                                 locator=locator,
@@ -169,8 +192,13 @@ class OutboxWorker:
                                 ProjectionLink(
                                     record_id=record.record_id,
                                     namespace=record.namespace,
-                                    projection_name=self.projection.name,
+                                    projection_name=target.projection_name,
+                                    target_identity=target.identity,
+                                    projection_version=target.projection_version,
+                                    provider_type=target.provider_type,
                                     locator=locator,
+                                    manifest_digest=target.manifest_digest,
+                                    render_contract_digest=target.render_contract_digest,
                                     metadata={
                                         "transport_result": result,
                                         "outbox_event_id": str(event.event_id),
@@ -183,7 +211,7 @@ class OutboxWorker:
                     # must never touch canonical state: the record keeps its
                     # content and its lifecycle history, and only the derived
                     # projection is withdrawn (ADR-074).
-                    link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
+                    link = self.store.get_projection_link(event.aggregate_id, target.identity)
                     current = self.store.get_record(event.aggregate_id)
                     if current is not None and current.state is MemoryState.ACTIVE:
                         # Governance restored the record after this retirement
@@ -210,13 +238,14 @@ class OutboxWorker:
                     else:
                         reason = event.payload.get("reason")
                         reason_text = reason if isinstance(reason, str) else "retired"
-                        result = self.projection.retire(
+                        adapter = self.projections.adapter_for(target.identity)
+                        result = adapter.retire(
                             event.aggregate_id,
                             event.namespace,
                             locator=link.locator,
                             reason=reason_text,
                         )
-                        self.store.delete_projection_link(event.aggregate_id, self.projection.name)
+                        self.store.delete_projection_link(event.aggregate_id, target.identity)
                         # A provider whose only removal primitive is deletion
                         # cannot distinguish this from a privacy erasure in its
                         # own logs. Record the distinction in canonical state,
@@ -225,8 +254,10 @@ class OutboxWorker:
                             ProjectionRetirementReceipt(
                                 record_id=event.aggregate_id,
                                 namespace=event.namespace,
-                                projection_name=self.projection.name,
-                                retirement_mode=self.projection.retirement_mode,
+                                projection_name=target.projection_name,
+                                target_identity=target.identity,
+                                provider_type=target.provider_type,
+                                retirement_mode=adapter.retirement_mode,
                                 locator=link.locator,
                                 reason=reason_text,
                                 rebuildable=True,
@@ -239,37 +270,52 @@ class OutboxWorker:
                     receipt_id = event.payload.get("deletion_receipt_id")
                     if not isinstance(receipt_id, str):
                         raise RuntimeError("deletion outbox event lacks deletion_receipt_id")
-                    link = self.store.get_projection_link(event.aggregate_id, self.projection.name)
+                    link = self.store.get_projection_link(event.aggregate_id, target.identity)
                     if link is None:
-                        # No projected copy is known to canonical state: the
-                        # record was never projected, or its projection was
-                        # already withdrawn by retirement. The end state
-                        # verified deletion requires -- no projected copy --
-                        # already holds, so the deletion completes instead of
-                        # retrying to DEAD and stranding the record in
-                        # deletion_pending (ADR-057, ADR-074). A late project
-                        # event cannot undo this: the worker never projects a
-                        # record that is no longer active.
+                        # No copy in this target is known to canonical state:
+                        # the record was never projected there, or that copy
+                        # was already withdrawn by retirement. This target's
+                        # share of the erasure already holds (ADR-057,
+                        # ADR-074). A late project event cannot undo this: the
+                        # worker never projects a record that is no longer
+                        # active.
                         log.info(
                             "projection_erase_noop",
                             extra={
                                 "event_id": str(event.event_id),
                                 "record_id": str(event.aggregate_id),
+                                "target_identity": target.identity,
                             },
                         )
                     else:
-                        self.projection.erase(
+                        # Erase even when the target is disabled: a copy it
+                        # holds is still part of the record's erasure set.
+                        self.projections.adapter_for(target.identity).erase(
                             event.aggregate_id,
                             event.namespace,
                             locator=link.locator,
                         )
-                        self.store.delete_projection_link(event.aggregate_id, self.projection.name)
-                    self.store.complete_deletion(
-                        event.aggregate_id,
-                        UUID(receipt_id),
-                        completed_at=now,
-                        actor=f"memory.outbox-worker:{self.worker_id}",
-                    )
+                        self.store.delete_projection_link(event.aggregate_id, target.identity)
+                    # The deletion completes only once no durable copy remains
+                    # in any target; until then the other targets' erase events
+                    # are still owed (ADR-084).
+                    remaining = self.store.list_projection_links(event.aggregate_id)
+                    if remaining:
+                        log.info(
+                            "projection_erase_awaiting_targets",
+                            extra={
+                                "event_id": str(event.event_id),
+                                "record_id": str(event.aggregate_id),
+                                "remaining_targets": [item.target_identity for item in remaining],
+                            },
+                        )
+                    else:
+                        self.store.complete_deletion(
+                            event.aggregate_id,
+                            UUID(receipt_id),
+                            completed_at=now,
+                            actor=f"memory.outbox-worker:{self.worker_id}",
+                        )
                 else:
                     raise RuntimeError(f"unsupported outbox event type: {event.event_type}")
                 settled = self._settle(
@@ -311,6 +357,7 @@ class OutboxWorker:
                     "outbox_delivery_failed",
                     extra={
                         "event_id": str(event.event_id),
+                        "target_identity": event.payload.get("target_identity"),
                         "attempts": attempts,
                         "status": status.value,
                         "error": str(exc),
@@ -332,15 +379,15 @@ def main() -> int:
     parser.add_argument("--config", default=None, help="Optional YAML configuration path")
     args = parser.parse_args()
 
-    from l9_graphite_memory.adapters import build_projection, build_store
+    from l9_graphite_memory.adapters import build_store
+    from l9_graphite_memory.adapters.factory import build_projection_runtime
     from l9_graphite_memory.secrets import load_secrets_sync
 
     load_secrets_sync()
     settings = load_settings(args.config)
     configure_logging(settings.log_level, json_output=settings.json_logs)
     store = build_store(settings)
-    projection = build_projection(settings)
-    worker = OutboxWorker(store, projection, settings)
+    worker = OutboxWorker(store, build_projection_runtime(settings), settings)
     if args.once:
         sys.stdout.write(str(worker.run_once()) + "\n")
         return 0

@@ -146,8 +146,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # (open-PR audit 2026-09-24): +5 handler-parity cases, and ADR-083's
         # namespace suite rewritten for F-64-AUTHZ-001 (26 cases -> 15). Same
         # arithmetic: 1030 + 5 - 26 + 15 = 1024 collected, 1024 - 16 = 1008.
-        "1008 tests pass",
-        r"1008 passed",
+        #
+        # Re-pinned 1008 -> 1088 for ADR-084 (projection runtime): +26 runtime
+        # unit cases, +51 target-lifecycle cases (17 x 3 store backends), and
+        # +3 schema-8 migration cases. Measured with postgres + redis: 1104
+        # collected, and CI's same 16 skips give 1104 - 16 = 1088.
+        "1088 tests pass",
+        r"1088 passed",
     ),
     CheckSpec(
         "V-002",
@@ -167,9 +172,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 79 -> 81 for GMP-001: ADR-080 (automated quarantine
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
-        # parity).
-        "83 ADRs complete and indexed",
-        r"PASS: 83 ADRs",
+        # parity). Re-pinned 83 -> 84 for ADR-084 (projection runtime and
+        # target-aware lifecycle).
+        "84 ADRs complete and indexed",
+        r"PASS: 84 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -249,8 +255,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         #
         # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
         # the control-plane capability receipt.
-        "127 production files pass",
-        r"PASS: 127 production Python files",
+        #
+        # Re-pinned 127 -> 128 for ADR-084: projections/runtime.py carries the
+        # projection runtime.
+        "128 production files pass",
+        r"PASS: 128 production Python files",
     ),
     CheckSpec(
         "V-012",

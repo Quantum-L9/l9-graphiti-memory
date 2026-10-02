@@ -169,15 +169,29 @@ class RecordStore(Protocol):
 
     def outbox_backlog(self) -> int: ...
 
-    def save_projection_link(self, link: ProjectionLink) -> None: ...
+    def save_projection_link(self, link: ProjectionLink) -> None:
+        """Upsert the link for ``(link.record_id, link.target_identity)``.
+
+        A record holds one link per target it is projected into; saving a link
+        for one target never replaces another target's link (ADR-084).
+        """
+        ...
 
     def get_projection_link(
         self,
         record_id: UUID,
-        projection_name: str,
+        target_identity: str,
     ) -> ProjectionLink | None: ...
 
-    def delete_projection_link(self, record_id: UUID, projection_name: str) -> None: ...
+    def list_projection_links(self, record_id: UUID) -> list[ProjectionLink]:
+        """Every durable provider copy canonical state knows for this record.
+
+        This, not the currently configured targets, is the erasure set of a
+        privacy deletion (ADR-084).
+        """
+        ...
+
+    def delete_projection_link(self, record_id: UUID, target_identity: str) -> None: ...
 
     def save_projection_retirement(self, receipt: ProjectionRetirementReceipt) -> None:
         """Record that a projection was withdrawn, and why, in canonical state."""
@@ -187,11 +201,11 @@ class RecordStore(Protocol):
         self,
         tenant_id: str,
         namespace: str,
-        projection_name: str,
+        target_identity: str,
         *,
         limit: int = 1_000,
     ) -> list[MemoryRecord]:
-        """Active records with no live projection link for this provider."""
+        """Active records with no live projection link for this target."""
         ...
 
     def commit_projection_rebuild(
@@ -260,14 +274,17 @@ class RecordStore(Protocol):
         receipt: DeletionReceipt,
         redacted_record: MemoryRecord,
         *,
-        outbox_event: OutboxEvent | None,
+        outbox_event: OutboxEvent | None = None,
+        outbox_events: tuple[OutboxEvent, ...] = (),
         status_event: MemoryStatusEvent,
     ) -> None:
         """Atomically tombstone a record under a verified deletion receipt.
 
         ``status_event`` is the lifecycle evidence for the transition into
         DELETION_PENDING or DELETED; the append-only ledger must record privacy
-        deletions like every other transition (ADR-024, ADR-057).
+        deletions like every other transition (ADR-024, ADR-057). The erase
+        events, one per provider copy, commit in the same transaction
+        (ADR-084); ``outbox_event`` is the single-event form.
         """
 
     def complete_deletion(
@@ -282,4 +299,7 @@ class RecordStore(Protocol):
 
         Appends the DELETED lifecycle event attributed to ``actor`` and marks
         the deletion receipt COMPLETE. Idempotent for an already-DELETED record.
+        Must raise ``StoreError`` while any projection link for the record
+        remains: a deletion is complete only once every durable provider copy
+        is erased (ADR-084).
         """

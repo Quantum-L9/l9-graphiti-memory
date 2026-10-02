@@ -7,7 +7,7 @@
 #   status: active
 #   version: 2.3.0
 #   updated: 2026-07-26
-"""Offline projection manifests, compilation, and deterministic rendering."""
+"""Projection manifests, deterministic compilation and rendering, and runtime targets."""
 
 from .compiler import (
     canonical_json,
@@ -19,6 +19,7 @@ from .contracts import (
     CompiledProjection,
     CompiledProjectionTarget,
     ProjectionManifest,
+    TargetMode,
 )
 from .manifest import (
     load_projection_manifest,
@@ -26,12 +27,16 @@ from .manifest import (
     parse_projection_manifest_data,
 )
 from .render import RenderedProjection, render_projection
+from .runtime import ProjectionRuntime, ProjectionTargetBinding
 
 __all__ = [
     "CompiledProjection",
     "CompiledProjectionTarget",
     "ProjectionManifest",
+    "ProjectionRuntime",
+    "ProjectionTargetBinding",
     "RenderedProjection",
+    "TargetMode",
     "canonical_json",
     "compile_projection",
     "compiled_projection_json",

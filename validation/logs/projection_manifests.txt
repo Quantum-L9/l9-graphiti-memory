@@ -2,9 +2,9 @@
   "failures": [],
   "results": [
     {
-      "compiled_artifact_digest": "6bac7cb482e62f9a93e56a38af12e4c6018742198b0f2c005258815a0d70a40d",
+      "compiled_artifact_digest": "5e6d5a8f0f621595f4eb6a5a1977bf5a6c6557095bfb9685749c0120b0648962",
       "deterministic": true,
-      "manifest_digest": "7d640ed2cd599a663f747d46525aa50ca4f4ef800671dc910fbd45a19e854fd4",
+      "manifest_digest": "0df5a8f8f644d9d72acbc97606069a81ee8c83d466d68d95d50e2ba5cafda969",
       "name": "facts",
       "path": "config/projections/facts-v8.yaml",
       "render_contract_digest": "4a6f3ba1418430d3b349badb25364738b71390192b10b4a87a98a7bedcd7579b",

@@ -22,10 +22,12 @@ from l9_graphite_memory.contracts import (
     MemorySearchRequest,
     MemoryState,
     OperationStatus,
+    ProjectionStrategyEvidence,
     SearchHit,
     SearchReceipt,
 )
-from l9_graphite_memory.ports import ProjectionAdapter, RecordStore
+from l9_graphite_memory.ports import ProjectionAdapter, ProjectionHit, RecordStore
+from l9_graphite_memory.projections.runtime import ProjectionRuntime
 
 from .query_classifier import QueryClassifier
 from .ranking import RankingPolicy
@@ -40,21 +42,44 @@ def _matches_tags(record: MemoryRecord, tags: tuple[str, ...]) -> bool:
     return all(tag in present for tag in tags)
 
 
+def _strategy_hits(
+    adapter: ProjectionAdapter,
+    strategy: str,
+    query: str,
+    namespaces: tuple[str, ...],
+    *,
+    limit: int,
+) -> list[ProjectionHit]:
+    strategy_search = getattr(adapter, "search_strategy", None)
+    if strategy_search is None:
+        return adapter.search(query, namespaces, limit=limit)
+    return strategy_search(strategy, query, namespaces, limit=limit)
+
+
 class RetrievalPlanner:
+    """Fuse canonical retrieval with the strategies of active projection targets.
+
+    Only active targets contribute. A shadow target is queried only when
+    ``shadow_measurement`` is set, and then only to record evidence: its hits
+    never reach scoring, hydration, status, or the result digest. Disabled
+    targets are never queried (ADR-084).
+    """
+
     def __init__(
         self,
         store: RecordStore,
-        projection: ProjectionAdapter,
+        projection: ProjectionAdapter | ProjectionRuntime,
         *,
         ranking: RankingPolicy | None = None,
         classifier: QueryClassifier | None = None,
         projection_required: bool = False,
+        shadow_measurement: bool = False,
     ) -> None:
         self.store = store
-        self.projection = projection
+        self.projections = ProjectionRuntime.coerce(projection, required=projection_required)
         self.ranking = ranking or RankingPolicy()
         self.classifier = classifier or QueryClassifier()
-        self.projection_required = projection_required
+        self.shadow_measurement = shadow_measurement
 
     def _hydrate_projection_hits(
         self,
@@ -143,31 +168,31 @@ class RetrievalPlanner:
                     strategies_failed[strategy] = str(exc)
 
         projection_scores: dict[UUID, float] = {}
-        projection_strategies = tuple(
-            strategy
-            for strategy in classification.strategies
-            if strategy in self.projection.capabilities
-        )
+        # (target identity, mode, strategy, error, hit record ids)
+        attempts: list[tuple[str, str, str, str | None, tuple[UUID, ...]]] = []
         projection_attempted = False
-        for strategy in projection_strategies:
-            projection_attempted = True
-            store_label = f"{self.projection.name}:{strategy}"
-            stores_attempted.append(store_label)
-            try:
-                strategy_search = getattr(self.projection, "search_strategy", None)
-                if strategy_search is None:
-                    strategy_hits = self.projection.search(
-                        request.query,
-                        namespaces,
-                        limit=request.limit * 2,
+        failed_required = False
+        for binding in self.projections.active_targets():
+            adapter = binding.adapter
+            assert adapter is not None
+            for strategy in classification.strategies:
+                if strategy not in adapter.capabilities:
+                    continue
+                projection_attempted = True
+                store_label = f"{binding.identity}:{strategy}"
+                stores_attempted.append(store_label)
+                try:
+                    strategy_hits = _strategy_hits(
+                        adapter, strategy, request.query, namespaces, limit=request.limit * 2
                     )
-                else:
-                    strategy_hits = strategy_search(
-                        strategy,
-                        request.query,
-                        namespaces,
-                        limit=request.limit * 2,
-                    )
+                except Exception as exc:  # noqa: BLE001
+                    # A provider failure is a failed strategy, never an empty
+                    # successful one.
+                    stores_failed[store_label] = str(exc)
+                    strategies_failed[strategy] = str(exc)
+                    failed_required = failed_required or binding.required
+                    attempts.append((binding.identity, "active", strategy, str(exc), ()))
+                    continue
                 stores_succeeded.append(store_label)
                 strategies_succeeded.append(strategy)
                 for hit in strategy_hits:
@@ -175,9 +200,38 @@ class RetrievalPlanner:
                         projection_scores.get(hit.record_id, 0.0),
                         hit.score,
                     )
-            except Exception as exc:  # noqa: BLE001
-                stores_failed[store_label] = str(exc)
-                strategies_failed[strategy] = str(exc)
+                attempts.append(
+                    (
+                        binding.identity,
+                        "active",
+                        strategy,
+                        None,
+                        tuple(hit.record_id for hit in strategy_hits),
+                    )
+                )
+        if self.shadow_measurement:
+            for binding in self.projections.shadow_targets():
+                adapter = binding.adapter
+                assert adapter is not None
+                for strategy in classification.strategies:
+                    if strategy not in adapter.capabilities:
+                        continue
+                    try:
+                        shadow_hits = _strategy_hits(
+                            adapter, strategy, request.query, namespaces, limit=request.limit * 2
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        attempts.append((binding.identity, "shadow", strategy, str(exc), ()))
+                        continue
+                    attempts.append(
+                        (
+                            binding.identity,
+                            "shadow",
+                            strategy,
+                            None,
+                            tuple(hit.record_id for hit in shadow_hits),
+                        )
+                    )
         if not projection_attempted:
             strategies_attempted = [
                 strategy
@@ -189,11 +243,7 @@ class RetrievalPlanner:
                 tenant_id, request, namespaces, records, projection_scores, now=now
             )
 
-        if (
-            self.store.name in stores_failed
-            or self.projection_required
-            and any(key.startswith(f"{self.projection.name}:") for key in stores_failed)
-        ):
+        if self.store.name in stores_failed or failed_required:
             status = OperationStatus.FAILED
         elif stores_failed or strategies_failed:
             status = OperationStatus.PARTIAL
@@ -236,6 +286,21 @@ class RetrievalPlanner:
             reverse=True,
         )
         hits = hits[: request.limit]
+        returned = {hit.record.record_id for hit in hits}
+        projection_evidence = tuple(
+            ProjectionStrategyEvidence(
+                target_identity=identity,
+                mode=mode,
+                strategy=strategy,
+                succeeded=error is None,
+                error=error,
+                hit_count=len(hit_ids),
+                contributed=(
+                    0 if mode != "active" else sum(1 for item in hit_ids if item in returned)
+                ),
+            )
+            for identity, mode, strategy, error, hit_ids in attempts
+        )
         # MEM-P2-01: identity of the request that produced these hits. Computed
         # from the EFFECTIVE request the planner filtered on, over the one
         # canonical serializer the rest of the package digests with, so a
@@ -281,5 +346,6 @@ class RetrievalPlanner:
             stores_attempted=tuple(stores_attempted),
             stores_succeeded=tuple(stores_succeeded),
             stores_failed=stores_failed,
+            projection_evidence=projection_evidence,
             result_digest=digest,
         )

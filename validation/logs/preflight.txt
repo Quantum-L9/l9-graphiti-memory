@@ -10,15 +10,15 @@ PASS  MCP inventory
   "backup_sha256": null,
   "changed": false,
   "command_argv": [
-    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/.venv/bin/python3",
+    "/private/tmp/l9-ci-shape/repo/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "created_at": "2026-09-24T18:37:37.041069Z",
+  "created_at": "2026-10-02T00:54:01.400006Z",
   "managed_entry_present": true,
-  "path": "/tmp/tmp.oNXLI77Ftu/cursor/mcp.json",
+  "path": "/var/folders/3m/0j6pb5k50k79kt8zpbwryf3c0000gn/T/tmp.GpSnsd6VAF/cursor/mcp.json",
   "policy_version": "client-config/v1",
   "post_sha256": null,
   "pre_sha256": null,
@@ -26,29 +26,29 @@ PASS  MCP inventory
   "reasons": [
     "dry run: no bytes written"
   ],
-  "receipt_id": "53b7b7b1-742e-4d3b-b533-4dcc5c4a783d",
+  "receipt_id": "f8681b46-c345-44a8-bd5b-a3df5da6cc43",
   "status": "dry_run",
   "warnings": []
 }
 PASS  cursor client dry-run
 {
-  "argv_source": "generated",
+  "argv_source": "installed",
   "command_argv": [
-    "/tmp/claude-0/-home-user-l9-graphiti-memory/03905e18-7e0d-56aa-9d72-c7b11d647d4f/scratchpad/wt/b/.venv/bin/python3",
+    "/Users/ib-mac/.cursor-governance/.venv/bin/python3",
     "-m",
     "l9_graphite_memory.server",
     "--transport",
     "stdio"
   ],
-  "config_path": null,
-  "created_at": "2026-09-24T18:37:38.473166Z",
+  "config_path": "/Users/ib-mac/.cursor/mcp.json",
+  "created_at": "2026-10-02T00:54:01.878844Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "620199f9-7392-4a18-ada6-11cc9edc1ff6",
+  "receipt_id": "0390675f-33bc-4919-88ee-f355b09a75cb",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.5.0",
@@ -89,7 +89,7 @@ PASS  shell syntax graphiti-reset-generation.sh
 PASS  shell syntax graphiti-session-end.sh
 PASS  shell syntax graphiti_common.sh
 PASS  shell syntax graphiti_gate_runner.sh
-PASS: 83 ADRs complete and indexed
+PASS: 84 ADRs complete and indexed
 PASS  ADR ledger
 PASS: 51 harvest decisions closed {'blocked_external': 4, 'implemented': 41, 'rejected_boundary': 6}
 PASS  harvest coverage
@@ -125,25 +125,25 @@ PASS  committed secret assurance
   "iterations": 20,
   "metrics": {
     "hydrate": {
-      "max_ms": 0.5221,
-      "p50_ms": 0.4518,
-      "p95_ms": 0.5221,
+      "max_ms": 0.1798,
+      "p50_ms": 0.1496,
+      "p95_ms": 0.1798,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 0.5198,
-      "p50_ms": 0.3308,
-      "p95_ms": 0.3723,
+      "max_ms": 0.1736,
+      "p50_ms": 0.1088,
+      "p95_ms": 0.1296,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.5529,
-      "p50_ms": 0.1,
-      "p95_ms": 0.2058,
+      "max_ms": 0.381,
+      "p50_ms": 0.0355,
+      "p95_ms": 0.0752,
       "passed": true,
       "samples": 20,
       "threshold_p95_ms": 100.0
