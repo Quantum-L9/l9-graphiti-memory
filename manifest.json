@@ -398,7 +398,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "86af54997aef857507d99006c1aac147f12476ea7f7580f0455fe13358d586ac",
+      "sha256": "4457febe295fcdb3a37c936b2763a4cfd1f6023ded2e3ef38244fb41fcb5ad6f",
       "size_bytes": 126018
     },
     {
@@ -10542,8 +10542,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/validate_product_topology.py",
-      "sha256": "253f31cf29ef859f5b3f32501094e342b5925d951ee45c81c14ae8f56cd3e614",
-      "size_bytes": 10678
+      "sha256": "2e28a5a91374775c2527f2e11c431f1dad395c110e31b57ebc859256fb76cbe4",
+      "size_bytes": 12036
     },
     {
       "category": "assurance",

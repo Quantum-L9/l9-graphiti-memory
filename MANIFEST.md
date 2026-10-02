@@ -711,7 +711,7 @@ updated: 2026-07-22
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `e6bd140a13e7d9b98488ec9e1dfa65a61fe023e2ed51049d85e00e04f9688cd8` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2404 | `b7134c65005e4a92ce485b1a1cb582af8a0a0f29931516c3e7493e7373309088` |
-| `tools/assurance/validate_product_topology.py` | `assurance` | `assurance` | 10678 | `253f31cf29ef859f5b3f32501094e342b5925d951ee45c81c14ae8f56cd3e614` |
+| `tools/assurance/validate_product_topology.py` | `assurance` | `assurance` | 12036 | `2e28a5a91374775c2527f2e11c431f1dad395c110e31b57ebc859256fb76cbe4` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2468 | `ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5` |
 | `tools/ci/nightly_maintenance_gate.py` | `assurance` | `assurance` | 3719 | `d67da58aa0c52c21434fdb309d8b4498dcf1e27b563675f43b6cd12c7a108cbb` |
 | `tools/phase6/AGENT_EXECUTION_PROMPT.md` | `assurance` | `repository` | 2506 | `05e1399a3e37cb652198efb42b259c69db003cfaf7917114d0756118e3909009` |
