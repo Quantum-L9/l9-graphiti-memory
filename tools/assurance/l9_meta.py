@@ -104,8 +104,9 @@ MANIFEST_SELF = frozenset({"manifest.json"})
 # content, not this repository's own assurance layer.
 VENDORED_PREFIXES: tuple[str, ...] = ("tools/phase6/",)
 
-# Applied to an already-stripped line, so the value needs no trailing trim.
-_KEY_VALUE = re.compile(r"^(\w+):\s*(.*)$")
+# Applied to an already-stripped line; callers strip the captured value, so the
+# pattern has no adjacent overlapping quantifiers and matches in linear time.
+_KEY_VALUE = re.compile(r"^(\w+):(.*)$")
 
 # Markers inside src/ that name a layer; first match wins, in this order.
 _SRC_LAYERS: tuple[tuple[str, str], ...] = (
@@ -326,7 +327,7 @@ def _parse_markdown_block(lines: list[str], start: int) -> tuple[list[tuple[str,
         match = _KEY_VALUE.match(stripped)
         if not match:
             raise MetaError(f"malformed L9_META line {index + 1}: {lines[index]!r}")
-        _add_field(fields, match.group(1), match.group(2))
+        _add_field(fields, match.group(1), match.group(2).strip())
     raise MetaError("unterminated L9_META block")
 
 
@@ -341,7 +342,7 @@ def _parse_comment_block(
         match = _comment_field(lines[index], prefix)
         if match is None:
             break
-        _add_field(fields, match.group(1), match.group(2))
+        _add_field(fields, match.group(1), match.group(2).strip())
         index += 1
     _reject_interrupted_block(lines, index, prefix)
     return fields, index

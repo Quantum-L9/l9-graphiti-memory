@@ -398,7 +398,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "396a4d07bc126ab2b3074b4b39539a2b3df95a515be4ca7eafe9e84f2f3d3d8a",
+      "sha256": "c737ab51e11ec671a0b952f754c1f1ba2a2eb0179febd5849703cabbb3d94b15",
       "size_bytes": 124444
     },
     {
@@ -10318,8 +10318,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/l9_meta.py",
-      "sha256": "dc9513c4f28a3eccb20cb1cad4d095b44076bbf77ae2fe09dff9b96b3e7dfeae",
-      "size_bytes": 16704
+      "sha256": "53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353",
+      "size_bytes": 16799
     },
     {
       "category": "assurance",
