@@ -78,6 +78,15 @@ def test_validation_evidence_pins_name_the_release_wheel() -> None:
     assert f"l9-graphite-memory=={escaped}" in text
 
 
+def test_runtime_wire_identity_has_no_version_literal() -> None:
+    # The provider initialize handshake reports the running release. A literal
+    # here survived the 2.3.0-2.5.0 bumps unnoticed, so the wire identity must
+    # come from PACKAGE_VERSION rather than be one more carrier to keep in sync.
+    text = (REPO_ROOT / "src" / "l9_graphite_memory" / "transport.py").read_text(encoding="utf-8")
+    assert '"clientInfo": {"name": "l9-graphite-memory", "version": PACKAGE_VERSION}' in text
+    assert not re.search(r'"clientInfo":\s*\{[^}]*"version":\s*"', text)
+
+
 def test_published_optional_dependencies_have_no_direct_url() -> None:
     # PyPI rejects Requires-Dist that name a git/URL source, including extras.
     # Gate_SDK stays a uv dependency-group + [tool.uv.sources], not an extra.
