@@ -104,7 +104,29 @@ MANIFEST_SELF = frozenset({"manifest.json"})
 # content, not this repository's own assurance layer.
 VENDORED_PREFIXES: tuple[str, ...] = ("tools/phase6/",)
 
-_KEY_VALUE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*):\s*(.*?)\s*$")
+# Applied to an already-stripped line; callers strip the captured value, so the
+# pattern has no adjacent overlapping quantifiers and matches in linear time.
+_KEY_VALUE = re.compile(r"^(\w+):(.*)$")
+
+# Markers inside src/ that name a layer; first match wins, in this order.
+_SRC_LAYERS: tuple[tuple[str, str], ...] = (
+    ("contracts", "contract"),
+    ("ports", "port"),
+    ("integrations", "integration"),
+    ("adapters", "adapter"),
+    ("services", "service"),
+)
+# Top-level directories whose layer is a plain lookup.
+_TOP_LEVEL_LAYERS: Mapping[str, str] = {
+    "tests": "test",
+    "tools": "assurance",
+    "scripts": "operations",
+    "hooks": "hook",
+    ".github": "ci",
+    "config": "configuration",
+    "rules": "configuration",
+    "skill": "skill",
+}
 
 
 class MetaError(ValueError):
@@ -136,46 +158,26 @@ def layer_for(relative: str | PurePosixPath | Path) -> str:
     """Derive the architectural layer from the repository-relative path."""
 
     rel = normalize_path(relative)
-    posix = rel.as_posix()
     parts = rel.parts
-    if not parts:
-        return "repository"
-    if posix.startswith(VENDORED_PREFIXES):
+    if not parts or rel.as_posix().startswith(VENDORED_PREFIXES):
         return "repository"
     if parts[0] == "src":
-        # A `contracts/` package and a `contracts.py` module both carry the
-        # contract layer; the module form is how a sub-package declares its
-        # own contract surface.
-        if "contracts" in parts or rel.stem == "contracts":
-            return "contract"
-        if "ports" in parts:
-            return "port"
-        if "integrations" in parts:
-            return "integration"
-        if "adapters" in parts:
-            return "adapter"
-        if "services" in parts:
-            return "service"
-        return "package"
-    if parts[0] == "tests":
-        return "test"
-    if parts[0] == "tools":
-        return "assurance"
-    if parts[0] == "scripts":
-        return "operations"
-    if parts[0] == "hooks":
-        return "hook"
-    if parts[0] == ".github":
-        return "ci"
-    if parts[0] == "docs" and len(parts) > 1 and parts[1] == "adr":
-        return "adr"
+        return _src_layer(rel)
     if parts[0] == "docs":
-        return "documentation"
-    if parts[0] in {"config", "rules"}:
-        return "configuration"
-    if parts[0] == "skill":
-        return "skill"
-    return "repository"
+        return "adr" if len(parts) > 1 and parts[1] == "adr" else "documentation"
+    return _TOP_LEVEL_LAYERS.get(parts[0], "repository")
+
+
+def _src_layer(rel: PurePosixPath) -> str:
+    # A `contracts/` package and a `contracts.py` module both carry the
+    # contract layer; the module form is how a sub-package declares its own
+    # contract surface.
+    if rel.stem == "contracts":
+        return "contract"
+    for marker, layer in _SRC_LAYERS:
+        if marker in rel.parts:
+            return layer
+    return "package"
 
 
 def structural_identity(relative: str | PurePosixPath | Path) -> dict[str, str]:
@@ -296,56 +298,83 @@ def parse_inline(text: str, relative: str | PurePosixPath | Path) -> InlineMeta 
     if len(markers) > 1:
         raise MetaError(f"duplicate L9_META block (lines {markers[0] + 1} and {markers[1] + 1})")
     start = markers[0]
-    fields: list[tuple[str, str]] = []
-    seen: set[str] = set()
     if lines[start].strip() == MARKDOWN_OPEN:
-        style = "markdown"
-        index = start + 1
-        closed = False
-        while index < len(lines):
-            stripped = lines[index].strip()
-            if stripped == MARKDOWN_CLOSE:
-                closed = True
-                index += 1
-                break
-            match = _KEY_VALUE.match(stripped)
-            if not match:
-                raise MetaError(f"malformed L9_META line {index + 1}: {lines[index]!r}")
-            key, value = match.group(1), match.group(2)
-            if key in seen:
-                raise MetaError(f"repeated L9_META key: {key}")
-            seen.add(key)
-            fields.append((key, value))
-            index += 1
-        if not closed:
-            raise MetaError("unterminated L9_META block")
-        end = index
-        used_prefix = ""
+        style, used_prefix = "markdown", ""
+        fields, end = _parse_markdown_block(lines, start)
     else:
-        style = "comment"
         assert prefix is not None
-        index = start + 1
-        while index < len(lines):
-            line = lines[index]
-            if not line.startswith(prefix):
-                break
-            body = line[len(prefix) :]
-            if not body.startswith(" "):
-                break
-            match = _KEY_VALUE.match(body.strip())
-            if not match:
-                break
-            key, value = match.group(1), match.group(2)
-            if key in seen:
-                raise MetaError(f"repeated L9_META key: {key}")
-            seen.add(key)
-            fields.append((key, value))
-            index += 1
-        end = index
-        used_prefix = prefix
+        style, used_prefix = "comment", prefix
+        fields, end = _parse_comment_block(lines, start, prefix)
     if not fields:
         raise MetaError("empty L9_META block")
     return InlineMeta(start=start, end=end, style=style, prefix=used_prefix, fields=tuple(fields))
+
+
+def _add_field(fields: list[tuple[str, str]], key: str, value: str) -> None:
+    if any(name == key for name, _ in fields):
+        raise MetaError(f"repeated L9_META key: {key}")
+    fields.append((key, value))
+
+
+def _parse_markdown_block(lines: list[str], start: int) -> tuple[list[tuple[str, str]], int]:
+    """Fields and end index of a ``<!-- L9_META ... /L9_META -->`` block."""
+
+    fields: list[tuple[str, str]] = []
+    for index in range(start + 1, len(lines)):
+        stripped = lines[index].strip()
+        if stripped == MARKDOWN_CLOSE:
+            return fields, index + 1
+        match = _KEY_VALUE.match(stripped)
+        if not match:
+            raise MetaError(f"malformed L9_META line {index + 1}: {lines[index]!r}")
+        _add_field(fields, match.group(1), match.group(2).strip())
+    raise MetaError("unterminated L9_META block")
+
+
+def _parse_comment_block(
+    lines: list[str], start: int, prefix: str
+) -> tuple[list[tuple[str, str]], int]:
+    """Fields and end index of a ``# L9_META`` block of ``#   key: value`` lines."""
+
+    fields: list[tuple[str, str]] = []
+    index = start + 1
+    while index < len(lines):
+        match = _comment_field(lines[index], prefix)
+        if match is None:
+            break
+        _add_field(fields, match.group(1), match.group(2).strip())
+        index += 1
+    _reject_interrupted_block(lines, index, prefix)
+    return fields, index
+
+
+def _reject_interrupted_block(lines: list[str], end: int, prefix: str) -> None:
+    """Fail closed when field lines continue past a non-field comment line.
+
+    A comment block has no terminator, so it ends at the first line that is
+    not ``<prefix> key: value``. When that line is itself a comment and more
+    field lines follow it, the block was interrupted rather than ended, and
+    the trailing fields would survive reconciliation as ambiguous provenance.
+    A blank line or a non-comment line is an unambiguous end; a later,
+    blank-separated comment block (another schema's header) is unrelated.
+    """
+
+    if end >= len(lines) or not lines[end].startswith(prefix) or not lines[end].strip():
+        return
+    for line in lines[end + 1 :]:
+        if not line.strip() or not line.startswith(prefix):
+            return
+        if _comment_field(line, prefix) is not None:
+            raise MetaError(f"interrupted L9_META block at line {end + 1}: {lines[end]!r}")
+
+
+def _comment_field(line: str, prefix: str) -> re.Match[str] | None:
+    if not line.startswith(prefix):
+        return None
+    body = line[len(prefix) :]
+    if not body.startswith(" "):
+        return None
+    return _KEY_VALUE.match(body.strip())
 
 
 def compare(

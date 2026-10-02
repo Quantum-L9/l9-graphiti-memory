@@ -168,8 +168,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # unit, 1 adapter rendering, 18 target-lifecycle = 6 x 3 backends).
         # Measured with postgres + redis on the merged tree: 1180 collected,
         # and CI's same 16 skips give 1180 - 16 = 1164.
-        "1164 tests pass",
-        r"1164 passed",
+        #
+        # Re-pinned 1164 -> 1167 for the review findings on release-assurance
+        # integrity (PR #78): an interrupted comment block fails closed, a
+        # blank-separated following header is unrelated, and the validator
+        # canonicalizes its evidence root before guarding. Same arithmetic:
+        # 1180 + 3 = 1183 collected, 1183 - 16 = 1167.
+        "1167 tests pass",
+        r"1167 passed",
     ),
     CheckSpec(
         "V-002",

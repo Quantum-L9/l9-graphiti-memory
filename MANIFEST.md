@@ -368,7 +368,7 @@ updated: 2026-07-22
 | `scripts/create_issues.py` | `operations` | `operations` | 3016 | `e3524492f6dfba6e3c0068fba42ca17392b1d806d66a03a7cee767fa05cf1600` |
 | `scripts/install.sh` | `operations` | `operations` | 1548 | `f431e36727d0d2818a00dbce4bbdbf60956a76a01101be72031d95c3e4b755f1` |
 | `scripts/preflight.sh` | `operations` | `operations` | 3751 | `99d8c74ae7c58147094f0790a8b6fa6598c39a235ccaeebcc23d0a54ef8ffb57` |
-| `scripts/validate_release.sh` | `operations` | `operations` | 11566 | `c5a987111d99ba9588b7103488bb93f4feb0165aa77514499a2bc1587c34b996` |
+| `scripts/validate_release.sh` | `operations` | `operations` | 11735 | `55940084f742593745fcc1360e45bb16763e270e87b3304fafbce440340c8fdc` |
 | `scripts/write_claude_config.py` | `operations` | `operations` | 2369 | `d74bb0efbd6b42319f44948d95de85f20cf4d308b7f0e242792728eb9e3b2c66` |
 | `scripts/write_cursor_config.py` | `operations` | `operations` | 2617 | `955a2ff0903c9a7f4deeee776eff2f3d1a0aad4b31a2f8ae0609334aa0a2afe7` |
 | `skill/SKILL.md` | `skill` | `skill` | 4860 | `9e9af67d407d1448176abf32b476f88d586f7b13d1618fd8f56ced15a2ee3d01` |
@@ -622,10 +622,10 @@ updated: 2026-07-22
 | `tests/integration/test_topology_publication_e2e_v2.py` | `tests` | `test` | 8546 | `fcf1178af45342fa9982728a06bf292425d9b2202a159aa88fec32263123a003` |
 | `tests/regression/test_assurance_tools.py` | `tests` | `test` | 1982 | `79f0cb7dae4814c1a6ed73858b9ab47d05518c0dcb6d975d998902e62f6908ef` |
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `test` | 4320 | `4ab10fdc1eee8035396984f6960aaaf80100aa6206778a6090d878e1142c6615` |
-| `tests/regression/test_l9_meta_assurance.py` | `tests` | `test` | 15788 | `5c532fe76ff94d640be73a05a618d00ad2c7085c8ad37d63651072e168b5ee27` |
+| `tests/regression/test_l9_meta_assurance.py` | `tests` | `test` | 17453 | `1a40dc95e93b550455e04fee79139cc50f22ccbd64d2bcfee412a49dfca8a8ef` |
 | `tests/regression/test_phase6_operator.py` | `tests` | `test` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `test` | 1699 | `b00c392c218b7cbda7adf9fbf5d436a73a796547b43aab926111b49e238a5ac0` |
-| `tests/regression/test_release_shell.py` | `tests` | `test` | 12015 | `2319cdb1c3eaa01fa2368509370483bad61d2c63b5019022d35a315503335cea` |
+| `tests/regression/test_release_shell.py` | `tests` | `test` | 12603 | `a7f810114e8538da25e6aec7bcc37baab8a716db8dac10e723878daec32e3d71` |
 | `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 3615 | `ab47feb671b645fcafb0181c85a5a2da73b9093564d49965a8b40e0b5740e951` |
 | `tests/regression/test_skill_pack.py` | `tests` | `test` | 1031 | `9c4348e93021b99d60e6b74e0a115dce2ccf52e2ad25eb3c11891b3ab4d9c61b` |
 | `tests/unit/__init__.py` | `tests` | `test` | 210 | `c94d0d5b48d740a0068f24bf8fd4414127dcb200c9c43122e45fdd1b465acc2c` |
@@ -701,8 +701,8 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `ea1725f52033612043d5f8640950f363d3f0b8fe04350aa8d35a1c8fb698419a` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 22567 | `81028fd6d7ec17c9f22eaf540a9c51491d533f71ec3fdbd0e0b1b9aec18f8fa4` |
-| `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 15343 | `7dd0cd6ceaf73deb76d1da22aa2239f99e4b682dea43ee6fc6b86710c645fb57` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 22936 | `4c3f7cebb23fae7e6682dc141d131eccdcb5d668e68bb6cd1a075428c6cf70bd` |
+| `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 16799 | `53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `4cbc24b340e3e7920499fc3f6aefca2fb082f4c3ffbd7739fd0dc07567a01eda` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |
