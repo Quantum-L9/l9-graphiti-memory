@@ -40,6 +40,13 @@ search, hydration, canonical records, audit evidence, or unrelated MCP tools.
 
 ## Store rollback
 
+Store schema 9 (ADR-086) cannot be rolled back by configuration. Records a
+source invalidation archived stay archived, with their evidence and an open
+revalidation requirement; restore one to ACTIVE only through the governed
+ADMIN lifecycle transition. Code older than ADR-086 does not maintain the
+schema-9 selector tables, so restore the pre-upgrade backup rather than run
+older code against a migrated store.
+
 1. Stop writers.
 2. Preserve the current store as incident evidence.
 3. Verify the rollback backup hash and integrity.

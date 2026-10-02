@@ -126,8 +126,14 @@ reuse, invalidation, search, and hydration.
 
 ## Invalidation lifecycle
 
-Use the lifecycle state selected by the generated-data source integration.
-Invalidation must:
+The selected lifecycle state is ARCHIVED (ADR-086): a source invalidation moves
+the ACTIVE records whose structured selectors match to ARCHIVED, atomically,
+after authorizing READ and MAINTAIN on every affected namespace. The principal
+that dispatches invalidations therefore needs MAINTAIN on the namespaces its
+candidates land in. A receipt with `status: applied` and `matched: 0` is a
+valid outcome but not proof; the live proof requires `matched > 0`,
+`transitioned > 0`, ordinary retrieval exclusion, historical visibility, and
+`deleted` not true. Invalidation must:
 
 * preserve evidence and lineage;
 * exclude the record from ordinary search and hydration;

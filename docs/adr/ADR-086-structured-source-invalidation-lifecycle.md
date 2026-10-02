@@ -1,5 +1,17 @@
 # ADR-086: Structured Source Invalidation Lifecycle
 
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/adr/ADR-086-structured-source-invalidation-lifecycle.md
+layer: adr
+owner: memory-control-plane
+status: active
+version: 2.5.0
+updated: 2026-10-02
+/L9_META -->
+
+
 **Date:** 2026-10-02
 **Decision owner:** Quantum-L9 memory architecture
 **Applies to:** `Quantum-L9/l9-graphiti-memory` v2.5+
