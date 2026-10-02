@@ -3,24 +3,24 @@
   "metrics": {
     "hydrate": {
       "max_ms": 1.2004,
-      "p50_ms": 1.1075,
+      "p50_ms": 1.0514,
       "p95_ms": 1.2004,
       "passed": true,
       "samples": 10,
       "threshold_p95_ms": 500.0
     },
     "search": {
-      "max_ms": 1.2838,
-      "p50_ms": 0.7442,
-      "p95_ms": 0.9759,
+      "max_ms": 2.0444,
+      "p50_ms": 0.7727,
+      "p95_ms": 1.3519,
       "passed": true,
       "samples": 40,
       "threshold_p95_ms": 250.0
     },
     "write": {
-      "max_ms": 0.7453,
-      "p50_ms": 0.1537,
-      "p95_ms": 0.2874,
+      "max_ms": 1.2136,
+      "p50_ms": 0.2816,
+      "p95_ms": 0.3775,
       "passed": true,
       "samples": 40,
       "threshold_p95_ms": 100.0

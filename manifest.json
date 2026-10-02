@@ -398,7 +398,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "fe97ab8e0af48d3371b8544c859fff74a533b821712e41218c0b27cb802cbb84",
+      "sha256": "59650dada1ab76a8cb831981b075700ad34ea9d3e834c007b2cf25de14b7a67e",
       "size_bytes": 128321
     },
     {
@@ -6654,8 +6654,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ports/projection.py",
-      "sha256": "4ee175d811e00954d33d91f13b9c6893eae0bc72189e61a6702f30bf5ab9014f",
-      "size_bytes": 3453
+      "sha256": "8c94df14c1391ea8f847acb19ac111897396c98a4578f37889cb6ed21a990948",
+      "size_bytes": 3774
     },
     {
       "category": "production_source",
@@ -11662,7 +11662,7 @@
         "version": "2.5.0"
       },
       "path": "validation/SHA256SUMS",
-      "sha256": "7552b494c70b626fc3b5057bf72b6bf5a8efde55770596318ad8bbc99edf326a",
+      "sha256": "c220771d32b613466861d2eba92daac3d229b8bff69de1781781dd88f6c8f583",
       "size_bytes": 108
     },
     {
@@ -11774,7 +11774,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "1b524bb4e7a6b9f735787d904922aa228bf8a3501bce92120db29fda75a834ba",
+      "sha256": "ac8ccce1844b54d12eeca116b190287eaa69c1fde81021129410b8928add4f65",
       "size_bytes": 1365
     },
     {
@@ -11790,7 +11790,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "59065c8d852ad870bb0bb6f0fecba2adb9b93e7e997fea7aeb9e5d31cb109fc4",
+      "sha256": "1fc7e3e4d1a392ff31c57b1d34f70e349ed51ed0e4033dc322133e993902ff4f",
       "size_bytes": 1106
     },
     {
@@ -11806,7 +11806,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "423cf467ce2f0ea79ebda7ae12a7c1b704c361b1b6052785e17ab286ba5e3f6f",
+      "sha256": "ae2684eb3392c131a677ed35b3e60041d31f9f2e9269061af63a0ed878576c61",
       "size_bytes": 600
     },
     {
@@ -11902,7 +11902,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "e4baf4997cbb9ec5e7e22a95014f0f4adc4cc935b0957d5bbc60e91555a819d7",
+      "sha256": "8511ca6658017159e14fadd3e05b7d10ac6796019a64eb1b96313b570a23802a",
       "size_bytes": 659
     },
     {
@@ -11934,8 +11934,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "f62ebe9c8cc8dbcb545e4e1792aa02644e4da9bb309952a104db4ca3c4ba9ed0",
-      "size_bytes": 4082
+      "sha256": "baa10caa8bbeef7f33e20c2088445fd62e9b024a9ee94e43b146244f4abd5bbf",
+      "size_bytes": 4081
     },
     {
       "category": "validation_evidence",
@@ -11966,7 +11966,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "41cb58eb4780478e7670cb40a0274d263067ff5ff6bfee6aeb6f2efc2bedb658",
+      "sha256": "adfd26cd9c976c232f2c2d7e00f25717d1f947cc0bf2e83f04af1ff8e2e45400",
       "size_bytes": 3168
     },
     {
@@ -12046,7 +12046,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "338c4fdbb6a1cf9c79dd079301035bb85673e1b15aacfae19e17cd3977861bc0",
+      "sha256": "a8f628c910220ed44125ce96caa758fa0fe7ac93154dee6e86cab85c3eba3903",
       "size_bytes": 28737
     },
     {
@@ -12062,8 +12062,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_install.txt",
-      "sha256": "558e1b2155db9ee1441a155e18bd667ae0d3c3c4f396bd59b4d64be036ee7aa7",
-      "size_bytes": 272
+      "sha256": "8bb6e5f6097651796e2cedb4b2f8fe09bbe80b1ead7c69923231880a56c4de23",
+      "size_bytes": 271
     },
     {
       "category": "validation_evidence",
@@ -12094,7 +12094,7 @@
         "version": "2.5.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "ad087f34a23ac7ec0536ab13603862b69607b00ae6e00ca07eee017fa76fcd28",
+      "sha256": "ba5eed462d55e2dc7c5506edcf00da18e4573c0f9753032413bcfa4741c24aad",
       "size_bytes": 11388
     },
     {

@@ -109,4 +109,10 @@ class RenderedProjectionAdapter(Protocol):
 
     def project_rendered(
         self, record: MemoryRecord, rendered: RenderedProjection
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any]:
+        """Write ``rendered`` for ``record`` and return a result with a stable ``locator``.
+
+        The provider must receive the rendering as produced, with no fields
+        added, dropped, or reshaped by the adapter; the canonical record is
+        passed only for identity, namespace, and provider metadata.
+        """
