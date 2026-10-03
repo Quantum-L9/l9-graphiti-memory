@@ -180,13 +180,17 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # backend-parameterized. Same arithmetic: 1183 + 2 = 1185 collected,
         # 1185 - 16 = 1169.
         #
-        # Re-pinned 1169 -> 1250 for ADR-086 (structured source invalidation):
+        # Re-pinned 1169 -> 1170 for the repository-derived ProductManifest
+        # (ADR-085 amendment): 1 case in test_product_release_governance.py.
+        # Same arithmetic: 1185 + 1 = 1186 collected, 1186 - 16 = 1170.
+        #
+        # Re-pinned 1170 -> 1251 for ADR-086 (structured source invalidation):
         # 45 store-matrix cases (15 x 3 backends) in test_source_invalidation,
         # 5 schema-9 migration cases, 26 request-contract and CLI cases, and
         # 5 live-proof cases. Measured with postgres + redis and no governance
-        # sibling: 1185 + 81 = 1266 collected, 1266 - 16 = 1250.
-        "1250 tests pass",
-        r"1250 passed",
+        # sibling: 1186 + 81 = 1267 collected, 1267 - 16 = 1251.
+        "1251 tests pass",
+        r"1251 passed",
     ),
     CheckSpec(
         "V-002",

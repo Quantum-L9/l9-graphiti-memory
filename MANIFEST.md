@@ -33,19 +33,19 @@ updated: 2026-07-22
 | Category | Files |
 |---|---:|
 | `architecture_decisions` | 87 |
-| `assurance` | 94 |
+| `assurance` | 95 |
 | `ci` | 8 |
 | `configuration` | 10 |
 | `documentation` | 128 |
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 133 |
-| `repository_root` | 72 |
+| `repository_root` | 73 |
 | `skill` | 2 |
 | `tests` | 187 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **768**
+- Hashed inventory files below: **770**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -56,7 +56,7 @@ updated: 2026-07-22
 |---|---|---|---:|---|
 | `.github/issues.json` | `ci` | `ci` | 5755 | `23cbdff3ae0c9491c419771321766af4f510cd954dc671404994e7c7e3771d28` |
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
-| `.github/workflows/ci.yml` | `ci` | `ci` | 9804 | `65a9e9de793008b4b97296e62b22db582b7d55bfa76af8564113d75b55e45704` |
+| `.github/workflows/ci.yml` | `ci` | `ci` | 10381 | `6c676a51c2aa7418f0f2686d165152cabbdf9b88297434cf84aa64d0258a1ba3` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
 | `.github/workflows/nightly-maintenance.yml` | `ci` | `ci` | 5140 | `0626627b16523ced1bfdf6f13271a434e92a2c0138b862a2ff5ccfb15db41d48` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 4741 | `d3ff80bb60030f31cda036abb3a4ea5db6408174d31ba1b3a42ea85f30511a25` |
@@ -322,7 +322,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-082-consumer-control-plane-transport-parity.md` | `architecture_decisions` | `adr` | 11067 | `bc051d5679ebfad9c8fc41fdebc5a4c144684bc74829312410301e600dff6f6b` |
 | `docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md` | `architecture_decisions` | `adr` | 13659 | `c6e83a4257c87130d9ba6ddd86b31c2e61cfd4079270723aed9e6cabb4bfc8c7` |
 | `docs/adr/ADR-084-projection-runtime-and-target-aware-lifecycle.md` | `architecture_decisions` | `adr` | 14023 | `134985b079f233041f1901c559640e36190b8812931f2903b7b6c6cdd258c6b2` |
-| `docs/adr/ADR-085-product-topology-and-release-governance.md` | `architecture_decisions` | `adr` | 8539 | `99230a0778f61ad7a8540fc5e9ea7f1c8f1e5c6374b50f521bb8b4bf91eecb2f` |
+| `docs/adr/ADR-085-product-topology-and-release-governance.md` | `architecture_decisions` | `adr` | 10145 | `2e139a8c1160910d5148f02675a1aa6981c027499503905ddba188eda02ada02` |
 | `docs/adr/ADR-086-structured-source-invalidation-lifecycle.md` | `architecture_decisions` | `adr` | 11071 | `a5b9c3c6a24c633ffe4c0d6e6de921e57f9ef7369374d6c738254e831ceff56b` |
 | `docs/adr/README.md` | `architecture_decisions` | `adr` | 10762 | `810f2990f05fbd2541218699c2169df0780cfe702b7a1c397f8131853426ffed` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
@@ -346,7 +346,8 @@ updated: 2026-07-22
 | `pyproject.toml` | `repository_root` | `repository` | 5037 | `4d1eb0f6bb8b45cf481cffd5ef8f91bdc5608fb9562e34c0dc35e93073f72ea8` |
 | `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository` | 5732 | `28e993329fca424d3ede848f45d96a8cb335162388ce5036fa24cf6f3445e95b` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
-| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 5417 | `aaf20590507d42a18a80ce59e5a0eba11f1a8e1cc6d2646492209a863758ef6e` |
+| `release-work/product-manifest.json` | `repository_root` | `repository` | 31116 | `f73c78816b7ab2622e8873ee5c0a07c81d036b91841fbf9a993f8c8db58c7d7b` |
+| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 6157 | `5363b06f8dc11159cae772349e71a3f6fd81cbe170ed0c8ba8304765117da891` |
 | `release-work/repository-review/INDEX.md` | `repository_root` | `repository` | 2788 | `f24c6e0168fc6eec88116f0ba97d85a55b3cba612c459229f9ab664e60a5846f` |
 | `release-work/repository-review/architecture-summary.md` | `repository_root` | `repository` | 7798 | `a2568d87dbb6baf9c3aef5901ebfaa96ccbf7332c7e1761420ebefc4784fc243` |
 | `release-work/repository-review/authority-map.md` | `repository_root` | `repository` | 6048 | `71208da6337ec2934955f2b2bd34d7516d698956bd93c173c03f2f3b20510109` |
@@ -372,7 +373,7 @@ updated: 2026-07-22
 | `scripts/create_issues.py` | `operations` | `operations` | 3016 | `e3524492f6dfba6e3c0068fba42ca17392b1d806d66a03a7cee767fa05cf1600` |
 | `scripts/install.sh` | `operations` | `operations` | 1548 | `f431e36727d0d2818a00dbce4bbdbf60956a76a01101be72031d95c3e4b755f1` |
 | `scripts/preflight.sh` | `operations` | `operations` | 3751 | `99d8c74ae7c58147094f0790a8b6fa6598c39a235ccaeebcc23d0a54ef8ffb57` |
-| `scripts/validate_release.sh` | `operations` | `operations` | 11735 | `55940084f742593745fcc1360e45bb16763e270e87b3304fafbce440340c8fdc` |
+| `scripts/validate_release.sh` | `operations` | `operations` | 12505 | `db3e101704bfd91e5e8f0129dbef6f36d056f91c4d7422c8d4a5a82d4c6725bc` |
 | `scripts/write_claude_config.py` | `operations` | `operations` | 2369 | `d74bb0efbd6b42319f44948d95de85f20cf4d308b7f0e242792728eb9e3b2c66` |
 | `scripts/write_cursor_config.py` | `operations` | `operations` | 2617 | `955a2ff0903c9a7f4deeee776eff2f3d1a0aad4b31a2f8ae0609334aa0a2afe7` |
 | `skill/SKILL.md` | `skill` | `skill` | 4860 | `9e9af67d407d1448176abf32b476f88d586f7b13d1618fd8f56ced15a2ee3d01` |
@@ -630,7 +631,7 @@ updated: 2026-07-22
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `test` | 4320 | `4ab10fdc1eee8035396984f6960aaaf80100aa6206778a6090d878e1142c6615` |
 | `tests/regression/test_l9_meta_assurance.py` | `tests` | `test` | 17453 | `1a40dc95e93b550455e04fee79139cc50f22ccbd64d2bcfee412a49dfca8a8ef` |
 | `tests/regression/test_phase6_operator.py` | `tests` | `test` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
-| `tests/regression/test_product_release_governance.py` | `tests` | `test` | 2524 | `1d5d60e6943e95cda7ae5c73723e40825ce7816ac1166d3a7d991baf77525f2e` |
+| `tests/regression/test_product_release_governance.py` | `tests` | `test` | 5062 | `5a55fc76a89132e59efd946fc30935d4c9842ab7c45e7051584be8c8db4dcba6` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `test` | 1699 | `b00c392c218b7cbda7adf9fbf5d436a73a796547b43aab926111b49e238a5ac0` |
 | `tests/regression/test_release_shell.py` | `tests` | `test` | 12603 | `a7f810114e8538da25e6aec7bcc37baab8a716db8dac10e723878daec32e3d71` |
 | `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 3615 | `ab47feb671b645fcafb0181c85a5a2da73b9093564d49965a8b40e0b5740e951` |
@@ -709,7 +710,8 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `ea1725f52033612043d5f8640950f363d3f0b8fe04350aa8d35a1c8fb698419a` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 23759 | `2ee217f9897be9e89740cf0b822ad2dd955626da258033924885ede095442fca` |
+| `tools/assurance/generate_product_manifest.py` | `assurance` | `assurance` | 19637 | `f946e22c5e047f42c43d0976ff6bc81bd95de7e97c2e251d52f642b9c632afa6` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 23994 | `38881e22419e37ef10f360f65f9778a680404a8a0de36b59bbdd0dbfe0aed090` |
 | `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 16799 | `53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `e98f00debb3244378ac399e77b175bf9bd06732cda8c4744cb64c0c2adc1edd4` |

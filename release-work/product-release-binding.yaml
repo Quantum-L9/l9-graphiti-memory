@@ -12,7 +12,7 @@ schema: l9-graphiti-memory/product-release-binding@1
 # Derived repository execution and proof map (ADR-085). This file is NOT
 # product authority and defines no release semantics: it binds this
 # repository's executable entrypoints to the global release contract, the
-# authoritative ProductTopology, and the compiler-owned ProductManifest.
+# authoritative ProductTopology, and the derived ProductManifest.
 # It may narrow or strengthen required evidence; it never weakens global law.
 derived_from:
   product_topology: product-topology.yaml
@@ -45,15 +45,20 @@ product_topology:
   mechanical_validation: tools/assurance/validate_product_topology.py --authority-root <Quantum-L9/.github at authority.revision>
 product_manifest:
   status: unresolved
-  ref: null
-  digest: null
-  compiler_revision: null
+  ref: release-work/product-manifest.json
+  digest: sha256:50ebb78414298e633bcbf7b007972fd74753603e8cbd53c80788250bbf49494d
+  generator: tools/assurance/generate_product_manifest.py
+  compiler_revision: sha256:f946e22c5e047f42c43d0976ff6bc81bd95de7e97c2e251d52f642b9c632afa6
   compiler_profile_ref: l9.compilation/product-build@1
-  compiler_profile_digest: null
+  compiler_profile_digest: sha256:bbcb06d010a1b7bc0d3275766e00e9031d6c481cee576235ff389928287487df
+  regenerate: python3 tools/assurance/generate_product_manifest.py --authority-root <Quantum-L9/.github at authority.revision>
+  check: python3 tools/assurance/generate_product_manifest.py --authority-root <Quantum-L9/.github at authority.revision> --check
+  resolved_manifest_gate: fail
   reasons:
-    - l9-semantic-compiler was not reachable from the campaign session; no ProductManifest was compiled and none is hand-authored.
-    - ProductTopology material Unknowns MU-001 (conformance profile) and MU-002 (provider technology coordinates) block the resolved-manifest gate regardless of compiler availability.
-  consequence: release progression is BLOCKED until a ProductManifest compiled from product_topology.digest passes the resolved-manifest gate.
+    - provider_bindings_admissible: "provider binding facts:v8:graphiti:primary has no admitted technology coordinate (unknown; MU-002); provider binding facts:v8:zep:primary has no admitted technology coordinate (unknown; MU-002)"
+    - conformance_requirements_resolved: "conformance profile unresolved: unknown"
+    - unresolved_hard_semantic_gaps_empty: "material Unknown MU-001: conformance.profile_refs; material Unknown MU-002: bindings.provider_bindings[*].technology_ref"
+  consequence: release progression is BLOCKED until the derived ProductManifest's resolved_manifest_gate passes; no external compiler is required.
 release_identity:
   version_source: src/l9_graphite_memory/version.py::PACKAGE_VERSION
   identity_tuple:
