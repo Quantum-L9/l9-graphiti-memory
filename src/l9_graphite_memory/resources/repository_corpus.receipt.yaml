@@ -1,0 +1,24 @@
+# MACHINE GENERATED.
+# DO NOT HAND AUTHOR THIS FILE.
+#
+# Generate with:
+#
+# python tools/authority/project_l9_repository_corpus.py \
+#   --authority-root /path/to/Quantum-L9/.github
+#
+# This placeholder intentionally fails governance validation until replaced by
+# the first deterministic projection from the committed canonical authority.
+schema: l9.projection-receipt/v1
+projection:
+  artifact_ref: l9.projection/memory-repository-corpus@1
+  view_ref: l9.repository-view/memory-namespace-l9@1
+  source_repository: Quantum-L9/.github
+  source_revision: UNGENERATED
+  sources: {}
+output:
+  path: src/l9_graphite_memory/resources/repository_corpus.yaml
+  schema: l9.projection.memory-repository-corpus/v1
+  digest: UNGENERATED
+generator:
+  id: l9-graphiti-memory.repository-corpus-projector/v1
+  deterministic: true
