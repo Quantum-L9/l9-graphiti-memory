@@ -110,6 +110,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-083 | [Server-Side Local Authorization and One Class Vocabulary](ADR-083-server-side-local-authorization-and-one-class-vocabulary.md) | Accepted |
 | ADR-084 | [Projection Runtime and Target-Aware Lifecycle](ADR-084-projection-runtime-and-target-aware-lifecycle.md) | Accepted |
 | ADR-085 | [Product Topology and Release Governance](ADR-085-product-topology-and-release-governance.md) | Accepted |
+| ADR-086 | [Structured Source Invalidation Lifecycle](ADR-086-structured-source-invalidation-lifecycle.md) | Accepted |
 
 ## Validation
 
@@ -119,4 +120,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-085 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-086 ledger and all mandatory sections.

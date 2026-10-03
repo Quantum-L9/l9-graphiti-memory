@@ -34,6 +34,11 @@ from l9_graphite_memory.contracts import (
     ProjectionRetirementReceipt,
     WriteReceipt,
 )
+from l9_graphite_memory.contracts.generated_data import (
+    RevalidationRequirement,
+    SourceInvalidationEvent,
+    SourceSelectorRecord,
+)
 
 from .phase_lock import PhaseLockPrecondition
 from .service_capability import ServiceWriteCapability
@@ -132,6 +137,57 @@ class RecordStore(Protocol):
         transitions imply (retire on SUPERSEDED/ARCHIVED, project on
         reactivation) commit together or not at all, so the projection can
         never disagree with canonical state about what is current (ADR-074).
+        """
+
+    def find_source_selector_matches(
+        self,
+        tenant_id: str,
+        *,
+        repository: str | None,
+        selector_type: str,
+        selector_value: str,
+    ) -> tuple[UUID, ...]:
+        """ACTIVE records of this tenant owning an active structured selector.
+
+        Equality on ``(repository, selector_type, selector_value)`` through the
+        selector indexes; ``repository=None`` matches across repositories.
+        Never matches on statement text (ADR-086).
+        """
+
+    def list_source_selectors(self, record_id: UUID) -> list[SourceSelectorRecord]:
+        """Every structured selector row owned by one record, active or not."""
+
+    def get_source_invalidation(
+        self, tenant_id: str, event_id: str
+    ) -> SourceInvalidationEvent | None:
+        """The applied invalidation operation recorded under this identity."""
+
+    def list_revalidation_requirements(self, record_id: UUID) -> list[RevalidationRequirement]:
+        """Revalidation obligations a source invalidation created for a record."""
+
+    def commit_source_invalidation(
+        self,
+        capability: ServiceWriteCapability,
+        event: SourceInvalidationEvent,
+        *,
+        lifecycle_receipts: tuple[LifecycleTransitionReceipt, ...],
+        status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
+        revalidation_requirements: tuple[RevalidationRequirement, ...] = (),
+    ) -> None:
+        """Atomically apply one source invalidation operation (ADR-086).
+
+        The operation record, every lifecycle receipt, status event,
+        projection retirement intent and revalidation requirement commit
+        together with the deactivation of the transitioned records' selectors,
+        or nothing commits. An ``event`` whose ``(tenant_id, event_id)`` is
+        already recorded raises ``IdempotencyConflict`` and leaves nothing
+        behind. A status event whose expected previous state no longer holds
+        raises ``StoreError`` and leaves nothing behind.
+
+        Admission persists selectors inside ``commit_write`` itself, from
+        ``source_selectors_for_record``; a privacy deletion removes them inside
+        ``commit_deletion`` (ADR-086).
         """
 
     def save_phase_lock(

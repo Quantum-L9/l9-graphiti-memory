@@ -183,8 +183,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1169 -> 1170 for the repository-derived ProductManifest
         # (ADR-085 amendment): 1 case in test_product_release_governance.py.
         # Same arithmetic: 1185 + 1 = 1186 collected, 1186 - 16 = 1170.
-        "1170 tests pass",
-        r"1170 passed",
+        #
+        # Re-pinned 1170 -> 1251 for ADR-086 (structured source invalidation):
+        # 45 store-matrix cases (15 x 3 backends) in test_source_invalidation,
+        # 5 schema-9 migration cases, 26 request-contract and CLI cases, and
+        # 5 live-proof cases. Measured with postgres + redis and no governance
+        # sibling: 1186 + 81 = 1267 collected, 1267 - 16 = 1251.
+        "1251 tests pass",
+        r"1251 passed",
     ),
     CheckSpec(
         "V-002",
@@ -206,9 +212,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
         # parity). Re-pinned 83 -> 84 for ADR-084 (projection runtime and
         # target-aware lifecycle). Re-pinned 84 -> 85 for ADR-085 (product
-        # topology and release governance).
-        "85 ADRs complete and indexed",
-        r"PASS: 85 ADRs",
+        # topology and release governance). Re-pinned 85 -> 86 for ADR-086
+        # (structured source invalidation lifecycle).
+        "86 ADRs complete and indexed",
+        r"PASS: 86 ADRs",
     ),
     CheckSpec(
         "V-004",

@@ -42,6 +42,12 @@ from l9_graphite_memory.contracts import (
     ProjectionRetirementReceipt,
     WriteReceipt,
 )
+from l9_graphite_memory.contracts.generated_data import (
+    RevalidationRequirement,
+    SourceInvalidationEvent,
+    SourceSelectorRecord,
+    source_selectors_for_record,
+)
 from l9_graphite_memory.errors import (
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
@@ -57,7 +63,56 @@ from l9_graphite_memory.schema import schema_registry
 # Register built-in migrations.
 from l9_graphite_memory.schema import upcasters as _upcasters  # noqa: F401
 
-_SCHEMA_VERSION = 8
+_SCHEMA_VERSION = 9
+
+# Schema 9: structured source selectors, applied source invalidations, and the
+# revalidation requirements they create (ADR-086).
+_SOURCE_INVALIDATION_DDL = (
+    """
+    CREATE TABLE IF NOT EXISTS memory_source_selectors (
+        selector_id TEXT PRIMARY KEY,
+        record_id TEXT NOT NULL,
+        repository TEXT NOT NULL,
+        selector_type TEXT NOT NULL,
+        selector_value TEXT NOT NULL,
+        active INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        deactivated_at TEXT,
+        FOREIGN KEY(record_id) REFERENCES memory_records(record_id)
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_selector_repository_value ON memory_source_selectors(repository, selector_type, selector_value, active)",
+    "CREATE INDEX IF NOT EXISTS idx_selector_record_active ON memory_source_selectors(record_id, active)",
+    "CREATE INDEX IF NOT EXISTS idx_selector_type_value ON memory_source_selectors(selector_type, selector_value, active)",
+    """
+    CREATE TABLE IF NOT EXISTS source_invalidation_events (
+        tenant_id TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        request_digest TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        repository TEXT,
+        matched INTEGER NOT NULL,
+        transitioned INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        event_json TEXT NOT NULL,
+        PRIMARY KEY (tenant_id, event_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS revalidation_requirements (
+        requirement_id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        namespace TEXT NOT NULL,
+        record_id TEXT NOT NULL,
+        invalidation_event_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        requirement_json TEXT NOT NULL,
+        FOREIGN KEY(record_id) REFERENCES memory_records(record_id)
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_revalidation_record ON revalidation_requirements(record_id, status)",
+)
 
 # One row per durable provider copy, keyed by target identity (ADR-084).
 _PROJECTION_LINKS_DDL = """
@@ -269,6 +324,8 @@ class SQLiteRecordStore:
             self._migrate_projection_links_to_targets(tx)
             for statement in statements:
                 tx.execute(statement)
+            for statement in _SOURCE_INVALIDATION_DDL:
+                tx.execute(statement)
             columns = {
                 str(row[1]) for row in tx.execute("PRAGMA table_info(memory_records)").fetchall()
             }
@@ -282,6 +339,7 @@ class SQLiteRecordStore:
             for column in ("lease_id", "lease_owner", "lease_expires_at"):
                 if column not in outbox_columns:
                     tx.execute(f"ALTER TABLE outbox_events ADD COLUMN {column} TEXT")
+            self._backfill_source_selectors(tx)
             tx.execute(
                 "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)",
                 (_SCHEMA_VERSION, datetime.now(timezone.utc).isoformat()),
@@ -326,6 +384,58 @@ class SQLiteRecordStore:
             )
         tx.execute("DROP TABLE projection_links")
         tx.execute("ALTER TABLE projection_links_v8 RENAME TO projection_links")
+
+    def _backfill_source_selectors(self, tx: sqlite3.Connection) -> None:
+        """Schema 8 -> 9: derive selectors from existing structured metadata.
+
+        Runs only until schema 9 is recorded, inside the initialization
+        transaction. Each selector comes from ``source_selectors_for_record``,
+        the same lossless mapping admission uses; a record whose metadata does
+        not map losslessly gets none. Selector ids are deterministic and
+        inserted with ``OR IGNORE``, so a rerun after an interrupted start
+        changes nothing (ADR-086).
+        """
+
+        if tx.execute(
+            "SELECT 1 FROM schema_migrations WHERE version = ?", (_SCHEMA_VERSION,)
+        ).fetchone():
+            return
+        now = datetime.now(timezone.utc)
+        rows = tx.execute(
+            "SELECT record_json FROM memory_records WHERE state NOT IN (?, ?)",
+            (MemoryState.DELETED.value, MemoryState.DELETION_PENDING.value),
+        ).fetchall()
+        for row in rows:
+            record = self._row_to_record(row)
+            active = record.state is MemoryState.ACTIVE
+            for selector in source_selectors_for_record(record):
+                self._insert_selector(
+                    tx,
+                    selector.model_copy(
+                        update={"active": active, "deactivated_at": None if active else now}
+                    ),
+                )
+
+    @staticmethod
+    def _insert_selector(tx: sqlite3.Connection, selector: SourceSelectorRecord) -> None:
+        tx.execute(
+            """
+            INSERT OR IGNORE INTO memory_source_selectors(
+                selector_id, record_id, repository, selector_type, selector_value,
+                active, created_at, deactivated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                selector.selector_id,
+                str(selector.record_id),
+                selector.repository,
+                selector.selector_type,
+                selector.selector_value,
+                int(selector.active),
+                _dt(selector.created_at),
+                _dt(selector.deactivated_at),
+            ),
+        )
 
     def close(self) -> None:
         connection = getattr(self._local, "connection", None)
@@ -551,6 +661,9 @@ class SQLiteRecordStore:
                     self._require_phase_lock_snapshot(tx, expected_phase_lock)
                 if record is not None:
                     self._insert_record(tx, record)
+                    # Structured selectors commit with the record (ADR-086).
+                    for selector in source_selectors_for_record(record):
+                        self._insert_selector(tx, selector)
                 self._insert_receipt(tx, receipt)
                 for status_event in status_events:
                     self._insert_status_event(tx, status_event)
@@ -685,6 +798,176 @@ class SQLiteRecordStore:
                 self._insert_status_event(tx, event)
         except sqlite3.Error as exc:
             raise StoreError(f"lifecycle transition failed: {exc}") from exc
+
+    def find_source_selector_matches(
+        self,
+        tenant_id: str,
+        *,
+        repository: str | None,
+        selector_type: str,
+        selector_value: str,
+    ) -> tuple[UUID, ...]:
+        params: list[Any] = [selector_type, selector_value]
+        sql = (
+            "SELECT DISTINCT s.record_id FROM memory_source_selectors AS s "
+            "JOIN memory_records AS r ON r.record_id = s.record_id "
+            "WHERE s.selector_type = ? AND s.selector_value = ? AND s.active = 1"
+        )
+        if repository is not None:
+            sql += " AND s.repository = ?"
+            params.append(repository)
+        sql += " AND r.tenant_id = ? AND r.state = ? ORDER BY s.record_id"
+        params.extend([tenant_id, MemoryState.ACTIVE.value])
+        rows = self._connection().execute(sql, params).fetchall()
+        return tuple(UUID(str(row[0])) for row in rows)
+
+    def list_source_selectors(self, record_id: UUID) -> list[SourceSelectorRecord]:
+        rows = (
+            self._connection()
+            .execute(
+                "SELECT * FROM memory_source_selectors WHERE record_id = ? ORDER BY selector_id",
+                (str(record_id),),
+            )
+            .fetchall()
+        )
+        return [
+            SourceSelectorRecord(
+                selector_id=str(row["selector_id"]),
+                record_id=UUID(str(row["record_id"])),
+                repository=str(row["repository"]),
+                selector_type=str(row["selector_type"]),
+                selector_value=str(row["selector_value"]),
+                active=bool(row["active"]),
+                created_at=datetime.fromisoformat(str(row["created_at"])),
+                deactivated_at=_parse_dt(row["deactivated_at"]),
+            )
+            for row in rows
+        ]
+
+    def get_source_invalidation(
+        self, tenant_id: str, event_id: str
+    ) -> SourceInvalidationEvent | None:
+        row = (
+            self._connection()
+            .execute(
+                "SELECT event_json FROM source_invalidation_events "
+                "WHERE tenant_id = ? AND event_id = ?",
+                (tenant_id, event_id),
+            )
+            .fetchone()
+        )
+        return SourceInvalidationEvent.model_validate_json(str(row[0])) if row else None
+
+    def list_revalidation_requirements(self, record_id: UUID) -> list[RevalidationRequirement]:
+        rows = (
+            self._connection()
+            .execute(
+                "SELECT requirement_json FROM revalidation_requirements "
+                "WHERE record_id = ? ORDER BY created_at, requirement_id",
+                (str(record_id),),
+            )
+            .fetchall()
+        )
+        return [RevalidationRequirement.model_validate_json(str(row[0])) for row in rows]
+
+    def commit_source_invalidation(
+        self,
+        capability: ServiceWriteCapability,
+        event: SourceInvalidationEvent,
+        *,
+        lifecycle_receipts: tuple[LifecycleTransitionReceipt, ...],
+        status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
+        revalidation_requirements: tuple[RevalidationRequirement, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        transitioned = {
+            item.record_id for receipt in lifecycle_receipts for item in receipt.transitions
+        }
+        if {item.record_id for item in status_events} != transitioned:
+            raise StoreError("invalidation receipts and status events target different records")
+        try:
+            with self._transaction() as tx:
+                if tx.execute(
+                    "SELECT 1 FROM source_invalidation_events WHERE tenant_id = ? AND event_id = ?",
+                    (event.tenant_id, event.event_id),
+                ).fetchone():
+                    raise IdempotencyConflict(
+                        f"source invalidation already committed: {event.event_id}"
+                    )
+                tx.execute(
+                    """
+                    INSERT INTO source_invalidation_events(
+                        tenant_id, event_id, request_digest, event_type, repository,
+                        matched, transitioned, created_at, event_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        event.tenant_id,
+                        event.event_id,
+                        event.request_digest,
+                        event.event_type,
+                        event.repository,
+                        event.matched,
+                        event.transitioned,
+                        _dt(event.created_at),
+                        _json(event.model_dump(mode="json")),
+                    ),
+                )
+                for receipt in lifecycle_receipts:
+                    tx.execute(
+                        """
+                        INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            str(receipt.receipt_id),
+                            "lifecycle",
+                            receipt.namespace,
+                            receipt.status.value,
+                            _dt(receipt.created_at),
+                            _json(receipt.model_dump(mode="json")),
+                        ),
+                    )
+                for status_event in status_events:
+                    self._insert_status_event(tx, status_event)
+                for outbox_event in outbox_events:
+                    self._insert_outbox(tx, outbox_event)
+                for requirement in revalidation_requirements:
+                    tx.execute(
+                        """
+                        INSERT INTO revalidation_requirements(
+                            requirement_id, tenant_id, namespace, record_id,
+                            invalidation_event_id, status, created_at, requirement_json
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            str(requirement.requirement_id),
+                            requirement.tenant_id,
+                            requirement.namespace,
+                            str(requirement.record_id),
+                            requirement.invalidation_event_id,
+                            requirement.status,
+                            _dt(requirement.created_at),
+                            _json(requirement.model_dump(mode="json")),
+                        ),
+                    )
+                for record_id in sorted(transitioned, key=str):
+                    tx.execute(
+                        "UPDATE memory_source_selectors SET active = 0, deactivated_at = ? "
+                        "WHERE record_id = ? AND active = 1",
+                        (_dt(event.created_at), str(record_id)),
+                    )
+        except sqlite3.IntegrityError as exc:
+            if "source_invalidation_events" in str(exc):
+                raise IdempotencyConflict(
+                    f"source invalidation already committed: {event.event_id}"
+                ) from exc
+            raise StoreError(
+                f"atomic source invalidation violated store constraints: {exc}"
+            ) from exc
+        except sqlite3.Error as exc:
+            raise StoreError(f"atomic source invalidation failed: {exc}") from exc
 
     def commit_lifecycle(
         self,
@@ -1281,6 +1564,12 @@ class SQLiteRecordStore:
                 # The lifecycle event is verified against the pre-redaction
                 # state; the redaction below then replaces the whole row.
                 self._insert_status_event(tx, status_event)
+                # Selectors are derived from the metadata the tombstone
+                # redacts, so they go with it (ADR-086).
+                tx.execute(
+                    "DELETE FROM memory_source_selectors WHERE record_id = ?",
+                    (str(receipt.record_id),),
+                )
                 tx.execute(
                     """
                     UPDATE memory_records SET
