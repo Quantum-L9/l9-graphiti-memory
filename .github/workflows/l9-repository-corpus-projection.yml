@@ -1,0 +1,196 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .github/workflows/l9-repository-corpus-projection.yml
+#   layer: operations
+#   owner: memory-control-plane
+#   status: active
+#   version: 1.0.0
+#   updated: 2026-10-02
+name: L9 Repository Corpus Projection
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/l9-repository-corpus-projection.yml"
+      - "src/l9_graphite_memory/resources/repository_corpus.yaml"
+      - "src/l9_graphite_memory/resources/repository_corpus.receipt.yaml"
+      - "src/l9_graphite_memory/resources/repository_corpus_binding.yaml"
+      - "src/l9_graphite_memory/repository_corpus.py"
+      - "src/l9_graphite_memory/ingestion/repository.py"
+      - "tools/authority/project_l9_repository_corpus.py"
+      - "tools/assurance/check_repository_corpus_governance.py"
+      - "tests/unit/test_repository_corpus.py"
+      - "tests/integration/test_repository_corpus_ingestion.py"
+      - "rules/96-repository-corpus-authority.mdc"
+      - "docs/adr/ADR-085-canonical-repository-corpus-authority-binding.md"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/l9-repository-corpus-projection.yml"
+      - "src/l9_graphite_memory/resources/repository_corpus.yaml"
+      - "src/l9_graphite_memory/resources/repository_corpus.receipt.yaml"
+      - "src/l9_graphite_memory/resources/repository_corpus_binding.yaml"
+      - "src/l9_graphite_memory/repository_corpus.py"
+      - "src/l9_graphite_memory/ingestion/repository.py"
+      - "tools/authority/project_l9_repository_corpus.py"
+      - "tools/assurance/check_repository_corpus_governance.py"
+  repository_dispatch:
+    types:
+      - l9-authority-updated
+  workflow_dispatch:
+    inputs:
+      authority_ref:
+        description: Quantum-L9/.github revision to project
+        required: true
+        default: main
+  schedule:
+    - cron: "17 */6 * * *"
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: l9-repository-corpus-projection
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout memory repository
+        uses: actions/checkout@v4
+        with:
+          path: memory
+          fetch-depth: 0
+      - name: Checkout canonical organization authority
+        uses: actions/checkout@v4
+        with:
+          repository: Quantum-L9/.github
+          ref: main
+          path: org-authority
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install projection dependency
+        run: python -m pip install "pyyaml>=6.0,<7"
+      - name: Verify committed projection matches canonical authority
+        working-directory: memory
+        run: |
+          python tools/authority/project_l9_repository_corpus.py \
+            --authority-root ../org-authority \
+            --check
+      - name: Verify downstream governing binding
+        working-directory: memory
+        env:
+          PYTHONPATH: src
+        run: python tools/assurance/check_repository_corpus_governance.py
+      - name: Run repository corpus tests
+        working-directory: memory
+        run: |
+          python -m pip install -e ".[dev]"
+          pytest -q \
+            tests/unit/test_repository_corpus.py \
+            tests/integration/test_repository_corpus_ingestion.py
+  refresh:
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'repository_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout memory repository
+        uses: actions/checkout@v4
+        with:
+          path: memory
+          fetch-depth: 0
+      - name: Resolve authority revision
+        id: authority
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            printf 'ref=%s\n' "${{ inputs.authority_ref }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ github.event.client_payload.authority_ref }}" ]]; then
+            printf 'ref=%s\n' "${{ github.event.client_payload.authority_ref }}" >> "$GITHUB_OUTPUT"
+          else
+            printf 'ref=main\n' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Checkout canonical organization authority
+        uses: actions/checkout@v4
+        with:
+          repository: Quantum-L9/.github
+          ref: ${{ steps.authority.outputs.ref }}
+          path: org-authority
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install projection dependency
+        run: python -m pip install "pyyaml>=6.0,<7"
+      - name: Generate repository corpus projection
+        working-directory: memory
+        run: |
+          python tools/authority/project_l9_repository_corpus.py \
+            --authority-root ../org-authority
+      - name: Verify generated governing projection
+        working-directory: memory
+        env:
+          PYTHONPATH: src
+        run: python tools/assurance/check_repository_corpus_governance.py
+      - name: Detect projection change
+        id: diff
+        working-directory: memory
+        shell: bash
+        run: |
+          if git diff --quiet -- \
+            src/l9_graphite_memory/resources/repository_corpus.yaml \
+            src/l9_graphite_memory/resources/repository_corpus.receipt.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create projection update branch
+        if: steps.diff.outputs.changed == 'true'
+        id: branch
+        working-directory: memory
+        shell: bash
+        run: |
+          authority_sha="$(git -C ../org-authority rev-parse HEAD)"
+          branch="automation/l9-repository-corpus-${authority_sha:0:12}"
+          git config user.name "quantum-l9-automation"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add \
+            src/l9_graphite_memory/resources/repository_corpus.yaml \
+            src/l9_graphite_memory/resources/repository_corpus.receipt.yaml
+          git commit -m "chore(memory): project canonical L9 repository corpus"
+          git push --force-with-lease origin "$branch"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "authority_sha=$authority_sha" >> "$GITHUB_OUTPUT"
+      - name: Open projection pull request
+        if: steps.diff.outputs.changed == 'true'
+        working-directory: memory
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.branch.outputs.branch }}
+          AUTHORITY_SHA: ${{ steps.branch.outputs.authority_sha }}
+        shell: bash
+        run: |
+          existing="$(
+            gh pr list \
+              --head "$BRANCH" \
+              --base main \
+              --state open \
+              --json number \
+              --jq '.[0].number // empty'
+          )"
+          if [[ -n "$existing" ]]; then
+            exit 0
+          fi
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore(memory): project canonical L9 repository corpus" \
+            --body "Machine-generated projection from Quantum-L9/.github@$AUTHORITY_SHA. Do not edit generated corpus or receipt manually."
