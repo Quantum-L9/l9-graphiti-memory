@@ -274,7 +274,7 @@
     ]
   },
   "compiler": {
-    "compiler_version": "Quantum-L9/l9-graphiti-memory/tools/assurance/generate_product_manifest.py@sha256:f946e22c5e047f42c43d0976ff6bc81bd95de7e97c2e251d52f642b9c632afa6",
+    "compiler_version": "Quantum-L9/l9-graphiti-memory/tools/assurance/generate_product_manifest.py@sha256:8089e419a40868a66c6045be27ea16254b0022105dec3f0ae1a3a1335249b70a",
     "profile_digest": "sha256:bbcb06d010a1b7bc0d3275766e00e9031d6c481cee576235ff389928287487df",
     "profile_ref": "l9.compilation/product-build@1",
     "realization": "repository-local deterministic derivation; no l9-semantic-compiler exists (ADR-085)"
@@ -431,7 +431,7 @@
       "l9.contract/admission-and-promotion@1"
     ]
   },
-  "manifest_digest": "sha256:50ebb78414298e633bcbf7b007972fd74753603e8cbd53c80788250bbf49494d",
+  "manifest_digest": "sha256:96b0574080c598f685e98275ce770354868040f7ec8ea62e80cb1714aeb0a2df",
   "observability": {
     "audit_requirement_refs": [],
     "capability_metrics": [],

@@ -345,8 +345,8 @@ updated: 2026-07-22
 | `pyproject.toml` | `repository_root` | `repository` | 5037 | `4d1eb0f6bb8b45cf481cffd5ef8f91bdc5608fb9562e34c0dc35e93073f72ea8` |
 | `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository` | 5732 | `28e993329fca424d3ede848f45d96a8cb335162388ce5036fa24cf6f3445e95b` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
-| `release-work/product-manifest.json` | `repository_root` | `repository` | 31116 | `f73c78816b7ab2622e8873ee5c0a07c81d036b91841fbf9a993f8c8db58c7d7b` |
-| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 6157 | `5363b06f8dc11159cae772349e71a3f6fd81cbe170ed0c8ba8304765117da891` |
+| `release-work/product-manifest.json` | `repository_root` | `repository` | 31116 | `ca6c5e182be0ce49b2a4ddc939461a22d3c18e7535c253da85476be32b96831e` |
+| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 6157 | `abcbdf6402463f44068ca904a22e70b938cf24611ce62b93ff77a5080f4651ac` |
 | `release-work/repository-review/INDEX.md` | `repository_root` | `repository` | 2788 | `f24c6e0168fc6eec88116f0ba97d85a55b3cba612c459229f9ab664e60a5846f` |
 | `release-work/repository-review/architecture-summary.md` | `repository_root` | `repository` | 7798 | `a2568d87dbb6baf9c3aef5901ebfaa96ccbf7332c7e1761420ebefc4784fc243` |
 | `release-work/repository-review/authority-map.md` | `repository_root` | `repository` | 6048 | `71208da6337ec2934955f2b2bd34d7516d698956bd93c173c03f2f3b20510109` |
@@ -628,7 +628,7 @@ updated: 2026-07-22
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `test` | 4320 | `4ab10fdc1eee8035396984f6960aaaf80100aa6206778a6090d878e1142c6615` |
 | `tests/regression/test_l9_meta_assurance.py` | `tests` | `test` | 17453 | `1a40dc95e93b550455e04fee79139cc50f22ccbd64d2bcfee412a49dfca8a8ef` |
 | `tests/regression/test_phase6_operator.py` | `tests` | `test` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
-| `tests/regression/test_product_release_governance.py` | `tests` | `test` | 5062 | `5a55fc76a89132e59efd946fc30935d4c9842ab7c45e7051584be8c8db4dcba6` |
+| `tests/regression/test_product_release_governance.py` | `tests` | `test` | 5093 | `b30772190a362d56cdbe1c8b6d82b9c5c81bc7e4a85744cd1bcfab1e0ea919e5` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `test` | 1699 | `b00c392c218b7cbda7adf9fbf5d436a73a796547b43aab926111b49e238a5ac0` |
 | `tests/regression/test_release_shell.py` | `tests` | `test` | 12603 | `a7f810114e8538da25e6aec7bcc37baab8a716db8dac10e723878daec32e3d71` |
 | `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 3615 | `ab47feb671b645fcafb0181c85a5a2da73b9093564d49965a8b40e0b5740e951` |
@@ -706,7 +706,7 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `ea1725f52033612043d5f8640950f363d3f0b8fe04350aa8d35a1c8fb698419a` |
-| `tools/assurance/generate_product_manifest.py` | `assurance` | `assurance` | 19637 | `f946e22c5e047f42c43d0976ff6bc81bd95de7e97c2e251d52f642b9c632afa6` |
+| `tools/assurance/generate_product_manifest.py` | `assurance` | `assurance` | 20534 | `8089e419a40868a66c6045be27ea16254b0022105dec3f0ae1a3a1335249b70a` |
 | `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 23520 | `905f1b02457687b21643ff8a076d601969cfe4bcca195c5a74a6b60d3d839d98` |
 | `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 16799 | `53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
