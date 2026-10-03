@@ -398,7 +398,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "bb9ec0c5426c7dbafaee12a3eca736da4a6f0ad6719df8c4ca2e8780c4e3fe62",
+      "sha256": "72a941a860a93926c122a3d9186fec4c6e3489bfd65cec7e7660d7653b12f12d",
       "size_bytes": 126962
     },
     {
@@ -4702,7 +4702,7 @@
         "version": "2.5.0"
       },
       "path": "release-work/product-manifest.json",
-      "sha256": "f73c78816b7ab2622e8873ee5c0a07c81d036b91841fbf9a993f8c8db58c7d7b",
+      "sha256": "ca6c5e182be0ce49b2a4ddc939461a22d3c18e7535c253da85476be32b96831e",
       "size_bytes": 31116
     },
     {
@@ -4718,7 +4718,7 @@
         "version": "2.5.0"
       },
       "path": "release-work/product-release-binding.yaml",
-      "sha256": "5363b06f8dc11159cae772349e71a3f6fd81cbe170ed0c8ba8304765117da891",
+      "sha256": "abcbdf6402463f44068ca904a22e70b938cf24611ce62b93ff77a5080f4651ac",
       "size_bytes": 6157
     },
     {
@@ -9262,8 +9262,8 @@
         "version": "2.5.0"
       },
       "path": "tests/regression/test_product_release_governance.py",
-      "sha256": "5a55fc76a89132e59efd946fc30935d4c9842ab7c45e7051584be8c8db4dcba6",
-      "size_bytes": 5062
+      "sha256": "b30772190a362d56cdbe1c8b6d82b9c5c81bc7e4a85744cd1bcfab1e0ea919e5",
+      "size_bytes": 5093
     },
     {
       "category": "tests",
@@ -10526,8 +10526,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_product_manifest.py",
-      "sha256": "f946e22c5e047f42c43d0976ff6bc81bd95de7e97c2e251d52f642b9c632afa6",
-      "size_bytes": 19637
+      "sha256": "8089e419a40868a66c6045be27ea16254b0022105dec3f0ae1a3a1335249b70a",
+      "size_bytes": 20534
     },
     {
       "category": "assurance",

@@ -46,9 +46,9 @@ product_topology:
 product_manifest:
   status: unresolved
   ref: release-work/product-manifest.json
-  digest: sha256:50ebb78414298e633bcbf7b007972fd74753603e8cbd53c80788250bbf49494d
+  digest: sha256:96b0574080c598f685e98275ce770354868040f7ec8ea62e80cb1714aeb0a2df
   generator: tools/assurance/generate_product_manifest.py
-  compiler_revision: sha256:f946e22c5e047f42c43d0976ff6bc81bd95de7e97c2e251d52f642b9c632afa6
+  compiler_revision: sha256:8089e419a40868a66c6045be27ea16254b0022105dec3f0ae1a3a1335249b70a
   compiler_profile_ref: l9.compilation/product-build@1
   compiler_profile_digest: sha256:bbcb06d010a1b7bc0d3275766e00e9031d6c481cee576235ff389928287487df
   regenerate: python3 tools/assurance/generate_product_manifest.py --authority-root <Quantum-L9/.github at authority.revision>

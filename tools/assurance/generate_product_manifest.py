@@ -70,6 +70,7 @@ GATE = (
     "authority_boundaries_valid",
     "unresolved_hard_semantic_gaps_empty",
 )
+SHA256_PREFIX = "sha256:"
 DIMENSION_KEY = {
     "product_identity": "product",
     "release_identity": "release",
@@ -84,12 +85,16 @@ def canonical(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
 
 
+def sha256_digest(data: bytes) -> str:
+    return SHA256_PREFIX + hashlib.sha256(data).hexdigest()
+
+
 def digest(value: Any) -> str:
-    return "sha256:" + hashlib.sha256(canonical(value)).hexdigest()
+    return sha256_digest(canonical(value))
 
 
 def file_digest(path: Path) -> str:
-    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+    return sha256_digest(path.read_bytes())
 
 
 class Law:
@@ -147,7 +152,7 @@ class Law:
                 {
                     "path": relative,
                     "blob": topology_law.blob_id(data),
-                    "digest": "sha256:" + hashlib.sha256(data).hexdigest(),
+                    "digest": sha256_digest(data),
                 }
             )
         return files
@@ -163,108 +168,111 @@ def _resolves(value: Any, known: set[str], repo: Path) -> bool:
     return True
 
 
-def evaluate_gate(
-    topo: dict[str, Any], law: Law, repo: Path, topology_path: Path
-) -> dict[str, list[str]]:
-    """Return every gate condition with the reasons it fails (empty = holds)."""
+Gate = dict[str, list[str]]
+NO_ARCHETYPE: dict[str, Any] = {
+    "requires": {"architecture_patterns": [], "conformance_classes": []}
+}
 
-    failing: dict[str, list[str]] = {name: [] for name in GATE}
-    failing["source_product_topology_valid"] = topology_law.validate(repo, law.root, topology_path)
 
+def _kind_and_archetype(
+    topo: dict[str, Any], law: Law, failing: Gate
+) -> tuple[dict[str, Any], dict[str, Any]]:
     product = topo.get("product", {})
     kind = law.kind(str(product.get("kind")))
+    archetype = None
     if kind is None:
         failing["product_kind_resolved"].append(f"ProductKind not admitted: {product.get('kind')}")
         kind = {"identity_dimensions": [], "required_patterns": [], "forbidden": []}
-        archetype = None
     else:
         archetype = law.archetype(kind, str(product.get("archetype_ref")))
     if archetype is None:
         failing["product_archetype_resolved"].append(
             f"archetype not in the kind's catalog: {product.get('archetype_ref')}"
         )
-        archetype = {"requires": {"architecture_patterns": [], "conformance_classes": []}}
+        archetype = NO_ARCHETYPE
+    return kind, archetype
 
+
+def _identity(
+    topo: dict[str, Any], kind: dict[str, Any], law: Law, repo: Path, failing: Gate
+) -> None:
     identity = topo.get("identity", {})
     profiles = set(topo.get("governance", {}).get("profile_refs") or [])
-    for where, value in topology_law._walk(identity):
-        if where.rsplit(".", 1)[-1] == "governance_profile_ref" or value in profiles:
-            failing["governance_profile_separate_from_identity"].append(
-                f"identity carries a governance profile reference at identity.{where}"
-            )
-
+    failing["governance_profile_separate_from_identity"] = [
+        f"identity carries a governance profile reference at identity.{where}"
+        for where, value in topology_law._walk(identity)
+        if where.rsplit(".", 1)[-1] == "governance_profile_ref" or value in profiles
+    ]
     resolution = identity.get("resolution", {})
-    for key in ("contract_ref", "assertion_schema_ref"):
-        if not _resolves(resolution.get(key), law.known, repo):
-            failing["identity_resolution_contract_resolved"].append(
-                f"identity.resolution.{key} unresolved"
-            )
-
+    failing["identity_resolution_contract_resolved"] = [
+        f"identity.resolution.{key} unresolved"
+        for key in ("contract_ref", "assertion_schema_ref")
+        if not _resolves(resolution.get(key), law.known, repo)
+    ]
     dimensions = identity.get("dimensions", {})
-    for name in kind.get("identity_dimensions", []):
-        declared = dimensions.get(DIMENSION_KEY.get(name, name), {})
-        if declared.get("applicable") is not True:
-            failing["identity_topology_resolved"].append(
-                f"required identity dimension not declared: {name}"
-            )
-    constellation = dimensions.get("constellation", {}).get("applicable")
-    if "independent_constellation_identity_as_dependency" in kind.get("forbidden", []) and (
-        constellation is not False
-    ):
-        failing["identity_topology_resolved"].append("dependency declares a constellation identity")
+    reasons = [
+        f"required identity dimension not declared: {name}"
+        for name in kind.get("identity_dimensions", [])
+        if dimensions.get(DIMENSION_KEY.get(name, name), {}).get("applicable") is not True
+    ]
+    forbids_constellation = "independent_constellation_identity_as_dependency" in kind.get(
+        "forbidden", []
+    )
+    if forbids_constellation and dimensions.get("constellation", {}).get("applicable") is not False:
+        reasons.append("dependency declares a constellation identity")
     rule = kind.get("runtime_identity_rule")
     if rule and dimensions.get("runtime", {}).get("rule") != rule:
-        failing["identity_topology_resolved"].append(
-            "runtime identity does not carry the kind's rule"
-        )
+        reasons.append("runtime identity does not carry the kind's rule")
+    failing["identity_topology_resolved"] = reasons
 
+
+def _requirements(topo: dict[str, Any], law: Law, repo: Path) -> list[str]:
     requirements = topo.get("requirements", {})
     constraints = [
         *requirements.get("hard_constraints", []),
         *requirements.get("operational_requirements", []),
         *requirements.get("security_requirements", []),
     ]
-    for constraint in constraints:
-        if constraint.get("hardness") != "hard" or not _resolves(
-            constraint.get("source_ref"), law.known, repo
-        ):
-            failing["hard_requirements_resolved"].append(
-                f"hard requirement unresolved: {constraint.get('id')}"
-            )
-    for ref in [*requirements.get("invariant_refs", []), *requirements.get("contract_refs", [])]:
-        if not _resolves(ref, law.known, repo):
-            failing["hard_requirements_resolved"].append(f"requirement reference unresolved: {ref}")
-
-    owner = identity.get("semantic_owner")
-    provided = {c["id"]: c for c in topo.get("capabilities", {}).get("provides", [])}
-    for ref in topo.get("purpose", {}).get("capability_refs", []):
-        if ref not in provided:
-            failing["capability_closure_resolved"].append(f"purpose capability not provided: {ref}")
-    for cap_id, capability in provided.items():
-        if capability.get("semantic_owner") != owner:
-            failing["capability_closure_resolved"].append(
-                f"capability not owned by the product: {cap_id}"
-            )
-
-    failing["architecture_obligations_resolved"] = topology_law.check_kind(
-        topo, law.kinds, law.root
-    )
-
-    ports = {
-        p["id"]
-        for section in topo.get("ports", {}).values()
-        if isinstance(section, list)
-        for p in section
-    }
-    adapters = [
-        a
-        for section in topo.get("adapters", {}).values()
-        if isinstance(section, list)
-        for a in section
+    reasons = [
+        f"hard requirement unresolved: {c.get('id')}"
+        for c in constraints
+        if c.get("hardness") != "hard" or not _resolves(c.get("source_ref"), law.known, repo)
     ]
-    served = {a.get("port_ref") for a in adapters}
+    refs = [*requirements.get("invariant_refs", []), *requirements.get("contract_refs", [])]
+    reasons += [
+        f"requirement reference unresolved: {ref}"
+        for ref in refs
+        if not _resolves(ref, law.known, repo)
+    ]
+    return reasons
+
+
+def _capabilities(topo: dict[str, Any]) -> list[str]:
+    owner = topo.get("identity", {}).get("semantic_owner")
+    provided = {c["id"]: c for c in topo.get("capabilities", {}).get("provides", [])}
+    reasons = [
+        f"purpose capability not provided: {ref}"
+        for ref in topo.get("purpose", {}).get("capability_refs", [])
+        if ref not in provided
+    ]
+    reasons += [
+        f"capability not owned by the product: {cap_id}"
+        for cap_id, capability in provided.items()
+        if capability.get("semantic_owner") != owner
+    ]
+    return reasons
+
+
+def _ports_and_adapters(topo: dict[str, Any], failing: Gate) -> None:
+    def entries(section: str) -> list[dict[str, Any]]:
+        groups = topo.get(section, {}).values()
+        return [item for group in groups if isinstance(group, list) for item in group]
+
+    ports = {port["id"] for port in entries("ports")}
+    adapters = entries("adapters")
+    served = {adapter.get("port_ref") for adapter in adapters}
     failing["required_ports_resolved"] = [
-        f"declared port has no adapter: {p}" for p in sorted(ports - served)
+        f"declared port has no adapter: {port}" for port in sorted(ports - served)
     ]
     failing["required_adapters_resolved"] = [
         f"adapter binds an undeclared port: {a.get('id')} -> {a.get('port_ref')}"
@@ -272,57 +280,83 @@ def evaluate_gate(
         if a.get("port_ref") not in ports
     ]
 
+
+def _relationships(topo: dict[str, Any], kind: dict[str, Any], law: Law) -> list[str]:
     relations = law.relations()
-    forbidden_modes = set(kind.get("forbidden", []))
+    remote_forbidden = "remote_invocation_as_canonical_consumption" in kind.get("forbidden", [])
+    reasons: list[str] = []
     for relationship in topo.get("relationships", {}).get("products", []):
         relation = relationship.get("relation")
         if relation not in relations:
-            failing["product_relationships_resolved"].append(
-                f"relation not in the vocabulary: {relation}"
-            )
-        if relation == "invoke" and "remote_invocation_as_canonical_consumption" in forbidden_modes:
-            failing["product_relationships_resolved"].append(
-                "dependency consumed by remote invocation"
-            )
+            reasons.append(f"relation not in the vocabulary: {relation}")
+        if relation == "invoke" and remote_forbidden:
+            reasons.append("dependency consumed by remote invocation")
+    return reasons
 
+
+def _provider_bindings(topo: dict[str, Any], law: Law) -> list[str]:
     technologies = law.technology_ids()
-    for binding in topo.get("bindings", {}).get("provider_bindings", []):
-        if binding.get("technology_ref") not in technologies:
-            failing["provider_bindings_admissible"].append(
-                f"provider binding {binding.get('target_id')} has no admitted technology coordinate"
-                f" ({binding.get('technology_ref')}; {binding.get('unknown_ref', 'no unknown ref')})"
-            )
-
-    admission = topo.get("admission", {})
-    for key in ("subject", "authority_ref", "decision_ref"):
-        if not _resolves(admission.get(key), law.known, repo):
-            failing["admission_requirements_resolved"].append(f"admission.{key} unresolved")
-    if not admission.get("requirements"):
-        failing["admission_requirements_resolved"].append("admission.requirements empty")
-
-    conformance = topo.get("conformance", {})
-    for ref in conformance.get("profile_refs", []):
-        if not _resolves(ref, law.known, repo) or not str(ref).startswith("l9."):
-            failing["conformance_requirements_resolved"].append(
-                f"conformance profile unresolved: {ref}"
-            )
-    missing = set(archetype["requires"]["conformance_classes"]) - set(
-        conformance.get("required_classes", [])
-    )
-    failing["conformance_requirements_resolved"] += [
-        f"conformance class missing: {c}" for c in sorted(missing)
+    return [
+        f"provider binding {b.get('target_id')} has no admitted technology coordinate"
+        f" ({b.get('technology_ref')}; {b.get('unknown_ref', 'no unknown ref')})"
+        for b in topo.get("bindings", {}).get("provider_bindings", [])
+        if b.get("technology_ref") not in technologies
     ]
 
+
+def _admission(topo: dict[str, Any], law: Law, repo: Path) -> list[str]:
+    admission = topo.get("admission", {})
+    reasons = [
+        f"admission.{key} unresolved"
+        for key in ("subject", "authority_ref", "decision_ref")
+        if not _resolves(admission.get(key), law.known, repo)
+    ]
+    if not admission.get("requirements"):
+        reasons.append("admission.requirements empty")
+    return reasons
+
+
+def _conformance(
+    topo: dict[str, Any], archetype: dict[str, Any], law: Law, repo: Path
+) -> list[str]:
+    conformance = topo.get("conformance", {})
+    reasons = [
+        f"conformance profile unresolved: {ref}"
+        for ref in conformance.get("profile_refs", [])
+        if not _resolves(ref, law.known, repo) or not str(ref).startswith("l9.")
+    ]
+    required = set(archetype["requires"]["conformance_classes"])
+    missing = required - set(conformance.get("required_classes", []))
+    return reasons + [f"conformance class missing: {c}" for c in sorted(missing)]
+
+
+def _boundaries(topo: dict[str, Any]) -> list[str]:
     boundary = topo.get("boundary", {})
     owns, disowns = set(boundary.get("owns", [])), set(boundary.get("does_not_own", []))
-    if not owns or not disowns:
-        failing["authority_boundaries_valid"].append(
-            "boundary owns/does_not_own must both be declared"
-        )
-    failing["authority_boundaries_valid"] += [
-        f"owned and disowned: {s}" for s in sorted(owns & disowns)
-    ]
+    reasons = [] if owns and disowns else ["boundary owns/does_not_own must both be declared"]
+    return reasons + [f"owned and disowned: {s}" for s in sorted(owns & disowns)]
 
+
+def evaluate_gate(
+    topo: dict[str, Any], law: Law, repo: Path, topology_path: Path
+) -> dict[str, list[str]]:
+    """Return every gate condition with the reasons it fails (empty = holds)."""
+
+    failing: Gate = {name: [] for name in GATE}
+    failing["source_product_topology_valid"] = topology_law.validate(repo, law.root, topology_path)
+    kind, archetype = _kind_and_archetype(topo, law, failing)
+    _identity(topo, kind, law, repo, failing)
+    failing["hard_requirements_resolved"] = _requirements(topo, law, repo)
+    failing["capability_closure_resolved"] = _capabilities(topo)
+    failing["architecture_obligations_resolved"] = topology_law.check_kind(
+        topo, law.kinds, law.root
+    )
+    _ports_and_adapters(topo, failing)
+    failing["product_relationships_resolved"] = _relationships(topo, kind, law)
+    failing["provider_bindings_admissible"] = _provider_bindings(topo, law)
+    failing["admission_requirements_resolved"] = _admission(topo, law, repo)
+    failing["conformance_requirements_resolved"] = _conformance(topo, archetype, law, repo)
+    failing["authority_boundaries_valid"] = _boundaries(topo)
     failing["unresolved_hard_semantic_gaps_empty"] = [
         f"material Unknown {u.get('id')}: {u.get('subject')}"
         for u in topo.get("unknowns", {}).get("material") or []

@@ -43,7 +43,8 @@ def _sha256(path: Path) -> str:
 
 def _generator() -> ModuleType:
     spec = importlib.util.spec_from_file_location("generate_product_manifest", GENERATOR)
-    assert spec and spec.loader
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.path.insert(0, str(GENERATOR.parent))
     try:
