@@ -19,8 +19,12 @@ admitted. Both are failures here, not review-time judgement.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
+import json
 import re
+import sys
 from pathlib import Path
+from types import ModuleType
 
 import yaml
 
@@ -28,6 +32,25 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 TOPOLOGY = REPO_ROOT / "product-topology.yaml"
 DECISION = REPO_ROOT / "docs" / "adr" / "ADR-085-product-topology-and-release-governance.md"
 BINDING = REPO_ROOT / "release-work" / "product-release-binding.yaml"
+MANIFEST = REPO_ROOT / "release-work" / "product-manifest.json"
+GENERATOR = REPO_ROOT / "tools" / "assurance" / "generate_product_manifest.py"
+CI = REPO_ROOT / ".github" / "workflows" / "ci.yml"
+
+
+def _sha256(path: Path) -> str:
+    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _generator() -> ModuleType:
+    spec = importlib.util.spec_from_file_location("generate_product_manifest", GENERATOR)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.path.insert(0, str(GENERATOR.parent))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.pop(0)
+    return module
 
 
 def test_decision_and_binding_name_the_committed_topology_digest() -> None:
@@ -58,3 +81,33 @@ def test_binding_never_claims_a_resolved_manifest_without_exact_coordinates() ->
     else:
         assert manifest["status"] == "unresolved"
         assert manifest["reasons"], "an unresolved ProductManifest must say why"
+
+
+def test_derived_product_manifest_is_current_and_bound() -> None:
+    # The ProductManifest is derived in this repository (ADR-085): it must be
+    # the generator's output for the committed topology, carry a digest that
+    # recomputes, and agree with the release binding and the CI authority pin.
+    # Regenerating it needs the authority checkout; CI runs that --check.
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    generator = _generator()
+    assert manifest["schema"] == "l9.product-manifest/v1"
+    assert manifest["manifest_digest"] == generator.manifest_digest(manifest)
+    assert manifest["source_topology"]["digest"] == _sha256(TOPOLOGY)
+    assert manifest["compiler"]["compiler_version"].endswith("@" + _sha256(GENERATOR))
+    gate = manifest["resolved_manifest_gate"]
+    assert tuple(gate["conditions"]) == tuple(sorted(generator.GATE))
+    failing = sorted(name for name, c in gate["conditions"].items() if not c["holds"])
+    assert sorted(item["condition"] for item in manifest["unresolved"]) == failing
+    assert gate["result"] == ("fail" if failing else "pass")
+
+    binding = yaml.safe_load(BINDING.read_text(encoding="utf-8"))
+    bound = binding["product_manifest"]
+    assert bound["ref"] == MANIFEST.relative_to(REPO_ROOT).as_posix()
+    assert bound["digest"] == manifest["manifest_digest"]
+    assert bound["compiler_revision"] == _sha256(GENERATOR)
+    assert bound["compiler_profile_digest"] == manifest["compiler"]["profile_digest"]
+    assert bound["resolved_manifest_gate"] == gate["result"]
+    assert bound["status"] == ("resolved" if gate["result"] == "pass" else "unresolved")
+    revision = binding["authority"]["revision"]
+    assert manifest["authority"]["revision"] == revision
+    assert f"ref: {revision}" in CI.read_text(encoding="utf-8")

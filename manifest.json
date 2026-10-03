@@ -1,5 +1,5 @@
 {
-  "file_count": 765,
+  "file_count": 767,
   "files": [
     {
       "category": "ci",
@@ -46,8 +46,8 @@
         "version": "2.5.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "65a9e9de793008b4b97296e62b22db582b7d55bfa76af8564113d75b55e45704",
-      "size_bytes": 9804
+      "sha256": "6c676a51c2aa7418f0f2686d165152cabbdf9b88297434cf84aa64d0258a1ba3",
+      "size_bytes": 10381
     },
     {
       "category": "ci",
@@ -398,8 +398,8 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "4457febe295fcdb3a37c936b2763a4cfd1f6023ded2e3ef38244fb41fcb5ad6f",
-      "size_bytes": 126018
+      "sha256": "2529bb8da5cd5ab33f647b7bfe295f854fed8b3857375d00be40fb1acbdd1330",
+      "size_bytes": 126329
     },
     {
       "category": "repository_root",
@@ -4318,8 +4318,8 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/ADR-085-product-topology-and-release-governance.md",
-      "sha256": "99230a0778f61ad7a8540fc5e9ea7f1c8f1e5c6374b50f521bb8b4bf91eecb2f",
-      "size_bytes": 8539
+      "sha256": "2e139a8c1160910d5148f02675a1aa6981c027499503905ddba188eda02ada02",
+      "size_bytes": 10145
     },
     {
       "category": "architecture_decisions",
@@ -4679,6 +4679,22 @@
         "l9_schema": 1,
         "layer": "repository",
         "owner": "memory-control-plane",
+        "path": "release-work/product-manifest.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "release-work/product-manifest.json",
+      "sha256": "f73c78816b7ab2622e8873ee5c0a07c81d036b91841fbf9a993f8c8db58c7d7b",
+      "size_bytes": 31116
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository",
+        "owner": "memory-control-plane",
         "path": "release-work/product-release-binding.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -4686,8 +4702,8 @@
         "version": "2.5.0"
       },
       "path": "release-work/product-release-binding.yaml",
-      "sha256": "aaf20590507d42a18a80ce59e5a0eba11f1a8e1cc6d2646492209a863758ef6e",
-      "size_bytes": 5417
+      "sha256": "5363b06f8dc11159cae772349e71a3f6fd81cbe170ed0c8ba8304765117da891",
+      "size_bytes": 6157
     },
     {
       "category": "repository_root",
@@ -5102,8 +5118,8 @@
         "version": "2.5.0"
       },
       "path": "scripts/validate_release.sh",
-      "sha256": "55940084f742593745fcc1360e45bb16763e270e87b3304fafbce440340c8fdc",
-      "size_bytes": 11735
+      "sha256": "db3e101704bfd91e5e8f0129dbef6f36d056f91c4d7422c8d4a5a82d4c6725bc",
+      "size_bytes": 12505
     },
     {
       "category": "operations",
@@ -9198,8 +9214,8 @@
         "version": "2.5.0"
       },
       "path": "tests/regression/test_product_release_governance.py",
-      "sha256": "1d5d60e6943e95cda7ae5c73723e40825ce7816ac1166d3a7d991baf77525f2e",
-      "size_bytes": 2524
+      "sha256": "5a55fc76a89132e59efd946fc30935d4c9842ab7c45e7051584be8c8db4dcba6",
+      "size_bytes": 5062
     },
     {
       "category": "tests",
@@ -10439,6 +10455,22 @@
         "l9_schema": 1,
         "layer": "assurance",
         "owner": "memory-control-plane",
+        "path": "tools/assurance/generate_product_manifest.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tools/assurance/generate_product_manifest.py",
+      "sha256": "f946e22c5e047f42c43d0976ff6bc81bd95de7e97c2e251d52f642b9c632afa6",
+      "size_bytes": 19637
+    },
+    {
+      "category": "assurance",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "assurance",
+        "owner": "memory-control-plane",
         "path": "tools/assurance/generate_validation_evidence.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -10446,8 +10478,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "53d69100bb72fcdd6c507c6c072fb086bd2b7f555fc4d8da20486c226103b7e4",
-      "size_bytes": 23285
+      "sha256": "905f1b02457687b21643ff8a076d601969cfe4bcca195c5a74a6b60d3d839d98",
+      "size_bytes": 23520
     },
     {
       "category": "assurance",
