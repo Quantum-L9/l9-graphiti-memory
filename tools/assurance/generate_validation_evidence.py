@@ -174,8 +174,17 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # blank-separated following header is unrelated, and the validator
         # canonicalizes its evidence root before guarding. Same arithmetic:
         # 1180 + 3 = 1183 collected, 1183 - 16 = 1167.
-        "1167 tests pass",
-        r"1167 passed",
+        #
+        # Re-pinned 1167 -> 1169 for ADR-085 (product topology and release
+        # governance): 2 cases in test_product_release_governance.py, none
+        # backend-parameterized. Same arithmetic: 1183 + 2 = 1185 collected,
+        # 1185 - 16 = 1169.
+        #
+        # Re-pinned 1169 -> 1170 for the repository-derived ProductManifest
+        # (ADR-085 amendment): 1 case in test_product_release_governance.py.
+        # Same arithmetic: 1185 + 1 = 1186 collected, 1186 - 16 = 1170.
+        "1170 tests pass",
+        r"1170 passed",
     ),
     CheckSpec(
         "V-002",
@@ -196,9 +205,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
         # parity). Re-pinned 83 -> 84 for ADR-084 (projection runtime and
-        # target-aware lifecycle).
-        "84 ADRs complete and indexed",
-        r"PASS: 84 ADRs",
+        # target-aware lifecycle). Re-pinned 84 -> 85 for ADR-085 (product
+        # topology and release governance).
+        "85 ADRs complete and indexed",
+        r"PASS: 85 ADRs",
     ),
     CheckSpec(
         "V-004",

@@ -83,7 +83,19 @@ jobs:
         run: PYTHONPATH=src pytest tests/unit/active tests/conformance/active tests/external_runtime -v
       - name: Gate active-memory public API
         run: PYTHONPATH=src python tools/assurance/check_active_memory_public_api.py
+      # ADR-085: the topology validator and the ProductManifest --check read
+      # global law from the pinned semantic authority (release binding
+      # authority.revision); nothing from it is copied into this repository.
+      - name: Check out the bound semantic authority
+        uses: actions/checkout@v4
+        with:
+          repository: Quantum-L9/.github
+          ref: 3eaa094be0b1ec74944e832887aa1752c818fc11
+          path: build/semantic-authority
+          persist-credentials: false
       - run: bash scripts/validate_release.sh
+        env:
+          L9_SEMANTIC_AUTHORITY_ROOT: build/semantic-authority
       # Release evidence (audit P2-03): a coverage report the release-analysis
       # tooling can map to new code. Collected as a separate run against the
       # full suite so the evidence generator's exact "N passed" pin above is

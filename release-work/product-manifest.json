@@ -1,0 +1,834 @@
+{
+  "adapters": {
+    "forbidden": [],
+    "inbound": [],
+    "integration": [
+      {
+        "id": "l9-graphiti-memory:adapter/gate-memory-bridge@1",
+        "port_ref": "l9-graphiti-memory:port/constellation@1",
+        "rule": "Gate-only dispatch through injected packet factory and Gate client; no peer URL or registry awareness.",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-060-gate-only-constellation-dispatch.md"
+      }
+    ],
+    "outbound": [
+      {
+        "id": "l9-graphiti-memory:adapter/sqlite-store@1",
+        "port_ref": "l9-graphiti-memory:port/record-store@1"
+      },
+      {
+        "id": "l9-graphiti-memory:adapter/postgres-store@1",
+        "port_ref": "l9-graphiti-memory:port/record-store@1"
+      }
+    ],
+    "provider": [
+      {
+        "id": "l9-graphiti-memory:adapter/graphiti-mcp-projection@1",
+        "port_ref": "l9-graphiti-memory:port/projection@1"
+      },
+      {
+        "id": "l9-graphiti-memory:adapter/zep-projection@1",
+        "port_ref": "l9-graphiti-memory:port/projection@1"
+      }
+    ]
+  },
+  "admission": {
+    "admission_profile_ref": "l9-graphiti-memory:admission/product-owner-decision@1",
+    "authority_ref": "l9-graphiti-memory:authority/memory-architecture",
+    "consumer_binding": [
+      "select_admitted_release",
+      "verify_consumer_compatibility",
+      "resolve_dependency_graph",
+      "install_exact_artifact",
+      "bind_configuration_and_extensions",
+      "run_consumer_conformance",
+      "record_binding"
+    ],
+    "decision_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-085-product-topology-and-release-governance.md",
+    "evidence_requirement_refs": [
+      "l9.receipt/validation@1",
+      "l9.receipt/conformance@1",
+      "l9.receipt/admission@1"
+    ],
+    "kind_specific_requirements": [
+      "dependency product release admission states follow l9.product-kinds/global@1",
+      "consumer binding is a separate downstream decision owned by each consumer"
+    ],
+    "product_release_admission": [
+      "candidate",
+      "identified",
+      "contract_bound",
+      "validated",
+      "compatibility_proven",
+      "admitted",
+      "current",
+      "superseded",
+      "retired"
+    ],
+    "requirements": [
+      "topology admission is an explicit product-owner decision bound to the exact topology digest",
+      "release admission is an explicit authority decision bound to the exact frozen candidate subject set (version, source revision, wheel sha256, sdist sha256)",
+      "validation, conformance and successful execution never admit a topology or a release"
+    ],
+    "subject": "l9-graphiti-memory:product/l9-graphite-memory"
+  },
+  "architecture": {
+    "composition_rules": [
+      "l9.compose/product-kind-dependency@1"
+    ],
+    "forbidden_pattern_refs": [
+      "l9.pattern/runnable-node@1",
+      "l9.pattern/semantic-core-gate-adapter@1"
+    ],
+    "layer_constraints": [
+      {
+        "class": "architecture",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/layer-directions@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md",
+        "statement": "Core, adapter, service and integration dependency directions are enforced by tools/assurance/check_layer_boundaries.py."
+      }
+    ],
+    "optional_pattern_refs": [
+      "l9.pattern/semantic-core-provider-adapter@1",
+      "l9.pattern/reference-model-conformance@1",
+      "l9.pattern/fixture-backed-conformance@1"
+    ],
+    "required_pattern_refs": [
+      "l9.pattern/dependency-package@1"
+    ],
+    "resolved_required_pattern_refs": [
+      "l9.pattern/dependency-package@1"
+    ],
+    "structural_constraints": []
+  },
+  "authority": {
+    "files": [
+      {
+        "blob": "323dce7e53a406f0c2b4662e9a093f20cca44322",
+        "digest": "sha256:113a782fa494404d6622c68db91f29f41893c27f08fd425cd274e2e908a2fec5",
+        "path": "semantics/compilation_profiles.yaml"
+      },
+      {
+        "blob": "ac416e943545caeb6a624141ccca43277db90ebd",
+        "digest": "sha256:fffdb91e5af79fa329a704a898deb06ba31f4c4d2b1b226e3805fa45e2b96207",
+        "path": "semantics/contracts.yaml"
+      },
+      {
+        "blob": "b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a",
+        "digest": "sha256:909db431aa0ccc7668ce3f2dcd46addc26df39c8f3e7303925469b47d6a4617d",
+        "path": "semantics/dependency_archetypes.yaml"
+      },
+      {
+        "blob": "8e5aa829df8e00f89286d99ec8d9529e5da63805",
+        "digest": "sha256:6bc39e7376650601570301fe486bdc6f2897fe461321e92c41250f9426688e7d",
+        "path": "semantics/product_kinds.yaml"
+      },
+      {
+        "blob": "edb3ce1efc50f5104181eedc7ab49286b74bcfb8",
+        "digest": "sha256:e1676c73cc1a26a69613055f9d5ee8e1f3392dbb7eee60122cb59f6c91965f9a",
+        "path": "semantics/product_manifest.schema.yaml"
+      },
+      {
+        "blob": "4fd2856bdf84c10a55a4be7e8519848c22c2bdbf",
+        "digest": "sha256:32b820e768b8029dab0e754e5f36115d8d15b8f9a671187fca4fadf1e14a521a",
+        "path": "semantics/product_topology.schema.yaml"
+      },
+      {
+        "blob": "e80fb78a5ad8dbf5294ae8c9535f3357c156699b",
+        "digest": "sha256:b8024cf485402c1405d4eefc7ef8692b103425af75638faeba00f960690accb6",
+        "path": "semantics/technology_capabilities.yaml"
+      },
+      {
+        "blob": "c75fa5efe1c33117c970e8cb3c699e9924a154b8",
+        "digest": "sha256:75e146e90e9f3e976c75382a5928d04c18531fa076f4096f8e5c5d4f468b0084",
+        "path": "semantics/vocabulary.yaml"
+      }
+    ],
+    "product_semantic_owner": "l9-graphiti-memory:authority/memory-architecture",
+    "repository": "Quantum-L9/.github",
+    "revision": "3eaa094be0b1ec74944e832887aa1752c818fc11"
+  },
+  "bindings": {
+    "product_bindings": [],
+    "protocol_bindings": [],
+    "provider_bindings": [
+      {
+        "adapter_ref": "l9-graphiti-memory:adapter/graphiti-mcp-projection@1",
+        "manifest": "config/projections/facts-v8.yaml",
+        "target_id": "facts:v8:graphiti:primary",
+        "target_state": "active",
+        "technology_ref": "unknown",
+        "unknown_ref": "MU-002"
+      },
+      {
+        "adapter_ref": "l9-graphiti-memory:adapter/zep-projection@1",
+        "manifest": "config/projections/facts-v8.yaml",
+        "rule": "shadow results are measured only and never change returned canonical retrieval",
+        "target_id": "facts:v8:zep:primary",
+        "target_state": "shadow",
+        "technology_ref": "unknown",
+        "unknown_ref": "MU-002"
+      }
+    ]
+  },
+  "build": {
+    "build_requirement_refs": [
+      "Quantum-L9/l9-graphiti-memory/scripts/validate_release.sh"
+    ],
+    "compilation_profile_ref": "l9.compilation/product-build@1",
+    "generated_surfaces": [
+      "MANIFEST.md",
+      "manifest.json"
+    ],
+    "reproducibility_requirement_refs": [],
+    "source_owned_surfaces": [
+      "product-topology.yaml"
+    ],
+    "target_binding_refs": []
+  },
+  "capabilities": {
+    "degraded_without": [
+      {
+        "id": "l9-graphiti-memory:requirement/graph-projection-provider@1",
+        "purpose": "Without a provider, canonical memory remains complete and projection targets stay disabled."
+      }
+    ],
+    "forbidden": [],
+    "optional": [
+      {
+        "id": "l9-graphiti-memory:requirement/graph-projection-provider@1",
+        "purpose": "A graph provider realization for the memory projection port."
+      },
+      {
+        "id": "l9-graphiti-memory:requirement/shared-canonical-store@1",
+        "purpose": "A PostgreSQL canonical store when the deployment shares canonical memory across processes."
+      }
+    ],
+    "provides": [
+      {
+        "id": "l9-graphiti-memory:capability/memory-admission@1",
+        "purpose": "Admit candidate memory into canonical persistence under policy, phase-lock and identity checks.",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      },
+      {
+        "id": "l9-graphiti-memory:capability/memory-retrieval@1",
+        "purpose": "Search and hydrate current canonical memory, with historical visibility only on explicit request.",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      },
+      {
+        "id": "l9-graphiti-memory:capability/memory-lifecycle@1",
+        "purpose": "Transition canonical records through lifecycle states, including supersession, archival, retention and verified deletion.",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      },
+      {
+        "id": "l9-graphiti-memory:capability/memory-curation@1",
+        "purpose": "Promote, distill, synthesize and maintain canonical memory.",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      },
+      {
+        "id": "l9-graphiti-memory:capability/memory-projection@1",
+        "purpose": "Project canonical records to provider targets through the outbox, and retire, erase or rebuild them.",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      },
+      {
+        "id": "l9-graphiti-memory:capability/memory-receipts@1",
+        "purpose": "Emit evidence-bearing receipts for every consequential memory operation.",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      }
+    ],
+    "requires": [
+      {
+        "id": "l9-graphiti-memory:requirement/consumer-process-host@1",
+        "purpose": "A consuming product hosts the process, injects deployment identity and owns process lifecycle.",
+        "source_ref": "l9.pattern/dependency-package@1"
+      }
+    ]
+  },
+  "communication": {
+    "constellation_boundary_required": false,
+    "egress_contract_refs": [],
+    "forbidden_paths": [
+      "node-to-node calls",
+      "peer URL awareness",
+      "implicit Gate registration"
+    ],
+    "ingress_contract_refs": [],
+    "packet_refs": [],
+    "routing_authority_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-060-gate-only-constellation-dispatch.md",
+    "transport_contract_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-026-transportpacket-constellation-boundary.md"
+    ]
+  },
+  "compatibility": {
+    "breaking_change_policy_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-022-release-publishing-and-rollback.md",
+    "consumer_compatibility_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md"
+    ],
+    "provider_compatibility_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/COMPATIBILITY_MATRIX.md"
+    ],
+    "public_contract_policy_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md",
+    "runtime_compatibility_refs": [],
+    "semantic_compatibility_refs": [
+      "l9.contract/semantic-identity-and-compatibility@1"
+    ]
+  },
+  "compiler": {
+    "compiler_version": "Quantum-L9/l9-graphiti-memory/tools/assurance/generate_product_manifest.py@sha256:8089e419a40868a66c6045be27ea16254b0022105dec3f0ae1a3a1335249b70a",
+    "profile_digest": "sha256:bbcb06d010a1b7bc0d3275766e00e9031d6c481cee576235ff389928287487df",
+    "profile_ref": "l9.compilation/product-build@1",
+    "realization": "repository-local deterministic derivation; no l9-semantic-compiler exists (ADR-085)"
+  },
+  "conformance": {
+    "final_conformance_required": true,
+    "fixture_profile_refs": [],
+    "negative_proof_refs": [],
+    "profile_refs": [
+      "unknown"
+    ],
+    "provider_conformance_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-021-testing-and-adapter-conformance.md"
+    ],
+    "required_classes": [
+      "core"
+    ]
+  },
+  "distribution": {
+    "artifact_forms": [
+      "wheel",
+      "sdist"
+    ],
+    "artifact_identity_refs": [
+      "l9-graphiti-memory:product/l9-graphite-memory"
+    ],
+    "integrity_requirement_refs": [
+      "published artifact sha256 equals admitted and validated artifact sha256"
+    ],
+    "publication_contract_refs": [
+      "Quantum-L9/l9-graphiti-memory/.github/workflows/publish.yml"
+    ],
+    "registry_refs": [
+      "pypi:l9-graphite-memory"
+    ],
+    "release_contract_refs": [
+      "l9.contract/product-release@1"
+    ]
+  },
+  "failure": {
+    "ambiguity_contract_refs": [],
+    "degradable_conditions": [
+      "projection provider unavailable"
+    ],
+    "fail_closed_conditions": [
+      "unknown or ambiguous actor identity on a consequential write",
+      "unacknowledged canonical store backend switch",
+      "canonical write without the MemoryService write capability"
+    ],
+    "reconciliation_contract_refs": [],
+    "retry_authority_ref": "l9-graphiti-memory:authority/memory-architecture",
+    "retry_contract_refs": [],
+    "taxonomy_refs": [
+      "l9.error-taxonomy/global@1"
+    ],
+    "unknown_outcome_rules": [
+      "unknown outcomes are never collapsed to success"
+    ]
+  },
+  "governance": {
+    "autonomy_contract_refs": [],
+    "profile_refs": [],
+    "profile_selection_contract_refs": [],
+    "rules": [],
+    "selection_inputs": []
+  },
+  "identity": {
+    "aliases": [
+      "Quantum-L9/l9-graphiti-memory"
+    ],
+    "bindings": [],
+    "canonical_repository": "Quantum-L9/l9-graphiti-memory",
+    "dimensions": {
+      "actor": {
+        "applicable": true,
+        "authority_source": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md",
+        "materiality": "local_authorship_is_material",
+        "reason": "every canonical memory write is attributed authorship; the caller principal is derived server-side and never accepted from request payloads",
+        "registry_ref": "l9.actor-registry/global@1",
+        "unknown_or_ambiguous_outcome": "fail_closed"
+      },
+      "constellation": {
+        "applicable": false,
+        "forbidden": "independent_constellation_identity_as_dependency",
+        "rule": "no_independent_constellation_runtime_identity",
+        "rule_source_ref": "l9.product-kinds/global@1"
+      },
+      "product": {
+        "applicable": true,
+        "authority_source": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-058-graphiti-repository-name-and-graphite-package-compatibility.md",
+        "distribution_name": "l9-graphite-memory",
+        "import_package": "l9_graphite_memory",
+        "value": "l9-graphiti-memory:product/l9-graphite-memory"
+      },
+      "release": {
+        "applicable": true,
+        "governing_contract_ref": "l9.contract/product-release@1",
+        "identity_rule": "release identity is the exact (PACKAGE_VERSION, source revision, wheel sha256, sdist sha256) tuple; a version string alone is never release identity",
+        "version_source": "src/l9_graphite_memory/version.py::PACKAGE_VERSION"
+      },
+      "runtime": {
+        "applicable": false,
+        "inherits_from": "consumer",
+        "rule": "RuntimeIdentity(dependency_instance) = RuntimeIdentity(consumer)",
+        "rule_source_ref": "l9.product-kinds/global@1"
+      },
+      "surface": {
+        "applicable": false,
+        "authority_source": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md",
+        "reason": "CLI, MCP, HTTP and SDK surfaces are transport adapters with lifecycle-operation parity into one MemoryService; a local surface does not change governance or projection semantics"
+      }
+    },
+    "identity_contract_refs": [
+      "l9.contract/identity-topology@1",
+      "l9.contract/identity-resolution@1"
+    ],
+    "kind_identity_dimensions": [
+      "product_identity",
+      "release_identity"
+    ],
+    "predecessor_refs": [],
+    "resolution": {
+      "assertion_schema_ref": "l9.schema/identity-assertion@1",
+      "contract_ref": "l9.contract/identity-resolution@1",
+      "evidence_source_refs": [
+        "l9.actor-registry/global@1"
+      ],
+      "resolver_ref": "l9-graphiti-memory:resolver/server-side-principal@1",
+      "unknown_policy": "fail_closed_for_consequential_actor_identity"
+    },
+    "runtime_identity_rule": "RuntimeIdentity(dependency_instance) = RuntimeIdentity(consumer)",
+    "semantic_owner": "l9-graphiti-memory:authority/memory-architecture",
+    "semantic_scope": "canonical_agent_memory_control_plane",
+    "successor_refs": [],
+    "supersedes": []
+  },
+  "lifecycle": {
+    "applicable_state_refs": [
+      "candidate",
+      "identified",
+      "contract_bound",
+      "validated",
+      "compatibility_proven",
+      "admitted",
+      "current",
+      "superseded",
+      "retired"
+    ],
+    "family_ref": "l9.lifecycle/global@1",
+    "retirement_contract_ref": "l9.contract/revision-and-supersession@1",
+    "supersession_contract_ref": "l9.contract/revision-and-supersession@1",
+    "transition_contract_refs": [
+      "l9.contract/product-release@1",
+      "l9.contract/admission-and-promotion@1"
+    ]
+  },
+  "manifest_digest": "sha256:96b0574080c598f685e98275ce770354868040f7ec8ea62e80cb1714aeb0a2df",
+  "observability": {
+    "audit_requirement_refs": [],
+    "capability_metrics": [],
+    "correlation_identity_refs": [],
+    "logging_contract_refs": [],
+    "provider_metrics": [],
+    "slo_refs": [],
+    "tracing_requirement_refs": []
+  },
+  "ports": {
+    "extension": [],
+    "forbidden": [],
+    "inbound": [],
+    "outbound": [
+      {
+        "id": "l9-graphiti-memory:port/record-store@1",
+        "module": "l9_graphite_memory.ports.record_store",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      },
+      {
+        "id": "l9-graphiti-memory:port/projection@1",
+        "module": "l9_graphite_memory.ports.projection",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      },
+      {
+        "id": "l9-graphiti-memory:port/constellation@1",
+        "module": "l9_graphite_memory.ports.constellation",
+        "semantic_owner": "l9-graphiti-memory:authority/memory-architecture"
+      }
+    ]
+  },
+  "product": {
+    "archetype_ref": "l9.dependency-archetype/semantic-subsystem@1",
+    "id": "l9-graphiti-memory:product/l9-graphite-memory",
+    "kind": "dependency",
+    "name": "l9-graphite-memory"
+  },
+  "provenance": {
+    "derivation": "deterministic",
+    "inputs": [
+      {
+        "digest": "sha256:4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104",
+        "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
+      },
+      {
+        "digest": "sha256:113a782fa494404d6622c68db91f29f41893c27f08fd425cd274e2e908a2fec5",
+        "ref": "Quantum-L9/.github/semantics/compilation_profiles.yaml@323dce7e53a406f0c2b4662e9a093f20cca44322"
+      },
+      {
+        "digest": "sha256:fffdb91e5af79fa329a704a898deb06ba31f4c4d2b1b226e3805fa45e2b96207",
+        "ref": "Quantum-L9/.github/semantics/contracts.yaml@ac416e943545caeb6a624141ccca43277db90ebd"
+      },
+      {
+        "digest": "sha256:909db431aa0ccc7668ce3f2dcd46addc26df39c8f3e7303925469b47d6a4617d",
+        "ref": "Quantum-L9/.github/semantics/dependency_archetypes.yaml@b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a"
+      },
+      {
+        "digest": "sha256:6bc39e7376650601570301fe486bdc6f2897fe461321e92c41250f9426688e7d",
+        "ref": "Quantum-L9/.github/semantics/product_kinds.yaml@8e5aa829df8e00f89286d99ec8d9529e5da63805"
+      },
+      {
+        "digest": "sha256:e1676c73cc1a26a69613055f9d5ee8e1f3392dbb7eee60122cb59f6c91965f9a",
+        "ref": "Quantum-L9/.github/semantics/product_manifest.schema.yaml@edb3ce1efc50f5104181eedc7ab49286b74bcfb8"
+      },
+      {
+        "digest": "sha256:32b820e768b8029dab0e754e5f36115d8d15b8f9a671187fca4fadf1e14a521a",
+        "ref": "Quantum-L9/.github/semantics/product_topology.schema.yaml@4fd2856bdf84c10a55a4be7e8519848c22c2bdbf"
+      },
+      {
+        "digest": "sha256:b8024cf485402c1405d4eefc7ef8692b103425af75638faeba00f960690accb6",
+        "ref": "Quantum-L9/.github/semantics/technology_capabilities.yaml@e80fb78a5ad8dbf5294ae8c9535f3357c156699b"
+      },
+      {
+        "digest": "sha256:75e146e90e9f3e976c75382a5928d04c18531fa076f4096f8e5c5d4f468b0084",
+        "ref": "Quantum-L9/.github/semantics/vocabulary.yaml@c75fa5efe1c33117c970e8cb3c699e9924a154b8"
+      }
+    ]
+  },
+  "providers": {
+    "allowed": [
+      {
+        "authority": "derived",
+        "id": "graphiti_mcp",
+        "role": "projection_provider"
+      },
+      {
+        "authority": "derived",
+        "id": "zep",
+        "role": "projection_provider"
+      }
+    ],
+    "prohibited": [],
+    "provider_independence_required": true,
+    "substitution_contract_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-013-transport-abstraction-and-vendor-neutrality.md"
+    ]
+  },
+  "receipts": {
+    "canonicalization_ref": null,
+    "consumes": [],
+    "emits": [
+      {
+        "family_ref": "l9-graphiti-memory:contract/memory-receipts@1",
+        "specializes": "l9.receipt-catalog/global@1"
+      }
+    ],
+    "preservation_requirement_refs": []
+  },
+  "relationships": {
+    "forbidden_relationships": [
+      {
+        "reason": "remote_invocation_as_canonical_consumption is forbidden for a dependency",
+        "relation": "invoke"
+      }
+    ],
+    "products": [
+      {
+        "binding_owner": "Quantum-L9/Cursor-Governance",
+        "consumer": "Quantum-L9/Cursor-Governance",
+        "contract_ref": "l9-graphiti-memory:contract/memory-control-plane@1",
+        "relation": "compose"
+      }
+    ],
+    "relationship_constraints": [
+      {
+        "class": "authority",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/consumer-binding-is-separate@1",
+        "source_ref": "l9.product-kinds/global@1",
+        "statement": "Consumer binding is a separate downstream decision and never redefines this product's release identity."
+      }
+    ]
+  },
+  "requirements": {
+    "conformance_requirements": [
+      "l9.contract/conformance-resolution@1"
+    ],
+    "contract_refs": [
+      "l9.contract/product-topology@1",
+      "l9.contract/product-kind@1",
+      "l9.contract/product-release@1",
+      "l9.contract/projection@1",
+      "l9.contract/evidence-and-receipt@1"
+    ],
+    "hard_constraints": [
+      {
+        "class": "semantic",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/memory-service-is-canonical@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-002-canonical-memory-service.md",
+        "statement": "MemoryService is the only production path for every memory write and read operation."
+      },
+      {
+        "class": "authority",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/server-derived-caller-identity@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md",
+        "statement": "Caller identity is derived server-side; a request never asserts its own principal."
+      },
+      {
+        "class": "semantic",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/atomic-evidence-bearing-persistence@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md",
+        "statement": "Canonical persistence is atomic and evidence-bearing."
+      },
+      {
+        "class": "semantic",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/bitemporal-distinction@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/AGENTS.md",
+        "statement": "Valid time and transaction time remain distinct."
+      },
+      {
+        "class": "semantic",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/projections-are-not-canonical@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-063-projection-manifest-compiler-and-control-plane-boundaries.md",
+        "statement": "Graph and semantic provider state is a rebuildable projection and is never canonical memory."
+      },
+      {
+        "class": "authority",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/no-write-bypass@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-036-canonical-write-bypass-enforcement.md",
+        "statement": "Canonical store mutations require the MemoryService-issued write capability and are gated by the release-blocking bypass scanner."
+      }
+    ],
+    "invariant_refs": [
+      "L9-AUTH-001",
+      "L9-OWNER-001",
+      "L9-SEM-001",
+      "L9-UNKNOWN-001",
+      "L9-PROV-001",
+      "L9-IDENTITY-001",
+      "L9-IDENTITY-005",
+      "L9-COMPAT-001",
+      "L9-PROJECTION-001",
+      "L9-EVIDENCE-001"
+    ],
+    "operational_requirements": [
+      {
+        "class": "operational",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/no-secret-persistence@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-016-secret-and-credential-boundaries.md",
+        "statement": "Secrets enter only at runtime from operator environment or the secret provider; generated configuration never persists them."
+      }
+    ],
+    "security_requirements": [
+      {
+        "class": "authority",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/fail-closed-actor-attribution@1",
+        "source_ref": "L9-IDENTITY-005",
+        "statement": "Unknown or ambiguous actor identity fails closed for memory attribution."
+      }
+    ],
+    "soft_objectives": []
+  },
+  "resolved_manifest_gate": {
+    "conditions": {
+      "admission_requirements_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "architecture_obligations_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "authority_boundaries_valid": {
+        "holds": true,
+        "reasons": []
+      },
+      "capability_closure_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "conformance_requirements_resolved": {
+        "holds": false,
+        "reasons": [
+          "conformance profile unresolved: unknown"
+        ]
+      },
+      "governance_profile_separate_from_identity": {
+        "holds": true,
+        "reasons": []
+      },
+      "hard_requirements_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "identity_resolution_contract_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "identity_topology_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "product_archetype_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "product_kind_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "product_relationships_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "provider_bindings_admissible": {
+        "holds": false,
+        "reasons": [
+          "provider binding facts:v8:graphiti:primary has no admitted technology coordinate (unknown; MU-002)",
+          "provider binding facts:v8:zep:primary has no admitted technology coordinate (unknown; MU-002)"
+        ]
+      },
+      "required_adapters_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "required_ports_resolved": {
+        "holds": true,
+        "reasons": []
+      },
+      "source_product_topology_valid": {
+        "holds": true,
+        "reasons": []
+      },
+      "unresolved_hard_semantic_gaps_empty": {
+        "holds": false,
+        "reasons": [
+          "material Unknown MU-001: conformance.profile_refs",
+          "material Unknown MU-002: bindings.provider_bindings[*].technology_ref"
+        ]
+      }
+    },
+    "result": "fail"
+  },
+  "runtime": {
+    "concurrency_model": "canonical store transactions; one outbox intent per projection target",
+    "degradation_contract_refs": [],
+    "health_contract_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md"
+    ],
+    "participation_model": "consumer_bound",
+    "process_model": "consumer_owned_process_lifecycle",
+    "readiness_contract_refs": [],
+    "resource_model": "consumer_owned",
+    "shutdown_requirement_refs": [],
+    "startup_requirement_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-077-canonical-store-backend-transition-safety.md"
+    ]
+  },
+  "schema": "l9.product-manifest/v1",
+  "security": {
+    "authentication_contract_refs": [],
+    "authorization_contract_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md"
+    ],
+    "credential_scope": [
+      "provider credentials resolved at runtime only"
+    ],
+    "data_handling_contract_refs": [],
+    "identity_source_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md"
+    ],
+    "isolation_requirement_refs": [],
+    "secret_contract_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-016-secret-and-credential-boundaries.md",
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-066-secret-file-credential-resolution.md"
+    ],
+    "trust_source_refs": []
+  },
+  "source_topology": {
+    "digest": "sha256:4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104",
+    "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
+  },
+  "state": {
+    "cache_authority": "derived",
+    "consistency_requirement_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md"
+    ],
+    "owns_authoritative_state": true,
+    "persistence_ports": [
+      "l9-graphiti-memory:port/record-store@1"
+    ],
+    "projection_refs": [
+      "Quantum-L9/l9-graphiti-memory/config/projections/facts-v8.yaml",
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-084-projection-runtime-and-target-aware-lifecycle.md"
+    ],
+    "retention_contract_refs": [
+      "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-074-projection-retirement-lifecycle.md"
+    ],
+    "revision_model_ref": "l9.contract/revision-and-supersession@1",
+    "state_semantic_refs": [
+      "l9-graphiti-memory:contract/memory-record-schema@2.2.0"
+    ],
+    "transaction_model_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-002-canonical-memory-service.md"
+  },
+  "technology": {
+    "hard_constraints": [],
+    "language_constraints": [],
+    "platform_constraints": [],
+    "preferences": [],
+    "runtime_requirements": [
+      {
+        "class": "technology",
+        "hardness": "hard",
+        "id": "l9-graphiti-memory:constraint/python-runtime@1",
+        "source_ref": "Quantum-L9/l9-graphiti-memory/pyproject.toml",
+        "statement": "CPython >= 3.10 (pyproject.toml requires-python)."
+      }
+    ]
+  },
+  "unresolved": [
+    {
+      "condition": "provider_bindings_admissible",
+      "reasons": [
+        "provider binding facts:v8:graphiti:primary has no admitted technology coordinate (unknown; MU-002)",
+        "provider binding facts:v8:zep:primary has no admitted technology coordinate (unknown; MU-002)"
+      ]
+    },
+    {
+      "condition": "conformance_requirements_resolved",
+      "reasons": [
+        "conformance profile unresolved: unknown"
+      ]
+    },
+    {
+      "condition": "unresolved_hard_semantic_gaps_empty",
+      "reasons": [
+        "material Unknown MU-001: conformance.profile_refs",
+        "material Unknown MU-002: bindings.provider_bindings[*].technology_ref"
+      ]
+    }
+  ]
+}
