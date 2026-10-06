@@ -414,7 +414,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "aa49a94ff5fdbe2a8933e56cf0b68eedbe93a682039bfc0b31e63e880a878b2d",
+      "sha256": "929c972ced920fda4c7d0e71e65b77b7ababecf61d7a7f276a1ef7dbbd22c167",
       "size_bytes": 134219
     },
     {
@@ -5662,8 +5662,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/neo4j_graph_intelligence.py",
-      "sha256": "c0cba45b8f919a7f8f8c8faf418d7d492f19e12a7512439a11942c3d680c2b62",
-      "size_bytes": 41703
+      "sha256": "2c88e58d3f43bc5b8ca72d992c4374e283981f00d8f1260963752ee4221a0d59",
+      "size_bytes": 42012
     },
     {
       "category": "production_source",
@@ -6526,8 +6526,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/graph/ports.py",
-      "sha256": "8342297d130f8414fe4d93ded1c76e35a89efe8ea1d6be59d11ada96fa534780",
-      "size_bytes": 8027
+      "sha256": "5987f0e720b0dc264aa83712fe7d6610b9a7946c00bc8d580c82125cd6af48e8",
+      "size_bytes": 8797
     },
     {
       "category": "production_source",
@@ -10334,8 +10334,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_graph_public_surfaces.py",
-      "sha256": "3657e6efe4680ad7a9a06defa486d71e0343845e71d801a19a01d8dd02bd2b45",
-      "size_bytes": 9651
+      "sha256": "7674fdf5614acb686ff35411ad1d5552d22ceb6ffacb2278ace2c86d9abd2e1b",
+      "size_bytes": 9658
     },
     {
       "category": "tests",

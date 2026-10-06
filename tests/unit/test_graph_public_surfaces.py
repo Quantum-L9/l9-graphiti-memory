@@ -84,7 +84,7 @@ def _graph_world(*, health_overrides=None, metrics=None, required=False):
 
 def test_every_graph_operation_has_a_memory_owned_mcp_tool() -> None:
     tools = {item["name"]: item for item in tool_definitions()}
-    for operation in GraphOperation:
+    for operation in tuple(GraphOperation):
         assert f"memory.{operation.value}" in tools
     assert "memory.graph.capabilities" in tools
 

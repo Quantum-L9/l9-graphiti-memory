@@ -160,21 +160,26 @@ _ORIENTATION: dict[str, str] = {"out": "natural", "in": "reverse", "both": "undi
 
 
 class _Result(Protocol):
-    def data(self) -> list[dict[str, Any]]: ...
+    def data(self) -> list[dict[str, Any]]:
+        """Every record of the result as a dict."""
 
 
 class _Transaction(Protocol):
-    def run(self, query: str, parameters: dict[str, Any] | None = None) -> _Result: ...
+    def run(self, query: str, parameters: dict[str, Any] | None = None) -> _Result:
+        """Run one registered read template inside the transaction."""
 
 
 class _Session(Protocol):
-    def execute_read(self, work: Callable[[_Transaction], Any]) -> Any: ...
+    def execute_read(self, work: Callable[[_Transaction], Any]) -> Any:
+        """Run ``work`` in a read-access transaction and return its result."""
 
 
 class _Driver(Protocol):
-    def session(self, **config: Any) -> AbstractContextManager[_Session]: ...
+    def session(self, **config: Any) -> AbstractContextManager[_Session]:
+        """Open a session; the adapter always requests read access."""
 
-    def close(self) -> None: ...
+    def close(self) -> None:
+        """Close the driver and its connection pool."""
 
 
 @dataclass(frozen=True)

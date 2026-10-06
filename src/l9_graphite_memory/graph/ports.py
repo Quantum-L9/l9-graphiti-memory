@@ -124,30 +124,39 @@ class GraphIntelligencePort(Protocol):
         Detection is explicit: a capability absent here is unavailable, and
         callers never receive a silent substitute (GI-032).
         """
-        ...
 
-    def health(self) -> GraphBackendHealth: ...
+    def health(self) -> GraphBackendHealth:
+        """Reachability, schema, analytics and scope conformance as separate dimensions."""
 
-    def close(self) -> None: ...
+    def close(self) -> None:
+        """Release the backend's connections; the port is unusable afterwards."""
 
     # Every operation takes a typed provider request whose scope is already a
     # set of derived GraphScopeKey groups, and returns projection-derived
     # observations. No method accepts query text or mutates the graph.
-    def traverse(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+    def traverse(self, request: GraphProviderRequest) -> GraphProviderResult:
+        """Bounded traversal from the request's anchor within its groups (ADR-088)."""
 
-    def path(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+    def path(self, request: GraphProviderRequest) -> GraphProviderResult:
+        """Shortest in-scope path between the request's anchor and target (ADR-088)."""
 
-    def neighborhood(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+    def neighborhood(self, request: GraphProviderRequest) -> GraphProviderResult:
+        """The anchor's bounded in-scope neighborhood (ADR-088)."""
 
-    def structural_similarity(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+    def structural_similarity(self, request: GraphProviderRequest) -> GraphProviderResult:
+        """Nodes structurally similar to the anchor, from a stream-only GDS run (ADR-089)."""
 
-    def community(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+    def community(self, request: GraphProviderRequest) -> GraphProviderResult:
+        """Community assignments over the in-scope graph, stream-only (ADR-089)."""
 
-    def centrality(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+    def centrality(self, request: GraphProviderRequest) -> GraphProviderResult:
+        """Centrality scores over the in-scope graph, stream-only (ADR-089)."""
 
-    def link_prediction(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+    def link_prediction(self, request: GraphProviderRequest) -> GraphProviderResult:
+        """Advisory link candidates for the anchor; never materialized (ADR-089)."""
 
-    def structural_embedding(self, request: GraphProviderRequest) -> GraphProviderResult: ...
+    def structural_embedding(self, request: GraphProviderRequest) -> GraphProviderResult:
+        """Deterministic structural embeddings, stream-only (ADR-089)."""
 
     def describe_entities(
         self, request: GraphProviderRequest, entity_uuids: tuple[UUID, ...]
@@ -158,7 +167,6 @@ class GraphIntelligencePort(Protocol):
         the projection (ADR-093). Entities outside ``request.group_ids`` are
         not returned. Served wherever the baseline structural capabilities are.
         """
-        ...
 
 
 #: Port method serving each structural operation.
