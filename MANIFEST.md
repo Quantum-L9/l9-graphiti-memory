@@ -496,8 +496,8 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/ports/clock.py` | `production_source` | `port` | 542 | `41677121a8599f45abe3b0ce0d02a3893833048e33eb25f6f1ee3be61a651b85` |
 | `src/l9_graphite_memory/ports/constellation.py` | `production_source` | `port` | 2049 | `9b0afa85de998fd13a00530c3f9f9e29e6e00a1468b440a993b19c17b72f4b25` |
 | `src/l9_graphite_memory/ports/phase_lock.py` | `production_source` | `port` | 2756 | `81ab0a2b9cac9f897d7a3f51a5291831be59d33d94d10212ab51f6887c39657b` |
-| `src/l9_graphite_memory/ports/projection.py` | `production_source` | `port` | 5511 | `9b6b5941136c8514a109dac0de69a5a0a7ead84fd92b04d9b15a94b3be4b69c8` |
-| `src/l9_graphite_memory/ports/record_store.py` | `production_source` | `port` | 13507 | `80ba837a5dc1635c4d96b7e1c1e3228336dc6919af72c42a0ec9718168cc0e84` |
+| `src/l9_graphite_memory/ports/projection.py` | `production_source` | `port` | 5487 | `3299c041db6243508e7541629ff9b35a0efcb64666ee4d71a17e20be6e3452a9` |
+| `src/l9_graphite_memory/ports/record_store.py` | `production_source` | `port` | 13447 | `8f5025a38e1e9a4b5ec2d7e6d6240bed812d47cc047d519334f63909b57c4f56` |
 | `src/l9_graphite_memory/ports/review.py` | `production_source` | `port` | 1040 | `210e1ba0e31ddaef9ca2e247a5f67e8864d6372c6c3aad01765726b82ee001d3` |
 | `src/l9_graphite_memory/ports/service_capability.py` | `production_source` | `port` | 3253 | `046db165cfe0d912dae4e81797d65723bf1a501ec61ea70c0c9b5a28ca617f0b` |
 | `src/l9_graphite_memory/ports/synthesis.py` | `production_source` | `port` | 931 | `91ab07322c108f0836fe76ddf4bc1adb68a884ade1b1a90511e195202ea756b8` |

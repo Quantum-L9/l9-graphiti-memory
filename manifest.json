@@ -414,7 +414,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "e2a7539902dbdc70b0002569f0de91565e265d86276a47b6611e152a5708b4c9",
+      "sha256": "91a56d7c3ed31eecfc443dfe8ed85704b3ae7e0801309d8aca2131e8f64c35ff",
       "size_bytes": 134219
     },
     {
@@ -7102,8 +7102,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ports/projection.py",
-      "sha256": "9b6b5941136c8514a109dac0de69a5a0a7ead84fd92b04d9b15a94b3be4b69c8",
-      "size_bytes": 5511
+      "sha256": "3299c041db6243508e7541629ff9b35a0efcb64666ee4d71a17e20be6e3452a9",
+      "size_bytes": 5487
     },
     {
       "category": "production_source",
@@ -7118,8 +7118,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ports/record_store.py",
-      "sha256": "80ba837a5dc1635c4d96b7e1c1e3228336dc6919af72c42a0ec9718168cc0e84",
-      "size_bytes": 13507
+      "sha256": "8f5025a38e1e9a4b5ec2d7e6d6240bed812d47cc047d519334f63909b57c4f56",
+      "size_bytes": 13447
     },
     {
       "category": "production_source",

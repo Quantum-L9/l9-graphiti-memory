@@ -195,7 +195,6 @@ class RecordStore(Protocol):
         meantime, nothing is written and ``ProjectionLinkConflict`` is raised
         so the caller can re-derive from the current link.
         """
-        ...
 
     def get_projection_link(
         self,
@@ -271,13 +270,11 @@ class RecordStore(Protocol):
         overwritten by a stale plan. A canonical mutation, so it requires the
         service-issued capability (ADR-036).
         """
-        ...
 
     def list_legacy_projection_releases(
         self, namespace: str
     ) -> list[LegacyProjectionReleaseReceipt]:
         """Applied legacy-copy releases for one namespace, oldest first."""
-        ...
 
     def commit_graph_cutover(
         self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
@@ -288,11 +285,9 @@ class RecordStore(Protocol):
         namespace, and neither is ever updated or deleted. A canonical
         mutation, so it requires the service-issued capability (ADR-036, ADR-093).
         """
-        ...
 
     def list_graph_cutovers(self, tenant_id: str, namespace: str) -> list[GraphCutoverReceipt]:
         """Applied graph cutovers for one tenant's namespace, oldest first."""
-        ...
 
     def stats(self) -> dict[str, Any]: ...
 

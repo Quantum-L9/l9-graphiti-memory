@@ -114,7 +114,6 @@ class ProjectionAdapter(Protocol):
         GraphScopeKey v1 (``graph.scope``) and never from the namespace alone
         (ADR-085).
         """
-        ...
 
     def search_entities(
         self,
@@ -130,7 +129,6 @@ class ProjectionAdapter(Protocol):
         no canonical record id, so ``graph.search`` can bind their support
         through the graph backend instead of dropping them (ADR-093).
         """
-        ...
 
     def search(
         self,
