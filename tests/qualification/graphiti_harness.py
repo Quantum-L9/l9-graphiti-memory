@@ -8,14 +8,14 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Harness for qualifying the stack against real Graphiti v0.30.2 (GI-080, ADR-092).
+"""Harness for qualifying the stack against real Graphiti v0.30.2 (GI-080, ADR-093).
 
 Everything is real: ``graphiti_core`` 0.30.2 — its ``add_episode`` pipeline,
 LLM entity and relation extraction, node/edge resolution, embeddings,
 reranking, persistence Cypher, indices, search and ``remove_episode`` —
 writing into a real Neo4j 5.26 (+ GDS 2.13).
 
-Model stack (settled by the GAR intelligence harvest, ADR-092):
+Model stack (settled by the GAR intelligence harvest, ADR-093):
 
 - LLM: OpenAI, ``MODEL_NAME`` (default ``gpt-5.5``) and ``SMALL_MODEL_NAME``
   (default ``gpt-4.1-nano``) — graphiti-core 0.30.2's own defaults. They
@@ -40,7 +40,7 @@ properties (scoping, provenance, support, lifecycle), never exact graphs.
 to the ``MemoryTransport`` shape the production ``GraphitiProjection`` already
 drives, exposing the official MCP tool names with the official server's
 semantics — including that ``add_memory`` reports "queued" and swallows an
-ingestion failure (ADR-090). It is a transport, not a model stand-in.
+ingestion failure (ADR-091). It is a transport, not a model stand-in.
 """
 
 from __future__ import annotations

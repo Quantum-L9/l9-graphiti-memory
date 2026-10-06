@@ -11,7 +11,7 @@ updated: 2026-07-22
 
 # Neo4j Graph-Intelligence Binding
 
-Decision: [ADR-085](../adr/ADR-085-graph-intelligence-port-and-neo4j-substrate.md).
+Decision: [ADR-086](../adr/ADR-086-graph-intelligence-port-and-neo4j-substrate.md).
 Scope: the read-only graph-intelligence adapter reading the Graphiti-managed
 Neo4j database. Graphiti keeps its own write-capable credential.
 
@@ -79,13 +79,13 @@ from Graphiti's.
 3. required Graphiti constructs (`Entity`, `Episodic`, `MENTIONS`, `RELATES_TO`);
 4. schema fingerprint vs `graph_expected_schema_fingerprint`;
 5. sampled Episodic `group_id` values use GraphScopeKey v1 (a namespace-keyed
-   group means the adapter is bound to a pre-ADR-084 projection);
+   group means the adapter is bound to a pre-ADR-085 projection);
 6. GDS version and the required stream procedures.
 
 The capability report (`memory.graph.capabilities`) also carries, as separate
 dimensions: `gds_catalog_active` (graph-intelligence GDS catalog graphs present
 now; a value that stays above 0 means cleanup failures), `projection_lag_events`
-(undelivered outbox events) and `rehydration_success_rate` (ADR-092).
+(undelivered outbox events) and `rehydration_success_rate` (ADR-093).
 
 Record the fingerprint from the live-qualified database and set
 `L9_MEMORY_GRAPH_SCHEMA_FINGERPRINT`; readiness then fails closed if required

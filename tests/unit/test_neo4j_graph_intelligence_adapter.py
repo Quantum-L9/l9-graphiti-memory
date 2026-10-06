@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Neo4j graph-intelligence adapter health and capability discovery (ADR-085)."""
+"""Neo4j graph-intelligence adapter health and capability discovery (ADR-086)."""
 
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ def test_healthy_backend_reports_every_dimension_separately() -> None:
     )
     assert health.supported_capabilities == expected
     # Served = supported AND implemented: baseline structural operations
-    # (ADR-087) and GDS analytics (ADR-088); link prediction stays off by default.
+    # (ADR-088) and GDS analytics (ADR-089); link prediction stays off by default.
     assert health.capabilities == expected
 
 

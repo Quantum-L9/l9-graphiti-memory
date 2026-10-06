@@ -87,7 +87,7 @@ MCP_OPERATION_TOOLS: dict[str, str] = {
     "conflicts": "memory.conflicts",
     "phase_lock": "memory.phase_lock",
     "verify_phase_lock": "memory.verify_phase_lock",
-    # Graph intelligence (ADR-089) is an MCP + SDK surface, like the two agent
+    # Graph intelligence (ADR-090) is an MCP + SDK surface, like the two agent
     # write doors: reported here, deliberately not a CLI lifecycle operation.
     "graph.search": "memory.graph.search",
     "graph.semantic_search": "memory.graph.semantic_search",

@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""GraphScopeKey v1 derivation (ADR-084)."""
+"""GraphScopeKey v1 derivation (ADR-085)."""
 
 from __future__ import annotations
 

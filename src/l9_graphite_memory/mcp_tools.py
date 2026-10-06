@@ -144,7 +144,7 @@ def _graph_anchor_schema() -> dict[str, Any]:
 
 
 def _graph_request_schema() -> dict[str, Any]:
-    """Tool input mirroring ``graph-intelligence-request.schema.json`` (ADR-086).
+    """Tool input mirroring ``graph-intelligence-request.schema.json`` (ADR-087).
 
     There is no tenant, group id, or query-text field: scope is derived from
     the authenticated principal and statements are fixed server-side.
@@ -187,7 +187,7 @@ def _graph_request_schema() -> dict[str, Any]:
     )
 
 
-#: MCP tool -> graph-intelligence operation (ADR-089). Memory-owned names; a
+#: MCP tool -> graph-intelligence operation (ADR-090). Memory-owned names; a
 #: future Gate action registry maps to these, never to a provider.
 GRAPH_OPERATION_TOOLS: dict[str, GraphOperation] = {
     f"memory.{operation.value}": operation for operation in GraphOperation

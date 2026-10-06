@@ -1,9 +1,9 @@
-# ADR-088: Stream-Only GDS Graph Analytics
+# ADR-089: Stream-Only GDS Graph Analytics
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-088-stream-only-gds-graph-analytics.md
+path: docs/adr/ADR-089-stream-only-gds-graph-analytics.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -22,7 +22,7 @@ Accepted
 
 ## Context
 
-After ADR-087 the graph-intelligence plane answers connectivity questions.
+After ADR-088 the graph-intelligence plane answers connectivity questions.
 The remaining V1 capabilities — centrality, community detection, structural
 embeddings, structural similarity, and link prediction — need a graph-analytics
 engine. Neo4j Graph Data Science 2.13 is the compatible engine for Neo4j 5.26.
@@ -33,7 +33,7 @@ which would make it a second semantic graph writer beside Graphiti.
 
 1. **Stream mode only.** Analytics run through `gds.<algorithm>.stream`
    templates (`adapters/neo4j_gds_templates.py`); `write`, `mutate`, and
-   export are refused by the registration audit (ADR-085) and absent from the
+   export are refused by the registration audit (ADR-086) and absent from the
    template set.
 2. **Ephemeral, scope-bound projections.** Each operation:
    - measures the authorized scope (`gds_scope_size_v1`) and refuses before
@@ -124,4 +124,4 @@ runtime.
 
 ## Supersedes / Superseded By
 
-Extends ADR-085..ADR-087. Superseded by none.
+Extends ADR-086..ADR-088. Superseded by none.

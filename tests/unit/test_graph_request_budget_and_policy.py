@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Request-wide runtime budget and shared search policy (ADR-091, audit findings 3-4)."""
+"""Request-wide runtime budget and shared search policy (ADR-092, audit findings 3-4)."""
 
 from __future__ import annotations
 

@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Static GDS 2.13 analytics templates, stream mode only (ADR-088).
+"""Static GDS 2.13 analytics templates, stream mode only (ADR-089).
 
 Every analytic runs against an ephemeral, scope-bound in-memory graph that the
 adapter projects from the authorized GraphScopeKey groups with a Cypher

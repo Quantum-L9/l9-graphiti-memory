@@ -1,9 +1,9 @@
-# ADR-085: Graph Intelligence Port and Read-Only Neo4j Substrate
+# ADR-086: Graph Intelligence Port and Read-Only Neo4j Substrate
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-085-graph-intelligence-port-and-neo4j-substrate.md
+path: docs/adr/ADR-086-graph-intelligence-port-and-neo4j-substrate.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -71,7 +71,7 @@ provider-shaped contracts.
 6. Health is multi-dimensional (`GraphBackendHealth`): reachability, backend
    version/edition, schema fingerprint and compatibility with the qualified
    binding, analytics version and missing procedures, and GraphScopeKey v1
-   conformance of sampled projection groups (ADR-084). A reachable server with
+   conformance of sampled projection groups (ADR-085). A reachable server with
    the wrong schema or namespace-keyed groups is unhealthy.
 7. `MemoryRuntime` composes the adapter beside `MemoryService`; no caller
    reaches Neo4j except through it.

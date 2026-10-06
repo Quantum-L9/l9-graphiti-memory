@@ -19,7 +19,7 @@ authentication) and the official tool surface (``add_memory``,
 ``delete_episode``) with Graphiti v0.30.2 episode identity semantics: the
 provider issues episode uuids, and a caller-supplied ``uuid`` names an
 existing episode to update — for a new episode the queued write fails
-silently (ADR-090).
+silently (ADR-091).
 
 Every hop below crosses the wire: canonical write, outbox delivery, graph and
 semantic retrieval that resolves back to canonical records, supersession and

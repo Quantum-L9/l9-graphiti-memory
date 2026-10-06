@@ -1,9 +1,9 @@
-# ADR-090: Graphiti Episode Identity and Live Qualification
+# ADR-091: Graphiti Episode Identity and Live Qualification
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-090-graphiti-episode-identity-and-live-qualification.md
+path: docs/adr/ADR-091-graphiti-episode-identity-and-live-qualification.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -52,7 +52,7 @@ if the mapping is carried by something Graphiti preserves: the episode name
 2. **Locator.** A provider-issued episode id in the write reply is the locator
    (Zep and any provider that returns one). Otherwise the locator is
    `graphiti-episode-name:<group_id>:memory:<record_id>`. The group id is the
-   ADR-084 digest, so no raw tenant id enters the locator.
+   ADR-085 digest, so no raw tenant id enters the locator.
 3. **Resolve at removal.** Retirement and erasure with a name locator call
    `get_episodes(group_ids=[group_id], max_episodes=episode_lookup_limit)`,
    keep exact-name matches in that group, and `delete_episode` each. No match
@@ -117,7 +117,7 @@ under the caller's tenant and namespace.
 
 Links written before this decision against the official MCP server point at
 episodes that never existed. `rebuild-projection` re-queues links from before
-ADR-084 (no `scope_scheme`) and re-projects them under name locators. Links
+ADR-085 (no `scope_scheme`) and re-projects them under name locators. Links
 that have `scope_scheme` but carry a record-id locator need a re-projection
 (delete the link and run rebuild). Zep locators are unaffected.
 
@@ -140,5 +140,5 @@ because a legacy-style locator cannot address them.
 
 ## Supersedes / Superseded By
 
-Amends ADR-076 (projection retirement) and ADR-086/ADR-087 (support mapping).
+Amends ADR-076 (projection retirement) and ADR-087/ADR-088 (support mapping).
 Superseded by none.

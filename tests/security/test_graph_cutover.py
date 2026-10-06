@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Release-blocking: graph cutover receipt and rollback window (GI-090, ADR-092).
+"""Release-blocking: graph cutover receipt and rollback window (GI-090, ADR-093).
 
 The previous projection store must not be destroyed before the cutover is
 recorded, nor while its rollback window is open. ``release-legacy-projection``
@@ -58,7 +58,7 @@ class SteppedClock:
 def _migration(store=None) -> tuple[Migration, SteppedClock]:
     migration = Migration(store)
     clock = SteppedClock()
-    migration.service = MemoryService(migration.store, migration.service.projection, clock=clock)
+    migration.service = MemoryService(migration.store, migration.service.projections, clock=clock)
     migration.service.initialize()
     return migration, clock
 
@@ -86,7 +86,7 @@ def _switched_and_rebuilt(migration: Migration, *, drain: bool):
 
 
 def _rebind(migration: Migration, clock: SteppedClock) -> None:
-    migration.service = MemoryService(migration.store, migration.service.projection, clock=clock)
+    migration.service = MemoryService(migration.store, migration.service.projections, clock=clock)
     migration.service.initialize()
 
 
@@ -247,7 +247,7 @@ def test_a_later_migration_needs_its_own_cutover() -> None:
     # A second migration (B -> C) supersedes the B copy after that cutover.
     migration.old, migration.new = migration.new, GroupedGraphitiTransport()
     migration.switch_provider(record)
-    migration.service = MemoryService(migration.store, migration.service.projection, clock=clock)
+    migration.service = MemoryService(migration.store, migration.service.projections, clock=clock)
     migration.service.initialize()
     migration.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
     migration.drain()

@@ -8,9 +8,9 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Bind projection-derived graph observations back to canonical memory (ADR-086).
+"""Bind projection-derived graph observations back to canonical memory (ADR-087).
 
-A Graphiti episode UUID is the canonical ``record_id`` (ADR-084), so the
+A Graphiti episode UUID is the canonical ``record_id`` (ADR-085), so the
 episodes that support an entity, edge, path, or score are candidate canonical
 records. Each candidate is re-read from ``RecordStore`` and admitted only when
 tenant, authorized namespace, lifecycle state, valid time, and transaction
@@ -51,7 +51,7 @@ class EvidenceScope:
     recorded_before: datetime | None = None
     include_raw_vectors: bool = False
     # Orientation a path's hops must follow: "out" = node[i] -> node[i+1],
-    # "in" = node[i+1] -> node[i], "both" = either (ADR-091).
+    # "in" = node[i+1] -> node[i], "both" = either (ADR-092).
     path_direction: str = "both"
 
 

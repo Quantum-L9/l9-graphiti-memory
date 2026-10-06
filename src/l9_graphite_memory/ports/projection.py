@@ -12,12 +12,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
+
+if TYPE_CHECKING:
+    from l9_graphite_memory.projections.render import RenderedProjection
 
 
 class ProjectionHit(BaseModel):
@@ -34,7 +37,7 @@ class ProjectionEntityHit(BaseModel):
 
     Graphiti entity search returns entities, not episodes. ``record_id`` is set
     only when the provider already names the canonical record; otherwise the
-    graph backend binds support through the entity's episodes (ADR-092).
+    graph backend binds support through the entity's episodes (ADR-093).
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -109,7 +112,7 @@ class ProjectionAdapter(Protocol):
         ``namespaces`` are already authorized. A provider that partitions its
         graph by group must derive each group from both components through
         GraphScopeKey v1 (``graph.scope``) and never from the namespace alone
-        (ADR-084).
+        (ADR-085).
         """
         ...
 
@@ -125,7 +128,7 @@ class ProjectionAdapter(Protocol):
 
         Unlike ``search_strategy("graph-search")`` it keeps hits that carry
         no canonical record id, so ``graph.search`` can bind their support
-        through the graph backend instead of dropping them (ADR-092).
+        through the graph backend instead of dropping them (ADR-093).
         """
         ...
 
@@ -137,3 +140,26 @@ class ProjectionAdapter(Protocol):
         limit: int,
         tenant_id: str,
     ) -> list[ProjectionHit]: ...
+
+
+@runtime_checkable
+class RenderedProjectionAdapter(Protocol):
+    """A provider adapter that can deliver a compiled render contract.
+
+    In manifest mode the bytes written to a provider are the deterministic
+    rendering of the declared canonical fields, produced by the one renderer
+    the compiler owns, so the link's ``render_contract_digest`` attests the
+    contract that actually produced them (ADR-063, ADR-084). A delivering
+    manifest target must bind an adapter with this operation; ``project``
+    remains the legacy scalar delivery and renders nothing.
+    """
+
+    def project_rendered(
+        self, record: MemoryRecord, rendered: RenderedProjection
+    ) -> dict[str, Any]:
+        """Write ``rendered`` for ``record`` and return a result with a stable ``locator``.
+
+        The provider must receive the rendering as produced, with no fields
+        added, dropped, or reshaped by the adapter; the canonical record is
+        passed only for identity, namespace, and provider metadata.
+        """

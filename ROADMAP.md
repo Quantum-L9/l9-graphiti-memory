@@ -23,6 +23,7 @@ Implemented and locally validated:
 - schema upcasting, write-bypass detection, configuration drift detection, wiring audit, secret scan, and local SLO benchmark
 - provider locator persistence and provider erasure adapters
 - wheel build, installed-wheel smoke, ADR validation, and harvest coverage validation
+- manifest projection runtime with per-target delivery, retirement, erasure, rebuild, and active-only retrieval (ADR-084); `facts-v8` runs Graphiti active and Zep shadow, validated against fake providers only
 
 External release gates are tracked by the remaining-proof issue pack:
 
@@ -46,7 +47,7 @@ Candidates must prove measured need and preserve the existing contracts:
 2. Encrypted local `RecordStore`
 3. Projection rebuild and reconciliation command with provider inventory diff
 4. Optional query rewriting and neural reranking with evidence-bearing receipts
-5. Multi-projection fan-out with per-provider lifecycle state
+5. Multi-projection fan-out with per-provider lifecycle state (implemented locally by ADR-084; live provider proof remains under `RP-004` and `RP-005`)
 6. Signed cross-runtime receipts using the canonical constellation transport owner
 
 No candidate enters core based on novelty or folder neatness.

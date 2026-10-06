@@ -10,7 +10,7 @@
 
 """Release-blocking: two tenants sharing a namespace never share a graph group.
 
-ADR-084 / GI-009..GI-013. The fake provider below behaves like the official
+ADR-085 / GI-009..GI-013. The fake provider below behaves like the official
 Graphiti MCP server: episodes are stored under the ``group_id`` they were
 written with, and searches only see the ``group_ids`` they name.
 """
@@ -56,7 +56,7 @@ class GroupedGraphitiTransport:
         return ["add_memory", "search_memory_facts", "search_nodes", "delete_episode"]
 
     def write(self, body: str, group_id: str, kind: str = "observation", **kwargs: Any) -> Any:
-        # Graphiti would treat a supplied uuid as an update (ADR-090); the
+        # Graphiti would treat a supplied uuid as an update (ADR-091); the
         # projection names the episode instead. This provider keys episodes by
         # the record id in that name and issues it back as the episode uuid.
         assert "uuid" not in kwargs
@@ -194,7 +194,7 @@ def test_rebuild_reprojects_records_linked_under_legacy_scheme(stack) -> None:
     service, worker, store, transport = stack
     a_id = _write(service, "tenant-a", "alpha falcon migration plan")
     _drain(worker)
-    # Simulate a link written before ADR-084: namespace-keyed group, no scheme.
+    # Simulate a link written before ADR-085: namespace-keyed group, no scheme.
     legacy = store.get_projection_link(a_id, "graphiti")
     assert legacy is not None
     store.save_projection_link(

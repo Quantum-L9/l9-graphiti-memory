@@ -68,6 +68,16 @@ class MemorySettings(BaseModel):
     write_gates_enabled: bool = False
     gate_ttl_minutes: int = Field(default=30, ge=1, le=1_440)
 
+    # "legacy" builds the one scalar ``projection_backend``; "manifest" builds
+    # every target of the compiled ``projection_manifest``. The two are
+    # mutually exclusive and never auto-detected (ADR-084).
+    projection_runtime: Literal["legacy", "manifest"] = "legacy"
+    projection_manifest: Path | None = None
+    # Earlier revisions of ``projection_manifest`` whose targets may still hold
+    # copies or own queued lifecycle events. Their targets stay addressable for
+    # retirement and erasure only; a runtime that cannot address a persisted
+    # identity refuses to start (ADR-084).
+    projection_manifest_history: tuple[Path, ...] = ()
     projection_backend: Literal["none", "http", "zep"] = "none"
     # ``package.module:factory`` returning a StructuredReviewProvider; the
     # model binding stays outside this package (ADR-080). Unset means every
@@ -79,7 +89,7 @@ class MemorySettings(BaseModel):
     zep_api_url: str | None = None
     projection_required: bool = False
 
-    # Structural graph intelligence over the Graphiti projection (ADR-085).
+    # Structural graph intelligence over the Graphiti projection (ADR-086).
     # A separate least-privilege reader credential; never Graphiti's writer.
     graph_intelligence_backend: Literal["none", "neo4j"] = "none"
     graph_intelligence_required: bool = False
@@ -124,11 +134,29 @@ class MemorySettings(BaseModel):
     config_source: str = "defaults"
     extra: dict[str, Any] = Field(default_factory=dict)
 
-    @field_validator("data_dir", "state_dir", "database_path", "registry_path", mode="before")
+    @field_validator(
+        "data_dir",
+        "state_dir",
+        "database_path",
+        "registry_path",
+        "projection_manifest",
+        mode="before",
+    )
     @classmethod
     def expand_path(cls, value: object) -> object:
         if isinstance(value, str):
             return Path(value).expanduser()
+        return value
+
+    @field_validator("projection_manifest_history", mode="before")
+    @classmethod
+    def expand_history_paths(cls, value: object) -> object:
+        if isinstance(value, str):
+            value = [item.strip() for item in value.split(",") if item.strip()]
+        if isinstance(value, list | tuple):
+            return tuple(
+                Path(item).expanduser() if isinstance(item, str) else item for item in value
+            )
         return value
 
     @field_validator("log_level")
@@ -162,6 +190,40 @@ class MemorySettings(BaseModel):
         if self.store_backend == "postgres" and not (self.postgres_dsn or "").strip():
             raise ValueError(
                 "store_backend 'postgres' requires postgres_dsn (set L9_MEMORY_POSTGRES_DSN)"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_projection_runtime(self) -> MemorySettings:
+        if self.projection_runtime == "legacy":
+            if self.projection_manifest is not None:
+                raise ValueError(
+                    "projection_manifest is only valid with projection_runtime 'manifest'"
+                )
+            if self.projection_manifest_history:
+                raise ValueError(
+                    "projection_manifest_history is only valid with projection_runtime 'manifest'"
+                )
+            return self
+        if self.projection_manifest in self.projection_manifest_history:
+            raise ValueError(
+                "projection_manifest_history lists the current projection_manifest; "
+                "history holds earlier revisions only"
+            )
+        if self.projection_manifest is None:
+            raise ValueError(
+                "projection_runtime 'manifest' requires projection_manifest "
+                "(set L9_MEMORY_PROJECTION_MANIFEST)"
+            )
+        if self.projection_backend != "none":
+            raise ValueError(
+                "projection_runtime 'manifest' is mutually exclusive with the scalar "
+                f"projection_backend {self.projection_backend!r}; set it to 'none'"
+            )
+        if self.projection_required:
+            raise ValueError(
+                "projection_required is a legacy scalar policy; in manifest mode a target "
+                "declares required itself"
             )
         return self
 

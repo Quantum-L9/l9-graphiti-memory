@@ -6,10 +6,17 @@
 #   layer: assurance
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.3.0
-#   updated: 2026-07-27
+#   version: 2.5.0
+#   updated: 2026-10-02
 
-"""Generate evidence-bearing validation records from executed release logs."""
+"""Generate evidence-bearing validation records from executed release logs.
+
+Logs are read from, and reports written to, one explicit evidence root
+(``--evidence-dir``). The default is the untracked release workspace
+``build/release-validation``; the generator never targets the tracked
+``validation/`` tree, so release validation emits evidence without rewriting
+the candidate it inspects.
+"""
 
 from __future__ import annotations
 
@@ -24,6 +31,7 @@ from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
 RELEASE: Final = "2.5.0"
+DEFAULT_EVIDENCE_DIR: Final = Path("build") / "release-validation"
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,27 +155,50 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # namespace suite rewritten for F-64-AUTHZ-001 (26 cases -> 15). Same
         # arithmetic: 1030 + 5 - 26 + 15 = 1024 collected, 1024 - 16 = 1008.
         #
-        # Re-pinned 1008 -> 1026 for ADR-084 (GraphScopeKey v1, graph
+        # Re-pinned 1008 -> 1059 for release-assurance integrity: 41 cases in
+        # test_l9_meta_assurance.py (structural metadata identity, manifest
+        # check purity) and 10 in test_release_shell.py (observational
+        # validator, single-build publication). None backend-parameterized.
+        # Same arithmetic: 1024 + 51 = 1075 collected, 1075 - 16 = 1059.
+        #
+        # Re-pinned 1059 -> 1164 when ADR-084 (projection runtime, PR #76)
+        # merged over release-assurance integrity. ADR-084 adds 80 cases
+        # (26 runtime unit, 51 target-lifecycle = 17 x 3 store backends,
+        # 3 schema-8 migration) and its review remediation adds 25 (6 runtime
+        # unit, 1 adapter rendering, 18 target-lifecycle = 6 x 3 backends).
+        # Measured with postgres + redis on the merged tree: 1180 collected,
+        # and CI's same 16 skips give 1180 - 16 = 1164.
+        #
+        # Re-pinned 1164 -> 1167 for the review findings on release-assurance
+        # integrity (PR #78): an interrupted comment block fails closed, a
+        # blank-separated following header is unrelated, and the validator
+        # canonicalizes its evidence root before guarding. Same arithmetic:
+        # 1180 + 3 = 1183 collected, 1183 - 16 = 1167.
+        #
+        # Graph intelligence campaign (ADR-085..ADR-093), pinned on its own
+        # branch from the same 1008 base before it merged over ADR-084:
+        #
+        # Re-pinned 1008 -> 1026 for ADR-085 (GraphScopeKey v1, graph
         # intelligence campaign PR-A): 13 cases in test_graph_scope_key.py
         # and 5 in tests/security/test_graph_tenant_isolation.py, none
         # skipped in CI. Same arithmetic: 1024 + 18 = 1042 collected,
         # 1042 - 16 = 1026.
         #
-        # Re-pinned 1026 -> 1069 for ADR-085 (graph-intelligence port and
+        # Re-pinned 1026 -> 1069 for ADR-086 (graph-intelligence port and
         # read-only Neo4j adapter, campaign PR-B): 43 unit cases
         # (test_graph_query_policy.py, test_neo4j_graph_intelligence_adapter.py,
         # test_graph_intelligence_factory.py) plus 2 live Neo4j cases that CI
         # skips without L9_MEMORY_TEST_NEO4J_URI. 1042 + 45 = 1087 collected,
         # CI skips 16 + 2 = 18, so 1087 - 18 = 1069.
         #
-        # Re-pinned 1069 -> 1120 for ADR-086 (graph-intelligence contracts,
+        # Re-pinned 1069 -> 1120 for ADR-087 (graph-intelligence contracts,
         # algorithm policy, evidence binding, service; campaign PR-C): 51
         # cases across test_graph_contracts.py, test_graph_algorithm_policy.py,
         # test_graph_evidence_linking.py, test_graph_service.py and
         # conformance/test_graph_intelligence_port.py, none skipped in CI.
         # 1087 + 51 = 1138 collected, 1138 - 18 = 1120.
         #
-        # Re-pinned 1120 -> 1134 for ADR-087 (bounded structural graph
+        # Re-pinned 1120 -> 1134 for ADR-088 (bounded structural graph
         # operations, campaign PR-D): 10 cases in
         # test_neo4j_structural_operations.py and 4 in test_graph_service.py
         # (search operations and the cap regression), plus 10 live cases in
@@ -175,24 +206,24 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # L9_MEMORY_TEST_NEO4J_URI. 1138 + 24 = 1162 collected, CI skips
         # 18 + 10 = 28, so 1162 - 28 = 1134.
         #
-        # Re-pinned 1134 -> 1147 for ADR-088 (stream-only GDS analytics,
+        # Re-pinned 1134 -> 1147 for ADR-089 (stream-only GDS analytics,
         # campaign PR-E): 13 cases in test_neo4j_gds_operations.py plus 11
         # live cases in integration/test_neo4j_gds_analytics.py that CI
         # skips without L9_MEMORY_TEST_NEO4J_URI. 1162 + 24 = 1186 collected,
         # CI skips 28 + 11 = 39, so 1186 - 39 = 1147.
         #
-        # Re-pinned 1147 -> 1160 for ADR-089 (graph-intelligence public
+        # Re-pinned 1147 -> 1160 for ADR-090 (graph-intelligence public
         # surfaces and observability, campaign PR-F): 13 cases in
         # test_graph_public_surfaces.py, none skipped in CI.
         # 1186 + 13 = 1199 collected, 1199 - 39 = 1160.
         #
-        # Re-pinned 1160 -> 1173 for ADR-090 (Graphiti episode identity and
+        # Re-pinned 1160 -> 1173 for ADR-091 (Graphiti episode identity and
         # live qualification, campaign PR-G): 13 cases in
         # test_graphiti_projection_episode_identity.py, none skipped in CI.
         # The live module tests/qualification/ skips as a whole without
         # graphiti_core, adding one CI skip: 39 + 1 = 40.
         #
-        # Re-pinned 1173 -> 1195 for ADR-091 (campaign audit remediation,
+        # Re-pinned 1173 -> 1195 for ADR-092 (campaign audit remediation,
         # PR-H): 6 cases in security/test_legacy_projection_erasure.py, 3 in
         # test_graph_evidence_linking.py, 13 in
         # test_graph_request_budget_and_policy.py; none skipped in CI.
@@ -208,14 +239,19 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # projection/deletion race cases, 3 authorization-ordering cases.
         # Re-pinned 1227 -> 1231 for the legacy-carry race: 3 store-matrix
         # release-between-read-and-write cases, 1 link-install contention case.
-        # Re-pinned 1231 -> 1257 for the V1 closure (ADR-092): graph.search
+        # Re-pinned 1231 -> 1257 for the V1 closure (ADR-093): graph.search
         # entity binding and profile refusal 10, health dimensions 5, graph
         # cutover and rollback window 11 (store matrix). The live Neo4j suites
         # run in the graph-live job, not here.
         # Re-pinned 1257 -> 1261 for the #74 review fixes: cutover tenant
         # scoping, per-migration cutover, ADMIN-only status, provider rank.
-        "1261 tests pass",
-        r"1261 passed",
+        #
+        # Re-pinned 1167 -> 1427 when the graph intelligence campaign merged over
+        # ADR-084 (projection runtime): main's 1167, the campaign's 253, and 7
+        # target-aware integration cases (1 graph-target selection, 2 per-target
+        # legacy release x 3 store backends).
+        "1427 tests pass",
+        r"1427 passed",
     ),
     CheckSpec(
         "V-002",
@@ -235,18 +271,19 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 79 -> 81 for GMP-001: ADR-080 (automated quarantine
         # review) and ADR-081 (canonical conflict links) join the ledger.
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
-        # parity).
-        # Re-pinned 83 -> 84 for ADR-084 (tenant-safe graph scope key).
-        # Re-pinned 84 -> 85 for ADR-085 (graph intelligence port, Neo4j).
-        # Re-pinned 85 -> 86 for ADR-086 (graph contracts and evidence).
-        # Re-pinned 86 -> 87 for ADR-087 (bounded structural operations).
-        # Re-pinned 87 -> 88 for ADR-088 (stream-only GDS analytics).
-        # Re-pinned 88 -> 89 for ADR-089 (graph public surfaces, metrics).
-        # Re-pinned 89 -> 90 for ADR-090 (Graphiti episode identity).
-        # Re-pinned 90 -> 91 for ADR-091 (campaign audit remediation).
-        # Re-pinned 91 -> 92 for ADR-092 (graph intelligence V1 closure).
-        "92 ADRs complete and indexed",
-        r"PASS: 92 ADRs",
+        # parity). Re-pinned 83 -> 84 for ADR-084 (projection runtime and
+        # target-aware lifecycle).
+        # Re-pinned 84 -> 85 for ADR-085 (tenant-safe graph scope key).
+        # Re-pinned 85 -> 86 for ADR-086 (graph intelligence port, Neo4j).
+        # Re-pinned 86 -> 87 for ADR-087 (graph contracts and evidence).
+        # Re-pinned 87 -> 88 for ADR-088 (bounded structural operations).
+        # Re-pinned 88 -> 89 for ADR-089 (stream-only GDS analytics).
+        # Re-pinned 89 -> 90 for ADR-090 (graph public surfaces, metrics).
+        # Re-pinned 90 -> 91 for ADR-091 (Graphiti episode identity).
+        # Re-pinned 91 -> 92 for ADR-092 (campaign audit remediation).
+        # Re-pinned 92 -> 93 for ADR-093 (graph intelligence V1 closure).
+        "93 ADRs complete and indexed",
+        r"PASS: 93 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -326,18 +363,24 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         #
         # Re-pinned 124 -> 125 for ADR-082: contracts/capabilities.py carries
         # the control-plane capability receipt.
-        # Re-pinned 127 -> 129 for ADR-084: graph/__init__.py and
+        #
+        # Re-pinned 127 -> 128 for ADR-084: projections/runtime.py carries the
+        # projection runtime.
+        #
+        # Re-pinned 127 -> 129 for ADR-085: graph/__init__.py and
         # graph/scope.py carry the GraphScopeKey v1 derivation.
-        # Re-pinned 129 -> 133 for ADR-085: graph/ports.py,
+        # Re-pinned 129 -> 133 for ADR-086: graph/ports.py,
         # adapters/null_graph_intelligence.py, adapters/neo4j_query_policy.py,
         # adapters/neo4j_graph_intelligence.py.
-        # Re-pinned 133 -> 137 for ADR-086: graph/contracts.py,
+        # Re-pinned 133 -> 137 for ADR-087: graph/contracts.py,
         # graph/algorithm_policy.py, graph/evidence.py, graph/service.py.
-        # Re-pinned 137 -> 138 for ADR-087: adapters/neo4j_graph_templates.py.
-        # Re-pinned 138 -> 139 for ADR-088: adapters/neo4j_gds_templates.py.
-        # Re-pinned 139 -> 140 for ADR-089: observability/graph_metrics.py.
-        "140 production files pass",
-        r"PASS: 140 production Python files",
+        # Re-pinned 137 -> 138 for ADR-088: adapters/neo4j_graph_templates.py.
+        # Re-pinned 138 -> 139 for ADR-089: adapters/neo4j_gds_templates.py.
+        # Re-pinned 139 -> 140 for ADR-090: observability/graph_metrics.py.
+        # Re-pinned 128 -> 141 when the campaign merged over ADR-084: main's 128
+        # plus the campaign's 13 graph-intelligence files.
+        "141 production files pass",
+        r"PASS: 141 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -378,11 +421,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
     CheckSpec(
         "V-016",
         "execution",
-        "Python wheel",
-        "python -m build --wheel",
-        "logs/wheel_build.txt",
-        "v2.5.0 wheel builds",
-        r"Successfully built l9_graphite_memory-2\.5\.0-py3-none-any\.whl",
+        "release artifact set",
+        # The artifact set is built once (self-contained mode) or supplied
+        # already built (publication mode); either way the validated set is
+        # recorded by digest, and the release wheel must be in it.
+        "sha256sum over the validated release artifact directory",
+        "logs/release_artifacts.txt",
+        "v2.5.0 wheel present in the validated artifact set",
+        r"l9_graphite_memory-2\.5\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -419,7 +465,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/installed_mcp.txt",
         # Re-pinned 30 -> 31 for ADR-082: memory.capabilities joins the
         # canonical tool inventory.
-        # Re-pinned 33 -> 44 for ADR-089: ten memory.graph.<operation> tools
+        # Re-pinned 33 -> 44 for ADR-090: ten memory.graph.<operation> tools
         # plus memory.graph.capabilities join the canonical inventory.
         "44 tools and required surfaces load",
         r"44 tools loaded",
@@ -441,6 +487,25 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/installed_cursor_probe.txt",
         "stdio handshake, tool inventory, and health prove instantiation",
         r'"status": "complete"',
+    ),
+    CheckSpec(
+        "V-023",
+        "execution",
+        "installed wheel identity",
+        "sha256sum of the installed wheel against the validated artifact set",
+        "logs/installed_wheel_digest.txt",
+        "the wheel proven by installed smoke is the wheel in the artifact set",
+        r"installed wheel digest matches validated artifact set",
+    ),
+    CheckSpec(
+        "V-024",
+        "structural",
+        "release candidate",
+        "apply_l9_meta.py --check, generate_manifest.py --check, check_l9_meta.py, "
+        "validate_manifest.py after substantive validation",
+        "logs/candidate_integrity_post.txt",
+        "tracked candidate unchanged by validation",
+        r"PASS: candidate integrity",
     ),
 )
 
@@ -486,8 +551,15 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _evaluate(root: Path, spec: CheckSpec) -> dict[str, object]:
-    evidence_path = root / "validation" / spec.log_path
+def _evidence_label(root: Path, evidence_path: Path) -> str:
+    try:
+        return evidence_path.relative_to(root).as_posix()
+    except ValueError:
+        return evidence_path.as_posix()
+
+
+def _evaluate(root: Path, evidence_dir: Path, spec: CheckSpec) -> dict[str, object]:
+    evidence_path = evidence_dir / spec.log_path
     if not evidence_path.is_file():
         status = "UNKNOWN"
         actual = "evidence log missing"
@@ -507,7 +579,7 @@ def _evaluate(root: Path, spec: CheckSpec) -> dict[str, object]:
         "check_class": spec.check_class,
         "check_id": spec.check_id,
         "evidence": {
-            "path": f"validation/{spec.log_path}",
+            "path": _evidence_label(root, evidence_path),
             "sha256": digest,
         },
         "expected_result": spec.expected_result,
@@ -526,10 +598,10 @@ def _write_jsonl(path: Path, rows: tuple[dict[str, object], ...] | list[dict[str
     )
 
 
-def generate(root: Path) -> int:
-    validation = root / "validation"
+def generate(root: Path, evidence_dir: Path) -> int:
+    validation = evidence_dir
     validation.mkdir(parents=True, exist_ok=True)
-    checks = [_evaluate(root, spec) for spec in CHECKS]
+    checks = [_evaluate(root, evidence_dir, spec) for spec in CHECKS]
     failed = [row for row in checks if row["status"] == "FAIL"]
     unknown = [row for row in checks if row["status"] == "UNKNOWN"]
     status = "BLOCKED_ON_VALIDATION" if failed or unknown else "APPROVED_WITH_FINDINGS"
@@ -556,7 +628,10 @@ def generate(root: Path) -> int:
         "checks_failed": len(failed),
         "checks_passed": sum(1 for row in checks if row["status"] == "PASS"),
         "checks_unknown": len(unknown),
-        "generated_from": "executed files under validation/logs and explicit external blocker declarations",
+        "generated_from": (
+            f"executed files under {_evidence_label(root, evidence_dir / 'logs')} "
+            "and explicit external blocker declarations"
+        ),
         "local_deterministic_status": "PASS" if not failed and not unknown else "FAIL",
         "production_release_status": "BLOCKED_ON_EXTERNAL_VALIDATION"
         if not failed and not unknown
@@ -584,7 +659,23 @@ def generate(root: Path) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
-    return generate(parser.parse_args().repo_root.resolve())
+    parser.add_argument(
+        "--evidence-dir",
+        type=Path,
+        default=None,
+        help=(
+            "evidence root holding logs/ as input and receiving the reports "
+            f"(default: <repo-root>/{DEFAULT_EVIDENCE_DIR.as_posix()})"
+        ),
+    )
+    args = parser.parse_args()
+    root = args.repo_root.resolve()
+    evidence_dir = (
+        args.evidence_dir.resolve()
+        if args.evidence_dir is not None
+        else root / DEFAULT_EVIDENCE_DIR
+    )
+    return generate(root, evidence_dir)
 
 
 if __name__ == "__main__":

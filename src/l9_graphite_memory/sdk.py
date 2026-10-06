@@ -72,7 +72,7 @@ class MemorySDK:
         return self._graph
 
     def graph(self, request: GraphIntelligenceRequest) -> GraphIntelligenceReceipt:
-        """Provider-neutral graph intelligence under this principal (ADR-089)."""
+        """Provider-neutral graph intelligence under this principal (ADR-090)."""
 
         return self._graph_service().execute(self.principal, request)
 

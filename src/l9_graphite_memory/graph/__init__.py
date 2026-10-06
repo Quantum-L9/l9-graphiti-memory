@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Governed graph intelligence over the Graphiti projection (ADR-084)."""
+"""Governed graph intelligence over the Graphiti projection (ADR-085)."""
 
 from .scope import (
     GRAPH_SCOPE_SCHEME,

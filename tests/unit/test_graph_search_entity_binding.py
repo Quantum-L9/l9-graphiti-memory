@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""graph.search binds entity hits to canonical support (ADR-092).
+"""graph.search binds entity hits to canonical support (ADR-093).
 
 Graphiti entity search returns entities that name no episode. They are bound
 through the graph backend's entity -> episode support, and never dropped

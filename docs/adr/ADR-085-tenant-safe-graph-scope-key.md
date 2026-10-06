@@ -1,9 +1,9 @@
-# ADR-084: Tenant-Safe Graph Scope Key
+# ADR-085: Tenant-Safe Graph Scope Key
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-084-tenant-safe-graph-scope-key.md
+path: docs/adr/ADR-085-tenant-safe-graph-scope-key.md
 layer: adr
 owner: memory-control-plane
 status: active

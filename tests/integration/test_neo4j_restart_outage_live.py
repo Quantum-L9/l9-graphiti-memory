@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Live outage degradation and restart recovery (GI-080, ADR-092).
+"""Live outage degradation and restart recovery (GI-080, ADR-093).
 
 Stops the Neo4j server under a running graph-intelligence service, then
 starts it again, and proves:

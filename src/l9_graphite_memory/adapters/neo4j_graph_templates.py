@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Static structural Cypher templates over the Graphiti Neo4j schema (ADR-087).
+"""Static structural Cypher templates over the Graphiti Neo4j schema (ADR-088).
 
 Graphiti v0.30.2 stores entities as ``(:Entity {uuid, group_id, name,
 summary})``, entity relationships as ``-[:RELATES_TO {uuid, group_id, fact,
@@ -52,7 +52,7 @@ _EDGE_FILTER = (
     "AND (r.expired_at IS NULL OR r.expired_at > $recorded_before)) END)) "
     "AND all(x IN nodes(p) WHERE x.group_id IN $group_ids)"
 )
-# Canonical support identity of an episode (ADR-090): the record id carried
+# Canonical support identity of an episode (ADR-091): the record id carried
 # in its ``memory:<record_id>`` name, else its provider uuid (episodes created
 # under the legacy ``uuid = record_id`` convention).
 _SUPPORT_ID = "CASE WHEN ep.name STARTS WITH 'memory:' THEN substring(ep.name, 7) ELSE ep.uuid END"

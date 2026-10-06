@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Process-local graph-intelligence metrics and structured operation logs (ADR-089).
+"""Process-local graph-intelligence metrics and structured operation logs (ADR-090).
 
 Metric names follow the campaign observability contract so a Prometheus (or
 other) exporter can publish them unchanged. The registry holds numbers only:

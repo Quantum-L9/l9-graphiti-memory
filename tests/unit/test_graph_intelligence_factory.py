@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Graph-intelligence configuration, composition, and optional dependency (ADR-085)."""
+"""Graph-intelligence configuration, composition, and optional dependency (ADR-086)."""
 
 from __future__ import annotations
 

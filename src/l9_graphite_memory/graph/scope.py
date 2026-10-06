@@ -15,7 +15,7 @@ provider group that is keyed on the namespace alone lets two tenants that use
 the same namespace string share one provider group, and graph traversal or
 analytics widens that leak from isolated hits to whole neighborhoods. Every
 provider-side group identity is therefore derived from both scope components,
-server-side, through this one function (ADR-084).
+server-side, through this one function (ADR-085).
 
 The derivation is::
 

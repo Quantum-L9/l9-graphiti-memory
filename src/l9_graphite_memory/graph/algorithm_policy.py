@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Algorithm maturity gates for graph intelligence (ADR-086).
+"""Algorithm maturity gates for graph intelligence (ADR-087).
 
 Graph algorithms produce advisory projection intelligence and never create
 authority. Each operation has a closed set of admissible algorithms, each with
@@ -121,7 +121,7 @@ def algorithm_parameters(algorithm: GraphAlgorithm) -> dict[str, Any]:
 
 @dataclass(frozen=True)
 class AlgorithmPolicy:
-    """Deployment-level gates (ADR-086). Profiles narrow this, never widen it."""
+    """Deployment-level gates (ADR-087). Profiles narrow this, never widen it."""
 
     maturity_ceiling: AlgorithmMaturity = AlgorithmMaturity.PRODUCTION
     link_prediction_enabled: bool = False

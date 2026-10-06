@@ -140,7 +140,7 @@ def test_official_graphiti_dialect_uses_current_tool_names_and_group_ids() -> No
     projection.search_strategy("graph-search", "memory", ("repo-a",), limit=10, tenant_id="t")
     assert transport.calls == ["search_memory_facts", "search_nodes"]
     # GraphScopeKey v1: the provider group binds tenant and namespace, never
-    # the bare namespace string (ADR-084).
+    # the bare namespace string (ADR-085).
     expected = graph_group_id("t", "repo-a")
     assert transport.arguments[0]["group_ids"] == [expected]
     assert transport.arguments[1]["group_ids"] == [expected]

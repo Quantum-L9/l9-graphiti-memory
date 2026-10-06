@@ -18,9 +18,9 @@ from pathlib import Path
 from l9_graphite_memory.adapters import (
     NullGraphIntelligence,
     build_graph_intelligence,
-    build_projection,
     build_store,
 )
+from l9_graphite_memory.adapters.factory import build_projection_runtime
 from l9_graphite_memory.authz import build_local_principal
 from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.contracts import MemoryPrincipal
@@ -29,6 +29,7 @@ from l9_graphite_memory.graph.ports import GraphIntelligencePort
 from l9_graphite_memory.graph.service import GraphIntelligenceService, GraphServiceConfig
 from l9_graphite_memory.group_resolver import GroupResolution, resolve_group
 from l9_graphite_memory.observability import configure_logging
+from l9_graphite_memory.projections.runtime import graph_projection_adapter
 from l9_graphite_memory.services import MemoryService
 
 
@@ -37,7 +38,7 @@ class MemoryRuntime:
     settings: MemorySettings
     service: MemoryService
     # Structural graph intelligence is a sibling of the projection adapter,
-    # composed here and never reached around MemoryService authority (ADR-085).
+    # composed here and never reached around MemoryService authority (ADR-086).
     graph_intelligence: GraphIntelligencePort = field(default_factory=NullGraphIntelligence)
     graph_service: GraphIntelligenceService | None = None
 
@@ -52,9 +53,16 @@ def build_runtime(config_path: str | Path | None = None) -> MemoryRuntime:
     settings = load_settings(config_path)
     configure_logging(settings.log_level, json_output=settings.json_logs)
     store = build_store(settings)
-    projection = build_projection(settings)
-    graph_intelligence = build_graph_intelligence(settings)
-    service = MemoryService(store, projection, projection_required=settings.projection_required)
+    # Legacy settings yield the one scalar adapter as a one-target runtime;
+    # manifest settings yield every compiled target. Either way the service
+    # receives the runtime, never a raw manifest (ADR-084).
+    try:
+        projections = build_projection_runtime(settings)
+        graph_intelligence = build_graph_intelligence(settings)
+    except Exception:
+        store.close()
+        raise
+    service = MemoryService(store, projections)
     service.initialize()
     return MemoryRuntime(
         settings=settings,
@@ -69,13 +77,13 @@ def build_graph_service(
     service: MemoryService,
     port: GraphIntelligencePort,
 ) -> GraphIntelligenceService:
-    """Compose graph intelligence over the same store and namespace policy (ADR-086)."""
+    """Compose graph intelligence over the same store and namespace policy (ADR-087)."""
 
     return GraphIntelligenceService(
         service.store,
         port,
         namespace_policy=service.namespace_policy,
-        projection=service.projection,
+        projection=graph_projection_adapter(service.projections),
         config=GraphServiceConfig(
             max_runtime_ms=settings.graph_query_timeout_ms,
             relationship_allowlist=settings.graph_relationship_allowlist,

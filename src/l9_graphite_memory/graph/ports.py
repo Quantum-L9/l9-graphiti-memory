@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Provider-neutral structural graph-intelligence port (ADR-085).
+"""Provider-neutral structural graph-intelligence port (ADR-086).
 
 ``GraphIntelligencePort`` is a sibling of ``ProjectionAdapter``, not an
 extension of it. The projection adapter owns project/retire/erase and
@@ -155,7 +155,7 @@ class GraphIntelligencePort(Protocol):
         """The in-scope nodes among ``entity_uuids``, with supporting episodes.
 
         Binds canonical support for entity hits that ``graph.search`` got from
-        the projection (ADR-092). Entities outside ``request.group_ids`` are
+        the projection (ADR-093). Entities outside ``request.group_ids`` are
         not returned. Served wherever the baseline structural capabilities are.
         """
         ...

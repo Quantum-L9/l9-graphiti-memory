@@ -1,9 +1,9 @@
-# ADR-092: Graph Intelligence V1 Closure
+# ADR-093: Graph Intelligence V1 Closure
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-092-graph-intelligence-v1-closure.md
+path: docs/adr/ADR-093-graph-intelligence-v1-closure.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -131,6 +131,31 @@ complete but seven acceptance items open:
    - `graph-cutover-status` reports the window. It is ADMIN, like recording,
      because receipts name bindings and actors.
    - Operator procedure: `docs/graph-intelligence/CUTOVER_RUNBOOK.md`.
+8. **Integration with the projection runtime (ADR-084).** The campaign
+   (ADR-085…ADR-093, originally numbered 084…092) merged after `main` adopted
+   target-aware projections. Its single-projection rules now apply per
+   target:
+   - **Graph target.** Graph intelligence follows exactly one projection
+     target (`projections.runtime.graph_projection_target`): in legacy mode the
+     scalar adapter's target; in manifest mode the single active target serving
+     `graph-search`, else the single active target. Shadow and disabled targets
+     never feed it, and more than one candidate fails startup rather than
+     picking a graph. `graph.search`, semantic graph strategies and the cutover
+     readiness check all use this target.
+   - **Delivery placement.** Manifest delivery (`project_rendered`) is placed
+     like scalar delivery: the tenant-scoped group (ADR-085) and the canonical
+     episode name with no `uuid` argument (ADR-091). Both paths record the
+     scope scheme on the link.
+   - **Stale-scope rebuild.** Each delivering target whose adapter declares a
+     scope scheme re-projects its own stale or withdrawn links;
+     `stale_scope_record_ids` reports them across targets.
+   - **Legacy obligations per target.** Legacy copies, the withdrawn flag and
+     the pending deletion receipt live on each target's link. A release clears
+     every link of a record that carries legacy copies, and completes the
+     deletion only when that leaves the record with no link in any target.
+     Otherwise the store's guard (ADR-084, "no completion while any link
+     remains") keeps the deletion pending until the other targets' erase
+     events succeed.
 
 ## Alternatives Considered
 
@@ -188,6 +213,8 @@ AGENTS.md invariants 3, 6 and 8.
 - `LegacyProjectionReleaseReceipt.cutover_receipt_id` is optional and reads
   older receipts as `None`.
 - Deployments must record a cutover before releasing legacy copies.
+- Campaign ADRs were renumbered 084…092 → 085…093 when they merged over
+  `main`'s ADR-084; content is unchanged.
 
 ## Validation Requirements
 
@@ -202,6 +229,10 @@ AGENTS.md invariants 3, 6 and 8.
   refused before the receipt and within the window, the latest cutover
   governs, tenant scoping, a later migration needs its own cutover, ADMIN
   only for recording and status.
+- `tests/integration/test_projection_targets.py` (memory, SQLite,
+  PostgreSQL): the graph target is the one active graph target; legacy
+  obligations are per target; a release completes a deletion only when no
+  other target holds a copy.
 - `tests/qualification`: 15 real-model cases.
 
 ## Rollback Conditions
@@ -212,4 +243,4 @@ hits.
 
 ## Supersedes / Superseded By
 
-Amends ADR-084, ADR-086, ADR-089, ADR-090 and ADR-091. Superseded by none.
+Amends ADR-084, ADR-085, ADR-087, ADR-090, ADR-091 and ADR-092. Superseded by none.

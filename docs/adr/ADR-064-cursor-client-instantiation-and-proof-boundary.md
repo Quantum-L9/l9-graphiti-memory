@@ -4,7 +4,7 @@
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
 path: docs/adr/ADR-064-cursor-client-instantiation-and-proof-boundary.md
-layer: architecture_decisions
+layer: adr
 owner: memory-control-plane
 status: active
 version: 2.3.0

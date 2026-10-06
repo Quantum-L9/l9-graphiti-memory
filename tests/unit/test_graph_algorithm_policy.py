@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Graph algorithm maturity and feature gates (ADR-086)."""
+"""Graph algorithm maturity and feature gates (ADR-087)."""
 
 from __future__ import annotations
 

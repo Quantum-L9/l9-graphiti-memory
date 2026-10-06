@@ -11,9 +11,9 @@ updated: 2026-07-22
 
 # Graph Intelligence Usage
 
-Decisions: ADR-084 (scope key) · ADR-085 (port, Neo4j) · ADR-086 (contracts,
-evidence) · ADR-087 (traversal, paths) · ADR-088 (GDS analytics) · ADR-089
-(surfaces, observability) · ADR-090 (Graphiti episode identity) · ADR-091 (audit remediation).
+Decisions: ADR-085 (scope key) · ADR-086 (port, Neo4j) · ADR-087 (contracts,
+evidence) · ADR-088 (traversal, paths) · ADR-089 (GDS analytics) · ADR-090
+(surfaces, observability) · ADR-091 (Graphiti episode identity) · ADR-092 (audit remediation).
 
 Graph intelligence is advisory projection intelligence. Every result item is
 `authority_class: advisory_projection` and names the canonical records that
@@ -40,7 +40,7 @@ is not.
 
 `graph.search` ranks with Graphiti's entity-node search. Graphiti entities
 carry no episode reference, so each hit is bound to canonical support through
-the graph backend (entity → `MENTIONS` → episode → record, ADR-092) and
+the graph backend (entity → `MENTIONS` → episode → record, ADR-093) and
 returned as `kind: entity_hit` with `supporting_record_ids`. Without a graph
 backend that can bind them, entity hits are reported under
 `unsupported_projection_observations` (`graph_backend_unavailable`), never
@@ -63,7 +63,7 @@ dropped.
 There is no tenant field: the tenant is the authenticated principal's. There
 is no query-text field for the database: statements are fixed server-side.
 
-`max_runtime_ms` is a hard ceiling on how long a call waits (ADR-091). An
+`max_runtime_ms` is a hard ceiling on how long a call waits (ADR-092). An
 operation still running at the ceiling returns FAILED
 `runtime_budget_exceeded`. Every provider statement draws on what is left
 of the budget, and an answer that arrives after it is refused. A multi-namespace search that runs

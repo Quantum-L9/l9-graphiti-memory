@@ -11,7 +11,7 @@ updated: 2026-07-22
 
 # Tenant-Safe Graph Scope Migration (GraphScopeKey v1)
 
-Decision: [ADR-084](../adr/ADR-084-tenant-safe-graph-scope-key.md).
+Decision: [ADR-085](../adr/ADR-085-tenant-safe-graph-scope-key.md).
 Campaign: `l9-memory-graph-intelligence-v1`, slice PR-A.
 
 ## What changes
@@ -63,10 +63,10 @@ into the old namespace-keyed groups, so rebuild into a fresh database.
    configuration.
 6. Keep the previous Graphiti database for the rollback window. Each
    re-projected link records the copy left there as a legacy erasure
-   obligation (ADR-091). A verified deletion during the window erases the
+   obligation (ADR-092). A verified deletion during the window erases the
    new copy but stays `deletion_pending`, because the previous database
    still holds one.
-7. Record the cutover and its rollback window (ADR-092); the receipt is
+7. Record the cutover and its rollback window (ADR-093); the receipt is
    refused until every active record is projected and the outbox is drained:
 
    ```bash

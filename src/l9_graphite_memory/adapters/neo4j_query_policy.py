@@ -10,7 +10,7 @@
 
 """Static Cypher template registry and mutation guard for graph intelligence.
 
-Graphiti is the exclusive semantic graph-model writer (ADR-085). The
+Graphiti is the exclusive semantic graph-model writer (ADR-086). The
 graph-intelligence adapter therefore never composes Cypher at run time and
 never accepts query text from a caller: every statement it can execute is a
 named, module-level constant registered here, and registration refuses any

@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Live GDS 2.13 analytics over a Graphiti-shaped graph (ADR-088).
+"""Live GDS 2.13 analytics over a Graphiti-shaped graph (ADR-089).
 
 Needs ``L9_MEMORY_TEST_NEO4J_URI`` naming a Neo4j 5.26 with GDS 2.13; skips
 otherwise. Verifies stream-only execution, catalog cleanup, and that scores

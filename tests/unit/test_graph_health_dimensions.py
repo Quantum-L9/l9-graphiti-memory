@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Separate health dimensions the devpack names (10_OBSERVABILITY, ADR-092).
+"""Separate health dimensions the devpack names (10_OBSERVABILITY, ADR-093).
 
 Active GDS catalog graphs, projection lag and the canonical rehydration
 success rate are reported as their own fields and gauges, so no dimension

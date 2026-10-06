@@ -368,16 +368,16 @@ class InMemoryRecordStore:
     def save_projection_link(self, link: ProjectionLink) -> None:
         # Link writers share the store lock so a legacy-copy release (which
         # validates its plan and applies it under that lock) can never be
-        # interleaved with an outbox link write (ADR-091).
+        # interleaved with an outbox link write (ADR-092).
         with self._write_lock:
-            self.projection_links[(link.record_id, link.projection_name)] = link
+            self.projection_links[(link.record_id, link.target_identity)] = link
 
     def get_projection_link(
         self,
         record_id: UUID,
-        projection_name: str,
+        target_identity: str,
     ) -> ProjectionLink | None:
-        return self.projection_links.get((record_id, projection_name))
+        return self.projection_links.get((record_id, target_identity))
 
     def save_projection_link_if_active(
         self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
@@ -386,15 +386,31 @@ class InMemoryRecordStore:
             record = self.records.get(link.record_id)
             if record is None or record.state is not MemoryState.ACTIVE:
                 return False
-            key = (link.record_id, link.projection_name)
+            key = (link.record_id, link.target_identity)
             if self.projection_links.get(key) != expected_previous:
                 raise ProjectionLinkConflict("projection link changed since it was read")
             self.projection_links[key] = link
             return True
 
-    def delete_projection_link(self, record_id: UUID, projection_name: str) -> None:
+    def list_projection_links(self, record_id: UUID) -> list[ProjectionLink]:
+        return sorted(
+            (link for (owner, _), link in self.projection_links.items() if owner == record_id),
+            key=lambda link: link.target_identity,
+        )
+
+    def list_projection_target_identities(self) -> tuple[str, ...]:
+        identities = {identity for (_, identity) in self.projection_links}
+        for event in self.outbox.values():
+            if event.status in {OutboxStatus.DELIVERED, OutboxStatus.DEAD}:
+                continue
+            identity = event.payload.get("target_identity")
+            if isinstance(identity, str) and identity.strip():
+                identities.add(identity.strip())
+        return tuple(sorted(identities))
+
+    def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
         with self._write_lock:
-            self.projection_links.pop((record_id, projection_name), None)
+            self.projection_links.pop((record_id, target_identity), None)
 
     def stats(self) -> dict[str, Any]:
         by_state: dict[str, int] = {}
@@ -420,7 +436,7 @@ class InMemoryRecordStore:
         self,
         tenant_id: str,
         namespace: str,
-        projection_name: str,
+        target_identity: str,
         *,
         limit: int = 1_000,
     ) -> list[MemoryRecord]:
@@ -430,7 +446,7 @@ class InMemoryRecordStore:
             if record.tenant_id == tenant_id
             and record.namespace == namespace
             and record.state is MemoryState.ACTIVE
-            and (record.record_id, projection_name) not in self.projection_links
+            and (record.record_id, target_identity) not in self.projection_links
         ]
         candidates.sort(key=lambda item: item.temporal.recorded_at)
         return candidates[:limit]
@@ -466,7 +482,7 @@ class InMemoryRecordStore:
             # Validate every effect before applying any, so the release is
             # all-or-nothing like the transactional backends.
             for expected in expected_links:
-                current = self.projection_links.get((expected.record_id, expected.projection_name))
+                current = self.projection_links.get((expected.record_id, expected.target_identity))
                 if current != expected:
                     raise StoreError("projection link changed since the release was planned")
             for record_id, receipt_id in deletion_completions:
@@ -484,7 +500,7 @@ class InMemoryRecordStore:
             try:
                 self.legacy_projection_releases.append(receipt)
                 for link in link_updates:
-                    self.projection_links[(link.record_id, link.projection_name)] = link
+                    self.projection_links[(link.record_id, link.target_identity)] = link
                 for key in link_removals:
                     self.projection_links.pop(key, None)
                 for record_id, receipt_id in deletion_completions:
@@ -594,7 +610,8 @@ class InMemoryRecordStore:
         receipt: DeletionReceipt,
         redacted_record: MemoryRecord,
         *,
-        outbox_event: OutboxEvent | None,
+        outbox_event: OutboxEvent | None = None,
+        outbox_events: tuple[OutboxEvent, ...] = (),
         status_event: MemoryStatusEvent,
     ) -> None:
         require_service_write_capability(capability)
@@ -612,8 +629,8 @@ class InMemoryRecordStore:
             self.status_events.append(status_event)
             self.records[redacted_record.record_id] = redacted_record
             self.deletion_receipts[receipt.receipt_id] = receipt
-            if outbox_event is not None:
-                self.outbox[outbox_event.event_id] = outbox_event
+            for event in (*((outbox_event,) if outbox_event is not None else ()), *outbox_events):
+                self.outbox[event.event_id] = event
 
     def complete_deletion(
         self,
@@ -628,6 +645,12 @@ class InMemoryRecordStore:
             receipt = self.deletion_receipts.get(receipt_id)
             if record is None or receipt is None:
                 raise StoreError("deletion record or receipt not found")
+            remaining = self.list_projection_links(record_id)
+            if remaining:
+                raise StoreError(
+                    f"deletion of {record_id} cannot complete while {len(remaining)} "
+                    "projection link(s) remain unerased"
+                )
             if record.state is not MemoryState.DELETED:
                 self._apply_transition(
                     MemoryStatusEvent(

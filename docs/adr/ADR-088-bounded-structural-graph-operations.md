@@ -1,9 +1,9 @@
-# ADR-087: Bounded Structural Graph Operations
+# ADR-088: Bounded Structural Graph Operations
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-087-bounded-structural-graph-operations.md
+path: docs/adr/ADR-088-bounded-structural-graph-operations.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -22,14 +22,14 @@ Accepted
 
 ## Context
 
-ADR-085 and ADR-086 established a read-only port, governing service, and
+ADR-086 and ADR-087 established a read-only port, governing service, and
 typed receipts, with no structural operation served. The first capabilities
 that need no analytics engine are bounded traversal, neighborhood expansion,
 and path discovery over the Graphiti v0.30.2 schema:
 `(:Entity)-[:RELATES_TO {group_id, fact, episodes, valid_at, invalid_at,
 created_at, expired_at}]->(:Entity)` with provenance
 `(:Episodic)-[:MENTIONS]->(:Entity)`, the episode UUID being the canonical
-`record_id` (ADR-084).
+`record_id` (ADR-085).
 
 ## Decision
 
@@ -38,7 +38,7 @@ created_at, expired_at}]->(:Entity)` with provenance
    - Cypher cannot parameterize a variable-length bound, so each depth 1..6 and
      direction (`out`, `in`, `both`) is its own template. The family is expanded
      once at import from module constants into a closed set; every text passes
-     the ADR-085 registration audit and no request value reaches query text.
+     the ADR-086 registration audit and no request value reaches query text.
    - Every relationship on a path must be an allowlisted type in an authorized
      group, valid at `as_of` (`valid_at <= as_of < invalid_at`), and current at
      `recorded_before` (created before it and not expired at it; without it,
@@ -56,7 +56,7 @@ created_at, expired_at}]->(:Entity)` with provenance
    results when none exists.
 4. Supporting episodes: entities through `MENTIONS`, relationships through
    their `episodes` property (at most 50 each); ids that are not UUIDs are not
-   evidence. The service then binds them to canonical records (ADR-086).
+   evidence. The service then binds them to canonical records (ADR-087).
 5. `graph.search` and `graph.semantic_search` are served by
    `GraphIntelligenceService` through the existing projection strategies with
    the principal's tenant; hits are admitted only after canonical rehydration,
@@ -120,4 +120,4 @@ Revert the slice; the service reports the operations unavailable again.
 
 ## Supersedes / Superseded By
 
-Extends ADR-085 and ADR-086. Superseded by none.
+Extends ADR-086 and ADR-087. Superseded by none.

@@ -199,7 +199,7 @@ jobs:
             tests/unit/test_canonical_transport_packet.py \
             tests/unit/test_canonical_gate_client.py -q
 
-  # GI-080 proof in CI (ADR-092). The live graph-intelligence suites need a
+  # GI-080 proof in CI (ADR-093). The live graph-intelligence suites need a
   # Neo4j with GDS; without one they skip, so `validate` reports them as
   # skipped and they were proven only on a developer machine. This job gives
   # them the backend and fails if any of them skips.

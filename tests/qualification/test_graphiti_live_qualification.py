@@ -15,7 +15,7 @@ Canonical write → outbox → ``GraphitiProjection`` → ``graphiti_core``
 and indices) → the read-only graph-intelligence adapter → canonical evidence
 binding → lifecycle withdrawal and verified erasure through
 ``remove_episode``; plus Graphiti process-restart recovery and ``graph.search``
-entity binding (ADR-092).
+entity binding (ADR-093).
 
 Real extraction is not deterministic, so every assertion is a property:
 scoping, provenance, canonical support and lifecycle — never an exact graph.
@@ -223,7 +223,7 @@ def test_projection_ingests_named_episodes_with_provider_uuids(world) -> None:
 
 
 def test_graphiti_rejects_a_caller_supplied_episode_uuid(world) -> None:
-    """The upstream behavior ADR-090 routes around, observed on real Graphiti."""
+    """The upstream behavior ADR-091 routes around, observed on real Graphiti."""
 
     name = f"memory:{uuid4()}"
     reply = world.transport.write(
@@ -378,7 +378,7 @@ def test_fact_search_maps_episodes_back_to_canonical_records(world) -> None:
 
 
 def test_entity_node_search_binds_canonical_support_on_real_graphiti(world) -> None:
-    """ADR-092: Graphiti entity hits bind through MENTIONS -> episode -> record."""
+    """ADR-093: Graphiti entity hits bind through MENTIONS -> episode -> record."""
 
     receipt = world.graph.execute(
         world.principal("tenant-a"),

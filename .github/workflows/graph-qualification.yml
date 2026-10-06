@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-09-27
 
-# Real-model live qualification (GI-080, ADR-092): graphiti-core 0.30.2 with
+# Real-model live qualification (GI-080, ADR-093): graphiti-core 0.30.2 with
 # real LLM extraction, embeddings and reranking against Neo4j 5.26 + GDS 2.13.
 #
 # Nightly and on demand, not per PR: every run spends model tokens, and real

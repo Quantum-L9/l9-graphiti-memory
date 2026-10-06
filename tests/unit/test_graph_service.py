@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""GraphIntelligenceService authorization, policy, failure, and receipts (ADR-086)."""
+"""GraphIntelligenceService authorization, policy, failure, and receipts (ADR-087)."""
 
 from __future__ import annotations
 

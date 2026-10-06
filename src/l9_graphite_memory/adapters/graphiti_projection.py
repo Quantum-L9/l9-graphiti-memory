@@ -25,14 +25,17 @@ from l9_graphite_memory.graph import (
     graph_scope_digest,
 )
 from l9_graphite_memory.ports import ProjectionEntityHit, ProjectionHit
+from l9_graphite_memory.projections.render import RenderedProjection
 from l9_graphite_memory.transport import MemoryTransport
 
-_RECORD_ID_PATTERN = re.compile(r'"record_id"\s*:\s*"([0-9a-fA-F-]{36})"')
+# Matches the legacy JSON payload (``"record_id": "<uuid>"``) and the compiled
+# rendering's ``record_id="<uuid>"`` line, so hits from either delivery resolve.
+_RECORD_ID_PATTERN = re.compile(r'"?record_id"?\s*[:=]\s*"([0-9a-fA-F-]{36})"')
 
 # Graphiti (v0.30.2) treats a caller-supplied episode uuid as "update the
 # existing episode" and fails when none exists; the official MCP server queues
 # that write and swallows the failure. Episodes are therefore created with a
-# provider-issued uuid and located by their canonical name (ADR-090).
+# provider-issued uuid and located by their canonical name (ADR-091).
 EPISODE_NAME_LOCATOR = "graphiti-episode-name"
 
 
@@ -67,7 +70,7 @@ class GraphitiProjection:
     # retirement removes the projected episode and is undone by re-projection
     # rather than by reactivating in place (ADR-076).
     retirement_mode = RetirementMode.WITHDRAW
-    # Provider group identity scheme (ADR-084). Persisted on each projection
+    # Provider group identity scheme (ADR-085). Persisted on each projection
     # link so a rebuild can find records projected under an older scheme.
     scope_scheme: str = GRAPH_SCOPE_SCHEME
 
@@ -90,7 +93,7 @@ class GraphitiProjection:
             "schema_version": record.schema_version,
             "namespace": record.namespace,
             # Scope binding is carried as a digest only; the raw tenant id is
-            # never written into the provider graph (ADR-084).
+            # never written into the provider graph (ADR-085).
             "scope_scheme": GRAPH_SCOPE_SCHEME,
             "scope_digest": graph_scope_digest(record.tenant_id, record.namespace),
             "memory_class": record.memory_class.value,
@@ -117,11 +120,26 @@ class GraphitiProjection:
                     return nested
         return None
 
+    def _settle_write(self, record: MemoryRecord, result: Any, group_id: str) -> dict[str, Any]:
+        if not isinstance(result, dict):
+            result = {"result": result}
+        if result.get("error"):
+            raise ProjectionError(f"projection write failed: {result['error']}")
+        locator = self._extract_locator(result) or episode_name_locator(group_id, record.record_id)
+        return {
+            **result,
+            "locator": locator,
+            "record_id": str(record.record_id),
+            "scope_scheme": GRAPH_SCOPE_SCHEME,
+        }
+
     def project(self, record: MemoryRecord) -> dict[str, Any]:
+        """Legacy scalar delivery: the adapter's own JSON payload."""
+
         payload = self._projection_payload(record)
         group_id = graph_group_id(record.tenant_id, record.namespace)
         # No ``uuid`` argument: Graphiti would treat it as an update of an
-        # existing episode (ADR-090). The canonical name carries the mapping.
+        # existing episode (ADR-091). The canonical name carries the mapping.
         result = self.transport.write(
             json.dumps(payload, sort_keys=True),
             group_id,
@@ -135,16 +153,43 @@ class GraphitiProjection:
                 "memory_class": record.memory_class.value,
             },
         )
-        if not isinstance(result, dict):
-            result = {"result": result}
-        if result.get("error"):
-            raise ProjectionError(f"projection write failed: {result['error']}")
-        locator = self._extract_locator(result) or episode_name_locator(group_id, record.record_id)
+        return self._settle_write(record, result, group_id)
+
+    def project_rendered(
+        self, record: MemoryRecord, rendered: RenderedProjection
+    ) -> dict[str, Any]:
+        """Manifest delivery: the compiled rendering, byte for byte.
+
+        The episode body is ``rendered.normalized_text``, the deterministic
+        text the render contract produced and ``content_digest`` identifies.
+        The adapter adds nothing to it and reshapes nothing, so the provider
+        holds exactly what the link's ``render_contract_digest`` attests
+        (ADR-063, ADR-084). Placement is the scalar path's: the tenant-scoped
+        group (ADR-085) and the canonical episode name with no ``uuid``
+        argument, which Graphiti would treat as an update (ADR-091).
+        """
+
+        group_id = graph_group_id(record.tenant_id, record.namespace)
+        result = self.transport.write(
+            rendered.normalized_text,
+            group_id,
+            kind=record.memory_class.value,
+            name=episode_name(record.record_id),
+            source="text",
+            source_description=f"l9-memory canonical projection {rendered.template}",
+            metadata={
+                "record_id": str(record.record_id),
+                "schema_version": record.schema_version,
+                "memory_class": record.memory_class.value,
+                "render_template": rendered.template,
+                "render_contract_digest": rendered.template_digest,
+                "content_digest": rendered.content_digest,
+            },
+        )
         return {
-            **result,
-            "locator": locator,
-            "record_id": str(record.record_id),
-            "scope_scheme": GRAPH_SCOPE_SCHEME,
+            **self._settle_write(record, result, group_id),
+            "render_contract_digest": rendered.template_digest,
+            "content_digest": rendered.content_digest,
         }
 
     def retire(
@@ -344,7 +389,7 @@ class GraphitiProjection:
         per_namespace = max(1, limit // max(1, len(namespaces)))
         for namespace in namespaces:
             # Each authorized namespace maps to exactly one tenant-bound group;
-            # no request field can widen or replace it (ADR-084).
+            # no request field can widen or replace it (ADR-085).
             group_id = graph_group_id(tenant_id, namespace)
             arguments: dict[str, Any] = {"query": query, limit_key: per_namespace}
             if official_dialect:
@@ -360,7 +405,7 @@ class GraphitiProjection:
                     record_ids.append(record_id)
                 elif item.get("episodes") and "get_episodes" in tools:
                     # Graphiti facts cite provider episode uuids, not record
-                    # ids; the episode name carries the mapping (ADR-090).
+                    # ids; the episode name carries the mapping (ADR-091).
                     if episode_records is None:
                         episode_records = self._episode_records(group_id)
                     record_ids.extend(
@@ -410,8 +455,8 @@ class GraphitiProjection:
         ``search_nodes`` answers with entities (uuid, name, summary) that name
         no episode, so ``search_strategy`` has to drop them. This keeps them
         for ``graph.search``, which binds their canonical support through the
-        graph backend (ADR-092). Group scoping is identical: one
-        GraphScopeKey-derived group per authorized namespace (ADR-084).
+        graph backend (ADR-093). Group scoping is identical: one
+        GraphScopeKey-derived group per authorized namespace (ADR-085).
         """
 
         if "graph-search" not in self.capabilities:

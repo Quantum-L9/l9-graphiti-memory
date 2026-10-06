@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Canonical evidence binding of provider graph observations (ADR-086, GI-025..027)."""
+"""Canonical evidence binding of provider graph observations (ADR-087, GI-025..027)."""
 
 from __future__ import annotations
 

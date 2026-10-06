@@ -1,9 +1,9 @@
-# ADR-089: Graph Intelligence Public Surfaces and Observability
+# ADR-090: Graph Intelligence Public Surfaces and Observability
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-089-graph-intelligence-public-surfaces-and-observability.md
+path: docs/adr/ADR-090-graph-intelligence-public-surfaces-and-observability.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -22,7 +22,7 @@ Accepted
 
 ## Context
 
-ADR-084..ADR-088 built the graph-intelligence plane behind
+ADR-085..ADR-089 built the graph-intelligence plane behind
 `GraphIntelligenceService`. Consumers need stable provider-neutral entry
 points, a capability and health report that keeps each dimension separate, and
 operational metrics — without adding Gate routing semantics to this dependency
@@ -118,4 +118,4 @@ runtime composition.
 
 ## Supersedes / Superseded By
 
-Extends ADR-014, ADR-082, ADR-085..ADR-088. Superseded by none.
+Extends ADR-014, ADR-082, ADR-086..ADR-089. Superseded by none.

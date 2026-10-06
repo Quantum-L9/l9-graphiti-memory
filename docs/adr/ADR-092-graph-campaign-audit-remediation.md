@@ -1,9 +1,9 @@
-# ADR-091: Graph Campaign Audit Remediation
+# ADR-092: Graph Campaign Audit Remediation
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-091-graph-campaign-audit-remediation.md
+path: docs/adr/ADR-092-graph-campaign-audit-remediation.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -25,12 +25,12 @@ Accepted
 An independent audit of the campaign slices found four defects that CI did
 not catch:
 
-1. **Erasure hole during the GraphScopeKey migration (ADR-084).** The
+1. **Erasure hole during the GraphScopeKey migration (ADR-085).** The
    migration rebuilds into a fresh provider database and keeps the previous
    one for rollback. Re-projection overwrote the only projection link, so a
    verified deletion during the rollback window erased the new copy and
    reported COMPLETE while the previous database still held a copy.
-2. **Paths served over unsupported relationships (ADR-086/087).** A path was
+2. **Paths served over unsupported relationships (ADR-087/087).** A path was
    admitted when every node had canonical support, even if the relationship
    between two nodes had none. Node support was then reported as the path's
    support.
@@ -161,7 +161,7 @@ evidence-bearing canonical persistence; no bypass).
   unbounded queue.
 - Deletions of records whose rebuild had not yet run also wait for the
   release. An in-place upgrade without the fresh-database rebuild (which
-  ADR-084 forbids) keeps every such deletion pending until release.
+  ADR-085 forbids) keeps every such deletion pending until release.
 
 ## Security Impact
 
@@ -172,7 +172,7 @@ reference. Path evidence can no longer be borrowed from endpoints.
 ## Migration Impact
 
 No store schema change. Links written before this change carry no
-obligations; the obligation is recorded when the ADR-084 rebuild runs. Run
+obligations; the obligation is recorded when the ADR-085 rebuild runs. Run
 `release-legacy-projection` after migration step 7.
 
 ## Validation Requirements
@@ -208,5 +208,5 @@ Deletions waiting on them must be completed by releasing first.
 
 ## Supersedes / Superseded By
 
-Amends ADR-084 (migration), ADR-086 (evidence, limits) and ADR-087 (paths,
+Amends ADR-085 (migration), ADR-087 (evidence, limits) and ADR-088 (paths,
 search). Superseded by none.

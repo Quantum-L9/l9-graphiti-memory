@@ -676,6 +676,7 @@ def cmd_rebuild_projection(args: argparse.Namespace) -> int:
             apply=args.apply,
             limit=args.limit,
             reason=args.reason,
+            target=args.target,
         )
         _print(receipt)
         return 0
@@ -706,7 +707,7 @@ def cmd_release_legacy_projection(args: argparse.Namespace) -> int:
 
 
 def cmd_record_graph_cutover(args: argparse.Namespace) -> int:
-    """Record a graph projection cutover and its rollback window (GI-090, ADR-092)."""
+    """Record a graph projection cutover and its rollback window (GI-090, ADR-093)."""
 
     runtime = _runtime(args)
     try:
@@ -880,7 +881,7 @@ def cmd_delete(args: argparse.Namespace) -> int:
 def cmd_outbox_run(args: argparse.Namespace) -> int:
     runtime = _runtime(args)
     try:
-        worker = OutboxWorker(runtime.service.store, runtime.service.projection, runtime.settings)
+        worker = OutboxWorker(runtime.service.store, runtime.service.projections, runtime.settings)
         _print(worker.run_once())
         return 0
     finally:
@@ -1255,6 +1256,11 @@ def build_parser() -> argparse.ArgumentParser:
     rebuild.add_argument("--group-id", default=None)
     rebuild.add_argument("--limit", type=int, default=1_000)
     rebuild.add_argument("--reason", default="projection rebuild")
+    rebuild.add_argument(
+        "--target",
+        default=None,
+        help="rebuild one target identity only; by default every delivering target",
+    )
     rebuild.add_argument(
         "--apply",
         action="store_true",

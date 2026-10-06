@@ -150,7 +150,12 @@ class DeletionReceipt(BaseModel):
     authorization: AuthorizationReceipt
     reason: str
     verification_reference: str
+    # The first erase event, kept for consumers that predate multi-target
+    # erasure. ``projection_event_ids`` and ``projection_targets`` name every
+    # provider copy the deletion must erase before it completes (ADR-084).
     projection_event_id: UUID | None = None
+    projection_event_ids: tuple[UUID, ...] = ()
+    projection_targets: tuple[str, ...] = ()
     requested_by: str
     created_at: datetime = Field(default_factory=utc_now)
     completed_at: datetime | None = None
@@ -175,6 +180,26 @@ class SearchHit(BaseModel):
     score: float = Field(ge=0.0, le=1.0)
     factors: ScoreFactors
     matched_by: tuple[str, ...] = ()
+
+
+class ProjectionStrategyEvidence(BaseModel):
+    """What one projection target did for one retrieval strategy (ADR-084).
+
+    ``contributed`` is how many of this strategy's hits are among the returned
+    hits. It is always zero for a shadow target, whose hits are measured but
+    never allowed to influence the result.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    target_identity: str
+    mode: str
+    strategy: str
+    attempted: bool = True
+    succeeded: bool
+    error: str | None = None
+    hit_count: int = Field(default=0, ge=0)
+    contributed: int = Field(default=0, ge=0)
 
 
 class SearchReceipt(BaseModel):
@@ -218,6 +243,7 @@ class SearchReceipt(BaseModel):
     stores_attempted: tuple[str, ...] = ()
     stores_succeeded: tuple[str, ...] = ()
     stores_failed: dict[str, str] = Field(default_factory=dict)
+    projection_evidence: tuple[ProjectionStrategyEvidence, ...] = ()
     ranking_policy_version: str = RANKING_POLICY_VERSION
     result_digest: str
     created_at: datetime = Field(default_factory=utc_now)

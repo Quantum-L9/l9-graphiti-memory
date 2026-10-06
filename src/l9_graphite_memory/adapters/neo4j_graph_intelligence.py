@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Bounded, read-only Neo4j/GDS graph-intelligence adapter (ADR-085).
+"""Bounded, read-only Neo4j/GDS graph-intelligence adapter (ADR-086).
 
 Reads the Graphiti-managed projection that lives in Neo4j. It never writes
 persistent graph state: every statement is a registered static template
@@ -195,7 +195,7 @@ class Neo4jGraphIntelligenceConfig:
 
 # Absolute monotonic deadline of the provider operation in progress. Every
 # statement an operation runs draws on one request-wide budget instead of each
-# receiving the whole ``max_runtime_ms`` (ADR-091).
+# receiving the whole ``max_runtime_ms`` (ADR-092).
 _REQUEST_DEADLINE: ContextVar[float | None] = ContextVar("l9_graph_request_deadline", default=None)
 
 
@@ -486,7 +486,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
             self._driver.close()
             self._driver = None
 
-    # -- structural operations (ADR-087) ---------------------------------
+    # -- structural operations (ADR-088) ---------------------------------
 
     def _base_parameters(self, request: GraphProviderRequest) -> dict[str, Any]:
         return {
@@ -643,7 +643,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
             provider_metadata={"backend": self.name, "database": self.config.database},
         )
 
-    # -- GDS analytics (ADR-088), stream mode only --------------------------
+    # -- GDS analytics (ADR-089), stream mode only --------------------------
 
     def _projected(
         self,
@@ -972,7 +972,7 @@ class Neo4jGraphIntelligence(UnservedOperations):
     def _episode_support(
         self, request: GraphProviderRequest, episode_uuids: list[str]
     ) -> dict[str, str]:
-        """Map edge episode uuids to canonical support ids (ADR-090).
+        """Map edge episode uuids to canonical support ids (ADR-091).
 
         Ids that name no in-scope episode are returned unchanged; the evidence
         linker admits only ids that rehydrate to canonical records.

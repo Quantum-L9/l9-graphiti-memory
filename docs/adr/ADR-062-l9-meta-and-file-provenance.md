@@ -1,5 +1,17 @@
 # ADR-062: L9 Metadata and File Provenance
 
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/adr/ADR-062-l9-meta-and-file-provenance.md
+layer: adr
+owner: memory-control-plane
+status: active
+version: 2.5.0
+updated: 2026-07-22
+/L9_META -->
+
+
 **Date:** 2026-07-22
 **Decision owner:** Quantum-L9 architecture
 **Applies to:** `Quantum-L9/l9-graphiti-memory` v2.2+

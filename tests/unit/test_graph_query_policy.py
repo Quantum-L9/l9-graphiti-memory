@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Static Cypher template policy: no persistent mutation is expressible (ADR-085)."""
+"""Static Cypher template policy: no persistent mutation is expressible (ADR-086)."""
 
 from __future__ import annotations
 

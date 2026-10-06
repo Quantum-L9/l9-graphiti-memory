@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Graph-intelligence request/receipt contracts vs the shipped JSON Schemas (ADR-086)."""
+"""Graph-intelligence request/receipt contracts vs the shipped JSON Schemas (ADR-087)."""
 
 from __future__ import annotations
 

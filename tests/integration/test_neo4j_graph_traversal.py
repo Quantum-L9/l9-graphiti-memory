@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Live bounded traversal, neighborhood, and path over a Graphiti-shaped graph (ADR-087).
+"""Live bounded traversal, neighborhood, and path over a Graphiti-shaped graph (ADR-088).
 
 Runs against the Neo4j named by ``L9_MEMORY_TEST_NEO4J_URI``; skips otherwise.
 The canonical store is real: supporting episode UUIDs are the record ids of
@@ -305,7 +305,7 @@ class _EntityProjection:
 
 
 def test_graph_search_entity_hits_bind_support_on_live_neo4j(world) -> None:
-    """ADR-092: entity hits bind through MENTIONS; foreign and orphan entities do not."""
+    """ADR-093: entity hits bind through MENTIONS; foreign and orphan entities do not."""
 
     from l9_graphite_memory.ports import ProjectionEntityHit
 

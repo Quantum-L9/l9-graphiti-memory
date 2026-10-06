@@ -12,16 +12,18 @@ kind: Projection
 metadata:
   name: facts
   version: 8
-  status: shadow
+  status: active
 spec:
   providers:
     - id: graphiti-primary
       type: graphiti_mcp
       target: primary
+      mode: active
       required: false
     - id: zep-primary
       type: zep
       target: primary
+      mode: shadow
       required: false
   source:
     event_types:

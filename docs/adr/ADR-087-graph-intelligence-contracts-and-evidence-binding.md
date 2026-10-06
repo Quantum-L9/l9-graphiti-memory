@@ -1,9 +1,9 @@
-# ADR-086: Graph Intelligence Contracts, Receipts, and Evidence Binding
+# ADR-087: Graph Intelligence Contracts, Receipts, and Evidence Binding
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-086-graph-intelligence-contracts-and-evidence-binding.md
+path: docs/adr/ADR-087-graph-intelligence-contracts-and-evidence-binding.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -22,7 +22,7 @@ Accepted
 
 ## Context
 
-ADR-085 introduced a read-only `GraphIntelligencePort` beside the projection
+ADR-086 introduced a read-only `GraphIntelligencePort` beside the projection
 adapter. Structural results computed over a Graphiti projection are
 projection-derived: an entity or relationship aggregates what Graphiti
 extracted, not what memory admitted. Without a governing service, a caller
@@ -141,4 +141,4 @@ disables every operation.
 
 ## Supersedes / Superseded By
 
-Extends ADR-085. Superseded by none.
+Extends ADR-086. Superseded by none.

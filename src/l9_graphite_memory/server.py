@@ -408,7 +408,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         content = report.model_dump(mode="json")
         if runtime.graph_service is not None:
             # A separate dimension; it gates readiness only when the deployment
-            # marks graph intelligence as required (ADR-089).
+            # marks graph intelligence as required (ADR-090).
             graph = runtime.graph_service.capability_report(refresh=True)
             content["graph"] = graph.model_dump(mode="json")
             ready = ready and graph.ready

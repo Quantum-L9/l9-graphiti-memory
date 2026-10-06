@@ -11,7 +11,7 @@ updated: 2026-07-22
 
 # Graph Intelligence Live Qualification (GI-080)
 
-Decision: ADR-090. Suite: `tests/qualification/test_graphiti_live_qualification.py`.
+Decision: ADR-091. Suite: `tests/qualification/test_graphiti_live_qualification.py`.
 
 ## Qualified stack
 
@@ -26,7 +26,7 @@ Decision: ADR-090. Suite: `tests/qualification/test_graphiti_live_qualification.
 | Cross-encoder | `OpenAIRerankerClient` on the small model | real |
 | MCP transport | `GraphitiCoreTransport` (test only) | substituted: calls `graphiti_core` in process using the official tool names, replies and swallowed-failure semantics |
 
-The model stack is the one settled by the GAR intelligence harvest (ADR-092):
+The model stack is the one settled by the GAR intelligence harvest (ADR-093):
 the Graphiti deployment's OpenAI provider, with `gpt-4o-mini` replaced by
 graphiti-core 0.30.2's own defaults, and the embedder the projection manifest
 pins. There are no stand-in models.
@@ -55,7 +55,7 @@ written to a file.
 | Test | Proves |
 |---|---|
 | `test_projection_ingests_named_episodes_with_provider_uuids` | canonical write → outbox → real Graphiti episodes named `memory:<record_id>` in the tenant's GraphScopeKey group, with provider uuids and name locators; no tenant id in content |
-| `test_graphiti_rejects_a_caller_supplied_episode_uuid` | the upstream defect ADR-090 routes around |
+| `test_graphiti_rejects_a_caller_supplied_episode_uuid` | the upstream defect ADR-091 routes around |
 | `test_graphiti_extraction_builds_scoped_entities_and_edges` | real extraction keeps every entity and edge in one group; two tenants sharing a namespace get separate graphs; neither tenant's text leaks into the other's |
 | `test_backend_health_qualifies_the_real_graphiti_schema` | schema, analytics and scope-conformance checks accept a real Graphiti database |
 | `test_record_anchor_resolves_through_the_episode_name_and_binds_support` | record anchors resolve through `MENTIONS`; support rehydrates to the tenant's own records |
@@ -63,7 +63,7 @@ written to a file.
 | `test_path_and_neighborhood_over_the_real_graph` | a bounded path Falcon → Ledger exists within 3 hops; depth-1 neighborhood reaches Payments |
 | `test_gds_analytics_over_the_real_graph` (×3) | PageRank, Louvain and FastRP complete with canonical support and leave no `l9gi_` catalog graph |
 | `test_fact_search_maps_episodes_back_to_canonical_records` | fact search maps episodes back to canonical records, per tenant |
-| `test_entity_node_search_binds_canonical_support_on_real_graphiti` | `graph.search` entity hits bind to the tenant's records (ADR-092) |
+| `test_entity_node_search_binds_canonical_support_on_real_graphiti` | `graph.search` entity hits bind to the tenant's records (ADR-093) |
 | `test_supersession_and_verified_erasure_remove_real_episodes` | supersession withdraws, and verified erasure removes, the real episode; no edge still cites it |
 | `test_graphiti_process_restart_recovers_and_keeps_the_projection` | a new Graphiti process keeps the projection and keeps projecting |
 | `test_the_qualified_model_stack_is_the_harvested_one` | receipt of the model stack and route the run used |

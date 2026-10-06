@@ -10,7 +10,7 @@
 
 """Release-blocking: verified deletion covers copies left in a retained legacy store.
 
-ADR-091. The GraphScopeKey migration (ADR-084) re-projects every record into a
+ADR-092. The GraphScopeKey migration (ADR-085) re-projects every record into a
 fresh provider database and keeps the previous one for rollback. A deletion
 during that window must not report COMPLETE while the previous database still
 holds a copy: it stays pending until the operator releases the legacy copies
@@ -99,7 +99,7 @@ class Migration:
         return self.store.get_projection_link(record_id, "graphiti")
 
     def switch_provider(self, *records: UUID) -> None:
-        """Mark links as pre-ADR-084 and bind the fresh database; no rebuild yet."""
+        """Mark links as pre-ADR-085 and bind the fresh database; no rebuild yet."""
 
         for record_id in records:
             link = self.link(record_id)
@@ -108,7 +108,7 @@ class Migration:
         self.service, self.worker = self._bind(self.new)
 
     def cut_over(self, *records: UUID) -> None:
-        """Mark links as pre-ADR-084, then rebuild into the fresh database."""
+        """Mark links as pre-ADR-085, then rebuild into the fresh database."""
 
         self.switch_provider(*records)
         receipt = self.service.rebuild_projection(MAINTAINER, NAMESPACE, apply=True)
@@ -117,7 +117,7 @@ class Migration:
         self.record_cutover()
 
     def record_cutover(self, service: MemoryService | None = None) -> None:
-        """Record the cutover (ADR-092) so legacy copies may later be released.
+        """Record the cutover (ADR-093) so legacy copies may later be released.
 
         The rollback window is zero here; its enforcement is tested in
         test_graph_cutover.py.
@@ -519,7 +519,7 @@ def test_projection_losing_the_race_to_deletion_withdraws_its_fresh_copy(tmp_pat
     legacy copy erased-and-released, and deletion completes. On resuming, the
     worker must withdraw the fresh copy and must not install a link.
 
-    The re-projection runs after a recorded cutover (ADR-092): a release is
+    The re-projection runs after a recorded cutover (ADR-093): a release is
     refused before one, so that is the state in which this race can occur. A
     withdrawn link on the active record queues the re-projection.
     """

@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Graph intelligence public surfaces: MCP, SDK, capabilities, health, metrics (ADR-089)."""
+"""Graph intelligence public surfaces: MCP, SDK, capabilities, health, metrics (ADR-090)."""
 
 from __future__ import annotations
 
@@ -36,6 +36,7 @@ from l9_graphite_memory.mcp_tools import (
     tool_definitions,
 )
 from l9_graphite_memory.observability.graph_metrics import GraphMetrics
+from l9_graphite_memory.projections.runtime import graph_projection_adapter
 from l9_graphite_memory.runtime import MemoryRuntime
 from l9_graphite_memory.sdk import MemorySDK
 from tests.graph_fakes import FakeGraphPort, seeded_memory
@@ -74,7 +75,7 @@ def _graph_world(*, health_overrides=None, metrics=None, required=False):
         store,
         port,
         namespace_policy=service.namespace_policy,
-        projection=service.projection,
+        projection=graph_projection_adapter(service.projections),
         metrics=metrics or GraphMetrics(),
         config=GraphServiceConfig(required=required),
     )

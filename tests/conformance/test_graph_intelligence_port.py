@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""GraphIntelligencePort conformance for every shipped backend (ADR-085/086)."""
+"""GraphIntelligencePort conformance for every shipped backend (ADR-086/086)."""
 
 from __future__ import annotations
 

@@ -2,13 +2,13 @@
 #   l9_schema: 1
 #   repo: Quantum-L9/l9-graphiti-memory
 #   path: src/l9_graphite_memory/graph/contracts.py
-#   layer: package
+#   layer: contract
 #   owner: memory-control-plane
 #   status: active
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Provider-neutral graph-intelligence contracts (ADR-086).
+"""Provider-neutral graph-intelligence contracts (ADR-087).
 
 Three layers, deliberately separate:
 

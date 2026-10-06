@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""GDS analytics lifecycle with a scripted driver (ADR-088, GI-018/020/021)."""
+"""GDS analytics lifecycle with a scripted driver (ADR-089, GI-018/020/021)."""
 
 from __future__ import annotations
 

@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Governed graph-intelligence service (ADR-086).
+"""Governed graph-intelligence service (ADR-087).
 
 ``GraphIntelligenceService`` sits above ``GraphIntelligencePort``. For every
 operation it:
@@ -16,7 +16,7 @@ operation it:
 1. authorizes each requested namespace for READ against the principal's
    server-side claims (ADR-006) — the tenant is the principal's, never a
    request field;
-2. derives the exact GraphScopeKey v1 groups for those namespaces (ADR-084);
+2. derives the exact GraphScopeKey v1 groups for those namespaces (ADR-085);
 3. rejects out-of-policy requests before any provider call — relationship
    types outside the allowlist, inadmissible or over-mature algorithms,
    disabled link prediction, anchors that are not the principal's records;
@@ -60,6 +60,7 @@ from l9_graphite_memory.ports import (
     ProjectionHit,
     RecordStore,
 )
+from l9_graphite_memory.projections.runtime import graph_projection_adapter
 
 from .algorithm_policy import (
     AlgorithmPolicy,
@@ -106,7 +107,7 @@ class _BoundedPool:
     At most ``workers + backlog`` items are in the pool at once (running or
     queued). When it is full, ``try_submit`` returns ``None`` and the caller
     answers with a typed refusal, so a hung backend cannot make queued
-    requests pile up in memory (ADR-091).
+    requests pile up in memory (ADR-092).
     """
 
     def __init__(self, workers: int, backlog: int, name: str) -> None:
@@ -348,7 +349,7 @@ def graph_service_for(
         port,
         namespace_policy=memory.namespace_policy,
         config=config,
-        projection=memory.projection,
+        projection=graph_projection_adapter(memory.projections),
     )
 
 
@@ -465,7 +466,7 @@ class GraphIntelligenceService:
         # cleanup, projection transport) runs off-thread; the caller waits at
         # most the request budget and then gets a typed refusal. Work still in
         # flight finishes against its own statement/transport timeouts and its
-        # result is discarded (ADR-091).
+        # result is discarded (ADR-092).
         future = _REQUEST_POOL.try_submit(
             contextvars.copy_context().run, self._execute, principal, request
         )
@@ -545,7 +546,7 @@ class GraphIntelligenceService:
         for namespace in namespaces:
             self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
         # One request-wide deadline: every stage below draws on the same
-        # max_runtime_ms instead of each receiving all of it (ADR-091).
+        # max_runtime_ms instead of each receiving all of it (ADR-092).
         budget_ms = min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
         deadline = self._monotonic() + budget_ms / 1_000
 
@@ -779,7 +780,7 @@ class GraphIntelligenceService:
         is unchanged, GI-036), with the principal's tenant, and admits a hit
         only after canonical rehydration under the request's filters.
         ``graph.search`` also keeps entity hits that name no record and binds
-        their support through the graph backend (ADR-092).
+        their support through the graph backend (ADR-093).
         """
 
         strategy = SEARCH_STRATEGIES[request.operation]

@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Neo4j adapter structural operations with a scripted driver (ADR-087)."""
+"""Neo4j adapter structural operations with a scripted driver (ADR-088)."""
 
 from __future__ import annotations
 

@@ -11,9 +11,9 @@ updated: 2026-07-22
 
 # Graph Intelligence Cutover Runbook (GI-090)
 
-Decisions: [ADR-084](../adr/ADR-084-tenant-safe-graph-scope-key.md) (scope key and
-rebuild), [ADR-091](../adr/ADR-091-graph-campaign-audit-remediation.md) (legacy erasure
-obligations), [ADR-092](../adr/ADR-092-graph-intelligence-v1-closure.md) (cutover
+Decisions: [ADR-085](../adr/ADR-085-tenant-safe-graph-scope-key.md) (scope key and
+rebuild), [ADR-092](../adr/ADR-092-graph-campaign-audit-remediation.md) (legacy erasure
+obligations), [ADR-093](../adr/ADR-093-graph-intelligence-v1-closure.md) (cutover
 receipt, rollback window, release gate).
 
 **Audience:** the downstream executing agent (Cursor, under L9 governance) and
@@ -162,7 +162,7 @@ the outbox: repeat `l9-memory outbox-run` until it reports `"claimed": 0`, and
 confirm `outbox_backlog` is 0 in `l9-memory health`.
 
 Each re-projected link records the copy left in the previous database as a
-legacy erasure obligation (ADR-091). This is expected: those copies are
+legacy erasure obligation (ADR-092). This is expected: those copies are
 released in Phase 10.
 
 **STOP** if any outbox event goes `dead`. Report it; do not force it.

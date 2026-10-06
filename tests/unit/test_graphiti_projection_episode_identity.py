@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-"""Graphiti episode identity: provider-issued uuids, name locators (ADR-090)."""
+"""Graphiti episode identity: provider-issued uuids, name locators (ADR-091)."""
 
 from __future__ import annotations
 

@@ -63,7 +63,7 @@ class PhaseLockSnapshotConflict(StoreError):
 
 
 class CutoverNotReady(L9MemoryError):
-    """A graph cutover, or a legacy release it gates, is not permitted yet (ADR-092)."""
+    """A graph cutover, or a legacy release it gates, is not permitted yet (ADR-093)."""
 
 
 class ProjectionError(L9MemoryError):

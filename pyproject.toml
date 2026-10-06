@@ -55,7 +55,7 @@ phase6 = [
 ]
 infisical = ["infisical-python>=2.0,<3"]
 # Read-only structural graph intelligence over the Graphiti Neo4j projection
-# (ADR-085). GDS procedures are called through the driver; no GDS client.
+# (ADR-086). GDS procedures are called through the driver; no GDS client.
 graph-intelligence = ["neo4j>=5.26,<7"]
 all = [
   "fastapi>=0.115,<1",
@@ -89,7 +89,7 @@ dev = [
   "httpx2>=2.12,<3",
   "ruff>=0.8,<1",
   # The graph-intelligence adapter's unit tests and mypy run against the real
-  # driver types; the package itself imports and runs without it (ADR-085).
+  # driver types; the package itself imports and runs without it (ADR-086).
   "neo4j>=5.26,<7",
   # The active-store conformance suite runs against real Redis. An environment
   # synced with only `--extra dev` (the governed session-deps hook) otherwise
@@ -171,7 +171,7 @@ ignore_missing_imports = true
 constellation = [
   "constellation-node-sdk ; python_full_version >= '3.12'",
 ]
-# Real-model live qualification (tests/qualification, ADR-092). Test-only:
+# Real-model live qualification (tests/qualification, ADR-093). Test-only:
 # graphiti-core is pinned to the qualified version and resolved in uv.lock so
 # CI installs it frozen and without building. graphiti-core imports httpx
 # without declaring it.
