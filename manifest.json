@@ -414,7 +414,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "72f9a911e478c3549d91790ef32a9fe3b0749fb68d4c0ff7f7d3ba08ab7968d5",
+      "sha256": "aa49a94ff5fdbe2a8933e56cf0b68eedbe93a682039bfc0b31e63e880a878b2d",
       "size_bytes": 134219
     },
     {
@@ -10382,8 +10382,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_graph_scope_key.py",
-      "sha256": "78a5b0de814f217e748686a276c345a0b2eec5c9f63b13cbcdda230a3ae135bc",
-      "size_bytes": 2854
+      "sha256": "cc5a7f8aff8b5e84a63cc1a3c628978edf464505c15949977b4a8cb9257073fa",
+      "size_bytes": 2946
     },
     {
       "category": "tests",

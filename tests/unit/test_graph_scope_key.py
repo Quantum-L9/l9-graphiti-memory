@@ -44,7 +44,10 @@ def test_group_id_matches_fixed_test_vector() -> None:
 
 
 def test_group_id_is_deterministic() -> None:
-    assert graph_group_id("tenant-a", "repo") == graph_group_id("tenant-a", "repo")
+    first = graph_group_id("tenant-a", "repo")
+    second = graph_group_id("tenant-a", "repo")
+    assert first == second
+    assert first.startswith(f"{GRAPH_SCOPE_SCHEME}-")
 
 
 def test_same_namespace_in_two_tenants_never_collides() -> None:

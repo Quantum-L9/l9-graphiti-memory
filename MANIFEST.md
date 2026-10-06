@@ -701,7 +701,7 @@ updated: 2026-07-22
 | `tests/unit/test_graph_public_surfaces.py` | `tests` | `test` | 9651 | `3657e6efe4680ad7a9a06defa486d71e0343845e71d801a19a01d8dd02bd2b45` |
 | `tests/unit/test_graph_query_policy.py` | `tests` | `test` | 4637 | `6a43ef6a902c2c2e5a75640b4df243e493ccd9f7187ec40356a9d2e70d680f32` |
 | `tests/unit/test_graph_request_budget_and_policy.py` | `tests` | `test` | 22359 | `b06c700164deb87c8d5ee46df639a18c921fefb82a7bf7b060f76e1ba953c313` |
-| `tests/unit/test_graph_scope_key.py` | `tests` | `test` | 2854 | `78a5b0de814f217e748686a276c345a0b2eec5c9f63b13cbcdda230a3ae135bc` |
+| `tests/unit/test_graph_scope_key.py` | `tests` | `test` | 2946 | `cc5a7f8aff8b5e84a63cc1a3c628978edf464505c15949977b4a8cb9257073fa` |
 | `tests/unit/test_graph_search_entity_binding.py` | `tests` | `test` | 11051 | `101f2e9a5e2989eb2503d9770acdd9bff1b94d9bcd577e6f19efe9f1050c0fc7` |
 | `tests/unit/test_graph_service.py` | `tests` | `test` | 14673 | `b937df3aab0f95e1a17fee113ea10ff06834004d3b82a16c40fd8d309bf72874` |
 | `tests/unit/test_graphiti_projection_episode_identity.py` | `tests` | `test` | 7516 | `3af4a10e402462d9f1f7b28758079c9d66e37793096c8b0df287eaa5e76977e4` |
