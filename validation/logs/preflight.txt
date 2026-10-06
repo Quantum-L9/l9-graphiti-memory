@@ -77,7 +77,7 @@ PASS  cursor client dry-run
     }
   ],
   "timed_out": false,
-  "tool_count": 44
+  "tool_count": 33
 }
 PASS  cursor instantiation probe
 PASS  shell syntax graphiti-gate-edits.sh

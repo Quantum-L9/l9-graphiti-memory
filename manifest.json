@@ -414,7 +414,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "102da82ae56a9bcd94fac1850b35538465b3a3a5910f7d9f639098361da4c265",
+      "sha256": "72f9a911e478c3549d91790ef32a9fe3b0749fb68d4c0ff7f7d3ba08ab7968d5",
       "size_bytes": 134219
     },
     {
@@ -12734,7 +12734,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "06059f25666321dd364ba190624567b1fc37d5a9f7434fc5f7cea229abe6ab77",
+      "sha256": "1fc7e3e4d1a392ff31c57b1d34f70e349ed51ed0e4033dc322133e993902ff4f",
       "size_bytes": 1106
     },
     {
@@ -12766,7 +12766,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_mcp.txt",
-      "sha256": "1c914e551866e771b04079e24386621bea2e393ef8dca06ccacd40d3bf6670ff",
+      "sha256": "c532528a835d0fce6a73ca3df70329345f00e75b86c1a1213a4131dbd0021afd",
       "size_bytes": 74
     },
     {
@@ -12878,7 +12878,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "29e41465e47ca99a581bac34b5fdbf0ca00bf68155d04aba1a3c151588ad735c",
+      "sha256": "baa10caa8bbeef7f33e20c2088445fd62e9b024a9ee94e43b146244f4abd5bbf",
       "size_bytes": 4081
     },
     {
@@ -12910,8 +12910,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "01204463db4dc90fb7fb8fea7c38cfd097ff4a152a64103dfea0e0c0b5816f82",
-      "size_bytes": 6431
+      "sha256": "adfd26cd9c976c232f2c2d7e00f25717d1f947cc0bf2e83f04af1ff8e2e45400",
+      "size_bytes": 3168
     },
     {
       "category": "validation_evidence",
@@ -12990,8 +12990,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "a029d037028050418d1e041de71b02b20d2947668e66617faa25d65552708ec5",
-      "size_bytes": 31688
+      "sha256": "a8f628c910220ed44125ce96caa758fa0fe7ac93154dee6e86cab85c3eba3903",
+      "size_bytes": 28737
     },
     {
       "category": "validation_evidence",

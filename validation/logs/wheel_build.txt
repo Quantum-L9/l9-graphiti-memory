@@ -75,14 +75,6 @@ copying build/lib/l9_graphite_memory/client_config/mcp_probe.py -> build/bdist.l
 copying build/lib/l9_graphite_memory/client_config/cursor.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/client_config
 copying build/lib/l9_graphite_memory/secrets.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
 copying build/lib/l9_graphite_memory/errors.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
-creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/graph
-copying build/lib/l9_graphite_memory/graph/algorithm_policy.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
-copying build/lib/l9_graphite_memory/graph/service.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
-copying build/lib/l9_graphite_memory/graph/evidence.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
-copying build/lib/l9_graphite_memory/graph/scope.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
-copying build/lib/l9_graphite_memory/graph/__init__.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
-copying build/lib/l9_graphite_memory/graph/contracts.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
-copying build/lib/l9_graphite_memory/graph/ports.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/graph
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/extraction
 copying build/lib/l9_graphite_memory/extraction/__init__.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/extraction
 copying build/lib/l9_graphite_memory/extraction/distiller.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/extraction
@@ -107,7 +99,6 @@ copying build/lib/l9_graphite_memory/memory_guard.py -> build/bdist.linux-x86_64
 copying build/lib/l9_graphite_memory/transport.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/observability
 copying build/lib/l9_graphite_memory/observability/__init__.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/observability
-copying build/lib/l9_graphite_memory/observability/graph_metrics.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/observability
 copying build/lib/l9_graphite_memory/observability/logging.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/observability
 copying build/lib/l9_graphite_memory/prune.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/active
@@ -165,9 +156,6 @@ copying build/lib/l9_graphite_memory/maintenance/planner.py -> build/bdist.linux
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/resources
 copying build/lib/l9_graphite_memory/resources/defaults.yaml -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources
 copying build/lib/l9_graphite_memory/resources/memory_contract.yaml -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources
-creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/resources/graph
-copying build/lib/l9_graphite_memory/resources/graph/graph-intelligence-receipt.schema.json -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources/graph
-copying build/lib/l9_graphite_memory/resources/graph/graph-intelligence-request.schema.json -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources/graph
 copying build/lib/l9_graphite_memory/resources/group_registry.yaml -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/resources/projections
 copying build/lib/l9_graphite_memory/resources/projections/schema.json -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/resources/projections
@@ -220,16 +208,11 @@ copying build/lib/l9_graphite_memory/version.py -> build/bdist.linux-x86_64/whee
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/adapters
 copying build/lib/l9_graphite_memory/adapters/in_memory_store.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
 copying build/lib/l9_graphite_memory/adapters/sqlite_store.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
-copying build/lib/l9_graphite_memory/adapters/neo4j_graph_intelligence.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
 copying build/lib/l9_graphite_memory/adapters/factory.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
 copying build/lib/l9_graphite_memory/adapters/__init__.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
 copying build/lib/l9_graphite_memory/adapters/null_projection.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
-copying build/lib/l9_graphite_memory/adapters/null_graph_intelligence.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
-copying build/lib/l9_graphite_memory/adapters/neo4j_gds_templates.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
 copying build/lib/l9_graphite_memory/adapters/postgres_store.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
 copying build/lib/l9_graphite_memory/adapters/graphiti_projection.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
-copying build/lib/l9_graphite_memory/adapters/neo4j_graph_templates.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
-copying build/lib/l9_graphite_memory/adapters/neo4j_query_policy.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/adapters
 copying build/lib/l9_graphite_memory/trust_boundary.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory
 creating build/bdist.linux-x86_64/wheel/l9_graphite_memory/admission
 copying build/lib/l9_graphite_memory/admission/__init__.py -> build/bdist.linux-x86_64/wheel/./l9_graphite_memory/admission
@@ -279,11 +262,6 @@ adding 'l9_graphite_memory/adapters/__init__.py'
 adding 'l9_graphite_memory/adapters/factory.py'
 adding 'l9_graphite_memory/adapters/graphiti_projection.py'
 adding 'l9_graphite_memory/adapters/in_memory_store.py'
-adding 'l9_graphite_memory/adapters/neo4j_gds_templates.py'
-adding 'l9_graphite_memory/adapters/neo4j_graph_intelligence.py'
-adding 'l9_graphite_memory/adapters/neo4j_graph_templates.py'
-adding 'l9_graphite_memory/adapters/neo4j_query_policy.py'
-adding 'l9_graphite_memory/adapters/null_graph_intelligence.py'
 adding 'l9_graphite_memory/adapters/null_projection.py'
 adding 'l9_graphite_memory/adapters/postgres_store.py'
 adding 'l9_graphite_memory/adapters/sqlite_store.py'
@@ -326,13 +304,6 @@ adding 'l9_graphite_memory/curation/retention.py'
 adding 'l9_graphite_memory/extraction/__init__.py'
 adding 'l9_graphite_memory/extraction/atomic.py'
 adding 'l9_graphite_memory/extraction/distiller.py'
-adding 'l9_graphite_memory/graph/__init__.py'
-adding 'l9_graphite_memory/graph/algorithm_policy.py'
-adding 'l9_graphite_memory/graph/contracts.py'
-adding 'l9_graphite_memory/graph/evidence.py'
-adding 'l9_graphite_memory/graph/ports.py'
-adding 'l9_graphite_memory/graph/scope.py'
-adding 'l9_graphite_memory/graph/service.py'
 adding 'l9_graphite_memory/ingestion/__init__.py'
 adding 'l9_graphite_memory/ingestion/document.py'
 adding 'l9_graphite_memory/ingestion/profiles.py'
@@ -355,7 +326,6 @@ adding 'l9_graphite_memory/migration/__init__.py'
 adding 'l9_graphite_memory/migration/backend_transition.py'
 adding 'l9_graphite_memory/migration/legacy_write_queue.py'
 adding 'l9_graphite_memory/observability/__init__.py'
-adding 'l9_graphite_memory/observability/graph_metrics.py'
 adding 'l9_graphite_memory/observability/logging.py'
 adding 'l9_graphite_memory/ports/__init__.py'
 adding 'l9_graphite_memory/ports/clock.py'
@@ -376,8 +346,6 @@ adding 'l9_graphite_memory/resources/active_memory_redis_capabilities.yaml'
 adding 'l9_graphite_memory/resources/defaults.yaml'
 adding 'l9_graphite_memory/resources/group_registry.yaml'
 adding 'l9_graphite_memory/resources/memory_contract.yaml'
-adding 'l9_graphite_memory/resources/graph/graph-intelligence-receipt.schema.json'
-adding 'l9_graphite_memory/resources/graph/graph-intelligence-request.schema.json'
 adding 'l9_graphite_memory/resources/projections/schema.json'
 adding 'l9_graphite_memory/retrieval/__init__.py'
 adding 'l9_graphite_memory/retrieval/budget.py'

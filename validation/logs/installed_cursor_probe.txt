@@ -44,5 +44,5 @@
     }
   ],
   "timed_out": false,
-  "tool_count": 44
+  "tool_count": 33
 }

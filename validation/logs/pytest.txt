@@ -15,31 +15,8 @@
 ........................................................................ [ 95%]
 .................................................                        [100%]
 =========================== short test summary info ============================
-SKIPPED [1] tests/qualification/test_graphiti_live_qualification.py:36: qualification needs graphiti-core==0.30.2
 SKIPPED [4] .venv/lib/python3.13/site-packages/_pytest/unittest.py:385: Cursor-Governance checkout unavailable
 SKIPPED [1] tests/deployment/generated_data/test_runtime_status_protocol.py:118: CURSOR_GOVERNANCE_ROOT is not configured
-SKIPPED [3] tests/integration/test_neo4j_gds_analytics.py:157: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [2] tests/integration/test_neo4j_gds_analytics.py:171: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_gds_analytics.py:184: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_gds_analytics.py:196: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_gds_analytics.py:210: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_gds_analytics.py:227: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_gds_analytics.py:243: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_gds_analytics.py:268: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_intelligence_live.py:48: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence checks need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_intelligence_live.py:57: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence checks need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:130: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:153: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:166: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:177: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:194: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:216: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:227: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:245: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:271: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:284: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_graph_traversal.py:307: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
-SKIPPED [1] tests/integration/test_neo4j_restart_outage_live.py:94: L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence tests need Neo4j
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:136: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:156: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
 SKIPPED [1] tests/unit/test_canonical_gate_client.py:180: could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'
