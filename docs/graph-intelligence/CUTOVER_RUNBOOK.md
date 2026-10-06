@@ -236,7 +236,11 @@ l9-memory graph-cutover-status --group-id "$NS" > "$EVIDENCE_DIR/42-cutover-$NS-
 ```
 
 The readiness check must show `"ready": true`, an empty
-`unprojected_record_ids`, and `"outbox_backlog": 0`. `--apply` refuses
+`unprojected_record_ids`, and `"outbox_backlog": 0`. A record counts as
+projected only when Graphiti lists its episode in the new graph: ingestion is
+asynchronous, so if records stay unconfirmed after the outbox drains, wait and
+re-check; if they never confirm, re-run Phase 3 for them. For a group larger
+than 1000 episodes, raise `L9_MEMORY_GRAPHITI_EPISODE_LOOKUP_LIMIT` first. `--apply` refuses
 otherwise (`CutoverNotReady`); go back to Phase 3. The recorded receipt also
 carries the live `schema_fingerprint` and served `graph_capabilities`.
 

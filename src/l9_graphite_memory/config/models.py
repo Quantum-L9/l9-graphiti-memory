@@ -85,6 +85,9 @@ class MemorySettings(BaseModel):
     quarantine_review_provider: str | None = None
     graphiti_mcp_url: str | None = None
     graphiti_mcp_token: str | None = None
+    # Bounded name lookup for Graphiti episodes without a provider uuid
+    # (ADR-091); raise it for groups holding more episodes.
+    graphiti_episode_lookup_limit: int = Field(default=1_000, ge=1, le=100_000)
     zep_api_key: str | None = None
     zep_api_url: str | None = None
     projection_required: bool = False

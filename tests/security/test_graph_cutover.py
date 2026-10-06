@@ -272,3 +272,20 @@ def test_cutover_status_requires_admin() -> None:
     migration, _clock = _migration()
     with pytest.raises(AuthorizationError):
         migration.service.graph_cutovers(MAINTAINER, NAMESPACE)
+
+
+def test_cutover_waits_for_the_provider_to_confirm_ingestion() -> None:
+    """Codex P1 on #83: a link proves the write was accepted, not that it was ingested."""
+
+    migration, clock = _migration()
+    record = _switched_and_rebuilt(migration, drain=True)
+    _rebind(migration, clock)
+    # Graphiti accepted the queued ingestion and then lost it.
+    migration.new.dropped.add(str(record))
+    check = _record(migration, apply=False)
+    assert check.ready is False
+    assert check.unprojected_record_ids == (record,)
+    with pytest.raises(CutoverNotReady, match="confirmed"):
+        _record(migration)
+    migration.new.dropped.clear()
+    assert _record(migration).applied

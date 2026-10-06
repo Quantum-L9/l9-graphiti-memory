@@ -48,12 +48,19 @@ class GroupedGraphitiTransport:
         self.episodes: dict[str, dict[str, Any]] = {}
         self.search_groups: list[tuple[str, ...]] = []
         self.injected_record_ids: list[UUID] = []
+        self.dropped: set[str] = set()
 
     def health(self) -> dict[str, Any]:
         return {"healthy": True}
 
     def list_tools(self) -> list[str]:
-        return ["add_memory", "search_memory_facts", "search_nodes", "delete_episode"]
+        return [
+            "add_memory",
+            "search_memory_facts",
+            "search_nodes",
+            "delete_episode",
+            "get_episodes",
+        ]
 
     def write(self, body: str, group_id: str, kind: str = "observation", **kwargs: Any) -> Any:
         # Graphiti would treat a supplied uuid as an update (ADR-091); the
@@ -72,6 +79,17 @@ class GroupedGraphitiTransport:
         if name == "delete_episode":
             self.episodes.pop(str(arguments["uuid"]), None)
             return {"message": "deleted"}
+        if name == "get_episodes":
+            # Only ingested episodes are listed; ``dropped`` models an
+            # ingestion Graphiti accepted and then lost.
+            listed = set(arguments.get("group_ids") or ())
+            return {
+                "episodes": [
+                    {"uuid": uuid, "name": f"memory:{uuid}", "group_id": episode["group_id"]}
+                    for uuid, episode in self.episodes.items()
+                    if episode["group_id"] in listed and uuid not in self.dropped
+                ]
+            }
         groups = tuple(arguments.get("group_ids") or ())
         self.search_groups.append(groups)
         terms = {term.lower() for term in str(arguments.get("query", "")).split()}

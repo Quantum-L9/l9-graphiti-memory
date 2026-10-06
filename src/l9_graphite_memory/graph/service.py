@@ -436,7 +436,9 @@ class GraphIntelligenceService:
             algorithm_maturity_ceiling=self.config.algorithm_policy.maturity_ceiling.value,
             link_prediction_enabled=self.config.algorithm_policy.link_prediction_enabled,
             required=self.config.required,
-            ready=backend.healthy or not self.config.required,
+            # A disabled backend reports healthy (it serves nothing), so a
+            # required one must also be enabled (ADR-090).
+            ready=(backend.enabled and backend.healthy) or not self.config.required,
             gds_catalog_cleanup_failures=int(catalog_failures),
             gds_catalog_active=backend.gds_catalog_active,
             projection_lag_events=lag,

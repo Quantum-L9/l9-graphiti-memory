@@ -81,7 +81,8 @@ def build_projection(settings: MemorySettings) -> ProjectionAdapter:
         from .graphiti_projection import GraphitiProjection
 
         return GraphitiProjection(
-            HttpMcpTransport(url=settings.graphiti_mcp_url, token=settings.graphiti_mcp_token)
+            HttpMcpTransport(url=settings.graphiti_mcp_url, token=settings.graphiti_mcp_token),
+            episode_lookup_limit=settings.graphiti_episode_lookup_limit,
         )
     if settings.projection_backend == "zep":
         if not settings.zep_api_key:
@@ -91,7 +92,8 @@ def build_projection(settings: MemorySettings) -> ProjectionAdapter:
         from .graphiti_projection import GraphitiProjection
 
         return GraphitiProjection(
-            ZepCloudTransport(api_key=settings.zep_api_key, base_url=settings.zep_api_url)
+            ZepCloudTransport(api_key=settings.zep_api_key, base_url=settings.zep_api_url),
+            episode_lookup_limit=settings.graphiti_episode_lookup_limit,
         )
     raise ConfigurationError(f"unsupported projection backend: {settings.projection_backend}")
 
@@ -168,7 +170,8 @@ def build_target_adapter(
         from .graphiti_projection import GraphitiProjection
 
         return GraphitiProjection(
-            HttpMcpTransport(url=settings.graphiti_mcp_url, token=settings.graphiti_mcp_token)
+            HttpMcpTransport(url=settings.graphiti_mcp_url, token=settings.graphiti_mcp_token),
+            episode_lookup_limit=settings.graphiti_episode_lookup_limit,
         )
     if target.provider_type == "zep":
         if not settings.zep_api_key:
@@ -179,7 +182,8 @@ def build_target_adapter(
         from .graphiti_projection import GraphitiProjection
 
         return GraphitiProjection(
-            ZepCloudTransport(api_key=settings.zep_api_key, base_url=settings.zep_api_url)
+            ZepCloudTransport(api_key=settings.zep_api_key, base_url=settings.zep_api_url),
+            episode_lookup_limit=settings.graphiti_episode_lookup_limit,
         )
     raise ConfigurationError(f"unsupported projection provider type: {target.provider_type}")
 

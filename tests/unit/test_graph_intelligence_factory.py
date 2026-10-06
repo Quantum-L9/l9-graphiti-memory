@@ -19,7 +19,11 @@ import textwrap
 import pytest
 from pydantic import ValidationError
 
-from l9_graphite_memory.adapters import NullGraphIntelligence, build_graph_intelligence
+from l9_graphite_memory.adapters import (
+    NullGraphIntelligence,
+    build_graph_intelligence,
+    build_projection,
+)
 from l9_graphite_memory.adapters import neo4j_graph_intelligence as adapter_module
 from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.errors import ConfigurationError
@@ -79,6 +83,24 @@ def test_environment_binds_every_graph_setting(monkeypatch, tmp_path) -> None:
     assert adapter.name == "neo4j"
     assert adapter.config.database == "graphiti"  # type: ignore[attr-defined]
     adapter.close()
+
+
+def test_graphiti_episode_lookup_limit_is_configurable(monkeypatch, tmp_path) -> None:
+    """Codex P1 on #83: operators must be able to raise the bounded name lookup."""
+
+    for key, value in {
+        "L9_MEMORY_DATA_DIR": str(tmp_path),
+        "L9_MEMORY_STATE_DIR": str(tmp_path),
+        "L9_MEMORY_PROJECTION_BACKEND": "http",
+        "GRAPHITI_MCP_URL": "http://graphiti.invalid/mcp",
+        "L9_MEMORY_GRAPHITI_EPISODE_LOOKUP_LIMIT": "5000",
+    }.items():
+        monkeypatch.setenv(key, value)
+    settings = load_settings()
+    assert settings.graphiti_episode_lookup_limit == 5000
+    projection = build_projection(settings)
+    assert projection.episode_lookup_limit == 5000  # type: ignore[attr-defined]
+    assert MemorySettings().graphiti_episode_lookup_limit == 1_000
 
 
 def test_selecting_neo4j_without_the_driver_is_a_configuration_error(monkeypatch) -> None:

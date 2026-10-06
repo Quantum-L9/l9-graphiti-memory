@@ -126,6 +126,8 @@ def world():
         "ids": ids,
         "b_ids": b_ids,
         "records": (ep_a, ep_b),
+        "graph": graph,
+        "a_group": a_group,
     }
     adapter.close()
     graph.cleanup()
@@ -222,6 +224,28 @@ def test_link_prediction_is_advisory_and_never_materialized(world) -> None:
     assert str(world["ids"]["A1"]) not in targets  # already linked
     assert adapter._read("schema_relationship_types_v1") == before
     _assert_isolated(world, receipt)
+
+
+def test_link_prediction_answers_the_requested_snapshot(world) -> None:
+    """Expired relationships neither create nor suppress candidates (ADR-089)."""
+
+    graph, group, ids = world["graph"], world["a_group"], world["ids"]
+    episode = world["records"][0]
+    expired = datetime.now(timezone.utc) - timedelta(days=1)
+    # An expired direct edge no longer links A3 to the hub ...
+    graph.relate(ids["A3"], ids["Hub"], group, episodes=(episode,), expired_at=expired)
+    # ... and an expired path edge cannot introduce a candidate.
+    stale = graph.entity(group, "Stale", episodes=(episode,))
+    graph.relate(ids["A1"], stale, group, episodes=(episode,), expired_at=expired)
+    receipt = _run(
+        world,
+        GraphOperation.LINK_PREDICTION,
+        anchor=GraphAnchor(entity_uuid=ids["A3"]),
+    )
+    assert receipt.status is GraphReceiptStatus.COMPLETE, receipt.failures
+    targets = [item["target_uuid"] for item in _scores(receipt)]
+    assert str(ids["Hub"]) in targets
+    assert str(stale) not in targets
 
 
 def test_analytics_ceiling_refuses_before_projecting(world) -> None:

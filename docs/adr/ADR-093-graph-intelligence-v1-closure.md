@@ -156,6 +156,21 @@ complete but seven acceptance items open:
      Otherwise the store's guard (ADR-084, "no completion while any link
      remains") keeps the deletion pending until the other targets' erase
      events succeed.
+9. **Confirmed ingestion and readiness (review of #83).**
+   - Cutover readiness counts a record as projected only when its link is
+     live under the current scope scheme **and** the graph target's adapter
+     lists its episode (`GraphitiProjection.confirmed_records`, bounded by
+     the episode lookup limit). Graphiti's `add_memory` only queues
+     ingestion and can drop it, so a link alone is not proof. A record
+     outside the lookup window, or a failed listing, is unconfirmed and the
+     cutover is refused.
+   - `L9_MEMORY_GRAPHITI_EPISODE_LOOKUP_LIMIT` sets the bounded episode
+     lookup for both legacy and manifest Graphiti targets.
+   - A required graph backend must be enabled as well as healthy: the
+     `none` backend no longer satisfies `L9_MEMORY_GRAPH_REQUIRED=true`.
+   - Link prediction applies the valid-time and transaction-time filters to
+     every relationship it reads (path edges, the existing-edge check and
+     neighbour degree).
 
 ## Alternatives Considered
 

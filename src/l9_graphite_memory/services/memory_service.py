@@ -1658,10 +1658,20 @@ class MemoryService:
         active = self.store.list_records(
             principal.tenant_id, namespace, states=(MemoryState.ACTIVE,), limit=None
         )
+        # A link proves the provider accepted the write; Graphiti ingests
+        # asynchronously and can drop it, so an adapter that can list its
+        # episodes must also confirm each copy exists (ADR-093).
+        confirm = getattr(target.adapter, "confirmed_records", None)
+        confirmed = confirm(principal.tenant_id, namespace) if callable(confirm) else None
         unprojected: list[UUID] = []
         for record in active:
             link = self.store.get_projection_link(record.record_id, target.identity)
-            if link is None or link_withdrawn(link) or link.metadata.get("scope_scheme") != scheme:
+            if (
+                link is None
+                or link_withdrawn(link)
+                or link.metadata.get("scope_scheme") != scheme
+                or (confirmed is not None and record.record_id not in confirmed)
+            ):
                 unprojected.append(record.record_id)
         backlog = self.store.outbox_backlog()
         ready = not unprojected and backlog == 0
@@ -1691,8 +1701,8 @@ class MemoryService:
         if apply:
             if not ready:
                 raise CutoverNotReady(
-                    f"{len(unprojected)} active record(s) are not projected under the new "
-                    f"binding and {backlog} outbox event(s) are undelivered; rebuild the "
+                    f"{len(unprojected)} active record(s) are not projected and confirmed under "
+                    f"the new binding and {backlog} outbox event(s) are undelivered; rebuild the "
                     "projection and drain the outbox before recording the cutover"
                 )
             self.store.commit_graph_cutover(SERVICE_WRITE_CAPABILITY, receipt)

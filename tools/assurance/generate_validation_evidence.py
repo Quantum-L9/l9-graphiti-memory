@@ -250,8 +250,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # ADR-084 (projection runtime): main's 1167, the campaign's 253, and 7
         # target-aware integration cases (1 graph-target selection, 2 per-target
         # legacy release x 3 store backends).
-        "1427 tests pass",
-        r"1427 passed",
+        # Re-pinned 1427 -> 1430 for the #83 review fixes: cutover waits for
+        # confirmed ingestion, configurable episode lookup limit, a disabled
+        # required backend is not ready (link-prediction snapshot is live-only).
+        "1430 tests pass",
+        r"1430 passed",
     ),
     CheckSpec(
         "V-002",

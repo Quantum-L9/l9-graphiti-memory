@@ -29,14 +29,23 @@ from .neo4j_query_policy import QueryTemplate, TemplateKind
 GRAPH_NAME_PREFIX = "l9gi_"
 ORIENTATIONS = ("natural", "reverse", "undirected")
 
+
+def _temporal(alias: str) -> str:
+    """Valid-time and transaction-time predicate for one relationship variable."""
+
+    return (
+        f"($as_of IS NULL OR (({alias}.valid_at IS NULL OR {alias}.valid_at <= $as_of) "
+        f"AND ({alias}.invalid_at IS NULL OR {alias}.invalid_at > $as_of))) "
+        f"AND (CASE WHEN $recorded_before IS NULL THEN {alias}.expired_at IS NULL "
+        f"ELSE (({alias}.created_at IS NULL OR {alias}.created_at <= $recorded_before) "
+        f"AND ({alias}.expired_at IS NULL OR {alias}.expired_at > $recorded_before)) END)"
+    )
+
+
 _REL_FILTER = (
     "s.group_id IN $group_ids AND t.group_id IN $group_ids AND r.group_id IN $group_ids "
     "AND type(r) IN $relationship_types "
-    "AND ($as_of IS NULL OR ((r.valid_at IS NULL OR r.valid_at <= $as_of) "
-    "AND (r.invalid_at IS NULL OR r.invalid_at > $as_of))) "
-    "AND (CASE WHEN $recorded_before IS NULL THEN r.expired_at IS NULL "
-    "ELSE ((r.created_at IS NULL OR r.created_at <= $recorded_before) "
-    "AND (r.expired_at IS NULL OR r.expired_at > $recorded_before)) END)"
+    "AND " + _temporal("r")
 )
 _SCOPED = f"MATCH (s:Entity)-[r:RELATES_TO]->(t:Entity) WHERE {_REL_FILTER} "
 _PROJECT = {
@@ -138,10 +147,15 @@ GDS_TEMPLATES: tuple[QueryTemplate, ...] = (
         "WHERE c <> a AND m.group_id IN $group_ids AND c.group_id IN $group_ids "
         "AND r1.group_id IN $group_ids AND r2.group_id IN $group_ids "
         "AND type(r1) IN $relationship_types AND type(r2) IN $relationship_types "
-        "AND NOT EXISTS { MATCH (a)-[x:RELATES_TO]-(c) WHERE x.group_id IN $group_ids } "
+        # Every relationship read answers the requested snapshot: path edges,
+        # the existing-edge check and the common neighbour's degree.
+        "AND " + _temporal("r1") + " AND " + _temporal("r2") + " "
+        "AND NOT EXISTS { MATCH (a)-[x:RELATES_TO]-(c) WHERE x.group_id IN $group_ids "
+        "AND " + _temporal("x") + " } "
         "WITH DISTINCT c, m LIMIT $candidate_budget "
         "CALL (m) { MATCH (m)-[d:RELATES_TO]-(k:Entity) "
         "WHERE d.group_id IN $group_ids AND k.group_id IN $group_ids "
+        "AND " + _temporal("d") + " "
         "RETURN count(DISTINCT k) AS degree } "
         "RETURN c.uuid AS uuid, c.group_id AS group_id, collect(degree) AS common_degrees",
     ),

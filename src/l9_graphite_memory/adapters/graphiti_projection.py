@@ -280,6 +280,25 @@ class GraphitiProjection:
             )
         return matches
 
+    def confirmed_records(self, tenant_id: str, namespace: str) -> frozenset[UUID]:
+        """Records whose episode the provider lists in this scope's group.
+
+        Graphiti's ``add_memory`` queues ingestion and can drop a failed one
+        later, so a projection link proves only that the write was accepted.
+        A check that needs the copy to exist, such as cutover readiness,
+        confirms it here (ADR-093). Bounded by ``episode_lookup_limit``: an
+        episode outside the window or a failed listing leaves its record
+        unconfirmed, which fails closed.
+        """
+
+        if "get_episodes" not in set(self.transport.list_tools()):
+            raise ProjectionError(
+                f"transport {self.transport.name} does not expose get_episodes; "
+                "projected episodes cannot be confirmed"
+            )
+        group_id = graph_group_id(tenant_id, namespace)
+        return frozenset(self._episode_records(group_id).values())
+
     def _episode_records(self, group_id: str) -> dict[str, UUID]:
         """Provider episode uuid -> record id for one group, from episode names.
 

@@ -103,7 +103,8 @@ GI-005, GI-007, GI-010, GI-026, GI-029, GI-080.
 - Name resolution costs one bounded listing per removal, and per group for
   fact search.
 - A group holding more than `episode_lookup_limit` episodes (default 1000) can
-  fail removal closed until the limit is raised. Upstream orders the listing
+  fail removal closed until the limit is raised with
+  `L9_MEMORY_GRAPHITI_EPISODE_LOOKUP_LIMIT` (`graphiti_episode_lookup_limit`). Upstream orders the listing
   by uuid and exposes no cursor through MCP.
 
 ## Security Impact

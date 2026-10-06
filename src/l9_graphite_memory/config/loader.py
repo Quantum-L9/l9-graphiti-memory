@@ -43,6 +43,7 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_QUARANTINE_REVIEW_PROVIDER": "quarantine_review_provider",
     "GRAPHITI_MCP_URL": "graphiti_mcp_url",
     "GRAPHITI_MCP_TOKEN": "graphiti_mcp_token",
+    "L9_MEMORY_GRAPHITI_EPISODE_LOOKUP_LIMIT": "graphiti_episode_lookup_limit",
     "ZEP_API_KEY": "zep_api_key",
     "ZEP_API_URL": "zep_api_url",
     "L9_MEMORY_PROJECTION_REQUIRED": "projection_required",
@@ -104,6 +105,7 @@ _LIST_FIELDS = {
 
 
 _INT_FIELDS = {
+    "graphiti_episode_lookup_limit",
     "graph_query_timeout_ms",
     "graph_gds_max_nodes",
     "postgres_statement_timeout_ms",

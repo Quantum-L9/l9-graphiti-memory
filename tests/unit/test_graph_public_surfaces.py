@@ -236,3 +236,20 @@ def test_readiness_gates_on_graph_only_when_required(required, healthy, expected
     response = client.get("/readyz")
     assert response.status_code == expected
     assert response.json()["graph"]["ready"] is (healthy or not required)
+
+
+def test_a_required_graph_backend_that_is_disabled_is_not_ready() -> None:
+    """Codex P1 on #83: the null backend is healthy because it serves nothing."""
+
+    from l9_graphite_memory.adapters import NullGraphIntelligence
+    from l9_graphite_memory.graph.service import GraphServiceConfig, graph_service_for
+
+    service, _graph, _principal, _ = _graph_world()
+    graph = graph_service_for(
+        service, NullGraphIntelligence(), config=GraphServiceConfig(required=True)
+    )
+    report = graph.capability_report(refresh=True)
+    assert report.backend["enabled"] is False
+    assert report.ready is False
+    optional = graph_service_for(service, NullGraphIntelligence())
+    assert optional.capability_report(refresh=True).ready is True
