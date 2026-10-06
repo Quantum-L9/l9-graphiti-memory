@@ -57,13 +57,15 @@ class PinnedProjection:
     def erase(self, record_id, namespace, *, locator=None):
         return {"erased": True}
 
-    def search_strategy(self, strategy, query, namespaces, *, limit):
+    def search_strategy(self, strategy, query, namespaces, *, limit, tenant_id):
         if self.record_id is None:
             return []
         return [ProjectionHit(record_id=self.record_id, score=0.9, excerpt="graph")]
 
-    def search(self, query, namespaces, *, limit):
-        return self.search_strategy("graph-search", query, namespaces, limit=limit)
+    def search(self, query, namespaces, *, limit, tenant_id):
+        return self.search_strategy(
+            "graph-search", query, namespaces, limit=limit, tenant_id=tenant_id
+        )
 
 
 def _service():

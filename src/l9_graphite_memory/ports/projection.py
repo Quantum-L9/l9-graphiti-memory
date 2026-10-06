@@ -32,6 +32,26 @@ class ProjectionHit(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class ProjectionEntityHit(BaseModel):
+    """An entity-node search hit, before canonical support is bound.
+
+    Graphiti entity search returns entities, not episodes. ``record_id`` is set
+    only when the provider already names the canonical record; otherwise the
+    graph backend binds support through the entity's episodes (ADR-093).
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    entity_uuid: UUID | None = None
+    record_id: UUID | None = None
+    score: float = Field(ge=0.0, le=1.0)
+    #: Position in the provider's own ranking (0 = best). Orders hits whose
+    #: scores tie, as when Graphiti's node search returns no score at all.
+    rank: int = Field(default=0, ge=0)
+    name: str = ""
+    namespace: str
+
+
 class ProjectionAdapter(Protocol):
     name: str
     capabilities: tuple[str, ...]
@@ -84,7 +104,31 @@ class ProjectionAdapter(Protocol):
         namespaces: tuple[str, ...],
         *,
         limit: int,
-    ) -> list[ProjectionHit]: ...
+        tenant_id: str,
+    ) -> list[ProjectionHit]:
+        """Search one strategy inside the tenant-bound scope of ``namespaces``.
+
+        ``tenant_id`` is server-derived from the authenticated principal and
+        ``namespaces`` are already authorized. A provider that partitions its
+        graph by group must derive each group from both components through
+        GraphScopeKey v1 (``graph.scope``) and never from the namespace alone
+        (ADR-085).
+        """
+
+    def search_entities(
+        self,
+        query: str,
+        namespaces: tuple[str, ...],
+        *,
+        limit: int,
+        tenant_id: str,
+    ) -> list[ProjectionEntityHit]:
+        """Entity-node search inside the tenant-bound scope of ``namespaces``.
+
+        Unlike ``search_strategy("graph-search")`` it keeps hits that carry
+        no canonical record id, so ``graph.search`` can bind their support
+        through the graph backend instead of dropping them (ADR-093).
+        """
 
     def search(
         self,
@@ -92,6 +136,7 @@ class ProjectionAdapter(Protocol):
         namespaces: tuple[str, ...],
         *,
         limit: int,
+        tenant_id: str,
     ) -> list[ProjectionHit]: ...
 
 
