@@ -67,6 +67,8 @@ from .profiles import (
     SessionContext,
 )
 from .projection import (
+    GraphCutoverReceipt,
+    LegacyProjectionReleaseReceipt,
     ProjectionLink,
     ProjectionRebuildReceipt,
     ProjectionRetirementReceipt,
@@ -144,11 +146,13 @@ __all__ = [
     "DomainMemory",
     "EvidenceKind",
     "EvidenceRef",
+    "GraphCutoverReceipt",
     "HealthReport",
     "HtmlSourceLocator",
     "HydrationRequest",
     "HydrationResult",
     "IdentityProfile",
+    "LegacyProjectionReleaseReceipt",
     "LifecycleTransition",
     "LifecycleTransitionReceipt",
     "LineSourceLocator",

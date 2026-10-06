@@ -1,5 +1,5 @@
 {
-  "file_count": 759,
+  "file_count": 816,
   "files": [
     {
       "category": "ci",
@@ -46,8 +46,8 @@
         "version": "2.5.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "65a9e9de793008b4b97296e62b22db582b7d55bfa76af8564113d75b55e45704",
-      "size_bytes": 9804
+      "sha256": "3b1edba643500947c10ec56abc6202ad7e29553c31d481de426ef2c0cfdf8ff0",
+      "size_bytes": 14907
     },
     {
       "category": "ci",
@@ -64,6 +64,22 @@
       "path": ".github/workflows/codeql.yml",
       "sha256": "5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf",
       "size_bytes": 589
+    },
+    {
+      "category": "ci",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "ci",
+        "owner": "memory-control-plane",
+        "path": ".github/workflows/graph-qualification.yml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": ".github/workflows/graph-qualification.yml",
+      "sha256": "68ea5ee0ec64c2eb2355c2df1cd32e0b1d1c0f557a5c353ca1f07a51c466322c",
+      "size_bytes": 4391
     },
     {
       "category": "ci",
@@ -318,8 +334,8 @@
         "version": "2.5.0"
       },
       "path": "ARCHITECTURE.md",
-      "sha256": "7a651295bafdbfa850dcb0a0bc73b7cc506a0d37233e162c10cf4f6217f5a2ab",
-      "size_bytes": 12835
+      "sha256": "00995ebde8e59f7596d43df370ec3a8d6fdd9561b717b2c13a0662c0d1da0480",
+      "size_bytes": 16017
     },
     {
       "category": "repository_root",
@@ -446,8 +462,8 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "6038346a5a075c43ba4b769f4a3dbeaed9c8edefb544fd2dee21b04772b1e420",
-      "size_bytes": 128404
+      "sha256": "d115b45e5e928c383450fff349778ab6d1adb861fad85de84dec1c239826b2e3",
+      "size_bytes": 137686
     },
     {
       "category": "repository_root",
@@ -766,8 +782,8 @@
         "version": "2.5.0"
       },
       "path": "config/memory.yaml.example",
-      "sha256": "c4bbb5d9962c51dc1229cec65fe44ff54f07996540696ccc28d94c76fbe36303",
-      "size_bytes": 1015
+      "sha256": "e6f83e683e34461dabd2433d92ed2e30ef5fea9662a9d23807df69c5c44b5599",
+      "size_bytes": 1283
     },
     {
       "category": "configuration",
@@ -4343,6 +4359,150 @@
         "l9_schema": 1,
         "layer": "architecture_decisions",
         "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-084-tenant-safe-graph-scope-key.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-084-tenant-safe-graph-scope-key.md",
+      "sha256": "ffa75f79b0738820e8b136bcc267429340c0307fc8eb87f9ca491021b48aeb6f",
+      "size_bytes": 6657
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-085-graph-intelligence-port-and-neo4j-substrate.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-085-graph-intelligence-port-and-neo4j-substrate.md",
+      "sha256": "7ca711fb4c7b07e7ed9d0715c9d61ec922dae585f5233ecdc157f84cd56888fb",
+      "size_bytes": 6965
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-086-graph-intelligence-contracts-and-evidence-binding.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-086-graph-intelligence-contracts-and-evidence-binding.md",
+      "sha256": "11e3eb7c020f3a433edd1766ff4493aec17da2cad1acd4463b1c8ab7092c08c7",
+      "size_bytes": 6674
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-087-bounded-structural-graph-operations.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-087-bounded-structural-graph-operations.md",
+      "sha256": "1e12904f8523c61e382a3457bffbc512b1450c99c0bbccf0be5a7cf840341f85",
+      "size_bytes": 5419
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-088-stream-only-gds-graph-analytics.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-088-stream-only-gds-graph-analytics.md",
+      "sha256": "dbbb2454d6df0d4ed747344f23d9edf1e4a50dc8cfae12160f8e86551bc4c70a",
+      "size_bytes": 5429
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-089-graph-intelligence-public-surfaces-and-observability.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-089-graph-intelligence-public-surfaces-and-observability.md",
+      "sha256": "eb39493a293b27ff7ac426ce427fee22090b00ddfe5f83ef91fefedf4c3a26d2",
+      "size_bytes": 5082
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-090-graphiti-episode-identity-and-live-qualification.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-090-graphiti-episode-identity-and-live-qualification.md",
+      "sha256": "d9501eab80a66c8dc2b5abe6dac11f1a052af14f8c61e113a208ff08a415d2d9",
+      "size_bytes": 6640
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-091-graph-campaign-audit-remediation.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-091-graph-campaign-audit-remediation.md",
+      "sha256": "4afe7e42d71de360843a9f7ad9602099ce27b2590532c62f1e080c5e56978896",
+      "size_bytes": 11301
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-092-graph-intelligence-v1-closure.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-092-graph-intelligence-v1-closure.md",
+      "sha256": "ff6ddd186a1832999dc9f6cd287cc2e668622c7462d8c906b32578c311b74443",
+      "size_bytes": 10254
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "architecture_decisions",
+        "owner": "memory-control-plane",
         "path": "docs/adr/README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -4350,8 +4510,8 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/README.md",
-      "sha256": "2b188804bc145d25bb6d25040e79c5a84ad9b7a06f164c45044887615b4ba090",
-      "size_bytes": 10486
+      "sha256": "97291b9cb9503c79be8d0705f389e6522dce99478bda9f42ff874e9f1ba9a614",
+      "size_bytes": 11473
     },
     {
       "category": "documentation",
@@ -4464,6 +4624,86 @@
       "path": "docs/generated-data-waves/wave 2.md",
       "sha256": "9f7ba89e15ee469d9092bf2b111a05f512434bd72c4dba6733b7ab3e0d48bde7",
       "size_bytes": 61070
+    },
+    {
+      "category": "documentation",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "documentation",
+        "owner": "memory-control-plane",
+        "path": "docs/graph-intelligence/CUTOVER_RUNBOOK.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/graph-intelligence/CUTOVER_RUNBOOK.md",
+      "sha256": "154443aa1cdc82082691451618692468dffdde801a06b949a8a806cca6efb5b1",
+      "size_bytes": 14370
+    },
+    {
+      "category": "documentation",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "documentation",
+        "owner": "memory-control-plane",
+        "path": "docs/graph-intelligence/NEO4J_BINDING.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/graph-intelligence/NEO4J_BINDING.md",
+      "sha256": "910b090f2e71a996fcdc9fa31b6186dff62a7e69ed1dd2da0c370e5d50f774f2",
+      "size_bytes": 4078
+    },
+    {
+      "category": "documentation",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "documentation",
+        "owner": "memory-control-plane",
+        "path": "docs/graph-intelligence/QUALIFICATION.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/graph-intelligence/QUALIFICATION.md",
+      "sha256": "2fdefcec98295cb6186cf8d871af910d26e458e33d02497f6a161292cb7b62dd",
+      "size_bytes": 6371
+    },
+    {
+      "category": "documentation",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "documentation",
+        "owner": "memory-control-plane",
+        "path": "docs/graph-intelligence/TENANT_SCOPE_MIGRATION.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/graph-intelligence/TENANT_SCOPE_MIGRATION.md",
+      "sha256": "465184f32ae36b98146f4bab15adb133d4f3b56da7e5241c7d9fdfa67ae8e246",
+      "size_bytes": 4450
+    },
+    {
+      "category": "documentation",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "documentation",
+        "owner": "memory-control-plane",
+        "path": "docs/graph-intelligence/USAGE.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/graph-intelligence/USAGE.md",
+      "sha256": "fcaeaa304de2c846a4d23e2f5610df0ef676e6d3d4e8a8a1c8e171080a9280ac",
+      "size_bytes": 4635
     },
     {
       "category": "documentation",
@@ -4686,8 +4926,8 @@
         "version": "2.5.0"
       },
       "path": "pyproject.toml",
-      "sha256": "4d1eb0f6bb8b45cf481cffd5ef8f91bdc5608fb9562e34c0dc35e93073f72ea8",
-      "size_bytes": 5037
+      "sha256": "3316e55141f1467ad056541572f2f3c6ba2575e971d70722690e29d2c8769d91",
+      "size_bytes": 6059
     },
     {
       "category": "repository_root",
@@ -5422,8 +5662,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/__init__.py",
-      "sha256": "22ec67937903b0f25066082926a2d156ce4528b81e81c21b23c1e04786449321",
-      "size_bytes": 1753
+      "sha256": "d4758d318fd9974296a0d1d8c49a9b775e1176acff37287f08c292ed057bcb80",
+      "size_bytes": 1899
     },
     {
       "category": "production_source",
@@ -5438,8 +5678,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/factory.py",
-      "sha256": "6bc4c8bca4617d455cf34b1bc3a1231e3ecc9db35428e78395164f2cd0415a03",
-      "size_bytes": 3040
+      "sha256": "f85b7b29b49def91872475606a67c6c3d9b585d56085b8dd31a17c5c638899cc",
+      "size_bytes": 4948
     },
     {
       "category": "production_source",
@@ -5454,8 +5694,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/graphiti_projection.py",
-      "sha256": "ec426b63bae881294c49da47740038832f8ca3c86805bb36373a29d447d96644",
-      "size_bytes": 12091
+      "sha256": "1b5f649da730c922474b7e7860b30dc5f329abf8e3bd0f8d18f1d5ea98f38596",
+      "size_bytes": 20827
     },
     {
       "category": "production_source",
@@ -5470,8 +5710,88 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/in_memory_store.py",
-      "sha256": "626df26bce1c412fbcc2ec4ec066e7703aa2975f6c3c623b0f1b46c3a77b0ded",
-      "size_bytes": 21519
+      "sha256": "806a57ff91670792a6823bf4e6dd20430d829260dd2d6aa4052a3fbbaa17963a",
+      "size_bytes": 26060
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "adapter",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/adapters/neo4j_gds_templates.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/adapters/neo4j_gds_templates.py",
+      "sha256": "a966c981b10509d6bf024b37cc864d8cbdd65a9b9c7977d7424667af134f0e47",
+      "size_bytes": 6116
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "adapter",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/adapters/neo4j_graph_intelligence.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/adapters/neo4j_graph_intelligence.py",
+      "sha256": "042c9f928fbbfbf4ca0ec38974827f4741e34a27af4e03a324803f252d65f18a",
+      "size_bytes": 41703
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "adapter",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/adapters/neo4j_graph_templates.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/adapters/neo4j_graph_templates.py",
+      "sha256": "a83f582ef7aec5dbc5df764a49d083e7875c307ea3ac4a10d505682fa6b3f983",
+      "size_bytes": 6746
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "adapter",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/adapters/neo4j_query_policy.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/adapters/neo4j_query_policy.py",
+      "sha256": "a17240be7418a89ca768560453a795fb0fb0a1aefb783a7f61edb7b9ec45478b",
+      "size_bytes": 5111
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "adapter",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/adapters/null_graph_intelligence.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/adapters/null_graph_intelligence.py",
+      "sha256": "8b1d9f4e018b939d3a0012ab0a5992042056fab9c3a0296a1feb27cca41847cc",
+      "size_bytes": 984
     },
     {
       "category": "production_source",
@@ -5486,8 +5806,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/null_projection.py",
-      "sha256": "c773cd8225897b40558beff87da77914d2ee42b83ea4a2fcd72ce6d2cf0ba8aa",
-      "size_bytes": 2318
+      "sha256": "c25f59388bdfa94a6fa3c30ab7ba69851082d3edbf85e931ac07ce24ffca1b9f",
+      "size_bytes": 2545
     },
     {
       "category": "production_source",
@@ -5502,8 +5822,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/postgres_store.py",
-      "sha256": "c17c852c11e6a90ee50d021f8bfc80541f95a597ed83f3c81215f8ff096a01ef",
-      "size_bytes": 55950
+      "sha256": "c528319bd1e3fefe8a6587bf863aa5b179563f9ade836440f5a5d1a0ae2d2521",
+      "size_bytes": 62950
     },
     {
       "category": "production_source",
@@ -5518,8 +5838,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/sqlite_store.py",
-      "sha256": "117712eb37ba29eef3c195e1e0b0bd0256f5cd87acebe0b407ab90c869e37987",
-      "size_bytes": 52180
+      "sha256": "7d846ed0712b82617d113cb4d946996b603d95858421f67aa1fb6c21febfd068",
+      "size_bytes": 59264
     },
     {
       "category": "production_source",
@@ -5678,8 +5998,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/cli.py",
-      "sha256": "052b0d1231e8b0b18ebec3eb51da6dcc85a11fca27fcb009f65d396c96a3c21d",
-      "size_bytes": 47535
+      "sha256": "6d13324970608871e9bdda9c0b9fc72dc261395448c6376daf2a8c49def355b9",
+      "size_bytes": 52649
     },
     {
       "category": "production_source",
@@ -5774,8 +6094,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/config/loader.py",
-      "sha256": "e37a453917aa5e3aa151446c3ff232e3176e5ed378989ff5e279fd0073458785",
-      "size_bytes": 6634
+      "sha256": "8fc47bf9d80263de6fb9fd9b93f23cfd5540e2345c7e58eb06fdf113850d39c3",
+      "size_bytes": 7584
     },
     {
       "category": "production_source",
@@ -5790,8 +6110,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/config/models.py",
-      "sha256": "f962c4ef5e485e8df1d1b66a59245d54478444dea742270351b0cd90d5bde128",
-      "size_bytes": 5618
+      "sha256": "6541fd968d6170c5c240f3c6765a5a48c9e371f0f1fe3db0c66d3570d0acdff5",
+      "size_bytes": 7401
     },
     {
       "category": "production_source",
@@ -5806,8 +6126,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/contracts/__init__.py",
-      "sha256": "9f2bb63ff2cc935b85ebe3581ce3754fdb68cbfce848032907030d637a4d2344",
-      "size_bytes": 4706
+      "sha256": "e62bfa34ce6b33cf1bcc3f1d528d6e691436248a6fbe851a64a99a26b7102779",
+      "size_bytes": 4832
     },
     {
       "category": "production_source",
@@ -5822,8 +6142,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/contracts/capabilities.py",
-      "sha256": "cbdea1aeae0d9c9873f77afbc89a251eaf1f06137683451b81b4213208602ba2",
-      "size_bytes": 6366
+      "sha256": "667ee8e528f8369fbab2d6cf37b73f4955578e79e84cf37fbc617259f85d9dfd",
+      "size_bytes": 7128
     },
     {
       "category": "production_source",
@@ -5982,8 +6302,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/contracts/projection.py",
-      "sha256": "4bd6d04c02220cde322cd8e4f5ad04a96609a878beb3fa333c184acf32ad6676",
-      "size_bytes": 4633
+      "sha256": "45be5b2851da374869ef995d24640f9b439dae4b7a7f183b692beb0a8788871d",
+      "size_bytes": 8779
     },
     {
       "category": "production_source",
@@ -6158,8 +6478,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/errors.py",
-      "sha256": "c310e1ca981766008e5c9913e9b221f6ce4cdef1bf50e452596a4305ed3aaa17",
-      "size_bytes": 3052
+      "sha256": "d7e4a54487bf0553ecb691ec9295b329a3adcee1db42bd83b324397b629b9186",
+      "size_bytes": 3847
     },
     {
       "category": "production_source",
@@ -6208,6 +6528,118 @@
       "path": "src/l9_graphite_memory/extraction/distiller.py",
       "sha256": "863de8913dfe0355beec35d641fd6f6177b7527cd4c9a5f23662caf0c642a230",
       "size_bytes": 4602
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/graph/__init__.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/graph/__init__.py",
+      "sha256": "8d2dfa804db86f5bd49aebcab60c4a0c59ad7aa9fdda3ba1f3f659128e2c0f1b",
+      "size_bytes": 699
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/graph/algorithm_policy.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/graph/algorithm_policy.py",
+      "sha256": "4138e94c0965612780fee7d809f76f8775b7ecf1befae0e4cc6dc2a9a2da7db1",
+      "size_bytes": 6042
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/graph/contracts.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/graph/contracts.py",
+      "sha256": "6b99847341b8e9077fc890e5623c776ab084e96f3da23e37531a3b5d0bb5c70c",
+      "size_bytes": 10986
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/graph/evidence.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/graph/evidence.py",
+      "sha256": "821c2f2b3f8129ba34d3d8bd722bf3a4f2f94e677146196d8b3911f59f9a5cf9",
+      "size_bytes": 13242
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/graph/ports.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/graph/ports.py",
+      "sha256": "d45fc9fd3c91713406d95109989f4cd9c77066e2d98fb965f7915aca59243f39",
+      "size_bytes": 8027
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/graph/scope.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/graph/scope.py",
+      "sha256": "8ee3ed5a2b20f4beb6fe611d1fb4ee1bbfddb8739518abe3fb87a7724f05d744",
+      "size_bytes": 3277
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/graph/service.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/graph/service.py",
+      "sha256": "d7b0f5139fcb13330cefce0ba9fddd4a4ac6e0881ae3289d5ee8f9f4bbe380a1",
+      "size_bytes": 42873
     },
     {
       "category": "production_source",
@@ -6558,8 +6990,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/mcp_tools.py",
-      "sha256": "6bebf3d7008c153bf7d768729ef007892a970404bc7a322470553d522019c4f9",
-      "size_bytes": 32027
+      "sha256": "7662531a6527f53a920224229eba10d9edd3172f4c9a96e3a4f55ae55ab40e2d",
+      "size_bytes": 37603
     },
     {
       "category": "production_source",
@@ -6647,6 +7079,22 @@
         "l9_schema": 1,
         "layer": "production_source",
         "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/observability/graph_metrics.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/observability/graph_metrics.py",
+      "sha256": "d2df2f5ebccb23417b0197fdc0f338e0ca1c6727fc0f0cc77b7246a81baf68a9",
+      "size_bytes": 6518
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/observability/logging.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -6670,8 +7118,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ports/__init__.py",
-      "sha256": "510e66f1240eb44c65dd328b4e74236c74c9fe2e3af17dffa912856b74f50929",
-      "size_bytes": 1303
+      "sha256": "c620ae2b6db2293e054f07a24c826a1a07af674d1126b99250b9066e8f56df55",
+      "size_bytes": 1351
     },
     {
       "category": "production_source",
@@ -6734,8 +7182,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ports/projection.py",
-      "sha256": "b38bd075f20dfe909e76d1ffea2c87e3193db630e33a95ebe030c263c97df8a8",
-      "size_bytes": 3102
+      "sha256": "316fb3700bb44fc6b7ef4e8b67bc32a996f8ac2287c6889938fff72d415325b7",
+      "size_bytes": 4363
     },
     {
       "category": "production_source",
@@ -6750,8 +7198,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ports/record_store.py",
-      "sha256": "f73f5bc5c44e028130adfdb45fc4956b276aaa92484797f7822fda0eadd407d0",
-      "size_bytes": 9188
+      "sha256": "0d8dce43134ac2cdf785686ce3933ca78aef9ded10d26d2b59b998eea43efdd9",
+      "size_bytes": 12064
     },
     {
       "category": "production_source",
@@ -6951,6 +7399,38 @@
         "l9_schema": 1,
         "layer": "production_source",
         "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/resources/graph/graph-intelligence-receipt.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/resources/graph/graph-intelligence-receipt.schema.json",
+      "sha256": "06340d7ad3c18c89b0744f6a83d3113381093681b3e5b1c84e4a3bd6fd6f9d9a",
+      "size_bytes": 1921
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/resources/graph/graph-intelligence-request.schema.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/resources/graph/graph-intelligence-request.schema.json",
+      "sha256": "e0a5a615db1cf5da63644454fa6bec8236a237780a722a303235e7c6440097f7",
+      "size_bytes": 2569
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "production_source",
+        "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/resources/group_registry.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -7086,8 +7566,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/runtime.py",
-      "sha256": "00167c05cede15f2e67c1ff9bdb4990ae95bab9c527401baf674ec01c6e2ef6d",
-      "size_bytes": 4020
+      "sha256": "4a906d7f49175cf0db10b542741f6bd2b6c9ee4696d3e4e6de6faaaae03b5e8b",
+      "size_bytes": 5822
     },
     {
       "category": "production_source",
@@ -7150,8 +7630,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/sdk.py",
-      "sha256": "8a11388b5165de8f26b063058474bef1171b7688aac29f9cbde8112e0def2f98",
-      "size_bytes": 3095
+      "sha256": "3442ccaaab85c461e6859aa9f1663c9d964a90b78919abb34e1c217dd77f8dbc",
+      "size_bytes": 4228
     },
     {
       "category": "production_source",
@@ -7182,8 +7662,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/server.py",
-      "sha256": "c1fb34641b87584d1d81558f32fa72b20b95b31b4d17feefba304e36e3c0a9ba",
-      "size_bytes": 17926
+      "sha256": "0f466470f898ff2dab649fc8b74c2a2c35de7d4ab994e095d7f9b48822b47b47",
+      "size_bytes": 18342
     },
     {
       "category": "production_source",
@@ -7230,8 +7710,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/services/memory_service.py",
-      "sha256": "e5d865d751edfa3e06212a072b264bd3892ad586843567464031f625b66e4641",
-      "size_bytes": 58102
+      "sha256": "dbf65f1f10dc15dbbf5bcbc0e23ba27ce4c6fca66d55adf306bfc8b728ff7a8d",
+      "size_bytes": 69290
     },
     {
       "category": "production_source",
@@ -7246,8 +7726,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/services/outbox_worker.py",
-      "sha256": "77218e5cbd2a59dc49fcdef46e3727031bfdd543c65c79e1da4684eab0b5304b",
-      "size_bytes": 16295
+      "sha256": "0486c5f97f249d3f3150aaf902d9996740b5bb1c2ad26023df9e6067829a1552",
+      "size_bytes": 23565
     },
     {
       "category": "production_source",
@@ -7408,6 +7888,22 @@
       "path": "tests/conformance/active/test_store_contract.py",
       "sha256": "0bde60a6aea0c5d047bdd3793ffc35f4e6bdf0bd9a13efaf5efc0a538033c71d",
       "size_bytes": 10498
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/conformance/test_graph_intelligence_port.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/conformance/test_graph_intelligence_port.py",
+      "sha256": "e1bbbec0b577c7167e923b5fd494f89067598966383ec02653aea75183efd5b3",
+      "size_bytes": 2447
     },
     {
       "category": "tests",
@@ -8727,6 +9223,38 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/graph_fakes.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/graph_fakes.py",
+      "sha256": "234520c6bcd728d74d782c94b01dd779a171457fe1b0b760b566af950341419d",
+      "size_bytes": 8223
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/integration/neo4j_graph_fixture.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/integration/neo4j_graph_fixture.py",
+      "sha256": "9157b2c2924b73eb7c9fd8272726899a6e2f5847ccf71cbd9e3650ffeff357b8",
+      "size_bytes": 7661
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/integration/test_conflict_links.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -8782,8 +9310,8 @@
         "version": "2.5.0"
       },
       "path": "tests/integration/test_graphiti_http_projection_loop.py",
-      "sha256": "4f1aa653832c033db9dcb0dd0f249bcd640ac7cec63f510856d8dfb44c173313",
-      "size_bytes": 16209
+      "sha256": "524be751c8309f70a6a0b36e712d9dd49c3959f9e0ad30d7df4075beffdd7993",
+      "size_bytes": 18142
     },
     {
       "category": "tests",
@@ -8912,6 +9440,70 @@
       "path": "tests/integration/test_memory_service.py",
       "sha256": "7d6645ef5e86b919e4441b64ec0e6823485c3c2f85fbf340f7ed079c87d56d12",
       "size_bytes": 9520
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/integration/test_neo4j_gds_analytics.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/integration/test_neo4j_gds_analytics.py",
+      "sha256": "e68f3b883363d5cdef3626b4cec44c36d2a8cea21f83db00a6c2edd2f0aeff1c",
+      "size_bytes": 10867
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/integration/test_neo4j_graph_intelligence_live.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/integration/test_neo4j_graph_intelligence_live.py",
+      "sha256": "7cd7baf434dc3db603fc848eb8955663962fc2e10fe86f28fca05548a764c66c",
+      "size_bytes": 2208
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/integration/test_neo4j_graph_traversal.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/integration/test_neo4j_graph_traversal.py",
+      "sha256": "be78d878ec4292b85635f1e07674b878cc4b0f6b9244c366c642623ddd740471",
+      "size_bytes": 11906
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/integration/test_neo4j_restart_outage_live.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/integration/test_neo4j_restart_outage_live.py",
+      "sha256": "b904a18e547b007857af83f0a2e9a8738c9dc7163eed499e9944fde1d2feab5e",
+      "size_bytes": 5708
     },
     {
       "category": "tests",
@@ -9111,6 +9703,38 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/qualification/graphiti_harness.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/qualification/graphiti_harness.py",
+      "sha256": "9004a7ff536cff22bb170a786e561f4cc4d2d2551314e90cfa39ea8cc3717993",
+      "size_bytes": 10425
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/qualification/test_graphiti_live_qualification.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/qualification/test_graphiti_live_qualification.py",
+      "sha256": "06a4ac737a5574c130997b141cbb66a2eb6fd8b6b2f0815e2f7aac5a449560e6",
+      "size_bytes": 19437
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/regression/test_assurance_tools.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -9216,6 +9840,54 @@
       "path": "tests/regression/test_skill_pack.py",
       "sha256": "9c4348e93021b99d60e6b74e0a115dce2ccf52e2ad25eb3c11891b3ab4d9c61b",
       "size_bytes": 1031
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/security/test_graph_cutover.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/security/test_graph_cutover.py",
+      "sha256": "0dd44cf7a0282e0763e4b50a6a3e7b4775ddc8850b99a1300bf96920b9d651dc",
+      "size_bytes": 10761
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/security/test_graph_tenant_isolation.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/security/test_graph_tenant_isolation.py",
+      "sha256": "40d530b9fb87f95d41db90c4e8d8fa0ae46e2bc02cc7ffbb798f04814c2647be",
+      "size_bytes": 8475
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/security/test_legacy_projection_erasure.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/security/test_legacy_projection_erasure.py",
+      "sha256": "5a9cb034058ae44f1321f3e5bfb5d8c8a8bd623fda2f3073b25f0759d0abc300",
+      "size_bytes": 26065
     },
     {
       "category": "tests",
@@ -9591,6 +10263,198 @@
         "l9_schema": 1,
         "layer": "tests",
         "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_algorithm_policy.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_algorithm_policy.py",
+      "sha256": "bf3da289d622794cd144bd9b2f3762f72cec80fd2a6d9a97e153ec8c2fbe570d",
+      "size_bytes": 3497
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_contracts.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_contracts.py",
+      "sha256": "619262ade3d5c4416136ba079bdb6b1c60d700dff79cb81161ab856c810f8ff7",
+      "size_bytes": 4033
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_evidence_linking.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_evidence_linking.py",
+      "sha256": "8fdaedbc958552a0e018375daada87bfce9d2fb2445152c4df59dbaf0dfe1fea",
+      "size_bytes": 12501
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_health_dimensions.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_health_dimensions.py",
+      "sha256": "d96a720ec67eba8e3f2089d36dcb671111021b82c80e2084093a90decd905477",
+      "size_bytes": 4021
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_intelligence_factory.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_intelligence_factory.py",
+      "sha256": "21b4dec86252bc86a6c0f43941111652498dde4b9483a5f53ee08a0b9baa7e95",
+      "size_bytes": 4602
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_public_surfaces.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_public_surfaces.py",
+      "sha256": "01d89e26e1fde67139e3028587f8a0c864dba2fa34fa7ed7e864849a1cdf818f",
+      "size_bytes": 8799
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_query_policy.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_query_policy.py",
+      "sha256": "a7581e67f2832460f4f08bb314a655d9fe2b38e13a25e24eed134cc647f456cb",
+      "size_bytes": 4637
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_request_budget_and_policy.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_request_budget_and_policy.py",
+      "sha256": "bb48bdc66ecd1dc2c204d1858adef54bbf561da558a2c933ef39ef770b16a566",
+      "size_bytes": 22359
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_scope_key.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_scope_key.py",
+      "sha256": "b88d9623853a57c7ce2cb88d769b138c57b85d510cd7cce5454cd417be5b3a3b",
+      "size_bytes": 2854
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_search_entity_binding.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_search_entity_binding.py",
+      "sha256": "ac743155564fe390ed2fd4312cdfb61f793fe510c063a6343df6f267cd8e7f5d",
+      "size_bytes": 11051
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graph_service.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graph_service.py",
+      "sha256": "f31b1146426e2aa762fe561ab7e169800359bcaf8d5f7f8247caab045cea376f",
+      "size_bytes": 14673
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_graphiti_projection_episode_identity.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_graphiti_projection_episode_identity.py",
+      "sha256": "2cfa4fa0a4221fd8cf9bd67120ffa888926859b4603f874b79311b7e7c4f54ad",
+      "size_bytes": 7516
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
         "path": "tests/unit/test_group_resolver.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -9680,6 +10544,54 @@
       "path": "tests/unit/test_maintenance_authority.py",
       "sha256": "5f27e53dd2878b686d5971d380305c0ae654881091f5d1fe2ae4b4bf570a0e7b",
       "size_bytes": 5092
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_neo4j_gds_operations.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_neo4j_gds_operations.py",
+      "sha256": "d53e9351468620ee57fcc819cae7092e4d492c687210735651e9b2ea74ff0cb9",
+      "size_bytes": 10734
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_neo4j_graph_intelligence_adapter.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_neo4j_graph_intelligence_adapter.py",
+      "sha256": "255d214458f6eb7f9fe2d6834b4031727d48670d4373d166df084f8c90e32083",
+      "size_bytes": 5573
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "tests",
+        "owner": "memory-control-plane",
+        "path": "tests/unit/test_neo4j_structural_operations.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_neo4j_structural_operations.py",
+      "sha256": "3d0fc4b00b0e1e808e670a657f6f1b10b03f8845da3336949d3b6bf884945d61",
+      "size_bytes": 10270
     },
     {
       "category": "tests",
@@ -10254,8 +11166,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/check_config_drift.py",
-      "sha256": "931ccf511e13f380842107914d79b94766811c69c2ffe0ebd2316d28842b7b49",
-      "size_bytes": 3302
+      "sha256": "007d031be05d5009601648a1ebca7f2764ea7489f34ef0adea7d48d2097d3232",
+      "size_bytes": 3336
     },
     {
       "category": "assurance",
@@ -10302,8 +11214,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/check_memory_write_bypass.py",
-      "sha256": "8a1ef5e818d0434057035ec1c8ebc084239c0b0b3349dc7018840bcbf3e7fbce",
-      "size_bytes": 10928
+      "sha256": "63c891220ce4eedd74d7202502d7ec7d34730b4101ed17c95ee5f43fe348d1ba",
+      "size_bytes": 11201
     },
     {
       "category": "assurance",
@@ -10382,8 +11294,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "d0420bb8581649a993e63cd9cb6d4834d0c3e0fca5872c2f3c2378d13c6e6ab5",
-      "size_bytes": 19811
+      "sha256": "e2651aab61fc6d21bd414a87225dd55a748f769ca41d585a55119b87e03e1eb5",
+      "size_bytes": 25027
     },
     {
       "category": "assurance",
@@ -10414,7 +11326,7 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/validate_adrs.py",
-      "sha256": "4cbc24b340e3e7920499fc3f6aefca2fb082f4c3ffbd7739fd0dc07567a01eda",
+      "sha256": "888a931f90cdf9e6d2d60ae862f881b28a4597fbe7d3ac131a2a88a98eac0a6c",
       "size_bytes": 2580
     },
     {
@@ -11662,8 +12574,8 @@
         "version": "2.5.0"
       },
       "path": "uv.lock",
-      "sha256": "0bef02839f93607418f58f87cd0dfc1ffc6714dbdc1765cd90711a60b998af91",
-      "size_bytes": 430201
+      "sha256": "82ac2a31eb9d3c9d1e6295620ca1ba7b4b99822a60a8c0fdd6470121a4eaf2d8",
+      "size_bytes": 552101
     },
     {
       "category": "validation_evidence",
@@ -11678,7 +12590,7 @@
         "version": "2.5.0"
       },
       "path": "validation/SHA256SUMS",
-      "sha256": "c885c95e6b88c3043e92ba591c926f8fe7f19e9551142e37dc094e53e2e37a44",
+      "sha256": "ffec2e836c9479780aec93c8573785d55135671b6c1796756eeb84473f4c2a4e",
       "size_bytes": 108
     },
     {
@@ -11694,7 +12606,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/adr_validation.txt",
-      "sha256": "c0889afec4b4067b24dbb876b06635a5f5e96c132aa41756bb1ee29326a96ac8",
+      "sha256": "faa331f4af9da083e03b80aca63b360e1063904eb5aff247e8d5d2847cbee927",
       "size_bytes": 35
     },
     {
@@ -11790,7 +12702,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_client.txt",
-      "sha256": "525bbcd46c094bf7be2c1ab8a22bf41d37eee465b7f75f81124d066f6e714efe",
+      "sha256": "db55260098972db7ff16af439b71048addba88c3e8c4bef0f13c136b40c0eff3",
       "size_bytes": 1355
     },
     {
@@ -11806,7 +12718,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_cursor_probe.txt",
-      "sha256": "370668bd4c384664395c1a7e29d5b82072f61784acbd80aef8f1849dbf980457",
+      "sha256": "e60f000803fbca8b5353e04695c6927337cf4a4fb778aa452ff70e020ad2627e",
       "size_bytes": 1101
     },
     {
@@ -11822,7 +12734,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_health.txt",
-      "sha256": "7c3561189ac84d76cc2684cd3bcd16c40788ddda57a225b1d59ff0bbd211594f",
+      "sha256": "2da1a2ab17dd9698640c3f7cd5af38567621d4fbfa880cb726d5c0f63b7c9933",
       "size_bytes": 551
     },
     {
@@ -11838,7 +12750,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/installed_mcp.txt",
-      "sha256": "c532528a835d0fce6a73ca3df70329345f00e75b86c1a1213a4131dbd0021afd",
+      "sha256": "1c914e551866e771b04079e24386621bea2e393ef8dca06ccacd40d3bf6670ff",
       "size_bytes": 74
     },
     {
@@ -11886,8 +12798,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/l9_meta_apply.txt",
-      "sha256": "cb9b24685725174c9f8a99ad71c0fb7d83dc50e6759a69da6f09d35e3022e765",
-      "size_bytes": 27
+      "sha256": "3ef518e8a670b419e0de57a807b00b4fd29df8977162adceeae1b9a777877c2c",
+      "size_bytes": 28
     },
     {
       "category": "validation_evidence",
@@ -11918,7 +12830,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/local_benchmark.txt",
-      "sha256": "0e3d50b7402376ef5fc8afe24979ec0507f258a2fa3cb9b93e834f2e6d30190f",
+      "sha256": "6963e515b3449779e4b374ec28e6a7e6fa41bd80c713df88998369fb38ef3461",
       "size_bytes": 659
     },
     {
@@ -11934,7 +12846,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/manifest_validation.txt",
-      "sha256": "53f596fc7464929b4b464c3da0cf85f0c2c0150c9e2104163bd34d8ed61ef81b",
+      "sha256": "b66e86768caabb90bbddb104dadb0cc4c8decb21ec0311789bd51d3eed89b367",
       "size_bytes": 64
     },
     {
@@ -11950,8 +12862,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/preflight.txt",
-      "sha256": "dfea50453fb56f86b81241e13d6dc8572b9921fe307dd9d55ecc97f97cb03b91",
-      "size_bytes": 4070
+      "sha256": "ba1b69a897ad0ad8356f9bec3e3bf8c93df8ade049ccadd450a6ec3cde5a3c3d",
+      "size_bytes": 4072
     },
     {
       "category": "validation_evidence",
@@ -11982,8 +12894,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/pytest.txt",
-      "sha256": "7b34d5dfd7b5c85152995eec46adaae613fc3ca08d71da93f6f80bd9ba6402a4",
-      "size_bytes": 3078
+      "sha256": "e8249fe3de898e885c563b740e65bea4bcc7a73a704b5c1f9c0a0b0792207e18",
+      "size_bytes": 6671
     },
     {
       "category": "validation_evidence",
@@ -12030,7 +12942,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/source_quality.txt",
-      "sha256": "8daaf4c5d6afb1e2c046073d814fd601ec34b13f5f0758a82a25d5fcae625ba6",
+      "sha256": "60bcbdb9191d76b88ff272fb80fecfd2f17f0b048148d246d430c6e10001b6a2",
       "size_bytes": 67
     },
     {
@@ -12062,8 +12974,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_build.txt",
-      "sha256": "a45c0c53e914c66a7db8dbdc7769d7350ed73343014b2bfc077136ae77bd3de4",
-      "size_bytes": 28937
+      "sha256": "0c862d89b3e60bf5cfe1d42ef840882b74586220c3fe4c20523d37a314e9f43e",
+      "size_bytes": 31505
     },
     {
       "category": "validation_evidence",
@@ -12078,8 +12990,8 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wheel_install.txt",
-      "sha256": "9f410d280f2281a33bb300456ba8f1884971fb54623eca7a2c1d1fefa85aa03e",
-      "size_bytes": 266
+      "sha256": "f3cb130668aac34840d4208820134e5909adbbb6770f3ca7a28313ba47785d73",
+      "size_bytes": 267
     },
     {
       "category": "validation_evidence",
@@ -12094,7 +13006,7 @@
         "version": "2.5.0"
       },
       "path": "validation/logs/wiring_audit.txt",
-      "sha256": "49d130bbb590e15db5a90f0c240a9f616959103f37276d0640c2569caf812fe2",
+      "sha256": "79c0d4521adb7f88f9601239160115c1c3a465d82a4d9c66a313bdbc20f5f7e3",
       "size_bytes": 35
     },
     {
@@ -12110,7 +13022,7 @@
         "version": "2.5.0"
       },
       "path": "validation/validation_checks.jsonl",
-      "sha256": "3a9bcddbebe5e2acd260623dca16499a0aebf7393f5618930395b618c4f6c069",
+      "sha256": "253af3d6d361e0a805cc93db7a35cb114c6d7cedfec899a7367de6a0c8b085f6",
       "size_bytes": 11388
     },
     {

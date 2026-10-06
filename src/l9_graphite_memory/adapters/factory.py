@@ -14,8 +14,10 @@ from __future__ import annotations
 
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.errors import ConfigurationError
+from l9_graphite_memory.graph.ports import GraphIntelligencePort
 from l9_graphite_memory.ports import ProjectionAdapter, RecordStore
 
+from .null_graph_intelligence import NullGraphIntelligence
 from .null_projection import NullProjection
 from .sqlite_store import SQLiteRecordStore
 
@@ -79,3 +81,43 @@ def build_projection(settings: MemorySettings) -> ProjectionAdapter:
             ZepCloudTransport(api_key=settings.zep_api_key, base_url=settings.zep_api_url)
         )
     raise ConfigurationError(f"unsupported projection backend: {settings.projection_backend}")
+
+
+def build_graph_intelligence(settings: MemorySettings) -> GraphIntelligencePort:
+    """Construct the configured graph-intelligence backend (ADR-085).
+
+    ``none`` is an explicit adapter that serves nothing. Selecting ``neo4j``
+    without a URI or without the optional driver is a configuration error,
+    never a silent fallback. An unreachable server is not a construction
+    error: health and capabilities report it, and canonical memory and the
+    Graphiti projection keep working.
+    """
+
+    if settings.graph_intelligence_backend == "none":
+        return NullGraphIntelligence()
+    if settings.graph_intelligence_backend == "neo4j":
+        if not settings.graph_neo4j_uri:
+            raise ConfigurationError(
+                "L9_MEMORY_GRAPH_NEO4J_URI is required for the neo4j graph intelligence backend"
+            )
+        from .neo4j_graph_intelligence import (
+            Neo4jGraphIntelligence,
+            Neo4jGraphIntelligenceConfig,
+        )
+
+        return Neo4jGraphIntelligence(
+            Neo4jGraphIntelligenceConfig(
+                uri=settings.graph_neo4j_uri,
+                database=settings.graph_neo4j_database,
+                user=settings.graph_neo4j_user,
+                password=settings.graph_neo4j_password,
+                query_timeout_ms=settings.graph_query_timeout_ms,
+                gds_max_nodes=settings.graph_gds_max_nodes,
+                relationship_allowlist=settings.graph_relationship_allowlist,
+                expected_schema_fingerprint=settings.graph_expected_schema_fingerprint,
+                link_prediction_enabled=settings.graph_link_prediction_enabled,
+            )
+        )
+    raise ConfigurationError(
+        f"unsupported graph intelligence backend: {settings.graph_intelligence_backend}"
+    )

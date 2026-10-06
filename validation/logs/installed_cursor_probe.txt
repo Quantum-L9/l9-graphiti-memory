@@ -7,15 +7,15 @@
     "--transport",
     "stdio"
   ],
-  "config_path": "/tmp/tmp.ELBDN8l9Jb/installed-smoke/home/.cursor/mcp.json",
-  "created_at": "2026-09-25T23:08:41.377073Z",
+  "config_path": "/tmp/tmp.HLYCIriJFW/installed-smoke/home/.cursor/mcp.json",
+  "created_at": "2026-09-27T03:36:05.994182Z",
   "exit_code": 0,
   "health_status": "complete",
   "missing_tools": [],
   "policy_version": "client-config/v1",
   "protocol_version": "2024-11-05",
   "reasons": [],
-  "receipt_id": "bde35393-906b-45ce-bc2e-cd152a2d3ef5",
+  "receipt_id": "671cc242-9788-4dce-971a-8a09b6c9645c",
   "required_tools_present": true,
   "server_name": "l9-graphite-memory",
   "server_version": "2.5.0",
@@ -44,5 +44,5 @@
     }
   ],
   "timed_out": false,
-  "tool_count": 33
+  "tool_count": 44
 }

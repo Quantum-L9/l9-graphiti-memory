@@ -97,6 +97,97 @@ class ProjectionRetirementReceipt(BaseModel):
         return value
 
 
+# Projection-link metadata keys for legacy erasure obligations (ADR-091).
+# A stale-scope re-projection (ADR-084) leaves the superseded copy in a
+# retained, unreachable provider store for the rollback window. The link keeps
+# a record of each such copy until an operator releases it after destroying
+# that store; while any is outstanding, verified deletion stays pending.
+LEGACY_COPIES_KEY = "legacy_copies"
+# The live copy is gone (retired or erased) and the link survives only to
+# carry legacy obligations.
+LINK_WITHDRAWN_KEY = "withdrawn"
+# Receipt of a verified deletion waiting only on legacy obligations.
+PENDING_DELETION_RECEIPT_KEY = "pending_deletion_receipt_id"
+
+
+def legacy_copies(link: ProjectionLink | None) -> list[dict[str, Any]]:
+    """Outstanding legacy projection copies recorded on a link."""
+
+    if link is None:
+        return []
+    copies = link.metadata.get(LEGACY_COPIES_KEY)
+    return [dict(copy) for copy in copies] if isinstance(copies, list) else []
+
+
+def link_withdrawn(link: ProjectionLink | None) -> bool:
+    return bool(link is not None and link.metadata.get(LINK_WITHDRAWN_KEY))
+
+
+class LegacyProjectionReleaseReceipt(BaseModel):
+    """Operator release of legacy projection copies after their store is destroyed.
+
+    Releasing asserts that the retained provider store holding the copies no
+    longer exists (TENANT_SCOPE_MIGRATION step 7). Deletions that were waiting
+    only on those copies complete; nothing else changes (ADR-091).
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    receipt_id: UUID = Field(default_factory=uuid4)
+    namespace: str = Field(min_length=1, max_length=255)
+    projection_name: str = Field(min_length=1, max_length=128)
+    applied: bool = False
+    released_record_ids: tuple[UUID, ...] = ()
+    released_copy_count: int = Field(default=0, ge=0)
+    completed_deletion_record_ids: tuple[UUID, ...] = ()
+    authorization: AuthorizationReceipt
+    store_destruction_reference: str = Field(min_length=1, max_length=400)
+    reason: str = Field(min_length=1, max_length=2_000)
+    actor: str = Field(min_length=1, max_length=400)
+    created_at: datetime = Field(default_factory=utc_now)
+    #: The graph cutover whose closed rollback window authorized this release
+    #: (ADR-092). None only on receipts written before cutover receipts existed.
+    cutover_receipt_id: UUID | None = None
+
+
+class GraphCutoverReceipt(BaseModel):
+    """Operator record that a namespace's projection cut over to a new binding.
+
+    GI-090: the cutover is recorded before the previous projection store may
+    be destroyed, and it fixes the rollback window during which that store is
+    kept. ``release-legacy-projection`` refuses to apply until a cutover
+    receipt exists for the namespace and its window has ended (ADR-092).
+    Bindings are opaque references to deployments (for example a database
+    name or change-managed URI), never credentials.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    receipt_id: UUID = Field(default_factory=uuid4)
+    #: Receipts are scoped like the records they govern: tenant and namespace.
+    tenant_id: str = Field(min_length=1, max_length=255)
+    namespace: str = Field(min_length=1, max_length=255)
+    projection_name: str = Field(min_length=1, max_length=128)
+    applied: bool = False
+    previous_binding: str = Field(min_length=1, max_length=400)
+    new_binding: str = Field(min_length=1, max_length=400)
+    change_reference: str = Field(min_length=1, max_length=400)
+    cut_over_at: datetime
+    rollback_window_ends_at: datetime
+    scope_scheme: str | None = None
+    active_record_count: int = Field(ge=0)
+    projected_record_count: int = Field(ge=0)
+    unprojected_record_ids: tuple[UUID, ...] = ()
+    outbox_backlog: int = Field(ge=0)
+    schema_fingerprint: str | None = Field(default=None, max_length=128)
+    graph_capabilities: tuple[str, ...] = ()
+    ready: bool
+    authorization: AuthorizationReceipt
+    reason: str = Field(min_length=1, max_length=2_000)
+    actor: str = Field(min_length=1, max_length=400)
+    created_at: datetime = Field(default_factory=utc_now)
+
+
 class ProjectionRebuildReceipt(BaseModel):
     """Result of re-projecting canonical records into a derivation.
 

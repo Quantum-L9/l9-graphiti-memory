@@ -152,8 +152,70 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # and 5 in tests/security/test_graph_tenant_isolation.py, none
         # skipped in CI. Same arithmetic: 1024 + 18 = 1042 collected,
         # 1042 - 16 = 1026.
-        "1026 tests pass",
-        r"1026 passed",
+        #
+        # Re-pinned 1026 -> 1069 for ADR-085 (graph-intelligence port and
+        # read-only Neo4j adapter, campaign PR-B): 43 unit cases
+        # (test_graph_query_policy.py, test_neo4j_graph_intelligence_adapter.py,
+        # test_graph_intelligence_factory.py) plus 2 live Neo4j cases that CI
+        # skips without L9_MEMORY_TEST_NEO4J_URI. 1042 + 45 = 1087 collected,
+        # CI skips 16 + 2 = 18, so 1087 - 18 = 1069.
+        #
+        # Re-pinned 1069 -> 1120 for ADR-086 (graph-intelligence contracts,
+        # algorithm policy, evidence binding, service; campaign PR-C): 51
+        # cases across test_graph_contracts.py, test_graph_algorithm_policy.py,
+        # test_graph_evidence_linking.py, test_graph_service.py and
+        # conformance/test_graph_intelligence_port.py, none skipped in CI.
+        # 1087 + 51 = 1138 collected, 1138 - 18 = 1120.
+        #
+        # Re-pinned 1120 -> 1134 for ADR-087 (bounded structural graph
+        # operations, campaign PR-D): 10 cases in
+        # test_neo4j_structural_operations.py and 4 in test_graph_service.py
+        # (search operations and the cap regression), plus 10 live cases in
+        # integration/test_neo4j_graph_traversal.py that CI skips without
+        # L9_MEMORY_TEST_NEO4J_URI. 1138 + 24 = 1162 collected, CI skips
+        # 18 + 10 = 28, so 1162 - 28 = 1134.
+        #
+        # Re-pinned 1134 -> 1147 for ADR-088 (stream-only GDS analytics,
+        # campaign PR-E): 13 cases in test_neo4j_gds_operations.py plus 11
+        # live cases in integration/test_neo4j_gds_analytics.py that CI
+        # skips without L9_MEMORY_TEST_NEO4J_URI. 1162 + 24 = 1186 collected,
+        # CI skips 28 + 11 = 39, so 1186 - 39 = 1147.
+        #
+        # Re-pinned 1147 -> 1160 for ADR-089 (graph-intelligence public
+        # surfaces and observability, campaign PR-F): 13 cases in
+        # test_graph_public_surfaces.py, none skipped in CI.
+        # 1186 + 13 = 1199 collected, 1199 - 39 = 1160.
+        #
+        # Re-pinned 1160 -> 1173 for ADR-090 (Graphiti episode identity and
+        # live qualification, campaign PR-G): 13 cases in
+        # test_graphiti_projection_episode_identity.py, none skipped in CI.
+        # The live module tests/qualification/ skips as a whole without
+        # graphiti_core, adding one CI skip: 39 + 1 = 40.
+        #
+        # Re-pinned 1173 -> 1195 for ADR-091 (campaign audit remediation,
+        # PR-H): 6 cases in security/test_legacy_projection_erasure.py, 3 in
+        # test_graph_evidence_linking.py, 13 in
+        # test_graph_request_budget_and_policy.py; none skipped in CI.
+        # Re-pinned 1195 -> 1201 for the #72 review fixes: 2 stale-link window
+        # cases and 3 store-matrix release cases (memory, sqlite, postgres) in
+        # test_legacy_projection_erasure.py, 1 stalled-search case.
+        # Re-pinned 1201 -> 1217 for the second PR-H audit (PR-I): 6 store-matrix
+        # failure-injection/restart and stale-plan cases, 6 path-hop binding
+        # cases, 4 wall-clock request-ceiling cases.
+        # Re-pinned 1217 -> 1221 for the #73 review fixes: in-memory link-writer
+        # lock, request and search admission refusal, pool slot release.
+        # Re-pinned 1221 -> 1227 for the third audit: 3 store-matrix
+        # projection/deletion race cases, 3 authorization-ordering cases.
+        # Re-pinned 1227 -> 1231 for the legacy-carry race: 3 store-matrix
+        # release-between-read-and-write cases, 1 link-install contention case.
+        # Re-pinned 1231 -> 1257 for the V1 closure (ADR-092): graph.search
+        # entity binding and profile refusal 10, health dimensions 5, graph
+        # cutover and rollback window 11 (store matrix). The live Neo4j suites
+        # run in the graph-live job, not here.
+        # Re-pinned 1257 -> 1261 for the #74 review fixes: cutover tenant
+        # scoping, per-migration cutover, ADMIN-only status, provider rank.
+        "1261 tests pass",
+        r"1261 passed",
     ),
     CheckSpec(
         "V-002",
@@ -175,8 +237,16 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 81 -> 82 for ADR-082 (consumer control-plane transport
         # parity).
         # Re-pinned 83 -> 84 for ADR-084 (tenant-safe graph scope key).
-        "84 ADRs complete and indexed",
-        r"PASS: 84 ADRs",
+        # Re-pinned 84 -> 85 for ADR-085 (graph intelligence port, Neo4j).
+        # Re-pinned 85 -> 86 for ADR-086 (graph contracts and evidence).
+        # Re-pinned 86 -> 87 for ADR-087 (bounded structural operations).
+        # Re-pinned 87 -> 88 for ADR-088 (stream-only GDS analytics).
+        # Re-pinned 88 -> 89 for ADR-089 (graph public surfaces, metrics).
+        # Re-pinned 89 -> 90 for ADR-090 (Graphiti episode identity).
+        # Re-pinned 90 -> 91 for ADR-091 (campaign audit remediation).
+        # Re-pinned 91 -> 92 for ADR-092 (graph intelligence V1 closure).
+        "92 ADRs complete and indexed",
+        r"PASS: 92 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -258,8 +328,16 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # the control-plane capability receipt.
         # Re-pinned 127 -> 129 for ADR-084: graph/__init__.py and
         # graph/scope.py carry the GraphScopeKey v1 derivation.
-        "129 production files pass",
-        r"PASS: 129 production Python files",
+        # Re-pinned 129 -> 133 for ADR-085: graph/ports.py,
+        # adapters/null_graph_intelligence.py, adapters/neo4j_query_policy.py,
+        # adapters/neo4j_graph_intelligence.py.
+        # Re-pinned 133 -> 137 for ADR-086: graph/contracts.py,
+        # graph/algorithm_policy.py, graph/evidence.py, graph/service.py.
+        # Re-pinned 137 -> 138 for ADR-087: adapters/neo4j_graph_templates.py.
+        # Re-pinned 138 -> 139 for ADR-088: adapters/neo4j_gds_templates.py.
+        # Re-pinned 139 -> 140 for ADR-089: observability/graph_metrics.py.
+        "140 production files pass",
+        r"PASS: 140 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -341,8 +419,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "logs/installed_mcp.txt",
         # Re-pinned 30 -> 31 for ADR-082: memory.capabilities joins the
         # canonical tool inventory.
-        "33 tools and required surfaces load",
-        r"33 tools loaded",
+        # Re-pinned 33 -> 44 for ADR-089: ten memory.graph.<operation> tools
+        # plus memory.graph.capabilities join the canonical inventory.
+        "44 tools and required surfaces load",
+        r"44 tools loaded",
     ),
     CheckSpec(
         "V-021",

@@ -68,7 +68,7 @@ CAPABILITIES = {"tools": {"listChanged": False}}
 class MCPServer:
     def __init__(self, runtime: MemoryRuntime) -> None:
         self.runtime = runtime
-        self.tools = MCPToolApplication(runtime.service)
+        self.tools = MCPToolApplication(runtime.service, runtime.graph_service)
 
     @staticmethod
     def response(request_id: Any, result: Any) -> dict[str, Any]:
@@ -404,8 +404,15 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
     @app.get("/readyz")
     async def readyz() -> JSONResponse:
         report = runtime.service.health()
-        code = 200 if report.status.value == "complete" else 503
-        return JSONResponse(status_code=code, content=report.model_dump(mode="json"))
+        ready = report.status.value == "complete"
+        content = report.model_dump(mode="json")
+        if runtime.graph_service is not None:
+            # A separate dimension; it gates readiness only when the deployment
+            # marks graph intelligence as required (ADR-089).
+            graph = runtime.graph_service.capability_report(refresh=True)
+            content["graph"] = graph.model_dump(mode="json")
+            ready = ready and graph.ready
+        return JSONResponse(status_code=200 if ready else 503, content=content)
 
     return app
 

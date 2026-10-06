@@ -18,7 +18,7 @@ import json
 import os
 import sys
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -683,6 +683,90 @@ def cmd_rebuild_projection(args: argparse.Namespace) -> int:
         runtime.close()
 
 
+def cmd_release_legacy_projection(args: argparse.Namespace) -> int:
+    """Release legacy projection copies after their retained store is destroyed."""
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        receipt = runtime.service.release_legacy_projection_copies(
+            principal,
+            namespace,
+            store_destruction_reference=args.store_destruction_reference,
+            apply=args.apply,
+            reason=args.reason,
+        )
+        _print(receipt)
+        return 0
+    finally:
+        runtime.close()
+
+
+def cmd_record_graph_cutover(args: argparse.Namespace) -> int:
+    """Record a graph projection cutover and its rollback window (GI-090, ADR-092)."""
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        fingerprint: str | None = None
+        capabilities: tuple[str, ...] = ()
+        if runtime.graph_service is not None:
+            report = runtime.graph_service.capability_report(refresh=True)
+            fingerprint = report.backend.get("schema_fingerprint")
+            capabilities = report.capabilities
+        receipt = runtime.service.record_graph_cutover(
+            principal,
+            namespace,
+            previous_binding=args.previous_binding,
+            new_binding=args.new_binding,
+            change_reference=args.change_reference,
+            rollback_window=timedelta(hours=args.rollback_window_hours),
+            apply=args.apply,
+            schema_fingerprint=fingerprint,
+            graph_capabilities=capabilities,
+            reason=args.reason,
+        )
+        _print(receipt)
+        return 0
+    finally:
+        runtime.close()
+
+
+def cmd_graph_cutover_status(args: argparse.Namespace) -> int:
+    """List recorded graph cutovers for a namespace and whether release is open."""
+
+    runtime = _runtime(args)
+    try:
+        resolution, principal = _context(runtime, args)
+        namespace = args.group_id or resolution.group_id
+        if not namespace:
+            raise L9MemoryError(resolution.error or "namespace is unresolved")
+        # Authorized like recording: receipts name bindings and actors.
+        cutovers = runtime.service.graph_cutovers(principal, namespace)
+        latest = cutovers[-1] if cutovers else None
+        now = runtime.service.clock.now()
+        _print(
+            {
+                "namespace": namespace,
+                "cutovers": [receipt.model_dump(mode="json") for receipt in cutovers],
+                "latest_receipt_id": str(latest.receipt_id) if latest else None,
+                "rollback_window_ends_at": (
+                    latest.rollback_window_ends_at.isoformat() if latest else None
+                ),
+                "legacy_release_open": latest is not None and now >= latest.rollback_window_ends_at,
+            }
+        )
+        return 0
+    finally:
+        runtime.close()
+
+
 def cmd_maintain(args: argparse.Namespace) -> int:
     """Run scheduled canonical-memory maintenance for one namespace."""
 
@@ -1177,6 +1261,50 @@ def build_parser() -> argparse.ArgumentParser:
         help="queue the projection events; without it the run is a dry run",
     )
 
+    release = sub.add_parser("release-legacy-projection")
+    release.add_argument("--group-id", default=None)
+    release.add_argument(
+        "--store-destruction-reference",
+        required=True,
+        help="change or ticket reference recording that the legacy store was destroyed",
+    )
+    release.add_argument("--reason", default="legacy projection store destroyed")
+    release.add_argument(
+        "--apply",
+        action="store_true",
+        help="release and complete waiting deletions; without it the run is a dry run",
+    )
+
+    cutover = sub.add_parser("record-graph-cutover")
+    cutover.add_argument("--group-id", default=None)
+    cutover.add_argument(
+        "--previous-binding",
+        required=True,
+        help="opaque reference to the projection store being retired (never a credential)",
+    )
+    cutover.add_argument(
+        "--new-binding",
+        required=True,
+        help="opaque reference to the projection store now serving (never a credential)",
+    )
+    cutover.add_argument(
+        "--change-reference", required=True, help="change or ticket reference for the cutover"
+    )
+    cutover.add_argument(
+        "--rollback-window-hours",
+        type=float,
+        required=True,
+        help="how long the previous store is kept before legacy copies may be released",
+    )
+    cutover.add_argument("--reason", default="graph projection cutover")
+    cutover.add_argument(
+        "--apply",
+        action="store_true",
+        help="record the cutover; without it the run is a readiness check",
+    )
+    cutover_status = sub.add_parser("graph-cutover-status")
+    cutover_status.add_argument("--group-id", default=None)
+
     sub.add_parser("outbox-run")
     drain_legacy = sub.add_parser("drain-legacy-write-queue")
     drain_legacy.add_argument("--group-id", default=None)
@@ -1265,6 +1393,9 @@ def main(argv: list[str] | None = None) -> int:
         "synthesize-procedures": cmd_synthesize_procedures,
         "maintain": cmd_maintain,
         "rebuild-projection": cmd_rebuild_projection,
+        "release-legacy-projection": cmd_release_legacy_projection,
+        "record-graph-cutover": cmd_record_graph_cutover,
+        "graph-cutover-status": cmd_graph_cutover_status,
         "outbox-run": cmd_outbox_run,
         "drain-legacy-write-queue": cmd_drain_legacy_write_queue,
         "client": cmd_client,

@@ -54,6 +54,9 @@ phase6 = [
   "PyJWT>=2.13,<3",
 ]
 infisical = ["infisical-python>=2.0,<3"]
+# Read-only structural graph intelligence over the Graphiti Neo4j projection
+# (ADR-085). GDS procedures are called through the driver; no GDS client.
+graph-intelligence = ["neo4j>=5.26,<7"]
 all = [
   "fastapi>=0.115,<1",
   "uvicorn>=0.30,<1",
@@ -61,6 +64,7 @@ all = [
   "redis>=5,<7",
   "zep-cloud>=3.0,<4",
   "infisical-python>=2.0,<3",
+  "neo4j>=5.26,<7",
 ]
 dev = [
   "build>=1.2,<2",
@@ -84,6 +88,13 @@ dev = [
   # continuation package is what fastapi.testclient now expects.
   "httpx2>=2.12,<3",
   "ruff>=0.8,<1",
+  # The graph-intelligence adapter's unit tests and mypy run against the real
+  # driver types; the package itself imports and runs without it (ADR-085).
+  "neo4j>=5.26,<7",
+  # The active-store conformance suite runs against real Redis. An environment
+  # synced with only `--extra dev` (the governed session-deps hook) otherwise
+  # drops it, and every redis case errors on import.
+  "redis>=5,<7",
 ]
 
 [project.scripts]
@@ -107,6 +118,7 @@ where = ["src"]
 l9_graphite_memory = [
   "resources/*.yaml",
   "resources/projections/*.json",
+  "resources/graph/*.json",
 ]
 
 [tool.ruff]
@@ -158,6 +170,14 @@ ignore_missing_imports = true
 [dependency-groups]
 constellation = [
   "constellation-node-sdk ; python_full_version >= '3.12'",
+]
+# Real-model live qualification (tests/qualification, ADR-092). Test-only:
+# graphiti-core is pinned to the qualified version and resolved in uv.lock so
+# CI installs it frozen and without building. graphiti-core imports httpx
+# without declaring it.
+qualification = [
+  "graphiti-core==0.30.2 ; python_full_version >= '3.12'",
+  "httpx>=0.28,<1 ; python_full_version >= '3.12'",
 ]
 
 [tool.uv]

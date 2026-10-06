@@ -37,6 +37,10 @@ class StoreError(L9MemoryError):
     """The canonical record store failed."""
 
 
+class ProjectionLinkConflict(StoreError):
+    """A projection link changed between being read and being replaced."""
+
+
 class IdempotencyConflict(StoreError):
     """A concurrent write already committed this operation identity.
 
@@ -58,8 +62,28 @@ class PhaseLockSnapshotConflict(StoreError):
     """
 
 
+class CutoverNotReady(L9MemoryError):
+    """A graph cutover, or a legacy release it gates, is not permitted yet (ADR-092)."""
+
+
 class ProjectionError(L9MemoryError):
     """A graph or semantic projection failed."""
+
+
+class GraphIntelligenceError(L9MemoryError):
+    """A structural graph-intelligence operation failed (never zero results)."""
+
+
+class GraphCapabilityUnavailable(GraphIntelligenceError):
+    """The configured graph-intelligence backend cannot serve this capability."""
+
+
+class GraphRuntimeBudgetExceeded(GraphIntelligenceError):
+    """A graph operation used up its request-wide ``max_runtime_ms`` budget."""
+
+
+class GraphQueryPolicyViolation(GraphIntelligenceError):
+    """A query template or request violated the static graph query policy."""
 
 
 class UnsupportedSchemaVersion(L9MemoryError):
