@@ -1429,7 +1429,9 @@ class MemoryService:
                 binding.identity,
                 limit=limit,
             )
-            rescoped, stale = self._rescope_candidates(binding, candidates, active_records, limit)
+            rescoped, stale = self._rescope_candidates(
+                binding, candidates, principal.tenant_id, namespace, limit
+            )
             stale_scope.update(dict.fromkeys(stale))
             candidates = [*candidates, *rescoped]
             queued_by_target[binding.identity] = tuple(record.record_id for record in candidates)
@@ -1476,7 +1478,8 @@ class MemoryService:
         self,
         binding: ProjectionTargetBinding,
         candidates: list[MemoryRecord],
-        active_records: list[MemoryRecord],
+        tenant_id: str,
+        namespace: str,
         limit: int,
     ) -> tuple[list[MemoryRecord], list[UUID]]:
         """Linked records this target must project again, and which were stale.
@@ -1491,6 +1494,12 @@ class MemoryService:
         scope_scheme = getattr(binding.adapter, "scope_scheme", None)
         if scope_scheme is None:
             return [], []
+        # Every active record is scanned and only the queued batch is capped:
+        # a fixed newest page would hide stale links in older records from
+        # every invocation, and the rebuild loop could never finish.
+        active_records = self.store.list_records(
+            tenant_id, namespace, states=(MemoryState.ACTIVE,), limit=None
+        )
         queued = {record.record_id for record in candidates}
         extra: list[MemoryRecord] = []
         stale: list[UUID] = []

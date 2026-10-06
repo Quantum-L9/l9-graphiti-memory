@@ -906,3 +906,25 @@ def test_release_keeps_the_deletion_pending_while_another_target_holds_a_copy(
     harness.run()
     assert harness.links(record_id) == {}
     assert harness.store.get_record(record_id).state is MemoryState.DELETED
+
+
+def test_stale_scope_rebuild_reaches_records_beyond_the_first_page(
+    harness, principal, maintainer, graphiti
+) -> None:
+    """Codex P1 on #83: the stale-link scan must not stop at the newest page."""
+
+    records = [_write(harness, principal, f"falcon plan {i}").record_id for i in range(3)]
+    harness.run()
+    graphiti.scope_scheme = "graph-scope-key-v1"  # type: ignore[attr-defined]
+    rescoped: set[UUID] = set()
+    for _ in range(len(records) + 1):
+        rebuild = harness.service.rebuild_projection(maintainer, "repo-a", apply=True, limit=1)
+        if not rebuild.queued_record_ids:
+            break
+        rescoped.update(rebuild.stale_scope_record_ids)
+        harness.run()
+    assert rescoped == set(records)
+    for record_id in records:
+        link = harness.store.get_projection_link(record_id, GRAPHITI)
+        assert link is not None
+        assert link.metadata.get("scope_scheme") == "graph-scope-key-v1"

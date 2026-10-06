@@ -530,7 +530,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/server.py` | `production_source` | `package` | 18342 | `8c1d8d6a13c0b95369a01126a08355862cf7eb33a7ffbc1748bbc3cb90f8f6c7` |
 | `src/l9_graphite_memory/services/__init__.py` | `production_source` | `service` | 474 | `1c5499701993253acd4a359a336fd654ef53a28ac02953b1ccc4a0033ff42158` |
 | `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 14723 | `67091d61a316be27602f4b09ef9e7d5d87f1a849fdab23a7bc95e2cecabaec93` |
-| `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 74447 | `5a7c743d39619f8b2f288434dee26dfeb8ebf79810e4a63247e9fbdb1d9de659` |
+| `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 74854 | `64d6c3b1a21ad7108ae15fc300d34469599389b5250df445fddb67afb718aeb4` |
 | `src/l9_graphite_memory/services/outbox_worker.py` | `production_source` | `service` | 29716 | `173423f9b25b8b54721d6bc00f13ec0e071be725bd4e23235e8e77354040e05d` |
 | `src/l9_graphite_memory/transport.py` | `production_source` | `package` | 13622 | `75643012b7b55852c86b1c0b5f7a7b8cccca8480037494d12c1e8c5fb111a351` |
 | `src/l9_graphite_memory/trust_boundary.py` | `production_source` | `package` | 2883 | `0204be3016103469ec5b41799400d6ce2f9d77e32eafc754f78f675f63b51089` |
@@ -651,7 +651,7 @@ updated: 2026-07-22
 | `tests/integration/test_projection_lifecycle.py` | `tests` | `test` | 9193 | `79caf82a973d132f93754802ff02e13b5be4d7dcd7dc36bf9e678c9041622bd0` |
 | `tests/integration/test_projection_link_migration.py` | `tests` | `test` | 9409 | `bf37e685320b0190225d7f0be08f749ab1f15a8b1692bea3af967940a42d56d5` |
 | `tests/integration/test_projection_retirement_recovery.py` | `tests` | `test` | 10937 | `e91bd43402dc4550673618e74c53b34ea57192562f4509dde624c63544ce2805` |
-| `tests/integration/test_projection_targets.py` | `tests` | `test` | 35387 | `10759363de8184ad9bad29cd8b2ec6c6fbeef7a32d9e177629a17e701a076588` |
+| `tests/integration/test_projection_targets.py` | `tests` | `test` | 36328 | `315e7eb881e1c93f4f9a65bfc4789f7b5d53e47604feb7cedc58483e78e5b7e6` |
 | `tests/integration/test_quarantine_review_maintenance.py` | `tests` | `test` | 13532 | `a7c16264d263e4c96cd1bdfa00fa5f688064865d0a1d5d8a2720803c4598d27a` |
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `test` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `test` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |
@@ -758,7 +758,7 @@ updated: 2026-07-22
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `ea1725f52033612043d5f8640950f363d3f0b8fe04350aa8d35a1c8fb698419a` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 29519 | `a4d5973d6a666e33c3c0b99bd5671c1d34f6f3167d51080c6161796487902840` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 29644 | `4eb48e7b6edb9389947d27b33a9ef5618742d8366b3ce95fa08cfbee1fe7931b` |
 | `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 16799 | `53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `e3e91c5d5e50ed16d91eace7a20bfa66c1233faf0a8981f1d0efb1758258ff37` |

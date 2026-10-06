@@ -253,8 +253,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1427 -> 1430 for the #83 review fixes: cutover waits for
         # confirmed ingestion, configurable episode lookup limit, a disabled
         # required backend is not ready (link-prediction snapshot is live-only).
-        "1430 tests pass",
-        r"1430 passed",
+        # Re-pinned 1430 -> 1433: the stale-scope rebuild scans beyond the first
+        # page (1 case x 3 store backends).
+        "1433 tests pass",
+        r"1433 passed",
     ),
     CheckSpec(
         "V-002",
