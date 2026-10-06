@@ -171,6 +171,13 @@ complete but seven acceptance items open:
    - Link prediction applies the valid-time and transaction-time filters to
      every relationship it reads (path edges, the existing-edge check and
      neighbour degree).
+   - Retirement and erasure by name locator fail closed when the episode
+     listing returns as many episodes as the lookup limit: a retried write
+     can leave a duplicate outside a truncated window, so the visible matches
+     do not prove the copy is gone (review of #84).
+   - Equal-length shortest paths are ordered by their node and relationship
+     uuid sequences before the path budget applies, so the kept paths and the
+     receipt digest are deterministic (review of #84).
 
 ## Alternatives Considered
 

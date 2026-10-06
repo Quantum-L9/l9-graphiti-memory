@@ -73,7 +73,11 @@ _SHORTEST_PATHS = (
     "MATCH (a:Entity) WHERE a.uuid IN $anchor_uuids AND a.group_id IN $group_ids "
     "MATCH (b:Entity) WHERE b.uuid IN $target_uuids AND b.group_id IN $group_ids AND a <> b "
     "MATCH p = allShortestPaths((a)__PATTERN__(b)) WHERE __FILTER__ "
-    "WITH p LIMIT $path_budget "
+    # Equal-length shortest paths have no defined order; order by their
+    # node and relationship uuid sequences so the budget keeps the same
+    # paths and the receipt digest is deterministic (ADR-088).
+    "WITH p ORDER BY [x IN nodes(p) | x.uuid], [r IN relationships(p) | r.uuid] "
+    "LIMIT $path_budget "
     "RETURN [x IN nodes(p) | __NODE__] AS nodes, [r IN relationships(p) | __EDGE__] AS edges"
 )
 

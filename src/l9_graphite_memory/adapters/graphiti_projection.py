@@ -260,6 +260,16 @@ class GraphitiProjection:
         if isinstance(listing, dict) and listing.get("error"):
             raise ProjectionError(f"projection {action} lookup failed: {listing['error']}")
         episodes = listing.get("episodes") if isinstance(listing, dict) else listing
+        if len(episodes or []) >= self.episode_lookup_limit:
+            # A full listing may be truncated: a retried write can leave a
+            # second episode with this name outside the window, so deleting
+            # only the visible matches cannot prove the copy is gone. Fail
+            # closed until the limit covers the group (ADR-091).
+            raise ProjectionError(
+                f"episode listing for {name} reached the {self.episode_lookup_limit}-episode "
+                f"lookup limit and may be truncated; projection {action} cannot be verified; "
+                "raise L9_MEMORY_GRAPHITI_EPISODE_LOOKUP_LIMIT"
+            )
         matches = sorted(
             {
                 str(item["uuid"])

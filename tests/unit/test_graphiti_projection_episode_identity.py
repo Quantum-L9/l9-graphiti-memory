@@ -127,6 +127,26 @@ def test_an_unresolved_name_fails_closed(operation) -> None:
     assert not [tool for tool, _ in transport.calls if tool == "delete_episode"]
 
 
+@pytest.mark.parametrize("operation", ["retire", "erase"])
+def test_a_full_listing_fails_closed_even_with_a_match(operation) -> None:
+    """Codex P1 on #84: a duplicate outside a truncated window must not survive."""
+
+    record_id = uuid4()
+    group = graph_group_id("tenant-a", "repo-a")
+    transport = ScriptedTransport(
+        episodes=[
+            {"uuid": "ep-1", "name": episode_name(record_id), "group_id": group},
+            {"uuid": "ep-2", "name": episode_name(uuid4()), "group_id": group},
+        ]
+    )
+    projection = GraphitiProjection(transport, episode_lookup_limit=2)
+    with pytest.raises(ProjectionError, match="may be truncated"):
+        getattr(projection, operation)(
+            record_id, "repo-a", locator=episode_name_locator(group, record_id)
+        )
+    assert not [tool for tool, _ in transport.calls if tool == "delete_episode"]
+
+
 def test_a_name_locator_needs_get_episodes() -> None:
     record_id = uuid4()
     group = graph_group_id("tenant-a", "repo-a")

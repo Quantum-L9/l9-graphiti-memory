@@ -255,8 +255,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # required backend is not ready (link-prediction snapshot is live-only).
         # Re-pinned 1430 -> 1433: the stale-scope rebuild scans beyond the first
         # page (1 case x 3 store backends).
-        "1433 tests pass",
-        r"1433 passed",
+        # Re-pinned 1433 -> 1435 for the #84 review: a full episode listing fails
+        # closed (retire and erase); the equal-shortest-path order is live-only.
+        "1435 tests pass",
+        r"1435 passed",
     ),
     CheckSpec(
         "V-002",

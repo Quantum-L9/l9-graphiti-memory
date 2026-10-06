@@ -414,7 +414,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "929c972ced920fda4c7d0e71e65b77b7ababecf61d7a7f276a1ef7dbbd22c167",
+      "sha256": "e2a7539902dbdc70b0002569f0de91565e265d86276a47b6611e152a5708b4c9",
       "size_bytes": 134219
     },
     {
@@ -4462,8 +4462,8 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/ADR-093-graph-intelligence-v1-closure.md",
-      "sha256": "a1df05d3c553e3b4b2c63546eb07c9ef6b7947e2e9585ec189bb70029e43104b",
-      "size_bytes": 13275
+      "sha256": "eeb3b18af5ad4e8e0e245d0ea97bd6edfd3a30b2c19635b1c283b422a9dbd756",
+      "size_bytes": 13762
     },
     {
       "category": "architecture_decisions",
@@ -5614,8 +5614,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/graphiti_projection.py",
-      "sha256": "ac55ecd43ea8878b8c5dce023f4342666605aa245700b5993705c4a7856661f7",
-      "size_bytes": 23959
+      "sha256": "69f04cae1936bcd13c04b09c604ddc62290480fe10edcb03d556cd8200659d66",
+      "size_bytes": 24614
     },
     {
       "category": "production_source",
@@ -5678,8 +5678,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/adapters/neo4j_graph_templates.py",
-      "sha256": "0fa90ff4c3d3405a9a4cab1956c904aa3212309a4d25b1cbbd2e1e92cf0bea08",
-      "size_bytes": 6746
+      "sha256": "1b2c5aab84c1b9e88362790db400a22cd4566e180db84f96f8803c7b9a933d8a",
+      "size_bytes": 7028
     },
     {
       "category": "production_source",
@@ -9422,8 +9422,8 @@
         "version": "2.5.0"
       },
       "path": "tests/integration/test_neo4j_graph_traversal.py",
-      "sha256": "1984f373f2a67071fde352d079df3bf4c8aceb2ad7404e8753918d5b1bb782bd",
-      "size_bytes": 11906
+      "sha256": "3a1e12a9af994a78a7307304752a92550b41ea7c84ad55f2e1caa2b27325ba8e",
+      "size_bytes": 13227
     },
     {
       "category": "tests",
@@ -10430,8 +10430,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_graphiti_projection_episode_identity.py",
-      "sha256": "3af4a10e402462d9f1f7b28758079c9d66e37793096c8b0df287eaa5e76977e4",
-      "size_bytes": 7516
+      "sha256": "65c4e9b8328294d015e938950369f551edee3d71ecd50ea7120d9222142e3d64",
+      "size_bytes": 8391
     },
     {
       "category": "tests",
@@ -11294,8 +11294,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "4eb48e7b6edb9389947d27b33a9ef5618742d8366b3ce95fa08cfbee1fe7931b",
-      "size_bytes": 29644
+      "sha256": "60fd5f5ff71bd8c70785b29295d6131a8731d0b8f62097c569e194ecb91a1bb7",
+      "size_bytes": 29807
     },
     {
       "category": "assurance",

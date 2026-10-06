@@ -109,6 +109,7 @@ def world():
         "records": {"a": a_ep, "b": b_ep},
         "graph": graph,
         "memory": memory,
+        "a_group": a_group,
     }
     adapter.close()
     graph.cleanup()
@@ -266,6 +267,36 @@ def test_shortest_path_and_no_path(world) -> None:
     )
     assert none.status is GraphReceiptStatus.COMPLETE
     assert [item for item in none.results if item["kind"] == "path"] == []
+
+
+def test_equal_shortest_paths_are_kept_in_a_stable_order(world) -> None:
+    """Codex P2 on #84: the path budget keeps the same paths on every request."""
+
+    graph, group, episode = world["graph"], world["a_group"], world["records"]["a"]
+    source = graph.entity(group, "Source", episodes=(episode,))
+    target = graph.entity(group, "Target", episodes=(episode,))
+    first, second = (
+        graph.entity(group, "Middle-1", episodes=(episode,)),
+        graph.entity(group, "Middle-2", episodes=(episode,)),
+    )
+    low, high = sorted((first, second), key=str)
+    # The higher-uuid route is written first, so storage order would favour it.
+    for middle in (high, low):
+        graph.relate(source, middle, group, episodes=(episode,))
+        graph.relate(middle, target, group, episodes=(episode,))
+    chosen = []
+    for _ in range(3):
+        receipt = _run(
+            world,
+            GraphOperation.PATH,
+            GraphAnchor(entity_uuid=source),
+            target=GraphAnchor(entity_uuid=target),
+            limits=GraphLimits(max_depth=2, max_paths=1),
+        )
+        paths = [item for item in receipt.results if item["kind"] == "path"]
+        assert paths, receipt.failures
+        chosen.append(paths[0]["node_uuids"][1])
+    assert chosen == [str(low)] * 3
 
 
 def test_node_cap_truncates_and_marks_partial(world) -> None:
