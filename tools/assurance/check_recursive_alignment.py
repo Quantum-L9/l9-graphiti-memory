@@ -77,6 +77,7 @@ ALLOWED_TOP_LEVEL = {
     "docs",
     "hooks",
     "manifest.json",
+    "product-topology.yaml",
     "pyproject.toml",
     "release-work",
     "ruff.toml",

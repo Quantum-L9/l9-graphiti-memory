@@ -18,7 +18,7 @@ from .constellation import (
     TransportPacketPort,
 )
 from .phase_lock import PhaseLockPrecondition, snapshot_digest
-from .projection import ProjectionAdapter, ProjectionHit
+from .projection import ProjectionAdapter, ProjectionEntityHit, ProjectionHit
 from .record_store import RecordStore
 from .review import QuarantineReviewer
 from .service_capability import (
@@ -36,6 +36,7 @@ __all__ = [
     "PhaseLockPrecondition",
     "ProceduralSynthesizer",
     "ProjectionAdapter",
+    "ProjectionEntityHit",
     "ProjectionHit",
     "QuarantineReviewer",
     "RecordStore",

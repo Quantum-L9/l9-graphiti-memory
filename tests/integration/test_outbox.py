@@ -41,7 +41,9 @@ class Projection:
         self.projected.append(str(record.record_id))
         return {"projected": True, "locator": f"episode-{record.record_id}"}
 
-    def search(self, query: str, namespaces: tuple[str, ...], *, limit: int) -> list[ProjectionHit]:
+    def search(
+        self, query: str, namespaces: tuple[str, ...], *, limit: int, tenant_id: str
+    ) -> list[ProjectionHit]:
         if self.fail:
             raise RuntimeError("projection down")
         return []

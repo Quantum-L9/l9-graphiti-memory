@@ -35,6 +35,7 @@ CORE_PREFIXES = (
     "l9_graphite_memory.admission",
     "l9_graphite_memory.curation",
     "l9_graphite_memory.extraction",
+    "l9_graphite_memory.graph",
     "l9_graphite_memory.lineage",
     "l9_graphite_memory.ports",
     "l9_graphite_memory.retrieval",

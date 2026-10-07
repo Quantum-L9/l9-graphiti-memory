@@ -22,6 +22,8 @@ from l9_graphite_memory.contracts import (
     ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    GraphCutoverReceipt,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
@@ -36,9 +38,16 @@ from l9_graphite_memory.contracts import (
     ProjectionRetirementReceipt,
     WriteReceipt,
 )
+from l9_graphite_memory.contracts.generated_data import (
+    RevalidationRequirement,
+    SourceInvalidationEvent,
+    SourceSelectorRecord,
+    source_selectors_for_record,
+)
 from l9_graphite_memory.errors import (
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
+    ProjectionLinkConflict,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -64,8 +73,13 @@ class InMemoryRecordStore:
         self.maintenance_runs: list[MaintenanceRunReceipt] = []
         self.projection_retirements: list[ProjectionRetirementReceipt] = []
         self.projection_rebuilds: list[ProjectionRebuildReceipt] = []
+        self.legacy_projection_releases: list[LegacyProjectionReleaseReceipt] = []
+        self.graph_cutovers: list[GraphCutoverReceipt] = []
         self.lifecycle_receipts: dict[UUID, LifecycleTransitionReceipt] = {}
         self.conflict_receipts: dict[UUID, ConflictLinkReceipt] = {}
+        self.source_selectors: dict[str, SourceSelectorRecord] = {}
+        self.source_invalidations: dict[tuple[str, str], SourceInvalidationEvent] = {}
+        self.revalidation_requirements: dict[UUID, RevalidationRequirement] = {}
         self.initialized = False
         self._write_lock = threading.RLock()
 
@@ -125,10 +139,98 @@ class InMemoryRecordStore:
                     ]
                 raise
             self.receipts[receipt.receipt_id] = receipt
+            if record is not None:
+                # Structured selectors commit with the record they index (ADR-095).
+                for selector in source_selectors_for_record(record):
+                    self.source_selectors.setdefault(selector.selector_id, selector)
             for status_event in status_events:
                 self._apply_transition(status_event)
             for outbox_event in outbox_events:
                 self.outbox[outbox_event.event_id] = outbox_event
+
+    def find_source_selector_matches(
+        self,
+        tenant_id: str,
+        *,
+        repository: str | None,
+        selector_type: str,
+        selector_value: str,
+    ) -> tuple[UUID, ...]:
+        matches: dict[UUID, None] = {}
+        for selector in sorted(self.source_selectors.values(), key=lambda item: item.selector_id):
+            if not selector.active:
+                continue
+            if repository is not None and selector.repository != repository:
+                continue
+            if selector.selector_type != selector_type or selector.selector_value != selector_value:
+                continue
+            record = self.records.get(selector.record_id)
+            if record is None or record.tenant_id != tenant_id:
+                continue
+            if record.state is not MemoryState.ACTIVE:
+                continue
+            matches[record.record_id] = None
+        return tuple(sorted(matches, key=str))
+
+    def list_source_selectors(self, record_id: UUID) -> list[SourceSelectorRecord]:
+        return sorted(
+            (item for item in self.source_selectors.values() if item.record_id == record_id),
+            key=lambda item: item.selector_id,
+        )
+
+    def get_source_invalidation(
+        self, tenant_id: str, event_id: str
+    ) -> SourceInvalidationEvent | None:
+        return self.source_invalidations.get((tenant_id, event_id))
+
+    def list_revalidation_requirements(self, record_id: UUID) -> list[RevalidationRequirement]:
+        return sorted(
+            (
+                item
+                for item in self.revalidation_requirements.values()
+                if item.record_id == record_id
+            ),
+            key=lambda item: (item.created_at, str(item.requirement_id)),
+        )
+
+    def commit_source_invalidation(
+        self,
+        capability: ServiceWriteCapability,
+        event: SourceInvalidationEvent,
+        *,
+        lifecycle_receipts: tuple[LifecycleTransitionReceipt, ...],
+        status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
+        revalidation_requirements: tuple[RevalidationRequirement, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        transitioned = {
+            item.record_id for receipt in lifecycle_receipts for item in receipt.transitions
+        }
+        if {item.record_id for item in status_events} != transitioned:
+            raise StoreError("invalidation receipts and status events target different records")
+        with self._write_lock:
+            key = (event.tenant_id, event.event_id)
+            if key in self.source_invalidations:
+                raise IdempotencyConflict(
+                    f"source invalidation already committed: {event.event_id}"
+                )
+            for status_event in status_events:
+                self._check_transition(status_event)
+            self.source_invalidations[key] = event
+            for receipt in lifecycle_receipts:
+                self.lifecycle_receipts[receipt.receipt_id] = receipt
+            for status_event in status_events:
+                self._apply_transition(status_event)
+            for outbox_event in outbox_events:
+                self.outbox[outbox_event.event_id] = outbox_event
+            for requirement in revalidation_requirements:
+                self.revalidation_requirements[requirement.requirement_id] = requirement
+            for selector_id, selector in list(self.source_selectors.items()):
+                if selector.record_id in transitioned and selector.active:
+                    self.source_selectors[selector_id] = selector.model_copy(
+                        update={"active": False, "deactivated_at": event.created_at}
+                    )
 
     def _require_phase_lock_snapshot(self, expected: PhaseLockPrecondition) -> None:
         current = snapshot_digest(
@@ -361,7 +463,11 @@ class InMemoryRecordStore:
         )
 
     def save_projection_link(self, link: ProjectionLink) -> None:
-        self.projection_links[(link.record_id, link.target_identity)] = link
+        # Link writers share the store lock so a legacy-copy release (which
+        # validates its plan and applies it under that lock) can never be
+        # interleaved with an outbox link write (ADR-092).
+        with self._write_lock:
+            self.projection_links[(link.record_id, link.target_identity)] = link
 
     def get_projection_link(
         self,
@@ -369,6 +475,19 @@ class InMemoryRecordStore:
         target_identity: str,
     ) -> ProjectionLink | None:
         return self.projection_links.get((record_id, target_identity))
+
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
+        with self._write_lock:
+            record = self.records.get(link.record_id)
+            if record is None or record.state is not MemoryState.ACTIVE:
+                return False
+            key = (link.record_id, link.target_identity)
+            if self.projection_links.get(key) != expected_previous:
+                raise ProjectionLinkConflict("projection link changed since it was read")
+            self.projection_links[key] = link
+            return True
 
     def list_projection_links(self, record_id: UUID) -> list[ProjectionLink]:
         return sorted(
@@ -387,7 +506,8 @@ class InMemoryRecordStore:
         return tuple(sorted(identities))
 
     def delete_projection_link(self, record_id: UUID, target_identity: str) -> None:
-        self.projection_links.pop((record_id, target_identity), None)
+        with self._write_lock:
+            self.projection_links.pop((record_id, target_identity), None)
 
     def stats(self) -> dict[str, Any]:
         by_state: dict[str, int] = {}
@@ -441,6 +561,80 @@ class InMemoryRecordStore:
         self.projection_rebuilds.append(receipt)
         for event in outbox_events:
             self.outbox[event.event_id] = event
+
+    def commit_legacy_projection_release(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LegacyProjectionReleaseReceipt,
+        *,
+        link_updates: tuple[ProjectionLink, ...] = (),
+        link_removals: tuple[tuple[UUID, str], ...] = (),
+        deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied legacy projection release")
+        with self._write_lock:
+            # Validate every effect before applying any, so the release is
+            # all-or-nothing like the transactional backends.
+            for expected in expected_links:
+                current = self.projection_links.get((expected.record_id, expected.target_identity))
+                if current != expected:
+                    raise StoreError("projection link changed since the release was planned")
+            for record_id, receipt_id in deletion_completions:
+                if record_id not in self.records or receipt_id not in self.deletion_receipts:
+                    raise StoreError("deletion record or receipt not found")
+            # Snapshot what the release touches; any failure while applying
+            # restores it, matching the SQL backends' rollback.
+            snapshot = (
+                dict(self.records),
+                dict(self.deletion_receipts),
+                list(self.status_events),
+                dict(self.projection_links),
+                list(self.legacy_projection_releases),
+            )
+            try:
+                self.legacy_projection_releases.append(receipt)
+                for link in link_updates:
+                    self.projection_links[(link.record_id, link.target_identity)] = link
+                for key in link_removals:
+                    self.projection_links.pop(key, None)
+                for record_id, receipt_id in deletion_completions:
+                    self.complete_deletion(
+                        record_id,
+                        receipt_id,
+                        completed_at=receipt.created_at,
+                        actor=f"memory.legacy-release:{receipt.actor}",
+                    )
+            except BaseException:
+                (
+                    self.records,
+                    self.deletion_receipts,
+                    self.status_events,
+                    self.projection_links,
+                    self.legacy_projection_releases,
+                ) = snapshot
+                raise
+
+    def commit_graph_cutover(
+        self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied graph cutover")
+        with self._write_lock:
+            self.graph_cutovers.append(receipt)
+
+    def list_graph_cutovers(self, tenant_id: str, namespace: str) -> list[GraphCutoverReceipt]:
+        return [
+            r for r in self.graph_cutovers if r.tenant_id == tenant_id and r.namespace == namespace
+        ]
+
+    def list_legacy_projection_releases(
+        self, namespace: str
+    ) -> list[LegacyProjectionReleaseReceipt]:
+        return [r for r in self.legacy_projection_releases if r.namespace == namespace]
 
     def save_maintenance_run(self, receipt: MaintenanceRunReceipt) -> None:
         self.maintenance_runs.append(receipt)
@@ -531,6 +725,10 @@ class InMemoryRecordStore:
             self._check_transition(status_event)
             self.status_events.append(status_event)
             self.records[redacted_record.record_id] = redacted_record
+            # Selectors are derived from the metadata the tombstone redacts.
+            for selector_id, selector in list(self.source_selectors.items()):
+                if selector.record_id == redacted_record.record_id:
+                    del self.source_selectors[selector_id]
             self.deletion_receipts[receipt.receipt_id] = receipt
             for event in (*((outbox_event,) if outbox_event is not None else ()), *outbox_events):
                 self.outbox[event.event_id] = event

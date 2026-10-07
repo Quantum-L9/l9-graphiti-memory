@@ -40,6 +40,8 @@ The repository name uses **Graphiti** because the project integrates with Graphi
 
 This repository is a dependency package, not a runnable constellation node. Internal operations use typed memory contracts. L9 inter-node consumers inject the canonical TransportPacket factory and Gate client through `GateMemoryBridge`; the package never defines the shared packet model or resolves destinations. Optional editor hooks use a local receipt guard, not a second Gate. See [`ALIGNMENT.md`](ALIGNMENT.md).
 
+The authoritative product contract is [`product-topology.yaml`](product-topology.yaml): ProductKind `dependency`, archetype `l9.dependency-archetype/semantic-subsystem@1`, consumed by local composition as a consumer-bound artifact. Every release is governed by the global `l9.contract/product-release@1`; [`release-work/product-release-binding.yaml`](release-work/product-release-binding.yaml) is the derived map from that law to this repository's validation and proof entrypoints. See [ADR-094](docs/adr/ADR-094-product-topology-and-release-governance.md).
+
 ## Architecture
 
 ```text
@@ -147,6 +149,7 @@ bash scripts/validate_release.sh
 - [Remediation and integration register](docs/REMEDIATION_AND_INTEGRATION_PLAN.md)
 - [Compatibility matrix](docs/COMPATIBILITY_MATRIX.md)
 - [Topology publication admission](docs/TOPOLOGY_PUBLICATION_ADMISSION.md)
+- [Product topology](product-topology.yaml) and [release binding](release-work/product-release-binding.yaml)
 - [Full ADR ledger](docs/adr/README.md)
 - [Agent skill](skill/SKILL.md)
 - [Validation evidence](VALIDATION.md)

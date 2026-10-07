@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -38,9 +39,11 @@ from l9_graphite_memory.contracts import (
     DeletionStatus,
     EvidenceKind,
     EvidenceRef,
+    GraphCutoverReceipt,
     HealthReport,
     HydrationRequest,
     HydrationResult,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransition,
     LifecycleTransitionReceipt,
     MemoryClass,
@@ -55,6 +58,7 @@ from l9_graphite_memory.contracts import (
     PhaseLockReceipt,
     PhaseLockRequest,
     PhaseLockVerification,
+    ProjectionLink,
     ProjectionRebuildReceipt,
     PromotionRequest,
     Provenance,
@@ -66,6 +70,19 @@ from l9_graphite_memory.contracts import (
     WriteReceipt,
     WriteStatus,
 )
+from l9_graphite_memory.contracts.generated_data import (
+    RevalidationRequirement,
+    SourceInvalidationEvent,
+    SourceInvalidationReceipt,
+    SourceInvalidationRequest,
+    SourceInvalidationStatus,
+)
+from l9_graphite_memory.contracts.projection import (
+    LEGACY_COPIES_KEY,
+    PENDING_DELETION_RECEIPT_KEY,
+    legacy_copies,
+    link_withdrawn,
+)
 from l9_graphite_memory.curation import (
     PromotionPolicy,
     RetentionEngine,
@@ -74,6 +91,7 @@ from l9_graphite_memory.curation import (
 from l9_graphite_memory.errors import (
     AdmissionError,
     AuthorizationError,
+    CutoverNotReady,
     IdempotencyConflict,
     StoreError,
 )
@@ -86,7 +104,11 @@ from l9_graphite_memory.ports import (
     SystemClock,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
-from l9_graphite_memory.projections.runtime import ProjectionRuntime, ProjectionTargetBinding
+from l9_graphite_memory.projections.runtime import (
+    ProjectionRuntime,
+    ProjectionTargetBinding,
+    graph_projection_target,
+)
 from l9_graphite_memory.retrieval import ContextBudgetAllocator, RetrievalPlanner
 from l9_graphite_memory.version import MEMORY_SCHEMA_VERSION, PACKAGE_VERSION
 
@@ -112,6 +134,74 @@ _LIFECYCLE_TRANSITIONS: dict[tuple[MemoryState, MemoryState], AuthorizationActio
     (MemoryState.ARCHIVED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
     (MemoryState.QUARANTINED, MemoryState.ACTIVE): AuthorizationAction.ADMIN,
 }
+
+
+@dataclass
+class _ReleasePlan:
+    """The store changes one legacy-projection release commits (ADR-092)."""
+
+    released: list[UUID] = field(default_factory=list)
+    completed: list[UUID] = field(default_factory=list)
+    link_updates: list[ProjectionLink] = field(default_factory=list)
+    link_removals: list[tuple[UUID, str]] = field(default_factory=list)
+    deletion_completions: list[tuple[UUID, UUID]] = field(default_factory=list)
+    expected_links: list[ProjectionLink] = field(default_factory=list)
+    copy_count: int = 0
+
+    def add(self, record: MemoryRecord, links: list[ProjectionLink]) -> None:
+        """Release every one of this record's links that carries legacy copies.
+
+        Links are per target (ADR-084). A withdrawn link exists only for its
+        obligations and is removed; a live one keeps its copy and drops them.
+        The deletion completes only if this release removes every link the
+        record still has: a copy in any other target keeps it pending.
+        """
+
+        releasing = [link for link in links if legacy_copies(link)]
+        if not releasing:
+            return
+        self.released.append(record.record_id)
+        removed = 0
+        pending: object = None
+        for link in releasing:
+            self.expected_links.append(link)
+            self.copy_count += len(legacy_copies(link))
+            if link_withdrawn(link):
+                self.link_removals.append((record.record_id, link.target_identity))
+                removed += 1
+                pending = pending or link.metadata.get(PENDING_DELETION_RECEIPT_KEY)
+            else:
+                metadata = {k: v for k, v in link.metadata.items() if k != LEGACY_COPIES_KEY}
+                self.link_updates.append(link.model_copy(update={"metadata": metadata}))
+        if (
+            record.state is MemoryState.DELETION_PENDING
+            and isinstance(pending, str)
+            and removed == len(links)
+        ):
+            self.completed.append(record.record_id)
+            self.deletion_completions.append((record.record_id, UUID(pending)))
+
+
+def _require_predates_cutover(
+    copies: list[dict[str, object]], cutover: GraphCutoverReceipt
+) -> None:
+    """Refuse to release a legacy copy superseded after the governing cutover.
+
+    A copy superseded after the latest recorded cutover belongs to a later
+    migration whose own cutover (and rollback window) is not recorded yet;
+    the closed window of an earlier cutover must not release it (ADR-093).
+    """
+
+    for copy in copies:
+        superseded = copy.get("superseded_at")
+        if not isinstance(superseded, str):
+            continue
+        if datetime.fromisoformat(superseded) > cutover.cut_over_at:
+            raise CutoverNotReady(
+                "legacy copies were superseded after the latest recorded cutover "
+                f"{cutover.receipt_id}; record the cutover for the current migration "
+                "and wait for its rollback window"
+            )
 
 
 class MemoryService:
@@ -536,9 +626,47 @@ class MemoryService:
         clean RELEASE never lowers the authority required.
         """
 
+        receipt, status_events, outbox_events = self._plan_lifecycle_transition(
+            principal,
+            namespace,
+            record_ids=record_ids,
+            new_state=new_state,
+            reason=reason,
+            review=review,
+            evidence=evidence,
+        )
+        self.store.commit_lifecycle(
+            SERVICE_WRITE_CAPABILITY,
+            receipt,
+            status_events=status_events,
+            outbox_events=outbox_events,
+        )
+        return receipt
+
+    def _plan_lifecycle_transition(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        record_ids: tuple[UUID, ...],
+        new_state: MemoryState,
+        reason: str,
+        review: QuarantineReviewVerdict | None,
+        evidence: tuple[EvidenceRef, ...],
+        now: datetime | None = None,
+    ) -> tuple[LifecycleTransitionReceipt, tuple[MemoryStatusEvent, ...], tuple[OutboxEvent, ...]]:
+        """Validate, authorize, and assemble one governed transition; commit nothing.
+
+        Every check of ``transition_lifecycle`` happens here: the governed
+        transition table, tenant and namespace confinement, and the authority
+        each transition requires. A caller that must commit several planned
+        transitions as one operation, such as source invalidation across
+        namespaces, plans them all before committing any (ADR-095).
+        """
+
         if not record_ids:
             raise AdmissionError("lifecycle transition requires at least one record")
-        now = self.clock.now()
+        now = now or self.clock.now()
         transitions: list[LifecycleTransition] = []
         status_events: list[MemoryStatusEvent] = []
         required: set[AuthorizationAction] = set()
@@ -637,16 +765,211 @@ class MemoryService:
             evidence=tuple(evidence_items),
             created_at=now,
         )
-        self.store.commit_lifecycle(
-            SERVICE_WRITE_CAPABILITY,
+        return (
             receipt,
-            status_events=tuple(
+            tuple(
                 event.model_copy(update={"receipt_id": receipt.receipt_id})
                 for event in status_events
             ),
-            outbox_events=outbox_events,
+            outbox_events,
         )
-        return receipt
+
+    def invalidate_by_source(
+        self, principal: MemoryPrincipal, request: SourceInvalidationRequest
+    ) -> SourceInvalidationReceipt:
+        """Archive the current records a structured source change invalidates.
+
+        Matching is equality on persisted structured selectors only, never on
+        statement text. Every matching ACTIVE record is resolved first, then
+        every affected namespace, then the principal is authorized for each
+        through the governed lifecycle table (ACTIVE -> ARCHIVED needs READ and
+        MAINTAIN). Only then is anything mutated, and the whole operation --
+        operation record, one lifecycle receipt per namespace, status events,
+        target-aware retirement intents, revalidation requirements and
+        selector deactivation -- commits in one store transaction or not at
+        all. Nothing is deleted and no replacement is created.
+
+        The operation identity is ``request.operation_id()``. Replaying the
+        same identity with the same body returns the established result
+        without mutating again; the same identity with a different body is a
+        conflict and is rejected (ADR-095).
+        """
+
+        operation_id = request.operation_id()
+        digest = request.request_digest()
+        existing = self.store.get_source_invalidation(principal.tenant_id, operation_id)
+        if existing is not None:
+            return self._replayed_invalidation(principal, request, existing, digest)
+
+        record_ids: dict[UUID, None] = {}
+        for selector in request.normalized_selectors():
+            for record_id in self.store.find_source_selector_matches(
+                principal.tenant_id,
+                repository=request.repository,
+                selector_type=selector.selector_type,
+                selector_value=selector.selector_value,
+            ):
+                record_ids[record_id] = None
+        by_namespace: dict[str, list[UUID]] = {}
+        for record_id in record_ids:
+            record = self.store.get_record(record_id)
+            if record is None or record.tenant_id != principal.tenant_id:
+                continue
+            by_namespace.setdefault(record.namespace, []).append(record_id)
+        matched = sum(len(ids) for ids in by_namespace.values())
+
+        def rejected(reason: str) -> SourceInvalidationReceipt:
+            return SourceInvalidationReceipt(
+                status=SourceInvalidationStatus.REJECTED,
+                event_type=request.event_type,
+                event_id=operation_id,
+                matched=matched,
+                reason=reason,
+            )
+
+        for namespace in sorted(by_namespace):
+            for action in (AuthorizationAction.READ, AuthorizationAction.MAINTAIN):
+                decision = self.namespace_policy.evaluate(principal, action, namespace)
+                if not decision.allowed:
+                    return rejected(
+                        f"not authorized to invalidate records in {namespace!r}: "
+                        + "; ".join(decision.reasons)
+                    )
+
+        now = self.clock.now()
+        reason = f"source invalidation {request.event_type} ({operation_id})"
+        evidence = (
+            EvidenceRef(
+                kind=EvidenceKind.EXPLICIT,
+                description=(
+                    f"structured source invalidation {request.event_type}"
+                    f" repository={request.repository or '*'}"
+                    f" from={request.from_sha or '-'} to={request.to_sha or '-'}"
+                )[:2_000],
+                source_id=operation_id,
+                observed_at=now,
+            ),
+        )
+        receipts: list[LifecycleTransitionReceipt] = []
+        status_events: list[MemoryStatusEvent] = []
+        outbox_events: list[OutboxEvent] = []
+        requirements: list[RevalidationRequirement] = []
+        try:
+            for namespace in sorted(by_namespace):
+                receipt, events, intents = self._plan_lifecycle_transition(
+                    principal,
+                    namespace,
+                    record_ids=tuple(by_namespace[namespace]),
+                    new_state=MemoryState.ARCHIVED,
+                    reason=reason,
+                    review=None,
+                    evidence=evidence,
+                    now=now,
+                )
+                receipts.append(receipt)
+                status_events.extend(events)
+                outbox_events.extend(intents)
+                requirements.extend(
+                    RevalidationRequirement(
+                        tenant_id=principal.tenant_id,
+                        namespace=namespace,
+                        record_id=record_id,
+                        invalidation_event_id=operation_id,
+                        reason=reason,
+                        created_at=now,
+                    )
+                    for record_id in by_namespace[namespace]
+                )
+        except (AuthorizationError, AdmissionError, StoreError) as exc:
+            return rejected(f"source invalidation not applied: {exc}")
+
+        transitioned = tuple(item.record_id for item in status_events)
+        event = SourceInvalidationEvent(
+            event_id=operation_id,
+            tenant_id=principal.tenant_id,
+            request_digest=digest,
+            compatibility_form=request.compatibility_form,
+            event_type=request.event_type,
+            repository=request.repository,
+            from_sha=request.from_sha,
+            to_sha=request.to_sha,
+            selectors=request.normalized_selectors(),
+            namespaces=tuple(sorted(by_namespace)),
+            matched=matched,
+            transitioned=len(transitioned),
+            record_ids=transitioned,
+            lifecycle_receipt_ids=tuple(item.receipt_id for item in receipts),
+            revalidation_requirement_ids=tuple(item.requirement_id for item in requirements),
+            actor=principal.audit_subject,
+            created_at=now,
+        )
+        try:
+            self.store.commit_source_invalidation(
+                SERVICE_WRITE_CAPABILITY,
+                event,
+                lifecycle_receipts=tuple(receipts),
+                status_events=tuple(status_events),
+                outbox_events=tuple(outbox_events),
+                revalidation_requirements=tuple(requirements),
+            )
+        except IdempotencyConflict:
+            # A concurrent replay of this operation committed first; the
+            # stored operation is the authority (ADR-008).
+            winner = self.store.get_source_invalidation(principal.tenant_id, operation_id)
+            if winner is None:
+                raise
+            return self._replayed_invalidation(principal, request, winner, digest)
+        except StoreError as exc:
+            # A record left ACTIVE between resolution and commit: nothing was
+            # committed, and a retry resolves the matches again.
+            return rejected(f"source invalidation not applied: {exc}")
+        return self._invalidation_receipt(event)
+
+    @staticmethod
+    def _invalidation_receipt(event: SourceInvalidationEvent) -> SourceInvalidationReceipt:
+        return SourceInvalidationReceipt(
+            status=SourceInvalidationStatus.APPLIED,
+            event_type=event.event_type,
+            event_id=event.event_id,
+            matched=event.matched,
+            transitioned=event.transitioned,
+            record_ids=list(event.record_ids),
+            lifecycle_receipt_ids=list(event.lifecycle_receipt_ids),
+            revalidation_requirement_ids=list(event.revalidation_requirement_ids),
+        )
+
+    def _replayed_invalidation(
+        self,
+        principal: MemoryPrincipal,
+        request: SourceInvalidationRequest,
+        existing: SourceInvalidationEvent,
+        digest: str,
+    ) -> SourceInvalidationReceipt:
+        """The established result of an applied operation, or a conflict."""
+
+        if existing.request_digest != digest:
+            return SourceInvalidationReceipt(
+                status=SourceInvalidationStatus.REJECTED,
+                event_type=request.event_type,
+                event_id=existing.event_id,
+                reason=(
+                    f"invalidation operation identity {existing.event_id!r} was already "
+                    "applied with a different request body; send a new event_id"
+                ),
+            )
+        # The established result names records; disclose it only to a
+        # principal that could have applied it.
+        for namespace in existing.namespaces:
+            for action in (AuthorizationAction.READ, AuthorizationAction.MAINTAIN):
+                decision = self.namespace_policy.evaluate(principal, action, namespace)
+                if not decision.allowed:
+                    return SourceInvalidationReceipt(
+                        status=SourceInvalidationStatus.REJECTED,
+                        event_type=request.event_type,
+                        event_id=existing.event_id,
+                        reason=f"not authorized to read invalidation results in {namespace!r}",
+                    )
+        return self._invalidation_receipt(existing)
 
     def write_governed(
         self,
@@ -1331,6 +1654,14 @@ class MemoryService:
         queued_by_target: dict[str, tuple[UUID, ...]] = {}
         event_list: list[OutboxEvent] = []
         queued: dict[UUID, None] = {}
+        stale_scope: dict[UUID, None] = {}
+        active_records = self.store.list_records(
+            principal.tenant_id,
+            namespace,
+            states=(MemoryState.ACTIVE,),
+            limit=limit,
+        )
+        total_active = len(active_records)
         for binding in selected:
             candidates = self.store.list_unprojected_records(
                 principal.tenant_id,
@@ -1338,6 +1669,11 @@ class MemoryService:
                 binding.identity,
                 limit=limit,
             )
+            rescoped, stale = self._rescope_candidates(
+                binding, candidates, principal.tenant_id, namespace, limit
+            )
+            stale_scope.update(dict.fromkeys(stale))
+            candidates = [*candidates, *rescoped]
             queued_by_target[binding.identity] = tuple(record.record_id for record in candidates)
             for record in candidates:
                 queued[record.record_id] = None
@@ -1355,14 +1691,6 @@ class MemoryService:
                         now=now,
                     )
                 )
-        total_active = len(
-            self.store.list_records(
-                principal.tenant_id,
-                namespace,
-                states=(MemoryState.ACTIVE,),
-                limit=limit,
-            )
-        )
         events = tuple(event_list)
         receipt = ProjectionRebuildReceipt(
             namespace=namespace,
@@ -1371,6 +1699,7 @@ class MemoryService:
             considered_record_count=total_active,
             already_projected_count=max(total_active - len(queued), 0),
             queued_record_ids=tuple(queued),
+            stale_scope_record_ids=tuple(stale_scope),
             outbox_event_ids=tuple(event.event_id for event in events),
             target_identities=tuple(binding.identity for binding in selected),
             queued_by_target=queued_by_target,
@@ -1383,6 +1712,249 @@ class MemoryService:
             self.store.commit_projection_rebuild(
                 SERVICE_WRITE_CAPABILITY, receipt, outbox_events=events
             )
+        return receipt
+
+    def _rescope_candidates(
+        self,
+        binding: ProjectionTargetBinding,
+        candidates: list[MemoryRecord],
+        tenant_id: str,
+        namespace: str,
+        limit: int,
+    ) -> tuple[list[MemoryRecord], list[UUID]]:
+        """Linked records this target must project again, and which were stale.
+
+        A live link written under an older provider scope scheme points at a
+        copy in the wrong provider group; it is re-projected, not trusted
+        (ADR-085). A withdrawn link survives only to carry legacy erasure
+        obligations (ADR-092), so its record has no live copy here. Providers
+        without scoped groups declare no scheme and have nothing to rescope.
+        """
+
+        scope_scheme = getattr(binding.adapter, "scope_scheme", None)
+        if scope_scheme is None:
+            return [], []
+        # Every active record is scanned and only the queued batch is capped:
+        # a fixed newest page would hide stale links in older records from
+        # every invocation, and the rebuild loop could never finish.
+        active_records = self.store.list_records(
+            tenant_id, namespace, states=(MemoryState.ACTIVE,), limit=None
+        )
+        queued = {record.record_id for record in candidates}
+        extra: list[MemoryRecord] = []
+        stale: list[UUID] = []
+        for record in active_records:
+            if len(candidates) + len(extra) >= limit:
+                break
+            if record.record_id in queued:
+                continue
+            link = self.store.get_projection_link(record.record_id, binding.identity)
+            if link is None:
+                continue
+            if link_withdrawn(link):
+                extra.append(record)
+            elif link.metadata.get("scope_scheme") != scope_scheme:
+                extra.append(record)
+                stale.append(record.record_id)
+        return extra, stale
+
+    def _projection_label(self) -> str:
+        """The projection name receipts carry: the delivering projection's, else any."""
+
+        bindings = self.projections.delivery_targets() or self.projections.targets
+        return bindings[0].projection_name
+
+    def release_legacy_projection_copies(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        store_destruction_reference: str,
+        apply: bool,
+        limit: int | None = None,
+        reason: str = "legacy projection store destroyed",
+    ) -> LegacyProjectionReleaseReceipt:
+        """Release legacy projection copies once their retained store is destroyed.
+
+        A stale-scope re-projection (ADR-085) leaves the superseded copy in the
+        provider store kept for rollback; the link records it as an erasure
+        obligation, and verified deletion of that record stays pending while
+        it is outstanding. Releasing asserts that the retained store no longer
+        exists, so those deletions complete; active records simply drop the
+        obligation (ADR-092). Requires ADMIN, as deletion does.
+        """
+
+        authorization = self.namespace_policy.require(
+            principal, AuthorizationAction.ADMIN, namespace
+        )
+        if not self.projections.targets:
+            raise StoreError("projection backend is 'none'; there are no legacy copies")
+        now = self.clock.now()
+        cutover = self._release_cutover(principal.tenant_id, namespace, now, apply=apply)
+        plan = _ReleasePlan()
+        records = self.store.list_records(principal.tenant_id, namespace, states=(), limit=limit)
+        for record in records:
+            # Every target's link, configured or not: a copy is an obligation
+            # wherever it was left (ADR-084).
+            links = self.store.list_projection_links(record.record_id)
+            if apply and cutover is not None:
+                for link in links:
+                    _require_predates_cutover(legacy_copies(link), cutover)
+            plan.add(record, links)
+        receipt = LegacyProjectionReleaseReceipt(
+            namespace=namespace,
+            projection_name=self._projection_label(),
+            applied=apply,
+            released_record_ids=tuple(plan.released),
+            released_copy_count=plan.copy_count,
+            completed_deletion_record_ids=tuple(plan.completed),
+            authorization=authorization,
+            store_destruction_reference=store_destruction_reference,
+            reason=reason,
+            actor=principal.audit_subject,
+            created_at=now,
+            cutover_receipt_id=cutover.receipt_id if cutover else None,
+        )
+        if apply and plan.released:
+            # One capability-gated transaction: the evidence (receipt), the
+            # link changes and the deletion completions land together or not
+            # at all, so a crash cannot strand a deletion without its
+            # obligation (ADR-036, ADR-092).
+            self.store.commit_legacy_projection_release(
+                SERVICE_WRITE_CAPABILITY,
+                receipt,
+                link_updates=tuple(plan.link_updates),
+                link_removals=tuple(plan.link_removals),
+                deletion_completions=tuple(plan.deletion_completions),
+                expected_links=tuple(plan.expected_links),
+            )
+        return receipt
+
+    def _release_cutover(
+        self, tenant_id: str, namespace: str, now: datetime, *, apply: bool
+    ) -> GraphCutoverReceipt | None:
+        """The cutover governing a release; raise when an applied release is premature.
+
+        GI-090: releasing asserts the previous store is gone. That store must
+        not be destroyed before the cutover is recorded, nor while its
+        rollback window is open (ADR-093). A preview is never refused.
+        """
+
+        cutovers = self.store.list_graph_cutovers(tenant_id, namespace)
+        cutover = cutovers[-1] if cutovers else None
+        if not apply:
+            return cutover
+        if cutover is None:
+            raise CutoverNotReady(
+                "no graph cutover is recorded for this namespace; "
+                "run record-graph-cutover before releasing legacy copies"
+            )
+        if now < cutover.rollback_window_ends_at:
+            raise CutoverNotReady(
+                "the rollback window of cutover "
+                f"{cutover.receipt_id} ends at {cutover.rollback_window_ends_at.isoformat()}; "
+                "the previous projection store must be kept until then"
+            )
+        return cutover
+
+    def graph_cutovers(
+        self, principal: MemoryPrincipal, namespace: str
+    ) -> list[GraphCutoverReceipt]:
+        """The caller's recorded graph cutovers for a namespace, oldest first.
+
+        Receipts name bindings, change references and actors, so reading them
+        requires ADMIN on the namespace, as recording them does (ADR-093).
+        """
+
+        self.namespace_policy.require(principal, AuthorizationAction.ADMIN, namespace)
+        return self.store.list_graph_cutovers(principal.tenant_id, namespace)
+
+    def record_graph_cutover(
+        self,
+        principal: MemoryPrincipal,
+        namespace: str,
+        *,
+        previous_binding: str,
+        new_binding: str,
+        change_reference: str,
+        rollback_window: timedelta,
+        apply: bool,
+        schema_fingerprint: str | None = None,
+        graph_capabilities: tuple[str, ...] = (),
+        reason: str = "graph projection cutover",
+    ) -> GraphCutoverReceipt:
+        """Record that a namespace's projection now serves from a new binding (GI-090).
+
+        The receipt is written only when the cutover is ready: every ACTIVE
+        record in the namespace has a live projection link under the current
+        provider scope scheme, and the outbox is drained. It fixes the rollback
+        window during which the previous store is kept; legacy releases stay
+        refused until the window ends. Requires ADMIN (ADR-093).
+        """
+
+        authorization = self.namespace_policy.require(
+            principal, AuthorizationAction.ADMIN, namespace
+        )
+        target = graph_projection_target(self.projections)
+        if target is None:
+            raise StoreError("projection backend is 'none'; there is no projection to cut over")
+        if rollback_window < timedelta(0):
+            raise CutoverNotReady("the rollback window cannot be negative")
+        if previous_binding.strip() == new_binding.strip():
+            raise CutoverNotReady("the new binding must differ from the previous binding")
+        now = self.clock.now()
+        scheme = getattr(target.adapter, "scope_scheme", None)
+        active = self.store.list_records(
+            principal.tenant_id, namespace, states=(MemoryState.ACTIVE,), limit=None
+        )
+        # A link proves the provider accepted the write; Graphiti ingests
+        # asynchronously and can drop it, so an adapter that can list its
+        # episodes must also confirm each copy exists (ADR-093).
+        confirm = getattr(target.adapter, "confirmed_records", None)
+        confirmed = confirm(principal.tenant_id, namespace) if callable(confirm) else None
+        unprojected: list[UUID] = []
+        for record in active:
+            link = self.store.get_projection_link(record.record_id, target.identity)
+            if (
+                link is None
+                or link_withdrawn(link)
+                or link.metadata.get("scope_scheme") != scheme
+                or (confirmed is not None and record.record_id not in confirmed)
+            ):
+                unprojected.append(record.record_id)
+        backlog = self.store.outbox_backlog()
+        ready = not unprojected and backlog == 0
+        receipt = GraphCutoverReceipt(
+            tenant_id=principal.tenant_id,
+            namespace=namespace,
+            projection_name=target.projection_name,
+            applied=apply and ready,
+            previous_binding=previous_binding.strip(),
+            new_binding=new_binding.strip(),
+            change_reference=change_reference,
+            cut_over_at=now,
+            rollback_window_ends_at=now + rollback_window,
+            scope_scheme=scheme,
+            active_record_count=len(active),
+            projected_record_count=len(active) - len(unprojected),
+            unprojected_record_ids=tuple(unprojected),
+            outbox_backlog=backlog,
+            schema_fingerprint=schema_fingerprint,
+            graph_capabilities=graph_capabilities,
+            ready=ready,
+            authorization=authorization,
+            reason=reason,
+            actor=principal.audit_subject,
+            created_at=now,
+        )
+        if apply:
+            if not ready:
+                raise CutoverNotReady(
+                    f"{len(unprojected)} active record(s) are not projected and confirmed under "
+                    f"the new binding and {backlog} outbox event(s) are undelivered; rebuild the "
+                    "projection and drain the outbox before recording the cutover"
+                )
+            self.store.commit_graph_cutover(SERVICE_WRITE_CAPABILITY, receipt)
         return receipt
 
     def health(self) -> HealthReport:

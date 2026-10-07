@@ -352,3 +352,37 @@ class ProjectionRuntime:
             "verified": bool(probe and probe.get("healthy")),
             "health": probe,
         }
+
+
+def graph_projection_target(runtime: ProjectionRuntime) -> ProjectionTargetBinding | None:
+    """The one projection target graph intelligence reads and cuts over.
+
+    ``graph.search`` is Graphiti's graph search over the graph the Neo4j reader
+    binds (ADR-091), so graph intelligence follows exactly one target. In
+    legacy mode that is the scalar adapter's target. In manifest mode it is the
+    single active target serving ``graph-search``, or the single active target
+    when none declares it; shadow and disabled targets never feed graph
+    intelligence (ADR-084). More than one candidate is ambiguous and fails
+    closed rather than picking a graph.
+    """
+
+    active = [binding for binding in runtime.active_targets() if binding.adapter is not None]
+    graph = [
+        binding
+        for binding in active
+        if binding.adapter is not None and "graph-search" in binding.adapter.capabilities
+    ]
+    chosen = graph or active
+    if len(chosen) > 1:
+        names = ", ".join(sorted(binding.identity for binding in chosen))
+        raise ConfigurationError(
+            f"graph intelligence needs exactly one active graph projection target; found {names}"
+        )
+    return chosen[0] if chosen else None
+
+
+def graph_projection_adapter(runtime: ProjectionRuntime) -> ProjectionAdapter | None:
+    """The adapter of :func:`graph_projection_target`, or None when there is none."""
+
+    binding = graph_projection_target(runtime)
+    return None if binding is None else binding.adapter

@@ -5,8 +5,8 @@
 #   layer: ci
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.3.0
-#   updated: 2026-09-07
+#   version: 2.4.0
+#   updated: 2026-09-27
 
 name: CI
 on:
@@ -83,7 +83,19 @@ jobs:
         run: PYTHONPATH=src pytest tests/unit/active tests/conformance/active tests/external_runtime -v
       - name: Gate active-memory public API
         run: PYTHONPATH=src python tools/assurance/check_active_memory_public_api.py
+      # ADR-094: the topology validator and the ProductManifest --check read
+      # global law from the pinned semantic authority (release binding
+      # authority.revision); nothing from it is copied into this repository.
+      - name: Check out the bound semantic authority
+        uses: actions/checkout@v4
+        with:
+          repository: Quantum-L9/.github
+          ref: 07b0df96fc3008d55a96f804923e2177ff312295
+          path: build/semantic-authority
+          persist-credentials: false
       - run: bash scripts/validate_release.sh
+        env:
+          L9_SEMANTIC_AUTHORITY_ROOT: build/semantic-authority
       # Release evidence (audit P2-03): a coverage report the release-analysis
       # tooling can map to new code. Collected as a separate run against the
       # full suite so the evidence generator's exact "N passed" pin above is
@@ -198,3 +210,110 @@ jobs:
           PYTHONPATH=src .venv/bin/python -m pytest \
             tests/unit/test_canonical_transport_packet.py \
             tests/unit/test_canonical_gate_client.py -q
+
+  # GI-080 proof in CI (ADR-093). The live graph-intelligence suites need a
+  # Neo4j with GDS; without one they skip, so `validate` reports them as
+  # skipped and they were proven only on a developer machine. This job gives
+  # them the backend and fails if any of them skips.
+  #
+  # A separate job for the same reasons as constellation-contract: a Neo4j or
+  # GDS download outage fails a check that names the graph backend, and the
+  # V-001 execution count pinned for `validate` stays put.
+  graph-live:
+    runs-on: ubuntu-latest
+    services:
+      neo4j:
+        # The image tag pins the GDS plugin the entrypoint installs:
+        # Neo4j 5.26.31 -> GDS 2.13.13 (the qualified pair).
+        image: neo4j:5.26.31
+        env:
+          # Throwaway per-job container reachable only from this job; the
+          # password is derived per run and never committed.
+          NEO4J_AUTH: neo4j/l9-ci-${{ github.run_id }}
+          NEO4J_PLUGINS: '["graph-data-science"]'
+          NEO4J_dbms_security_procedures_unrestricted: gds.*
+          NEO4J_dbms_security_procedures_allowlist: gds.*
+        ports:
+          - 7687:7687
+          - 7474:7474
+        options: >-
+          --health-cmd "wget -q --spider http://localhost:7474 || exit 1"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 30
+          --health-start-period 30s
+    env:
+      L9_MEMORY_TEST_NEO4J_URI: bolt://localhost:7687
+      L9_MEMORY_TEST_NEO4J_USER: neo4j
+      L9_MEMORY_TEST_NEO4J_PASSWORD: l9-ci-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: '3.13'
+      - name: Sync locked environment
+        run: uv sync --frozen --no-install-project --no-build --extra dev
+      - name: Wait for Bolt and GDS
+        # The HTTP health check can pass before Bolt accepts sessions and before
+        # the GDS plugin has loaded; wait for both so a slow start fails here,
+        # named, instead of as a test failure.
+        run: |
+          PYTHONPATH=src .venv/bin/python - <<'PY'
+          import os, time
+          import neo4j
+          auth = ("neo4j", os.environ["L9_MEMORY_TEST_NEO4J_PASSWORD"])
+          deadline = time.monotonic() + 180
+          while True:
+              try:
+                  with neo4j.GraphDatabase.driver("bolt://localhost:7687", auth=auth) as d:
+                      version = d.execute_query("RETURN gds.version() AS v").records[0]["v"]
+                  print(f"GDS {version} ready")
+                  break
+              except Exception as exc:
+                  if time.monotonic() > deadline:
+                      raise SystemExit(f"Neo4j/GDS not ready: {type(exc).__name__}")
+                  time.sleep(3)
+          PY
+      - name: Every live graph test file is covered by this job
+        # A new file bound to the live Neo4j settings must be added below, or it
+        # would skip in `validate` and never run here. A set comparison.
+        run: |
+          set -euo pipefail
+          expected="$(printf '%s\n' \
+            tests/integration/test_neo4j_gds_analytics.py \
+            tests/integration/test_neo4j_graph_intelligence_live.py \
+            tests/integration/test_neo4j_graph_traversal.py \
+            tests/integration/test_neo4j_restart_outage_live.py | sort)"
+          actual="$(grep -rlE 'live_neo4j_settings|L9_MEMORY_TEST_NEO4J_URI' tests/integration \
+            | grep -v neo4j_graph_fixture.py | sort)"
+          if [ "$expected" != "$actual" ]; then
+            echo "Live graph test files changed; update this job's test list." >&2
+            diff <(echo "$expected") <(echo "$actual") || true
+            exit 1
+          fi
+      - name: Run live graph-intelligence suites (outage and restart included)
+        env:
+          # The outage test stops and starts this job's own Neo4j container.
+          L9_MEMORY_TEST_NEO4J_STOP_CMD: docker stop ${{ job.services.neo4j.id }}
+          L9_MEMORY_TEST_NEO4J_START_CMD: docker start ${{ job.services.neo4j.id }}
+        run: |
+          PYTHONPATH=src .venv/bin/python -m pytest -rs -p no:cacheprovider \
+            --junitxml=graph-live.xml \
+            tests/integration/test_neo4j_gds_analytics.py \
+            tests/integration/test_neo4j_graph_intelligence_live.py \
+            tests/integration/test_neo4j_graph_traversal.py \
+            tests/integration/test_neo4j_restart_outage_live.py
+      - name: Fail if any live test skipped
+        # The failure this job exists to catch is a silent skip.
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          suites = ET.parse("graph-live.xml").getroot().iter("testsuite")
+          skipped = sum(int(s.get("skipped", 0)) for s in suites)
+          if skipped:
+              raise SystemExit(f"{skipped} live graph test(s) skipped")
+          print("no live graph test skipped")
+          PY

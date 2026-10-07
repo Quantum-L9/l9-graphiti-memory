@@ -134,6 +134,16 @@ find "$ROOT" -path "$ROOT/.venv" -prune -o -type f -name '*.pyc' -exec rm -f {} 
 run adr_validation python3 tools/assurance/validate_adrs.py
 run projection_manifests python3 tools/assurance/validate_projection_manifests.py config/projections/facts-v8.yaml
 run harvest_coverage python3 tools/assurance/validate_harvest_coverage.py
+# Product contract (ADR-094): the topology and its derived ProductManifest are
+# checked against the bound Quantum-L9/.github semantics when a checkout of it
+# is supplied (CI pins one). Global law is read from that checkout, never
+# copied into this repository; the manifest check renders, compares, writes nothing.
+if [[ -n "${L9_SEMANTIC_AUTHORITY_ROOT:-}" ]]; then
+  run product_topology python3 tools/assurance/validate_product_topology.py --authority-root "$L9_SEMANTIC_AUTHORITY_ROOT"
+  run product_manifest python3 tools/assurance/generate_product_manifest.py --authority-root "$L9_SEMANTIC_AUTHORITY_ROOT" --check
+else
+  printf '== product_contract ==\nSKIP: L9_SEMANTIC_AUTHORITY_ROOT not set; topology and ProductManifest not checked against global law\n'
+fi
 run l9_meta python3 tools/assurance/check_l9_meta.py
 run layer_boundaries python3 tools/assurance/check_layer_boundaries.py
 run recursive_alignment python3 tools/assurance/check_recursive_alignment.py

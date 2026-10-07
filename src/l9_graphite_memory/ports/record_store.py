@@ -20,6 +20,8 @@ from l9_graphite_memory.contracts import (
     ArchiveReceipt,
     ConflictLinkReceipt,
     DeletionReceipt,
+    GraphCutoverReceipt,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
@@ -33,6 +35,11 @@ from l9_graphite_memory.contracts import (
     ProjectionRebuildReceipt,
     ProjectionRetirementReceipt,
     WriteReceipt,
+)
+from l9_graphite_memory.contracts.generated_data import (
+    RevalidationRequirement,
+    SourceInvalidationEvent,
+    SourceSelectorRecord,
 )
 
 from .phase_lock import PhaseLockPrecondition
@@ -134,6 +141,57 @@ class RecordStore(Protocol):
         never disagree with canonical state about what is current (ADR-074).
         """
 
+    def find_source_selector_matches(
+        self,
+        tenant_id: str,
+        *,
+        repository: str | None,
+        selector_type: str,
+        selector_value: str,
+    ) -> tuple[UUID, ...]:
+        """ACTIVE records of this tenant owning an active structured selector.
+
+        Equality on ``(repository, selector_type, selector_value)`` through the
+        selector indexes; ``repository=None`` matches across repositories.
+        Never matches on statement text (ADR-095).
+        """
+
+    def list_source_selectors(self, record_id: UUID) -> list[SourceSelectorRecord]:
+        """Every structured selector row owned by one record, active or not."""
+
+    def get_source_invalidation(
+        self, tenant_id: str, event_id: str
+    ) -> SourceInvalidationEvent | None:
+        """The applied invalidation operation recorded under this identity."""
+
+    def list_revalidation_requirements(self, record_id: UUID) -> list[RevalidationRequirement]:
+        """Revalidation obligations a source invalidation created for a record."""
+
+    def commit_source_invalidation(
+        self,
+        capability: ServiceWriteCapability,
+        event: SourceInvalidationEvent,
+        *,
+        lifecycle_receipts: tuple[LifecycleTransitionReceipt, ...],
+        status_events: tuple[MemoryStatusEvent, ...],
+        outbox_events: tuple[OutboxEvent, ...] = (),
+        revalidation_requirements: tuple[RevalidationRequirement, ...] = (),
+    ) -> None:
+        """Atomically apply one source invalidation operation (ADR-095).
+
+        The operation record, every lifecycle receipt, status event,
+        projection retirement intent and revalidation requirement commit
+        together with the deactivation of the transitioned records' selectors,
+        or nothing commits. An ``event`` whose ``(tenant_id, event_id)`` is
+        already recorded raises ``IdempotencyConflict`` and leaves nothing
+        behind. A status event whose expected previous state no longer holds
+        raises ``StoreError`` and leaves nothing behind.
+
+        Admission persists selectors inside ``commit_write`` itself, from
+        ``source_selectors_for_record``; a privacy deletion removes them inside
+        ``commit_deletion`` (ADR-095).
+        """
+
     def save_phase_lock(
         self, capability: ServiceWriteCapability, receipt: PhaseLockReceipt
     ) -> None: ...
@@ -174,6 +232,24 @@ class RecordStore(Protocol):
 
         A record holds one link per target it is projected into; saving a link
         for one target never replaces another target's link (ADR-084).
+        """
+
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
+        """Persist ``link`` only while its record is ACTIVE, in one atomic step.
+
+        Returns ``False`` (and writes nothing) when the record is missing or
+        no longer ACTIVE. The outbox worker uses this after a provider write,
+        so a deletion, retirement or release that lands between its lifecycle
+        check and the link write can never be followed by a live link
+        (ADR-092).
+
+        ``expected_previous`` is the link the replacement was derived from
+        (``None`` when there was none). If the current link differs, for
+        example because a legacy release cleared its obligations in the
+        meantime, nothing is written and ``ProjectionLinkConflict`` is raised
+        so the caller can re-derive from the current link.
         """
 
     def get_projection_link(
@@ -229,6 +305,45 @@ class RecordStore(Protocol):
         like the other four (ADR-036).
         """
         ...
+
+    def commit_legacy_projection_release(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LegacyProjectionReleaseReceipt,
+        *,
+        link_updates: tuple[ProjectionLink, ...] = (),
+        link_removals: tuple[tuple[UUID, str], ...] = (),
+        deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
+    ) -> None:
+        """Atomically record a legacy-copy release and apply its effects (ADR-092).
+
+        One transaction persists the receipt, rewrites or removes the affected
+        projection links, and completes each ``(record_id, deletion_receipt_id)``
+        deletion that was waiting only on the released copies. Every link in
+        ``expected_links`` (the state the release was planned from) must still
+        be current, or nothing is applied: a concurrent outbox erasure cannot be
+        overwritten by a stale plan. A canonical mutation, so it requires the
+        service-issued capability (ADR-036).
+        """
+
+    def list_legacy_projection_releases(
+        self, namespace: str
+    ) -> list[LegacyProjectionReleaseReceipt]:
+        """Applied legacy-copy releases for one namespace, oldest first."""
+
+    def commit_graph_cutover(
+        self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
+    ) -> None:
+        """Append one applied graph cutover receipt to the operation ledger.
+
+        Append-only: a later cutover supersedes an earlier one for the same
+        namespace, and neither is ever updated or deleted. A canonical
+        mutation, so it requires the service-issued capability (ADR-036, ADR-093).
+        """
+
+    def list_graph_cutovers(self, tenant_id: str, namespace: str) -> list[GraphCutoverReceipt]:
+        """Applied graph cutovers for one tenant's namespace, oldest first."""
 
     def stats(self) -> dict[str, Any]: ...
 

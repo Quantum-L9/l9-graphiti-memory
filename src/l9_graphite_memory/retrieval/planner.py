@@ -49,13 +49,17 @@ def _strategy_hits(
     namespaces: tuple[str, ...],
     *,
     limit: int,
+    tenant_id: str,
 ) -> list[ProjectionHit]:
+    # The tenant scopes every provider group (GraphScopeKey, ADR-085).
     strategy_search = getattr(adapter, "search_strategy", None)
     if not callable(strategy_search):
-        return adapter.search(query, namespaces, limit=limit)
+        return adapter.search(query, namespaces, limit=limit, tenant_id=tenant_id)
     # The attribute is looked up dynamically so an adapter predating per-strategy
     # search still works; the port fixes the type of what it returns.
-    hits: list[ProjectionHit] = strategy_search(strategy, query, namespaces, limit=limit)
+    hits: list[ProjectionHit] = strategy_search(
+        strategy, query, namespaces, limit=limit, tenant_id=tenant_id
+    )
     return hits
 
 
@@ -186,7 +190,12 @@ class RetrievalPlanner:
                 stores_attempted.append(store_label)
                 try:
                     strategy_hits = _strategy_hits(
-                        adapter, strategy, request.query, namespaces, limit=request.limit * 2
+                        adapter,
+                        strategy,
+                        request.query,
+                        namespaces,
+                        limit=request.limit * 2,
+                        tenant_id=tenant_id,
                     )
                 except Exception as exc:  # noqa: BLE001
                     # A provider failure is a failed strategy, never an empty
@@ -221,7 +230,12 @@ class RetrievalPlanner:
                         continue
                     try:
                         shadow_hits = _strategy_hits(
-                            adapter, strategy, request.query, namespaces, limit=request.limit * 2
+                            adapter,
+                            strategy,
+                            request.query,
+                            namespaces,
+                            limit=request.limit * 2,
+                            tenant_id=tenant_id,
                         )
                     except Exception as exc:  # noqa: BLE001
                         attempts.append((binding.identity, "shadow", strategy, str(exc), ()))

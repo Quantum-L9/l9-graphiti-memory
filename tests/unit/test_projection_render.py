@@ -13,7 +13,9 @@ from pathlib import Path
 
 import pytest
 
+from l9_graphite_memory.adapters.graphiti_projection import episode_name
 from l9_graphite_memory.errors import ProjectionError
+from l9_graphite_memory.graph import graph_group_id
 from l9_graphite_memory.projections import (
     compile_projection,
     load_projection_manifest,
@@ -136,7 +138,12 @@ def test_graphiti_adapter_delivers_the_rendering_byte_for_byte() -> None:
 
     (body, group_id, kwargs) = transport.writes[0]
     assert body == rendered.normalized_text
-    assert group_id == "repo-a"
+    # Manifest delivery is placed like scalar delivery: the tenant-scoped
+    # group (ADR-085) and the canonical episode name, with no ``uuid``
+    # argument, which Graphiti would treat as an update (ADR-091).
+    assert group_id == graph_group_id("tenant-a", "repo-a")
+    assert kwargs["name"] == episode_name(record.record_id)
+    assert "uuid" not in kwargs
     assert kwargs["source"] == "text"
     assert kwargs["metadata"]["render_contract_digest"] == projection.render_contract_digest
     assert kwargs["metadata"]["content_digest"] == rendered.content_digest
