@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-10-02
 
-"""ADR-086 store schema 9: selector tables, the 8 -> 9 backfill, restart safety.
+"""ADR-095 store schema 9: selector tables, the 8 -> 9 backfill, restart safety.
 
 Each migration case builds a store at the current schema, admits governed
 candidates, then rewrites the store back to the exact schema-8 shape (no

@@ -264,7 +264,7 @@ def _canonical_digest(value: Any) -> str:
 
 
 class SourceInvalidationSelector(BaseModel):
-    """One structured source selector of an invalidation request (ADR-086).
+    """One structured source selector of an invalidation request (ADR-095).
 
     The canonical fields are ``selector_id``, ``selector_type`` and
     ``selector_value``. The deployed Cursor-Governance bridge spells the same
@@ -315,7 +315,7 @@ class SourceInvalidationSelector(BaseModel):
 
 
 class SourceInvalidationRequest(BaseModel):
-    """Structured source invalidation under memory-control-plane/v1 (ADR-086).
+    """Structured source invalidation under memory-control-plane/v1 (ADR-095).
 
     Canonical form: ``event_id``, ``event_type``, ``repository``,
     ``from_sha``, ``to_sha``, ``selectors[]`` and ``delete_memory=false``.
@@ -401,7 +401,7 @@ class SourceInvalidationRequest(BaseModel):
 
 
 class SourceInvalidationReceipt(BaseModel):
-    """Outcome of one atomic source invalidation (ADR-086).
+    """Outcome of one atomic source invalidation (ADR-095).
 
     ``status`` stays ``applied`` / ``rejected``; there is no partial success.
     ``deleted`` is always false. A zero-match ``applied`` receipt is a valid

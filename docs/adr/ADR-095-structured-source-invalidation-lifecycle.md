@@ -1,9 +1,9 @@
-# ADR-086: Structured Source Invalidation Lifecycle
+# ADR-095: Structured Source Invalidation Lifecycle
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-086-structured-source-invalidation-lifecycle.md
+path: docs/adr/ADR-095-structured-source-invalidation-lifecycle.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -194,7 +194,7 @@ commits part of an operation, deletes or replaces memory, or leaves an
 archived record in ordinary retrieval. Disable invalidation dispatch first
 (`L9_SGD_GRAPHITI_INVALIDATE_COMMAND`); records already archived stay archived
 and can be restored to ACTIVE under ADMIN through `transition_lifecycle`.
-Pre-ADR-086 code ignores the schema-9 tables and keeps working on a schema-9
+Pre-ADR-095 code ignores the schema-9 tables and keeps working on a schema-9
 store, but it neither writes selectors for new records nor removes them on a
 privacy deletion, and the backfill does not rerun once schema 9 is recorded.
 Restoring the pre-upgrade backup is therefore the clean rollback.

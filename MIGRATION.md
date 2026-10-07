@@ -50,7 +50,7 @@ rewrite occurs.
 
 ## Canonical store schema 9
 
-Store schema 9 (ADR-086) adds `memory_source_selectors`,
+Store schema 9 (ADR-095) adds `memory_source_selectors`,
 `source_invalidation_events`, and `revalidation_requirements` to SQLite and
 PostgreSQL. The migration runs in place on the first start, inside the
 initialization transaction, and is restart safe. It backfills structured
@@ -58,7 +58,7 @@ source selectors only for governed generated-data records whose
 `invalidation_conditions` map losslessly to `{condition_type, selector}`;
 other records get none. Memory schema stays 2.2.0 and the control-plane
 contract stays `memory-control-plane/v1`. Back up the store first: code older
-than ADR-086 runs on a schema-9 store but no longer maintains its selectors.
+than ADR-095 runs on a schema-9 store but no longer maintains its selectors.
 
 ## Projection migration
 

@@ -67,7 +67,7 @@ Use the repository's existing migration command discovered by the integration
 preflight. Never invent an unregistered SQL path.
 
 The canonical store owns the migration: opening the store at schema 8 with
-ADR-086 code migrates it to store schema 9 in one transaction. It creates
+ADR-095 code migrates it to store schema 9 in one transaction. It creates
 `memory_source_selectors` (indexed on `(repository, selector_type,
 selector_value, active)`, `(record_id, active)` and `(selector_type,
 selector_value, active)`), `source_invalidation_events`, and

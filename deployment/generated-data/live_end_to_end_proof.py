@@ -210,7 +210,7 @@ def main() -> int:
         # "applied" alone proves nothing: a zero-match invalidation is a valid
         # outcome that changed no record. The live proof needs a real
         # lifecycle transition, retrieval exclusion, historical visibility,
-        # and no deletion (ADR-086).
+        # and no deletion (ADR-095).
         invalidation_applied = (
             str(invalidation_response.get("status", "")) == "applied"
             and _positive_int(invalidation_response.get("matched"))

@@ -28,6 +28,8 @@ from l9_graphite_memory.contracts import (
     ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    GraphCutoverReceipt,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
@@ -51,6 +53,7 @@ from l9_graphite_memory.contracts.generated_data import (
 from l9_graphite_memory.errors import (
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
+    ProjectionLinkConflict,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -66,7 +69,7 @@ from l9_graphite_memory.schema import upcasters as _upcasters  # noqa: F401
 _SCHEMA_VERSION = 9
 
 # Schema 9: structured source selectors, applied source invalidations, and the
-# revalidation requirements they create (ADR-086).
+# revalidation requirements they create (ADR-095).
 _SOURCE_INVALIDATION_DDL = (
     """
     CREATE TABLE IF NOT EXISTS memory_source_selectors (
@@ -393,7 +396,7 @@ class SQLiteRecordStore:
         the same lossless mapping admission uses; a record whose metadata does
         not map losslessly gets none. Selector ids are deterministic and
         inserted with ``OR IGNORE``, so a rerun after an interrupted start
-        changes nothing (ADR-086).
+        changes nothing (ADR-095).
         """
 
         if tx.execute(
@@ -661,7 +664,7 @@ class SQLiteRecordStore:
                     self._require_phase_lock_snapshot(tx, expected_phase_lock)
                 if record is not None:
                     self._insert_record(tx, record)
-                    # Structured selectors commit with the record (ADR-086).
+                    # Structured selectors commit with the record (ADR-095).
                     for selector in source_selectors_for_record(record):
                         self._insert_selector(tx, selector)
                 self._insert_receipt(tx, receipt)
@@ -1219,31 +1222,61 @@ class SQLiteRecordStore:
     def save_projection_link(self, link: ProjectionLink) -> None:
         try:
             with self._transaction() as tx:
-                tx.execute(
-                    """
-                    INSERT INTO projection_links (
-                        record_id, target_identity, projection_name, provider_type,
-                        namespace, locator, created_at, link_json
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(record_id, target_identity) DO UPDATE SET
-                        projection_name = excluded.projection_name,
-                        provider_type = excluded.provider_type,
-                        namespace = excluded.namespace,
-                        locator = excluded.locator,
-                        created_at = excluded.created_at,
-                        link_json = excluded.link_json
-                    """,
-                    (
-                        str(link.record_id),
-                        link.target_identity,
-                        link.projection_name,
-                        link.provider_type,
-                        link.namespace,
-                        link.locator,
-                        _dt(link.created_at),
-                        _json(link.model_dump(mode="json")),
-                    ),
-                )
+                self._upsert_projection_link(tx, link)
+        except sqlite3.Error as exc:
+            raise StoreError(f"projection link persistence failed: {exc}") from exc
+
+    def _upsert_projection_link(self, tx: Any, link: ProjectionLink) -> None:
+        tx.execute(
+            """
+            INSERT INTO projection_links (
+                record_id, target_identity, projection_name, provider_type,
+                namespace, locator, created_at, link_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(record_id, target_identity) DO UPDATE SET
+                projection_name = excluded.projection_name,
+                provider_type = excluded.provider_type,
+                namespace = excluded.namespace,
+                locator = excluded.locator,
+                created_at = excluded.created_at,
+                link_json = excluded.link_json
+            """,
+            (
+                str(link.record_id),
+                link.target_identity,
+                link.projection_name,
+                link.provider_type,
+                link.namespace,
+                link.locator,
+                _dt(link.created_at),
+                _json(link.model_dump(mode="json")),
+            ),
+        )
+
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
+        try:
+            with self._transaction() as tx:
+                row = tx.execute(
+                    "SELECT record_json FROM memory_records WHERE record_id = ?",
+                    (str(link.record_id),),
+                ).fetchone()
+                if row is None:
+                    return False
+                record = schema_registry.read_record(json.loads(str(row["record_json"])))
+                if record.state is not MemoryState.ACTIVE:
+                    return False
+                current_row = tx.execute(
+                    "SELECT target_identity, provider_type, link_json FROM projection_links "
+                    "WHERE record_id = ? AND target_identity = ?",
+                    (str(link.record_id), link.target_identity),
+                ).fetchone()
+                current = self._row_to_link(current_row) if current_row else None
+                if current != expected_previous:
+                    raise ProjectionLinkConflict("projection link changed since it was read")
+                self._upsert_projection_link(tx, link)
+                return True
         except sqlite3.Error as exc:
             raise StoreError(f"projection link persistence failed: {exc}") from exc
 
@@ -1469,6 +1502,132 @@ class SQLiteRecordStore:
         except sqlite3.Error as exc:
             raise StoreError(f"projection rebuild failed: {exc}") from exc
 
+    def commit_legacy_projection_release(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LegacyProjectionReleaseReceipt,
+        *,
+        link_updates: tuple[ProjectionLink, ...] = (),
+        link_removals: tuple[tuple[UUID, str], ...] = (),
+        deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied legacy projection release")
+        try:
+            with self._transaction() as tx:
+                for expected in expected_links:
+                    row = tx.execute(
+                        "SELECT target_identity, provider_type, link_json FROM projection_links "
+                        "WHERE record_id = ? AND target_identity = ?",
+                        (str(expected.record_id), expected.target_identity),
+                    ).fetchone()
+                    current = self._row_to_link(row) if row else None
+                    if current != expected:
+                        raise StoreError("projection link changed since the release was planned")
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "legacy_projection_release",
+                        receipt.namespace,
+                        "applied",
+                        _dt(receipt.created_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+                for link in link_updates:
+                    tx.execute(
+                        "UPDATE projection_links SET locator = ?, created_at = ?, link_json = ? "
+                        "WHERE record_id = ? AND target_identity = ?",
+                        (
+                            link.locator,
+                            _dt(link.created_at),
+                            _json(link.model_dump(mode="json")),
+                            str(link.record_id),
+                            link.target_identity,
+                        ),
+                    )
+                for record_id, target_identity in link_removals:
+                    tx.execute(
+                        "DELETE FROM projection_links WHERE record_id = ? AND target_identity = ?",
+                        (str(record_id), target_identity),
+                    )
+                for record_id, receipt_id in deletion_completions:
+                    self._complete_deletion_tx(
+                        tx,
+                        record_id,
+                        receipt_id,
+                        receipt.created_at,
+                        f"memory.legacy-release:{receipt.actor}",
+                    )
+        except sqlite3.Error as exc:
+            raise StoreError(f"legacy projection release failed: {exc}") from exc
+
+    def commit_graph_cutover(
+        self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied graph cutover")
+        try:
+            with self._transaction() as tx:
+                tx.execute(
+                    """
+                    INSERT INTO operation_receipts(receipt_id, kind, aggregate_id, status, created_at, receipt_json)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(receipt.receipt_id),
+                        "graph_cutover",
+                        receipt.namespace,
+                        "applied",
+                        _dt(receipt.created_at),
+                        _json(receipt.model_dump(mode="json")),
+                    ),
+                )
+        except sqlite3.Error as exc:
+            raise StoreError(f"graph cutover record failed: {exc}") from exc
+
+    def list_graph_cutovers(self, tenant_id: str, namespace: str) -> list[GraphCutoverReceipt]:
+        rows = (
+            self._connection()
+            .execute(
+                "SELECT receipt_json FROM operation_receipts "
+                "WHERE kind = 'graph_cutover' AND aggregate_id = ? "
+                "ORDER BY created_at, receipt_id",
+                (namespace,),
+            )
+            .fetchall()
+        )
+        receipts = [
+            GraphCutoverReceipt.model_validate_json(str(row["receipt_json"])) for row in rows
+        ]
+        # aggregate_id is the namespace; the tenant is part of the receipt.
+        return [receipt for receipt in receipts if receipt.tenant_id == tenant_id]
+
+    def list_legacy_projection_releases(
+        self, namespace: str
+    ) -> list[LegacyProjectionReleaseReceipt]:
+        rows = (
+            self._connection()
+            .execute(
+                "SELECT receipt_json FROM operation_receipts "
+                "WHERE kind = 'legacy_projection_release' AND aggregate_id = ? "
+                "ORDER BY created_at, receipt_id",
+                (namespace,),
+            )
+            .fetchall()
+        )
+        return [
+            LegacyProjectionReleaseReceipt.model_validate_json(str(row["receipt_json"]))
+            for row in rows
+        ]
+
     def stats(self) -> dict[str, Any]:
         connection = self._connection()
         total = connection.execute("SELECT COUNT(*) AS count FROM memory_records").fetchone()
@@ -1565,7 +1724,7 @@ class SQLiteRecordStore:
                 # state; the redaction below then replaces the whole row.
                 self._insert_status_event(tx, status_event)
                 # Selectors are derived from the metadata the tombstone
-                # redacts, so they go with it (ADR-086).
+                # redacts, so they go with it (ADR-095).
                 tx.execute(
                     "DELETE FROM memory_source_selectors WHERE record_id = ?",
                     (str(receipt.record_id),),
@@ -1620,53 +1779,67 @@ class SQLiteRecordStore:
     ) -> None:
         try:
             with self._transaction() as tx:
-                record_row = tx.execute(
-                    "SELECT record_json FROM memory_records WHERE record_id = ?",
-                    (str(record_id),),
-                ).fetchone()
-                receipt_row = tx.execute(
-                    "SELECT receipt_json FROM operation_receipts WHERE receipt_id = ? AND kind = 'deletion'",
-                    (str(receipt_id),),
-                ).fetchone()
-                if record_row is None or receipt_row is None:
-                    raise StoreError("deletion record or receipt not found")
-                remaining = tx.execute(
-                    "SELECT COUNT(*) FROM projection_links WHERE record_id = ?",
-                    (str(record_id),),
-                ).fetchone()[0]
-                if remaining:
-                    raise StoreError(
-                        f"deletion of {record_id} cannot complete while {remaining} "
-                        "projection link(s) remain unerased"
-                    )
-                record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
-                receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
-                updated_receipt = receipt.model_copy(
-                    update={
-                        "status": DeletionStatus.COMPLETE,
-                        "completed_at": completed_at,
-                    }
-                )
-                if record.state is not MemoryState.DELETED:
-                    self._insert_status_event(
-                        tx,
-                        MemoryStatusEvent(
-                            record_id=record_id,
-                            previous_state=record.state,
-                            new_state=MemoryState.DELETED,
-                            reason="projection erasure confirmed; verified deletion complete",
-                            actor=actor,
-                            occurred_at=completed_at,
-                            receipt_id=receipt_id,
-                        ),
-                    )
-                tx.execute(
-                    "UPDATE operation_receipts SET status = ?, receipt_json = ? WHERE receipt_id = ?",
-                    (
-                        DeletionStatus.COMPLETE.value,
-                        _json(updated_receipt.model_dump(mode="json")),
-                        str(receipt_id),
-                    ),
-                )
+                self._complete_deletion_tx(tx, record_id, receipt_id, completed_at, actor)
         except sqlite3.Error as exc:
             raise StoreError(f"deletion completion failed: {exc}") from exc
+
+    def _complete_deletion_tx(
+        self,
+        tx: Any,
+        record_id: UUID,
+        receipt_id: UUID,
+        completed_at: datetime,
+        actor: str,
+    ) -> None:
+        """Mark one verified deletion complete inside the caller's transaction."""
+
+        record_row = tx.execute(
+            "SELECT record_json FROM memory_records WHERE record_id = ?",
+            (str(record_id),),
+        ).fetchone()
+        receipt_row = tx.execute(
+            "SELECT receipt_json FROM operation_receipts WHERE receipt_id = ? AND kind = 'deletion'",
+            (str(receipt_id),),
+        ).fetchone()
+        if record_row is None or receipt_row is None:
+            raise StoreError("deletion record or receipt not found")
+        # Verified deletion completes only once no target holds a copy
+        # (ADR-084), including a withdrawn link still carrying legacy copies.
+        remaining = tx.execute(
+            "SELECT COUNT(*) FROM projection_links WHERE record_id = ?",
+            (str(record_id),),
+        ).fetchone()[0]
+        if remaining:
+            raise StoreError(
+                f"deletion of {record_id} cannot complete while {remaining} "
+                "projection link(s) remain unerased"
+            )
+        record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
+        receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
+        updated_receipt = receipt.model_copy(
+            update={
+                "status": DeletionStatus.COMPLETE,
+                "completed_at": completed_at,
+            }
+        )
+        if record.state is not MemoryState.DELETED:
+            self._insert_status_event(
+                tx,
+                MemoryStatusEvent(
+                    record_id=record_id,
+                    previous_state=record.state,
+                    new_state=MemoryState.DELETED,
+                    reason="projection erasure confirmed; verified deletion complete",
+                    actor=actor,
+                    occurred_at=completed_at,
+                    receipt_id=receipt_id,
+                ),
+            )
+        tx.execute(
+            "UPDATE operation_receipts SET status = ?, receipt_json = ? WHERE receipt_id = ?",
+            (
+                DeletionStatus.COMPLETE.value,
+                _json(updated_receipt.model_dump(mode="json")),
+                str(receipt_id),
+            ),
+        )

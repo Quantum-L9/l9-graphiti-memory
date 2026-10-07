@@ -126,7 +126,7 @@ reuse, invalidation, search, and hydration.
 
 ## Invalidation lifecycle
 
-The selected lifecycle state is ARCHIVED (ADR-086): a source invalidation moves
+The selected lifecycle state is ARCHIVED (ADR-095): a source invalidation moves
 the ACTIVE records whose structured selectors match to ARCHIVED, atomically,
 after authorizing READ and MAINTAIN on every affected namespace. The principal
 that dispatches invalidations therefore needs MAINTAIN on the namespaces its

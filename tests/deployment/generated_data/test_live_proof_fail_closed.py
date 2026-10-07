@@ -357,7 +357,7 @@ def run_stateful(invalidation: Mapping[str, object], *, archive: bool = True) ->
 
 
 class InvalidationProofTests(unittest.TestCase):
-    """ADR-086: only a real, retrieval-visible lifecycle transition is proof."""
+    """ADR-095: only a real, retrieval-visible lifecycle transition is proof."""
 
     APPLIED: ClassVar[dict[str, object]] = {
         "status": "applied",

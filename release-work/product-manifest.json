@@ -43,7 +43,7 @@
       "run_consumer_conformance",
       "record_binding"
     ],
-    "decision_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-085-product-topology-and-release-governance.md",
+    "decision_ref": "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-094-product-topology-and-release-governance.md",
     "evidence_requirement_refs": [
       "l9.receipt/validation@1",
       "l9.receipt/conformance@1",
@@ -109,8 +109,8 @@
         "path": "semantics/compilation_profiles.yaml"
       },
       {
-        "blob": "ac416e943545caeb6a624141ccca43277db90ebd",
-        "digest": "sha256:fffdb91e5af79fa329a704a898deb06ba31f4c4d2b1b226e3805fa45e2b96207",
+        "blob": "a8170aae86b617f83bb4afd8592b3684b8a166b1",
+        "digest": "sha256:1f6fbe4582d612b89e48a0e9f286bc307cc65e24d23dd8906f7d673284266bac",
         "path": "semantics/contracts.yaml"
       },
       {
@@ -134,19 +134,19 @@
         "path": "semantics/product_topology.schema.yaml"
       },
       {
-        "blob": "e80fb78a5ad8dbf5294ae8c9535f3357c156699b",
-        "digest": "sha256:b8024cf485402c1405d4eefc7ef8692b103425af75638faeba00f960690accb6",
+        "blob": "6925c6963b60b1fd1d631da37229e82a7d28bb28",
+        "digest": "sha256:d2172c439b1fc221e9a599220065830187054747f263567e4061d8c95845ad0b",
         "path": "semantics/technology_capabilities.yaml"
       },
       {
-        "blob": "c75fa5efe1c33117c970e8cb3c699e9924a154b8",
-        "digest": "sha256:75e146e90e9f3e976c75382a5928d04c18531fa076f4096f8e5c5d4f468b0084",
+        "blob": "a37bc3f79b6005a144a00ede44626d22aa83dcd8",
+        "digest": "sha256:fe1ac219bbb12d04b8efaec629ce6dd52b3919e840731fd351f22e74284953d1",
         "path": "semantics/vocabulary.yaml"
       }
     ],
     "product_semantic_owner": "l9-graphiti-memory:authority/memory-architecture",
     "repository": "Quantum-L9/.github",
-    "revision": "3eaa094be0b1ec74944e832887aa1752c818fc11"
+    "revision": "07b0df96fc3008d55a96f804923e2177ff312295"
   },
   "bindings": {
     "product_bindings": [],
@@ -157,8 +157,7 @@
         "manifest": "config/projections/facts-v8.yaml",
         "target_id": "facts:v8:graphiti:primary",
         "target_state": "active",
-        "technology_ref": "unknown",
-        "unknown_ref": "MU-002"
+        "technology_ref": "graphiti-mcp"
       },
       {
         "adapter_ref": "l9-graphiti-memory:adapter/zep-projection@1",
@@ -166,8 +165,7 @@
         "rule": "shadow results are measured only and never change returned canonical retrieval",
         "target_id": "facts:v8:zep:primary",
         "target_state": "shadow",
-        "technology_ref": "unknown",
-        "unknown_ref": "MU-002"
+        "technology_ref": "zep"
       }
     ]
   },
@@ -274,10 +272,10 @@
     ]
   },
   "compiler": {
-    "compiler_version": "Quantum-L9/l9-graphiti-memory/tools/assurance/generate_product_manifest.py@sha256:8089e419a40868a66c6045be27ea16254b0022105dec3f0ae1a3a1335249b70a",
+    "compiler_version": "Quantum-L9/l9-graphiti-memory/tools/assurance/generate_product_manifest.py@sha256:0c1461e2440a8ae0c5da4e5326e90931962f021f5bea37abf2ddb45310d8aa59",
     "profile_digest": "sha256:bbcb06d010a1b7bc0d3275766e00e9031d6c481cee576235ff389928287487df",
     "profile_ref": "l9.compilation/product-build@1",
-    "realization": "repository-local deterministic derivation; no l9-semantic-compiler exists (ADR-085)"
+    "realization": "repository-local deterministic derivation; no l9-semantic-compiler exists (ADR-094)"
   },
   "conformance": {
     "final_conformance_required": true,
@@ -431,7 +429,7 @@
       "l9.contract/admission-and-promotion@1"
     ]
   },
-  "manifest_digest": "sha256:96b0574080c598f685e98275ce770354868040f7ec8ea62e80cb1714aeb0a2df",
+  "manifest_digest": "sha256:88ecb2f43fff348890730cd28f5dee5ff82846c5d3659892d1b916cee3f13281",
   "observability": {
     "audit_requirement_refs": [],
     "capability_metrics": [],
@@ -473,7 +471,7 @@
     "derivation": "deterministic",
     "inputs": [
       {
-        "digest": "sha256:4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104",
+        "digest": "sha256:020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed",
         "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
       },
       {
@@ -481,8 +479,8 @@
         "ref": "Quantum-L9/.github/semantics/compilation_profiles.yaml@323dce7e53a406f0c2b4662e9a093f20cca44322"
       },
       {
-        "digest": "sha256:fffdb91e5af79fa329a704a898deb06ba31f4c4d2b1b226e3805fa45e2b96207",
-        "ref": "Quantum-L9/.github/semantics/contracts.yaml@ac416e943545caeb6a624141ccca43277db90ebd"
+        "digest": "sha256:1f6fbe4582d612b89e48a0e9f286bc307cc65e24d23dd8906f7d673284266bac",
+        "ref": "Quantum-L9/.github/semantics/contracts.yaml@a8170aae86b617f83bb4afd8592b3684b8a166b1"
       },
       {
         "digest": "sha256:909db431aa0ccc7668ce3f2dcd46addc26df39c8f3e7303925469b47d6a4617d",
@@ -501,12 +499,12 @@
         "ref": "Quantum-L9/.github/semantics/product_topology.schema.yaml@4fd2856bdf84c10a55a4be7e8519848c22c2bdbf"
       },
       {
-        "digest": "sha256:b8024cf485402c1405d4eefc7ef8692b103425af75638faeba00f960690accb6",
-        "ref": "Quantum-L9/.github/semantics/technology_capabilities.yaml@e80fb78a5ad8dbf5294ae8c9535f3357c156699b"
+        "digest": "sha256:d2172c439b1fc221e9a599220065830187054747f263567e4061d8c95845ad0b",
+        "ref": "Quantum-L9/.github/semantics/technology_capabilities.yaml@6925c6963b60b1fd1d631da37229e82a7d28bb28"
       },
       {
-        "digest": "sha256:75e146e90e9f3e976c75382a5928d04c18531fa076f4096f8e5c5d4f468b0084",
-        "ref": "Quantum-L9/.github/semantics/vocabulary.yaml@c75fa5efe1c33117c970e8cb3c699e9924a154b8"
+        "digest": "sha256:fe1ac219bbb12d04b8efaec629ce6dd52b3919e840731fd351f22e74284953d1",
+        "ref": "Quantum-L9/.github/semantics/vocabulary.yaml@a37bc3f79b6005a144a00ede44626d22aa83dcd8"
       }
     ]
   },
@@ -705,11 +703,8 @@
         "reasons": []
       },
       "provider_bindings_admissible": {
-        "holds": false,
-        "reasons": [
-          "provider binding facts:v8:graphiti:primary has no admitted technology coordinate (unknown; MU-002)",
-          "provider binding facts:v8:zep:primary has no admitted technology coordinate (unknown; MU-002)"
-        ]
+        "holds": true,
+        "reasons": []
       },
       "required_adapters_resolved": {
         "holds": true,
@@ -726,8 +721,7 @@
       "unresolved_hard_semantic_gaps_empty": {
         "holds": false,
         "reasons": [
-          "material Unknown MU-001: conformance.profile_refs",
-          "material Unknown MU-002: bindings.provider_bindings[*].technology_ref"
+          "material Unknown MU-001: conformance.profile_refs"
         ]
       }
     },
@@ -769,7 +763,7 @@
     "trust_source_refs": []
   },
   "source_topology": {
-    "digest": "sha256:4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104",
+    "digest": "sha256:020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed",
     "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
   },
   "state": {
@@ -811,13 +805,6 @@
   },
   "unresolved": [
     {
-      "condition": "provider_bindings_admissible",
-      "reasons": [
-        "provider binding facts:v8:graphiti:primary has no admitted technology coordinate (unknown; MU-002)",
-        "provider binding facts:v8:zep:primary has no admitted technology coordinate (unknown; MU-002)"
-      ]
-    },
-    {
       "condition": "conformance_requirements_resolved",
       "reasons": [
         "conformance profile unresolved: unknown"
@@ -826,8 +813,7 @@
     {
       "condition": "unresolved_hard_semantic_gaps_empty",
       "reasons": [
-        "material Unknown MU-001: conformance.profile_refs",
-        "material Unknown MU-002: bindings.provider_bindings[*].technology_ref"
+        "material Unknown MU-001: conformance.profile_refs"
       ]
     }
   ]

@@ -9,7 +9,7 @@
 #   updated: 2026-07-22
 
 schema: l9.product-topology/v1
-# Authoritative ProductTopology for Quantum-L9/l9-graphiti-memory (ADR-085).
+# Authoritative ProductTopology for Quantum-L9/l9-graphiti-memory (ADR-094).
 # Global law is consumed, never copied: every `l9.*` reference resolves in
 # Quantum-L9/.github at the revision pinned under `provenance`. References in
 # the `l9-graphiti-memory:` namespace are product-owned semantics whose
@@ -368,15 +368,13 @@ bindings:
       adapter_ref: l9-graphiti-memory:adapter/graphiti-mcp-projection@1
       target_state: active
       manifest: config/projections/facts-v8.yaml
-      technology_ref: unknown
-      unknown_ref: MU-002
+      technology_ref: graphiti-mcp
     - target_id: facts:v8:zep:primary
       adapter_ref: l9-graphiti-memory:adapter/zep-projection@1
       target_state: shadow
       manifest: config/projections/facts-v8.yaml
       rule: shadow results are measured only and never change returned canonical retrieval
-      technology_ref: unknown
-      unknown_ref: MU-002
+      technology_ref: zep
 providers:
   allowed:
     - id: graphiti_mcp
@@ -530,7 +528,7 @@ admission:
     - l9.receipt/validation@1
     - l9.receipt/conformance@1
     - l9.receipt/admission@1
-  decision_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-085-product-topology-and-release-governance.md
+  decision_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-094-product-topology-and-release-governance.md
 lifecycle:
   family_ref: l9.lifecycle/global@1
   applicable_state_refs:
@@ -612,10 +610,10 @@ operations:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-022-release-publishing-and-rollback.md
     - Quantum-L9/l9-graphiti-memory/deployment/generated-data/rollback-runbook.md
 provenance:
-  authority_ref: Quantum-L9/.github@3eaa094be0b1ec74944e832887aa1752c818fc11
-  source_revision: Quantum-L9/l9-graphiti-memory@2f5f1b4ccfec09c63c8757cd8267641aef189976
+  authority_ref: Quantum-L9/.github@07b0df96fc3008d55a96f804923e2177ff312295
+  source_revision: Quantum-L9/l9-graphiti-memory@155848b9dc6103850456e6ad72f0df2ec054824c
   source_refs:
-    - Quantum-L9/.github/semantics/contracts.yaml@ac416e943545caeb6a624141ccca43277db90ebd
+    - Quantum-L9/.github/semantics/contracts.yaml@a8170aae86b617f83bb4afd8592b3684b8a166b1
     - Quantum-L9/.github/semantics/product_topology.schema.yaml@4fd2856bdf84c10a55a4be7e8519848c22c2bdbf
     - Quantum-L9/.github/semantics/product_kinds.yaml@8e5aa829df8e00f89286d99ec8d9529e5da63805
     - Quantum-L9/.github/semantics/dependency_archetypes.yaml@b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a
@@ -630,16 +628,6 @@ unknowns:
         - l9.dependency-archetypes/global@1
         - l9.conformance-model/global@1
         - l9.contract/conformance-resolution@1
-      blocks:
-        - resolved_product_manifest
-        - release_progression
-    - id: MU-002
-      subject: bindings.provider_bindings[*].technology_ref
-      result: unresolved
-      reason: No technology coordinate for the Graphiti MCP or Zep provider realizations is admitted in technology_capabilities.yaml; an unknown provider capability is unsupported until resolved.
-      governing_refs:
-        - l9.binding-catalog/global@1
-        - l9.contract/technology-binding@1
       blocks:
         - resolved_product_manifest
         - release_progression
@@ -665,4 +653,3 @@ unknowns:
         - l9.product-kinds/global@1
   resolution_requirement_refs:
     - l9.contract/conformance-resolution@1
-    - l9.contract/technology-binding@1

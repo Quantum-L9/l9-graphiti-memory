@@ -40,6 +40,7 @@ from l9_graphite_memory.contracts import (
     Provenance,
     RetirementMode,
 )
+from l9_graphite_memory.contracts.projection import legacy_copies
 from l9_graphite_memory.errors import ConfigurationError, ProjectionError, StoreError
 from l9_graphite_memory.ports import ProjectionHit
 from l9_graphite_memory.projections import (
@@ -50,6 +51,7 @@ from l9_graphite_memory.projections import (
     parse_projection_manifest_data,
     render_projection,
 )
+from l9_graphite_memory.projections.runtime import graph_projection_adapter, graph_projection_target
 from l9_graphite_memory.retrieval import RetrievalPlanner
 from l9_graphite_memory.services import MemoryService, OutboxWorker
 from tests.conftest import STORE_BACKENDS, make_store
@@ -104,13 +106,17 @@ class FakeProvider:
         self.erased.append(record_id)
         return {"erased": True, "locator": locator}
 
-    def search_strategy(self, strategy, query, namespaces, *, limit) -> list[ProjectionHit]:
+    def search_strategy(
+        self, strategy, query, namespaces, *, limit, tenant_id
+    ) -> list[ProjectionHit]:
         if self.fail_search:
             raise ProjectionError(f"{self.name} search unavailable")
         return [ProjectionHit(record_id=item, score=0.9) for item in self.search_hits]
 
-    def search(self, query, namespaces, *, limit) -> list[ProjectionHit]:
-        return self.search_strategy("graph-search", query, namespaces, limit=limit)
+    def search(self, query, namespaces, *, limit, tenant_id) -> list[ProjectionHit]:
+        return self.search_strategy(
+            "graph-search", query, namespaces, limit=limit, tenant_id=tenant_id
+        )
 
 
 class Clock:
@@ -803,3 +809,122 @@ def test_active_provider_failure_is_a_failed_strategy_not_an_empty_success(
     assert not evidence.succeeded and evidence.error and evidence.hit_count == 0
     # Canonical retrieval stays available.
     assert harness.store.name not in receipt.stores_failed
+
+
+# -- graph intelligence over target-aware projections (ADR-085..ADR-093) -------
+
+
+def test_graph_intelligence_follows_the_one_active_graph_target(graphiti, zep) -> None:
+    runtime = build_runtime(graphiti, zep)
+    target = graph_projection_target(runtime)
+    assert target is not None
+    assert target.identity == GRAPHITI
+    assert graph_projection_adapter(runtime) is graphiti
+    # A shadow target never feeds graph intelligence; two active graph
+    # targets are ambiguous and fail closed rather than picking one.
+    with pytest.raises(ConfigurationError, match="exactly one active graph"):
+        graph_projection_target(build_runtime(graphiti, zep, zep_mode="active"))
+
+
+def _migrate_graphiti_to_scoped_groups(harness: Harness, principal, maintainer, graphiti) -> UUID:
+    """Project one record, then re-project it into Graphiti only under a new scheme."""
+
+    record_id = _write(harness, principal, "falcon plan").record_id
+    harness.run()
+    graphiti.scope_scheme = "graph-scope-key-v1"  # type: ignore[attr-defined]
+    rebuild = harness.service.rebuild_projection(maintainer, "repo-a", apply=True)
+    assert rebuild.stale_scope_record_ids == (record_id,)
+    assert rebuild.queued_by_target[GRAPHITI] == (record_id,)
+    assert rebuild.queued_by_target[ZEP] == ()
+    harness.run()
+    by_target = {
+        link.target_identity: link for link in harness.store.list_projection_links(record_id)
+    }
+    assert legacy_copies(by_target[GRAPHITI])
+    assert not legacy_copies(by_target[ZEP])
+    return record_id
+
+
+def _cut_over(harness: Harness, admin) -> None:
+    harness.service.record_graph_cutover(
+        admin,
+        "repo-a",
+        previous_binding="neo4j://retained/graphiti-v0",
+        new_binding="neo4j://fresh/graphiti-v1",
+        change_reference="CHG-085",
+        rollback_window=timedelta(0),
+        apply=True,
+    )
+
+
+def test_legacy_obligations_are_per_target_and_release_completes_the_deletion(
+    harness, principal, maintainer, admin_principal, graphiti, zep
+) -> None:
+    record_id = _migrate_graphiti_to_scoped_groups(harness, principal, maintainer, graphiti)
+    _delete(harness, admin_principal, record_id)
+    harness.run()
+    # Zep's copy is erased; Graphiti's live copy is erased but its legacy
+    # copy remains, so the link stays withdrawn and the deletion pending.
+    assert zep.erased == [record_id] and graphiti.erased == [record_id]
+    assert list(harness.links(record_id)) == [GRAPHITI]
+    assert harness.store.get_record(record_id).state is MemoryState.DELETION_PENDING
+    _cut_over(harness, admin_principal)
+
+    released = harness.service.release_legacy_projection_copies(
+        admin_principal, "repo-a", store_destruction_reference="CHG-DESTROY", apply=True
+    )
+
+    assert released.released_record_ids == (record_id,)
+    assert released.completed_deletion_record_ids == (record_id,)
+    assert harness.links(record_id) == {}
+    assert harness.store.get_record(record_id).state is MemoryState.DELETED
+
+
+def test_release_keeps_the_deletion_pending_while_another_target_holds_a_copy(
+    harness, principal, maintainer, admin_principal, graphiti, zep
+) -> None:
+    record_id = _migrate_graphiti_to_scoped_groups(harness, principal, maintainer, graphiti)
+    # The cutover needs a drained outbox, so it is recorded before the
+    # deletion whose Zep erase keeps failing.
+    _cut_over(harness, admin_principal)
+    zep.fail_erase = True
+    _delete(harness, admin_principal, record_id)
+    harness.run()
+    assert set(harness.links(record_id)) == {GRAPHITI, ZEP}
+
+    released = harness.service.release_legacy_projection_copies(
+        admin_principal, "repo-a", store_destruction_reference="CHG-DESTROY", apply=True
+    )
+
+    # Graphiti's obligation is released, but Zep still holds a copy: the
+    # deletion is not complete until that target's erase succeeds (ADR-084).
+    assert released.released_record_ids == (record_id,)
+    assert released.completed_deletion_record_ids == ()
+    assert list(harness.links(record_id)) == [ZEP]
+    assert harness.store.get_record(record_id).state is MemoryState.DELETION_PENDING
+    zep.fail_erase = False
+    harness.run()
+    assert harness.links(record_id) == {}
+    assert harness.store.get_record(record_id).state is MemoryState.DELETED
+
+
+def test_stale_scope_rebuild_reaches_records_beyond_the_first_page(
+    harness, principal, maintainer, graphiti
+) -> None:
+    """Codex P1 on #83: the stale-link scan must not stop at the newest page."""
+
+    records = [_write(harness, principal, f"falcon plan {i}").record_id for i in range(3)]
+    harness.run()
+    graphiti.scope_scheme = "graph-scope-key-v1"  # type: ignore[attr-defined]
+    rescoped: set[UUID] = set()
+    for _ in range(len(records) + 1):
+        rebuild = harness.service.rebuild_projection(maintainer, "repo-a", apply=True, limit=1)
+        if not rebuild.queued_record_ids:
+            break
+        rescoped.update(rebuild.stale_scope_record_ids)
+        harness.run()
+    assert rescoped == set(records)
+    for record_id in records:
+        link = harness.store.get_projection_link(record_id, GRAPHITI)
+        assert link is not None
+        assert link.metadata.get("scope_scheme") == "graph-scope-key-v1"

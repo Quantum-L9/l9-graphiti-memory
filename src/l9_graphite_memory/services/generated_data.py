@@ -295,7 +295,7 @@ class GeneratedDataService:
 
         This adapter owns no lifecycle mutation: matching, authorization,
         archival, retirement intents and revalidation requirements all belong
-        to ``MemoryService.invalidate_by_source`` (ADR-086).
+        to ``MemoryService.invalidate_by_source`` (ADR-095).
         """
 
         return self.memory.invalidate_by_source(

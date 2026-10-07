@@ -26,6 +26,8 @@ from l9_graphite_memory.contracts import (
     ConflictLinkReceipt,
     DeletionReceipt,
     DeletionStatus,
+    GraphCutoverReceipt,
+    LegacyProjectionReleaseReceipt,
     LifecycleTransitionReceipt,
     MaintenanceRunReceipt,
     MemoryRecord,
@@ -50,6 +52,7 @@ from l9_graphite_memory.errors import (
     ConfigurationError,
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
+    ProjectionLinkConflict,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -97,7 +100,7 @@ _LIST_RECORDS_BY_STATE_UNBOUNDED_SQL = (
 # Unbounded and unordered on purpose: the phase-lock snapshot must digest
 # every active record in the namespace, and snapshot_digest sorts itself.
 _PHASE_LOCK_SNAPSHOT_SQL = _LIST_RECORDS_PREDICATES + " AND state = %s"
-# Structured selector lookup (ADR-086): equality through the selector indexes,
+# Structured selector lookup (ADR-095): equality through the selector indexes,
 # joined to the owning record for tenant and lifecycle state.
 _SELECTOR_MATCH_SQL = (
     "SELECT DISTINCT s.record_id FROM memory_source_selectors AS s "
@@ -350,7 +353,7 @@ class PostgresRecordStore:
             )
             """,
             # Schema 9: structured source selectors, applied source
-            # invalidations, and their revalidation requirements (ADR-086).
+            # invalidations, and their revalidation requirements (ADR-095).
             """
             CREATE TABLE IF NOT EXISTS memory_source_selectors (
                 selector_id TEXT PRIMARY KEY,
@@ -417,7 +420,7 @@ class PostgresRecordStore:
         ``source_selectors_for_record`` mapping only, deterministic selector
         ids inserted with ``ON CONFLICT DO NOTHING``, skipped once schema 9 is
         recorded. A transaction-scoped advisory lock serializes concurrent
-        initializers (ADR-086).
+        initializers (ADR-095).
         """
 
         tx.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", ("schema-9-backfill",))
@@ -756,7 +759,7 @@ class PostgresRecordStore:
                     self._require_phase_lock_snapshot(tx, expected_phase_lock)
                 if record is not None:
                     self._insert_record(tx, record)
-                    # Structured selectors commit with the record (ADR-086).
+                    # Structured selectors commit with the record (ADR-095).
                     for selector in source_selectors_for_record(record):
                         self._insert_selector(tx, selector)
                 self._insert_operation_receipt(
@@ -1318,31 +1321,66 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
+                self._upsert_projection_link(tx, link)
+        except psycopg2.Error as exc:
+            raise StoreError(f"projection link persistence failed: {exc}") from exc
+
+    def _upsert_projection_link(self, tx: Any, link: ProjectionLink) -> None:
+        tx.execute(
+            """
+            INSERT INTO projection_links (
+                record_id, target_identity, projection_name, provider_type,
+                namespace, locator, created_at, link_json
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT(record_id, target_identity) DO UPDATE SET
+                projection_name = excluded.projection_name,
+                provider_type = excluded.provider_type,
+                namespace = excluded.namespace,
+                locator = excluded.locator,
+                created_at = excluded.created_at,
+                link_json = excluded.link_json
+            """,
+            (
+                str(link.record_id),
+                link.target_identity,
+                link.projection_name,
+                link.provider_type,
+                link.namespace,
+                link.locator,
+                link.created_at,
+                _json(link.model_dump(mode="json")),
+            ),
+        )
+
+    def save_projection_link_if_active(
+        self, link: ProjectionLink, *, expected_previous: ProjectionLink | None
+    ) -> bool:
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                # Row lock: a concurrent deletion or lifecycle commit on this
+                # record serializes with the link write (ADR-092).
                 tx.execute(
-                    """
-                    INSERT INTO projection_links (
-                        record_id, target_identity, projection_name, provider_type,
-                        namespace, locator, created_at, link_json
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT(record_id, target_identity) DO UPDATE SET
-                        projection_name = excluded.projection_name,
-                        provider_type = excluded.provider_type,
-                        namespace = excluded.namespace,
-                        locator = excluded.locator,
-                        created_at = excluded.created_at,
-                        link_json = excluded.link_json
-                    """,
-                    (
-                        str(link.record_id),
-                        link.target_identity,
-                        link.projection_name,
-                        link.provider_type,
-                        link.namespace,
-                        link.locator,
-                        link.created_at,
-                        _json(link.model_dump(mode="json")),
-                    ),
+                    "SELECT record_json FROM memory_records WHERE record_id = %s FOR UPDATE",
+                    (str(link.record_id),),
                 )
+                row = tx.fetchone()
+                if row is None:
+                    return False
+                record = schema_registry.read_record(json.loads(str(row["record_json"])))
+                if record.state is not MemoryState.ACTIVE:
+                    return False
+                tx.execute(
+                    "SELECT target_identity, provider_type, link_json FROM projection_links "
+                    "WHERE record_id = %s AND target_identity = %s FOR UPDATE",
+                    (str(link.record_id), link.target_identity),
+                )
+                current_row = tx.fetchone()
+                current = self._row_to_link(current_row) if current_row else None
+                if current != expected_previous:
+                    raise ProjectionLinkConflict("projection link changed since it was read")
+                self._upsert_projection_link(tx, link)
+                return True
         except psycopg2.Error as exc:
             raise StoreError(f"projection link persistence failed: {exc}") from exc
 
@@ -1479,6 +1517,121 @@ class PostgresRecordStore:
                     self._insert_outbox(tx, event)
         except psycopg2.Error as exc:
             raise StoreError(f"projection rebuild failed: {exc}") from exc
+
+    def commit_legacy_projection_release(
+        self,
+        capability: ServiceWriteCapability,
+        receipt: LegacyProjectionReleaseReceipt,
+        *,
+        link_updates: tuple[ProjectionLink, ...] = (),
+        link_removals: tuple[tuple[UUID, str], ...] = (),
+        deletion_completions: tuple[tuple[UUID, UUID], ...] = (),
+        expected_links: tuple[ProjectionLink, ...] = (),
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied legacy projection release")
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                for expected in expected_links:
+                    tx.execute(
+                        "SELECT target_identity, provider_type, link_json FROM projection_links "
+                        "WHERE record_id = %s AND target_identity = %s FOR UPDATE",
+                        (str(expected.record_id), expected.target_identity),
+                    )
+                    row = tx.fetchone()
+                    current = self._row_to_link(row) if row else None
+                    if current != expected:
+                        raise StoreError("projection link changed since the release was planned")
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="legacy_projection_release",
+                    aggregate_id=receipt.namespace,
+                    status="applied",
+                    created_at=receipt.created_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+                for link in link_updates:
+                    tx.execute(
+                        "UPDATE projection_links SET locator = %s, created_at = %s, link_json = %s "
+                        "WHERE record_id = %s AND target_identity = %s",
+                        (
+                            link.locator,
+                            link.created_at,
+                            _json(link.model_dump(mode="json")),
+                            str(link.record_id),
+                            link.target_identity,
+                        ),
+                    )
+                for record_id, target_identity in link_removals:
+                    tx.execute(
+                        "DELETE FROM projection_links WHERE record_id = %s AND target_identity = %s",
+                        (str(record_id), target_identity),
+                    )
+                for record_id, receipt_id in deletion_completions:
+                    self._complete_deletion_tx(
+                        tx,
+                        record_id,
+                        receipt_id,
+                        receipt.created_at,
+                        f"memory.legacy-release:{receipt.actor}",
+                    )
+        except psycopg2.Error as exc:
+            raise StoreError(f"legacy projection release failed: {exc}") from exc
+
+    def commit_graph_cutover(
+        self, capability: ServiceWriteCapability, receipt: GraphCutoverReceipt
+    ) -> None:
+        require_service_write_capability(capability)
+        if not receipt.applied:
+            raise StoreError("cannot persist a non-applied graph cutover")
+        psycopg2 = _driver()
+        try:
+            with self._transaction() as tx:
+                self._insert_operation_receipt(
+                    tx,
+                    receipt_id=receipt.receipt_id,
+                    kind="graph_cutover",
+                    aggregate_id=receipt.namespace,
+                    status="applied",
+                    created_at=receipt.created_at,
+                    payload=receipt.model_dump(mode="json"),
+                )
+        except psycopg2.Error as exc:
+            raise StoreError(f"graph cutover record failed: {exc}") from exc
+
+    def list_graph_cutovers(self, tenant_id: str, namespace: str) -> list[GraphCutoverReceipt]:
+        with self._cursor() as cursor:
+            cursor.execute(
+                "SELECT receipt_json FROM operation_receipts "
+                "WHERE kind = 'graph_cutover' AND aggregate_id = %s "
+                "ORDER BY created_at, receipt_id",
+                (namespace,),
+            )
+            rows = cursor.fetchall()
+        receipts = [
+            GraphCutoverReceipt.model_validate_json(str(row["receipt_json"])) for row in rows
+        ]
+        # aggregate_id is the namespace; the tenant is part of the receipt.
+        return [receipt for receipt in receipts if receipt.tenant_id == tenant_id]
+
+    def list_legacy_projection_releases(
+        self, namespace: str
+    ) -> list[LegacyProjectionReleaseReceipt]:
+        with self._cursor() as cursor:
+            cursor.execute(
+                "SELECT receipt_json FROM operation_receipts "
+                "WHERE kind = 'legacy_projection_release' AND aggregate_id = %s "
+                "ORDER BY created_at, receipt_id",
+                (namespace,),
+            )
+            rows = cursor.fetchall()
+        return [
+            LegacyProjectionReleaseReceipt.model_validate_json(str(row["receipt_json"]))
+            for row in rows
+        ]
 
     # -- maintenance ledger ---------------------------------------------------
 
@@ -1644,7 +1797,7 @@ class PostgresRecordStore:
                 # state; the redaction below then replaces the whole row.
                 self._insert_status_event(tx, status_event)
                 # Selectors are derived from the metadata the tombstone
-                # redacts, so they go with it (ADR-086).
+                # redacts, so they go with it (ADR-095).
                 tx.execute(
                     "DELETE FROM memory_source_selectors WHERE record_id = %s",
                     (str(receipt.record_id),),
@@ -1708,57 +1861,71 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
-                tx.execute(
-                    "SELECT record_json FROM memory_records WHERE record_id = %s FOR UPDATE",
-                    (str(record_id),),
-                )
-                record_row = tx.fetchone()
-                tx.execute(
-                    "SELECT receipt_json FROM operation_receipts "
-                    "WHERE receipt_id = %s AND kind = 'deletion' FOR UPDATE",
-                    (str(receipt_id),),
-                )
-                receipt_row = tx.fetchone()
-                if record_row is None or receipt_row is None:
-                    raise StoreError("deletion record or receipt not found")
-                tx.execute(
-                    "SELECT COUNT(*) AS count FROM projection_links WHERE record_id = %s",
-                    (str(record_id),),
-                )
-                remaining = int(tx.fetchone()["count"])
-                if remaining:
-                    raise StoreError(
-                        f"deletion of {record_id} cannot complete while {remaining} "
-                        "projection link(s) remain unerased"
-                    )
-                record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
-                receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
-                updated_receipt = receipt.model_copy(
-                    update={
-                        "status": DeletionStatus.COMPLETE,
-                        "completed_at": completed_at,
-                    }
-                )
-                if record.state is not MemoryState.DELETED:
-                    self._insert_status_event(
-                        tx,
-                        MemoryStatusEvent(
-                            record_id=record_id,
-                            previous_state=record.state,
-                            new_state=MemoryState.DELETED,
-                            reason="projection erasure confirmed; verified deletion complete",
-                            actor=actor,
-                            occurred_at=completed_at,
-                            receipt_id=receipt_id,
-                        ),
-                    )
-                tx.execute(
-                    "UPDATE operation_receipts SET status = %s, receipt_json = %s WHERE receipt_id = %s",
-                    (
-                        DeletionStatus.COMPLETE.value,
-                        _json(updated_receipt.model_dump(mode="json")),
-                        str(receipt_id),
-                    ),
-                )
+                self._complete_deletion_tx(tx, record_id, receipt_id, completed_at, actor)
         except psycopg2.Error as exc:
             raise StoreError(f"deletion completion failed: {exc}") from exc
+
+    def _complete_deletion_tx(
+        self,
+        tx: Any,
+        record_id: UUID,
+        receipt_id: UUID,
+        completed_at: datetime,
+        actor: str,
+    ) -> None:
+        """Mark one verified deletion complete inside the caller's transaction."""
+
+        tx.execute(
+            "SELECT record_json FROM memory_records WHERE record_id = %s FOR UPDATE",
+            (str(record_id),),
+        )
+        record_row = tx.fetchone()
+        tx.execute(
+            "SELECT receipt_json FROM operation_receipts "
+            "WHERE receipt_id = %s AND kind = 'deletion' FOR UPDATE",
+            (str(receipt_id),),
+        )
+        receipt_row = tx.fetchone()
+        if record_row is None or receipt_row is None:
+            raise StoreError("deletion record or receipt not found")
+        # Verified deletion completes only once no target holds a copy
+        # (ADR-084), including a withdrawn link still carrying legacy copies.
+        tx.execute(
+            "SELECT COUNT(*) AS count FROM projection_links WHERE record_id = %s",
+            (str(record_id),),
+        )
+        remaining = int(tx.fetchone()["count"])
+        if remaining:
+            raise StoreError(
+                f"deletion of {record_id} cannot complete while {remaining} "
+                "projection link(s) remain unerased"
+            )
+        record = schema_registry.read_record(json.loads(str(record_row["record_json"])))
+        receipt = DeletionReceipt.model_validate_json(str(receipt_row["receipt_json"]))
+        updated_receipt = receipt.model_copy(
+            update={
+                "status": DeletionStatus.COMPLETE,
+                "completed_at": completed_at,
+            }
+        )
+        if record.state is not MemoryState.DELETED:
+            self._insert_status_event(
+                tx,
+                MemoryStatusEvent(
+                    record_id=record_id,
+                    previous_state=record.state,
+                    new_state=MemoryState.DELETED,
+                    reason="projection erasure confirmed; verified deletion complete",
+                    actor=actor,
+                    occurred_at=completed_at,
+                    receipt_id=receipt_id,
+                ),
+            )
+        tx.execute(
+            "UPDATE operation_receipts SET status = %s, receipt_json = %s WHERE receipt_id = %s",
+            (
+                DeletionStatus.COMPLETE.value,
+                _json(updated_receipt.model_dump(mode="json")),
+                str(receipt_id),
+            ),
+        )

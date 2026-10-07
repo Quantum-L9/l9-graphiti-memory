@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-10-02
 
-"""ADR-086: structured source invalidation archives current records atomically.
+"""ADR-095: structured source invalidation archives current records atomically.
 
 Every case runs against the in-memory, SQLite, and PostgreSQL canonical stores.
 The path under test is the locked one: GeneratedDataService (adapter) ->

@@ -8,7 +8,7 @@
 #   version: 2.5.0
 #   updated: 2026-10-02
 
-"""ADR-086: the source invalidation request contract fails closed.
+"""ADR-095: the source invalidation request contract fails closed.
 
 Canonical requests carry ``selectors[]`` and ``event_id``; the legacy singular
 ``selector`` stays an explicit compatibility form of memory-control-plane/v1.
