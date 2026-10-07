@@ -257,8 +257,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # page (1 case x 3 store backends).
         # Re-pinned 1433 -> 1435 for the #84 review: a full episode listing fails
         # closed (retire and erase); the equal-shortest-path order is live-only.
-        "1435 tests pass",
-        r"1435 passed",
+        # Re-pinned 1435 -> 1438 for ADR-094 (product topology and release
+        # governance) restacked over the graph campaign: 3 cases in
+        # test_product_release_governance.py, none backend-parameterized.
+        "1438 tests pass",
+        r"1438 passed",
     ),
     CheckSpec(
         "V-002",
@@ -289,8 +292,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 90 -> 91 for ADR-091 (Graphiti episode identity).
         # Re-pinned 91 -> 92 for ADR-092 (campaign audit remediation).
         # Re-pinned 92 -> 93 for ADR-093 (graph intelligence V1 closure).
-        "93 ADRs complete and indexed",
-        r"PASS: 93 ADRs",
+        # Re-pinned 93 -> 94 for ADR-094 (product topology and release
+        # governance).
+        "94 ADRs complete and indexed",
+        r"PASS: 94 ADRs",
     ),
     CheckSpec(
         "V-004",

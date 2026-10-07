@@ -1,5 +1,5 @@
 {
-  "file_count": 817,
+  "file_count": 824,
   "files": [
     {
       "category": "ci",
@@ -46,8 +46,8 @@
         "version": "2.5.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "15f2cb7c715ddfcdae542a4e3bb7590f60af3bb268b540139b93446b0f086b6e",
-      "size_bytes": 14907
+      "sha256": "75d5b162c7d02af5d3f57f21834aa0c0cb472bb01772da28807051c2a2b0d4f9",
+      "size_bytes": 15484
     },
     {
       "category": "ci",
@@ -414,8 +414,8 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "91a56d7c3ed31eecfc443dfe8ed85704b3ae7e0801309d8aca2131e8f64c35ff",
-      "size_bytes": 134219
+      "sha256": "2f67dc848c319be3924331ec3295b30649c5960e109ee60769325cc68b1c0865",
+      "size_bytes": 135314
     },
     {
       "category": "repository_root",
@@ -462,8 +462,8 @@
         "version": "2.5.0"
       },
       "path": "README.md",
-      "sha256": "736ec69a0fc1cc5fc240fe0007a4013ec1681fa1a00de806a43183a3d5ee0db9",
-      "size_bytes": 6721
+      "sha256": "cdeb0271b676598689999e394f4ff87cda93005bfb8c39c315d8dd91d953615c",
+      "size_bytes": 7389
     },
     {
       "category": "repository_root",
@@ -4471,6 +4471,22 @@
         "l9_schema": 1,
         "layer": "adr",
         "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-094-product-topology-and-release-governance.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-094-product-topology-and-release-governance.md",
+      "sha256": "17db67fb2a9498a363177ab6b8d9e163601027a27bca5ad50306df83ac1b3809",
+      "size_bytes": 10309
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "adr",
+        "owner": "memory-control-plane",
         "path": "docs/adr/README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -4478,8 +4494,8 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/README.md",
-      "sha256": "a2d93e6f6f83969c679e9b906393d25e3ae265ae26a18e711000c5fef4ef1ad6",
-      "size_bytes": 11604
+      "sha256": "659e800ed41c3d6fac3f964e3256325cf3bb1b39f8c0ea641fb945f3fc4c07f2",
+      "size_bytes": 11723
     },
     {
       "category": "documentation",
@@ -4839,6 +4855,22 @@
         "l9_schema": 1,
         "layer": "repository",
         "owner": "memory-control-plane",
+        "path": "product-topology.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "product-topology.yaml",
+      "sha256": "2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce",
+      "size_bytes": 29446
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository",
+        "owner": "memory-control-plane",
         "path": "pyproject.toml",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -4880,6 +4912,38 @@
       "path": "release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip",
       "sha256": "babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d",
       "size_bytes": 144850
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository",
+        "owner": "memory-control-plane",
+        "path": "release-work/product-manifest.json",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "release-work/product-manifest.json",
+      "sha256": "64dcb6af2ca3c810afd7d4c279ba65000e72a952c4d8ed8cf5b91df4f653420b",
+      "size_bytes": 30773
+    },
+    {
+      "category": "repository_root",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "repository",
+        "owner": "memory-control-plane",
+        "path": "release-work/product-release-binding.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "release-work/product-release-binding.yaml",
+      "sha256": "83d296a14bca84acb07ea5185e96592586fb9210ad995fecd219be3de52c59f7",
+      "size_bytes": 6036
     },
     {
       "category": "repository_root",
@@ -5294,8 +5358,8 @@
         "version": "2.5.0"
       },
       "path": "scripts/validate_release.sh",
-      "sha256": "55940084f742593745fcc1360e45bb16763e270e87b3304fafbce440340c8fdc",
-      "size_bytes": 11735
+      "sha256": "3ea2564d417bd7fabe42d4c49169de8f30c808d766588f09012309e35c0b350e",
+      "size_bytes": 12505
     },
     {
       "category": "operations",
@@ -9767,6 +9831,22 @@
         "l9_schema": 1,
         "layer": "test",
         "owner": "memory-control-plane",
+        "path": "tests/regression/test_product_release_governance.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/regression/test_product_release_governance.py",
+      "sha256": "099706cd7e349e73cb988793827900750425cf93c88c458d7918c57d398e1347",
+      "size_bytes": 5179
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "test",
+        "owner": "memory-control-plane",
         "path": "tests/regression/test_recursive_alignment.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -11230,8 +11310,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/check_recursive_alignment.py",
-      "sha256": "793bdeb83a5ac0cb3ba6ee1c54ad032afc307940cdc4bba0891fd5393a58ad92",
-      "size_bytes": 12400
+      "sha256": "044df55ddc7f17a5c12de2b60a135067506080af87ae0784c9eff8df2d2b06f8",
+      "size_bytes": 12429
     },
     {
       "category": "assurance",
@@ -11287,6 +11367,22 @@
         "l9_schema": 1,
         "layer": "assurance",
         "owner": "memory-control-plane",
+        "path": "tools/assurance/generate_product_manifest.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tools/assurance/generate_product_manifest.py",
+      "sha256": "0c1461e2440a8ae0c5da4e5326e90931962f021f5bea37abf2ddb45310d8aa59",
+      "size_bytes": 20534
+    },
+    {
+      "category": "assurance",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "assurance",
+        "owner": "memory-control-plane",
         "path": "tools/assurance/generate_validation_evidence.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -11294,8 +11390,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "60fd5f5ff71bd8c70785b29295d6131a8731d0b8f62097c569e194ecb91a1bb7",
-      "size_bytes": 29807
+      "sha256": "6852c55b0067cd2516cb34224b358d8c53a2d9f2f768528843107e55a69237df",
+      "size_bytes": 30118
     },
     {
       "category": "assurance",
@@ -11342,7 +11438,7 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/validate_adrs.py",
-      "sha256": "e3e91c5d5e50ed16d91eace7a20bfa66c1233faf0a8981f1d0efb1758258ff37",
+      "sha256": "abb8d5db05f4bb64ffc475f6b3af28019acd05fa2373df08dc4e327f2c395339",
       "size_bytes": 2580
     },
     {
@@ -11376,6 +11472,22 @@
       "path": "tools/assurance/validate_manifest.py",
       "sha256": "b7134c65005e4a92ce485b1a1cb582af8a0a0f29931516c3e7493e7373309088",
       "size_bytes": 2404
+    },
+    {
+      "category": "assurance",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "assurance",
+        "owner": "memory-control-plane",
+        "path": "tools/assurance/validate_product_topology.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tools/assurance/validate_product_topology.py",
+      "sha256": "f728d52406eda85f5a24bdce3caf8c251e1ba51221c627dbca2916d2e15a334f",
+      "size_bytes": 12069
     },
     {
       "category": "assurance",
