@@ -260,8 +260,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1435 -> 1438 for ADR-094 (product topology and release
         # governance) restacked over the graph campaign: 3 cases in
         # test_product_release_governance.py, none backend-parameterized.
-        "1438 tests pass",
-        r"1438 passed",
+        # Re-pinned 1438 -> 1519 for ADR-095 (structured source invalidation),
+        # restacked over ADR-094: 81 additional cases from the existing #81
+        # source-invalidation test matrix -- 45 store-matrix cases (15 x 3
+        # backends) in test_source_invalidation, 5 schema-9 migration cases,
+        # 26 request-contract and CLI cases, and 5 live-proof cases.
+        "1519 tests pass",
+        r"1519 passed",
     ),
     CheckSpec(
         "V-002",
@@ -293,9 +298,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 91 -> 92 for ADR-092 (campaign audit remediation).
         # Re-pinned 92 -> 93 for ADR-093 (graph intelligence V1 closure).
         # Re-pinned 93 -> 94 for ADR-094 (product topology and release
-        # governance).
-        "94 ADRs complete and indexed",
-        r"PASS: 94 ADRs",
+        # governance). Re-pinned 94 -> 95 for ADR-095 (structured source
+        # invalidation lifecycle).
+        "95 ADRs complete and indexed",
+        r"PASS: 95 ADRs",
     ),
     CheckSpec(
         "V-004",

@@ -5,8 +5,8 @@
 #   layer: service
 #   owner: memory-control-plane
 #   status: active
-#   version: 1.1.0
-#   updated: 2026-08-23
+#   version: 1.2.0
+#   updated: 2026-10-02
 
 """Narrow generated-data operations. Durable writes use MemoryService.write only."""
 
@@ -34,7 +34,6 @@ from l9_graphite_memory.contracts.generated_data import (
     MemoryReuseStatus,
     SourceInvalidationReceipt,
     SourceInvalidationRequest,
-    SourceInvalidationStatus,
 )
 from l9_graphite_memory.errors import AdmissionError, AuthorizationError, StoreError
 from l9_graphite_memory.services.memory_service import MemoryService
@@ -292,50 +291,15 @@ class GeneratedDataService:
     def invalidate_by_source(
         self, principal: MemoryPrincipal, payload: dict[str, Any]
     ) -> SourceInvalidationReceipt:
-        request_model = SourceInvalidationRequest.model_validate(payload)
-        if request_model.repository:
-            namespace = f"repository/{request_model.repository}"
-        elif principal.write_namespaces:
-            namespace = principal.write_namespaces[0]
-        else:
-            namespace = "default"
-        request = MemoryWriteRequest(
-            namespace=namespace,
-            memory_class=MemoryClass.META,
-            content=f"invalidation:{request_model.event_type}",
-            provenance=Provenance(
-                source="cursor-governance-generated-data",
-                source_id=request_model.event_type,
-                source_agent_id=principal.agent_id,
-                tool="generated-data.invalidate-source",
-                extraction_method="source-invalidation/v1",
-            ),
-            evidence=(
-                EvidenceRef(
-                    kind=EvidenceKind.EXPLICIT,
-                    description="generated-data source invalidation",
-                    source_id=request_model.event_type,
-                ),
-            ),
-            tags=("generated-data", "invalidation", request_model.event_type),
-            metadata={
-                "event_type": request_model.event_type,
-                "selector": request_model.selector,
-                "deletion": False,
-            },
-            idempotency_key=(
-                f"generated-data-invalidation:{request_model.event_type}:"
-                f"{request_model.repository or namespace}"
-            ),
-        )
-        receipt = self.memory.write(principal, request)
-        return SourceInvalidationReceipt(
-            status=SourceInvalidationStatus.APPLIED
-            if receipt.status.value not in {"rejected"}
-            else SourceInvalidationStatus.REJECTED,
-            event_type=request_model.event_type,
-            matched=0,
-            write_receipt_id=str(receipt.receipt_id),
+        """Validate the request contract and hand it to the control plane.
+
+        This adapter owns no lifecycle mutation: matching, authorization,
+        archival, retirement intents and revalidation requirements all belong
+        to ``MemoryService.invalidate_by_source`` (ADR-095).
+        """
+
+        return self.memory.invalidate_by_source(
+            principal, SourceInvalidationRequest.model_validate(payload)
         )
 
     @staticmethod

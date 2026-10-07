@@ -486,7 +486,7 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     },
     {
         "name": "memory.invalidate_source",
-        "description": "Record a source invalidation event without deleting memory.",
+        "description": "Archive the current records matching structured source selectors, without deleting memory.",
         "inputSchema": _object_schema({"request": {"type": "object"}}, []),
     },
     {

@@ -5,8 +5,8 @@
 #   layer: test
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.3.0
-#   updated: 2026-10-01
+#   version: 2.3.1
+#   updated: 2026-10-02
 """ADR-084 schema 8: legacy links are rekeyed by target identity, never lost.
 
 Each test builds a store, projects one record through the legacy runtime, then
@@ -157,7 +157,7 @@ def test_sqlite_schema_7_links_migrate_in_place(principal, admin_principal, tmp_
             )
         tx.execute("DROP TABLE projection_links")
         tx.execute("ALTER TABLE projection_links_v7 RENAME TO projection_links")
-        tx.execute("DELETE FROM schema_migrations WHERE version = 8")
+        tx.execute("DELETE FROM schema_migrations WHERE version >= 8")
     legacy_columns = {
         row[1] for row in store._connection().execute("PRAGMA table_info(projection_links)")
     }
@@ -184,7 +184,8 @@ def test_sqlite_schema_7_links_migrate_in_place(principal, admin_principal, tmp_
             row[0]
             for row in reopened._connection().execute("SELECT version FROM schema_migrations")
         }
-        assert 8 in versions
+        # A schema-7 store migrates straight to the current store schema.
+        assert 9 in versions
         assert len(reopened.list_projection_links(record_id)) == 1
         reopened.close()
 
@@ -214,7 +215,7 @@ def test_postgres_schema_7_links_migrate_in_place(principal, admin_principal, tm
                 "UPDATE projection_links SET link_json = %s WHERE record_id = %s",
                 (_v7_link_json(row["link_json"]), row["record_id"]),
             )
-        tx.execute("DELETE FROM schema_migrations WHERE version = 8")
+        tx.execute("DELETE FROM schema_migrations WHERE version >= 8")
     with store._cursor() as cursor:
         assert "target_identity" not in store._projection_link_columns(cursor)
     store.close()
@@ -234,7 +235,7 @@ def test_postgres_schema_7_links_migrate_in_place(principal, admin_principal, tm
                 "target_identity",
             ]
             cursor.execute("SELECT version FROM schema_migrations")
-            assert 8 in {row["version"] for row in cursor.fetchall()}
+            assert 9 in {row["version"] for row in cursor.fetchall()}
         assert len(reopened.list_projection_links(record_id)) == 1
         reopened.close()
 

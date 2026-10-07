@@ -119,6 +119,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-092 | [Graph Campaign Audit Remediation](ADR-092-graph-campaign-audit-remediation.md) | Accepted |
 | ADR-093 | [Graph Intelligence V1 Closure](ADR-093-graph-intelligence-v1-closure.md) | Accepted |
 | ADR-094 | [Product Topology and Release Governance](ADR-094-product-topology-and-release-governance.md) | Accepted |
+| ADR-095 | [Structured Source Invalidation Lifecycle](ADR-095-structured-source-invalidation-lifecycle.md) | Accepted |
 
 ## Validation
 
@@ -128,4 +129,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-094 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-095 ledger and all mandatory sections.

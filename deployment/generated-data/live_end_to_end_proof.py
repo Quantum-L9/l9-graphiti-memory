@@ -5,8 +5,8 @@
 #   layer: repository
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-10-02
 
 from __future__ import annotations
 
@@ -207,12 +207,15 @@ def main() -> int:
             invalidation,
         )
         evidence["invalidation"] = invalidation_response
-        result["invalidation_proven"] = str(invalidation_response.get("status", "")) in {
-            "invalidated",
-            "partially_invalidated",
-            "duplicate",
-            "accepted",
-        }
+        # "applied" alone proves nothing: a zero-match invalidation is a valid
+        # outcome that changed no record. The live proof needs a real
+        # lifecycle transition, retrieval exclusion, historical visibility,
+        # and no deletion (ADR-095).
+        invalidation_applied = (
+            str(invalidation_response.get("status", "")) == "applied"
+            and _positive_int(invalidation_response.get("matched"))
+            and _positive_int(invalidation_response.get("transitioned"))
+        )
         result["deletion_absent"] = invalidation_response.get("deleted") is not True
 
         search_after = invoke(
@@ -233,6 +236,12 @@ def main() -> int:
         )
         evidence["historical"] = historical
         result["historical_evidence_proven"] = record_id in _record_ids(historical)
+        result["invalidation_proven"] = bool(
+            invalidation_applied
+            and result["normal_exclusion_proven"]
+            and result["historical_evidence_proven"]
+            and result["deletion_absent"]
+        )
 
         result["cross_repo_contract_proven"] = True
 
@@ -264,6 +273,10 @@ def main() -> int:
 
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["full_loop_proven"] else 1
+
+
+def _positive_int(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value > 0
 
 
 def _record_ids(payload: Mapping[str, Any]) -> set[str]:

@@ -48,6 +48,18 @@ only adds the optional structured `source_locator` to provenance and evidence
 (ADR-078). Absent stays absent and reads back as `None`; no backfill or store
 rewrite occurs.
 
+## Canonical store schema 9
+
+Store schema 9 (ADR-095) adds `memory_source_selectors`,
+`source_invalidation_events`, and `revalidation_requirements` to SQLite and
+PostgreSQL. The migration runs in place on the first start, inside the
+initialization transaction, and is restart safe. It backfills structured
+source selectors only for governed generated-data records whose
+`invalidation_conditions` map losslessly to `{condition_type, selector}`;
+other records get none. Memory schema stays 2.2.0 and the control-plane
+contract stays `memory-control-plane/v1`. Back up the store first: code older
+than ADR-095 runs on a schema-9 store but no longer maintains its selectors.
+
 ## Projection migration
 
 Canonical v2.2 writes store provider locators in `projection_links`. Legacy provider data may not have stable locators. Inventory legacy episodes before enabling verified deletion. Reproject canonical records through the outbox so every new provider copy receives a tracked locator.
