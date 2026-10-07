@@ -25,7 +25,7 @@ review. It binds exactly one ProductTopology candidate:
 | Coordinate | Value |
 |---|---|
 | ProductTopology | `product-topology.yaml` |
-| Topology digest | `sha256:020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed` |
+| Topology digest | `sha256:2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce` |
 | Global authority | `Quantum-L9/.github@07b0df96fc3008d55a96f804923e2177ff312295` |
 | Global release contract | `l9.contract/product-release@1` |
 

@@ -33,7 +33,7 @@
   },
   "admission": {
     "admission_profile_ref": "l9-graphiti-memory:admission/product-owner-decision@1",
-    "authority_ref": "l9-graphiti-memory:authority/memory-architecture",
+    "authority_ref": "l9.authority/product-admission",
     "consumer_binding": [
       "select_admitted_release",
       "verify_consumer_compatibility",
@@ -103,6 +103,11 @@
   },
   "authority": {
     "files": [
+      {
+        "blob": "34b6767e5145203b67eefb92c869ad6a06021471",
+        "digest": "sha256:6afd6c102c6d1103e6946613bc14674dbd214a5a1c7da4c3fa23b6cbfd175b5e",
+        "path": "semantics/authority_model.yaml"
+      },
       {
         "blob": "323dce7e53a406f0c2b4662e9a093f20cca44322",
         "digest": "sha256:113a782fa494404d6622c68db91f29f41893c27f08fd425cd274e2e908a2fec5",
@@ -429,7 +434,7 @@
       "l9.contract/admission-and-promotion@1"
     ]
   },
-  "manifest_digest": "sha256:88ecb2f43fff348890730cd28f5dee5ff82846c5d3659892d1b916cee3f13281",
+  "manifest_digest": "sha256:05feb850648f0d42b24f7317f1e13abe73301b4cbbec5d50db2d36c067f7dafe",
   "observability": {
     "audit_requirement_refs": [],
     "capability_metrics": [],
@@ -471,8 +476,12 @@
     "derivation": "deterministic",
     "inputs": [
       {
-        "digest": "sha256:020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed",
+        "digest": "sha256:2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce",
         "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
+      },
+      {
+        "digest": "sha256:6afd6c102c6d1103e6946613bc14674dbd214a5a1c7da4c3fa23b6cbfd175b5e",
+        "ref": "Quantum-L9/.github/semantics/authority_model.yaml@34b6767e5145203b67eefb92c869ad6a06021471"
       },
       {
         "digest": "sha256:113a782fa494404d6622c68db91f29f41893c27f08fd425cd274e2e908a2fec5",
@@ -763,7 +772,7 @@
     "trust_source_refs": []
   },
   "source_topology": {
-    "digest": "sha256:020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed",
+    "digest": "sha256:2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce",
     "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
   },
   "state": {

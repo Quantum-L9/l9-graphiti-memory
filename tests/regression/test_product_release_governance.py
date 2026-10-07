@@ -65,6 +65,7 @@ def test_decision_and_binding_name_the_committed_topology_digest() -> None:
         == DECISION.relative_to(REPO_ROOT).as_posix()
     )
     topology = yaml.safe_load(TOPOLOGY.read_text(encoding="utf-8"))
+    assert topology["admission"]["authority_ref"] == "l9.authority/product-admission"
     assert (
         binding["global_release_contract"]["ref"]
         in topology["distribution"]["release_contract_refs"]
