@@ -18,9 +18,12 @@ import pytest
 
 from l9_graphite_memory.authz.signed_assertion import (
     agent_grant_from_config,
+    identity_assertion_hmac,
+    local_assertion_digest,
     mint_assertion,
     signing_keys_from_config,
     verify_assertion,
+    verify_canonical_identity_assertion,
 )
 from l9_graphite_memory.errors import AuthenticationError
 
@@ -233,3 +236,209 @@ def test_the_door_fails_closed_where_verify_assertion_alone_raises_typeerror() -
 
     with pytest.raises(AuthenticationError, match="must be a non-empty string"):
         signing_keys_from_config({_AGENT: 5})
+
+
+# ---------------------------------------------------------------------------
+# Canonical identity assertion (local interop digest + HMAC)
+#
+# The digest and HMAC below are the shared golden vector with
+# Cursor-Governance. A change to either algorithm must fail both repositories.
+# ---------------------------------------------------------------------------
+
+GOLDEN_KEY = "golden-identity-hmac-key"
+GOLDEN_DIGEST = "sha256:8c72474b8c0a21b465ec6d8971217455754b89008fcd61c88d51fecc47af816f"
+GOLDEN_HMAC = "a937237875b4b8b3c3ed51ec151383806480c03da8e4e8606c8fc69435373b2e"
+_ACTOR = "l9.actor-registry/global@1#claude-code"
+_SURFACE = "l9.surface-registry/global@1#claude-code-cli"
+
+
+def _golden_body() -> dict:
+    return {
+        "schema": "l9.identity-assertion/v1",
+        "subject_ref": _ACTOR,
+        "product_ref": "l9-graphiti-memory:product/l9-graphite-memory",
+        "resolved_dimensions": {
+            "actor_identity": _ACTOR,
+            "constellation_identity": "unknown",
+            "release_identity": "unknown",
+            "runtime_identity": "unknown",
+            "surface_identity": _SURFACE,
+        },
+        "bindings": [
+            "l9.cursor-governance/identity-binding@1",
+            "l9.cursor-governance/agent-bindings@2#claude-code",
+        ],
+        "evidence_refs": [
+            "l9.projection/cursor-governance-identity@1",
+            "l9.cursor-governance/identity-binding@1",
+            "l9.cursor-governance/agent-bindings@2#claude-code",
+        ],
+        "resolver_ref": "l9.cursor-governance/resolver/runtime-agent-identity@1",
+        "governing_coordinates": {
+            "actor_registry_digest": (
+                "sha256:34fbe4abc246e21c28401941025317be52c109c88335577616a2648cc93c6f6f"
+            ),
+            "agent_bindings_ref": "l9.cursor-governance/agent-bindings@2",
+            "global_identity_authority_revision": "07b0df96fc3008d55a96f804923e2177ff312295",
+            "identity_binding_ref": "l9.cursor-governance/identity-binding@1",
+            "identity_projection_digest": (
+                "sha256:489195262a26195a649170c63145f6ad317a99eb082bf360444164ad3ef5a667"
+            ),
+            "identity_projection_ref": "l9.projection/cursor-governance-identity@1",
+            "surface_registry_digest": (
+                "sha256:d7200409ff02141a274ff8c9221d31429f6a6fae27539e6d9c8d20f1a6eba988"
+            ),
+        },
+        "result": "resolved",
+        "provenance": {
+            "runtime_evidence_digest": (
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            )
+        },
+    }
+
+
+def _sealed(body: dict | None = None, *, key: str = GOLDEN_KEY) -> tuple[dict, str]:
+    payload = _golden_body() if body is None else body
+    digest = local_assertion_digest(payload)
+    sealed = dict(payload)
+    sealed["assertion_digest"] = digest
+    return sealed, identity_assertion_hmac(digest, key)
+
+
+def _verify(
+    body: dict | None = None,
+    *,
+    agent_id: str = "claude-code",
+    key: str = GOLDEN_KEY,
+    hmac_hex: str | None = None,
+):
+    sealed, mac = _sealed(body, key=key)
+    return verify_canonical_identity_assertion(
+        sealed,
+        supplied_hmac=hmac_hex if hmac_hex is not None else mac,
+        agent_id=agent_id,
+        signing_key=key,
+    )
+
+
+def test_golden_identity_digest_and_hmac_vector() -> None:
+    body = _golden_body()
+    assert local_assertion_digest(body) == GOLDEN_DIGEST
+    sealed, mac = _sealed(body)
+    assert sealed["assertion_digest"] == GOLDEN_DIGEST
+    assert mac == GOLDEN_HMAC
+    parsed = _verify(body)
+    assert parsed.schema_name == "l9.identity-assertion/v1"
+    assert parsed.resolved_dimensions.actor_identity == _ACTOR
+    assert parsed.resolved_dimensions.surface_identity == _SURFACE
+
+
+def test_identity_digest_is_independent_of_key_order() -> None:
+    body = _golden_body()
+    reversed_body = {key: body[key] for key in reversed(tuple(body))}
+    assert local_assertion_digest(reversed_body) == GOLDEN_DIGEST
+
+
+def test_authentication_token_wire_format_is_unchanged(monkeypatch) -> None:
+    """The signed-agent token stays ``agent_id.exp.nonce.hexsig`` over ``agent|exp|nonce``."""
+
+    monkeypatch.setattr(
+        "l9_graphite_memory.authz.signed_assertion.time.time", lambda: 1_700_000_000
+    )
+    monkeypatch.setattr(
+        "l9_graphite_memory.authz.signed_assertion.os.urandom",
+        lambda _n: bytes.fromhex("ab" * 16),
+    )
+    token = mint_assertion("claude-code", GOLDEN_KEY, ttl_seconds=3600)
+    assert token == (
+        "claude-code.1700003600.abababababababababababababababab."
+        "16b37add9b79e72250b4560ea23571d3340a9959208e4e13598c898014f663c4"
+    )
+    assert verify_assertion(token, {"claude-code": GOLDEN_KEY}) == "claude-code"
+
+
+@pytest.mark.parametrize("result", ["unknown", "ambiguous", "invalid"])
+def test_unresolved_identity_result_is_rejected(result: str) -> None:
+    body = _golden_body()
+    body["result"] = result
+    with pytest.raises(AuthenticationError, match=f"result is {result}"):
+        _verify(body)
+
+
+def test_invalid_global_schema_is_rejected() -> None:
+    body = _golden_body()
+    body["schema"] = "l9.identity-assertion/v0"
+    with pytest.raises(AuthenticationError, match="invalid global schema"):
+        _verify(body)
+
+
+def test_assertion_digest_mismatch_is_rejected() -> None:
+    sealed, mac = _sealed()
+    sealed["assertion_digest"] = "sha256:" + "0" * 64
+    with pytest.raises(AuthenticationError, match="digest mismatch"):
+        verify_canonical_identity_assertion(
+            sealed, supplied_hmac=mac, agent_id="claude-code", signing_key=GOLDEN_KEY
+        )
+
+
+def test_assertion_hmac_mismatch_is_rejected() -> None:
+    with pytest.raises(AuthenticationError, match="HMAC mismatch"):
+        _verify(hmac_hex="0" * 64)
+
+
+def test_wrong_product_ref_is_rejected() -> None:
+    body = _golden_body()
+    body["product_ref"] = "l9-graphiti-memory:product/other"
+    with pytest.raises(AuthenticationError, match="product_ref"):
+        _verify(body)
+
+
+def test_actor_prefix_must_be_the_global_registry() -> None:
+    body = _golden_body()
+    body["subject_ref"] = "claude-code"
+    body["resolved_dimensions"] = {**body["resolved_dimensions"], "actor_identity": "claude-code"}
+    with pytest.raises(AuthenticationError, match="wrong coordinate prefix"):
+        _verify(body)
+
+
+def test_actor_fragment_must_match_authenticated_agent() -> None:
+    with pytest.raises(AuthenticationError, match="authenticated agent_id"):
+        _verify(agent_id="codex")
+
+
+def test_subject_ref_must_equal_actor_identity() -> None:
+    body = _golden_body()
+    body["subject_ref"] = "l9.actor-registry/global@1#codex"
+    with pytest.raises(AuthenticationError, match="subject_ref differs"):
+        _verify(body)
+
+
+def test_malformed_surface_coordinate_is_rejected() -> None:
+    body = _golden_body()
+    body["resolved_dimensions"] = {
+        **body["resolved_dimensions"],
+        "surface_identity": "claude-code-cli",
+    }
+    with pytest.raises(AuthenticationError, match="malformed surface"):
+        _verify(body)
+
+
+def test_unknown_surface_is_accepted() -> None:
+    body = _golden_body()
+    body["resolved_dimensions"] = {**body["resolved_dimensions"], "surface_identity": "unknown"}
+    parsed = _verify(body)
+    assert parsed.resolved_dimensions.surface_identity == "unknown"
+
+
+def test_identity_assertion_roles_are_not_authorization() -> None:
+    """A valid assertion may carry injected role or namespace claims. They grant nothing."""
+
+    body = _golden_body()
+    body["roles"] = ["admin"]
+    body["write_namespaces"] = ["stolen"]
+    parsed = _verify(body)
+    assert not hasattr(parsed, "roles") or "roles" not in parsed.model_fields_set
+    dumped = parsed.model_dump()
+    assert "roles" not in dumped
+    assert "write_namespaces" not in dumped

@@ -37,6 +37,7 @@ from l9_graphite_memory.authz.signed_assertion import (
     agent_grant_from_config,
     signing_keys_from_config,
     verify_assertion,
+    verify_canonical_identity_assertion,
 )
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
@@ -197,9 +198,15 @@ def _agent_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
     """Tier 2 — a signed agent assertion verified against a configured key.
 
     ``L9_MEMORY_AGENTS_DOOR_SECRET`` being set makes every other variable
-    mandatory: a half-configured door fails loudly rather than falling through
-    to the weaker local fallback, which would be a silent downgrade of the
-    trust model.
+    mandatory, including the canonical identity assertion and its HMAC. A
+    half-configured door fails loudly rather than falling through to the
+    weaker local fallback, which would be a silent downgrade of the trust
+    model.
+
+    Order: verify the signed-agent token, then the canonical identity
+    assertion against that agent's key, then load the grant. The identity
+    assertion is evidence that the actor resolution matches the authenticated
+    agent id. It does not grant roles or namespaces.
     """
 
     if not os.environ.get("L9_MEMORY_AGENTS_DOOR_SECRET", "").strip():
@@ -216,6 +223,15 @@ def _agent_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
         )
     )
     agent_id = verify_assertion(assertion, keys_by_agent_id)
+    verify_canonical_identity_assertion(
+        _json_object(
+            _agents_door_env("L9_MEMORY_IDENTITY_ASSERTION_JSON"),
+            "L9_MEMORY_IDENTITY_ASSERTION_JSON",
+        ),
+        supplied_hmac=_agents_door_env("L9_MEMORY_IDENTITY_ASSERTION_HMAC"),
+        agent_id=agent_id,
+        signing_key=keys_by_agent_id[agent_id],
+    )
 
     grants_map = _json_object(
         _agents_door_env("L9_MEMORY_AGENT_GRANTS_JSON"),

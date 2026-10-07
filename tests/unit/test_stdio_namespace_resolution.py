@@ -30,7 +30,11 @@ from typing import Any
 import pytest
 
 from l9_graphite_memory.adapters import InMemoryRecordStore, NullProjection
-from l9_graphite_memory.authz.signed_assertion import mint_assertion
+from l9_graphite_memory.authz.signed_assertion import (
+    identity_assertion_hmac,
+    local_assertion_digest,
+    mint_assertion,
+)
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
 from l9_graphite_memory.mcp_tools import MCPToolApplication
@@ -299,6 +303,27 @@ def signed_agent(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "open-sesame")
     monkeypatch.setenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", json.dumps({agent_id: key}))
     monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", mint_assertion(agent_id, key))
+    actor = f"l9.actor-registry/global@1#{agent_id}"
+    identity = {
+        "schema": "l9.identity-assertion/v1",
+        "subject_ref": actor,
+        "product_ref": "l9-graphiti-memory:product/l9-graphite-memory",
+        "resolved_dimensions": {
+            "release_identity": "unknown",
+            "runtime_identity": "unknown",
+            "constellation_identity": "unknown",
+            "actor_identity": actor,
+            "surface_identity": "unknown",
+        },
+        "evidence_refs": ["l9.projection/cursor-governance-identity@1"],
+        "resolver_ref": "l9.cursor-governance/resolver/runtime-agent-identity@1",
+        "governing_coordinates": {},
+        "result": "resolved",
+    }
+    digest = local_assertion_digest(identity)
+    identity["assertion_digest"] = digest
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_JSON", json.dumps(identity))
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_HMAC", identity_assertion_hmac(digest, key))
     monkeypatch.setenv(
         "L9_MEMORY_AGENT_GRANTS_JSON",
         json.dumps(
