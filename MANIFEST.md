@@ -537,7 +537,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 13197 | `f61f66d7001904db06e1819b27d9a47bb4a5faa9f0b2ac6ab348e9257b0c104e` |
 | `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 85535 | `8f6092580978f3b8e7be079658ef6ba5dafc694cdaed41f75daa9f677854760a` |
 | `src/l9_graphite_memory/services/outbox_worker.py` | `production_source` | `service` | 29716 | `173423f9b25b8b54721d6bc00f13ec0e071be725bd4e23235e8e77354040e05d` |
-| `src/l9_graphite_memory/transport.py` | `production_source` | `package` | 13622 | `75643012b7b55852c86b1c0b5f7a7b8cccca8480037494d12c1e8c5fb111a351` |
+| `src/l9_graphite_memory/transport.py` | `production_source` | `package` | 13685 | `7cf9380808ea4fbbcc87bcb9559c16a4895311cbed285b7a84b03cd542a90607` |
 | `src/l9_graphite_memory/trust_boundary.py` | `production_source` | `package` | 2883 | `0204be3016103469ec5b41799400d6ce2f9d77e32eafc754f78f675f63b51089` |
 | `src/l9_graphite_memory/version.py` | `production_source` | `package` | 1309 | `f37072b1ee4c87ed579ebc498e26cf58b962013b3594391ed3b124a53c953c51` |
 | `src/l9_graphite_memory/zep_transport.py` | `production_source` | `package` | 8688 | `a416084ad396cffec087c08e18bb7b810529ca7c0336462db9cfede50ece617e` |
@@ -673,7 +673,7 @@ updated: 2026-07-22
 | `tests/regression/test_product_release_governance.py` | `tests` | `test` | 5179 | `099706cd7e349e73cb988793827900750425cf93c88c458d7918c57d398e1347` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `test` | 1699 | `b00c392c218b7cbda7adf9fbf5d436a73a796547b43aab926111b49e238a5ac0` |
 | `tests/regression/test_release_shell.py` | `tests` | `test` | 12603 | `a7f810114e8538da25e6aec7bcc37baab8a716db8dac10e723878daec32e3d71` |
-| `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 3615 | `ab47feb671b645fcafb0181c85a5a2da73b9093564d49965a8b40e0b5740e951` |
+| `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 4150 | `69b0e55d10ec0eab657ff6247ed42cb930c01059e914eb80ae1f81c816e6177f` |
 | `tests/regression/test_skill_pack.py` | `tests` | `test` | 1031 | `9c4348e93021b99d60e6b74e0a115dce2ccf52e2ad25eb3c11891b3ab4d9c61b` |
 | `tests/security/test_graph_cutover.py` | `tests` | `test` | 11448 | `3900ec27ba42e2a450655efd6a75e61bd2731cf4b71360d12842ad94de0c7d13` |
 | `tests/security/test_graph_tenant_isolation.py` | `tests` | `test` | 9145 | `1106e5a75a2ba8625deca688138bb532a4db94c803bec2fec828e98eed38a7b7` |
@@ -715,7 +715,7 @@ updated: 2026-07-22
 | `tests/unit/test_graphiti_projection_episode_identity.py` | `tests` | `test` | 8391 | `65c4e9b8328294d015e938950369f551edee3d71ecd50ea7120d9222142e3d64` |
 | `tests/unit/test_group_resolver.py` | `tests` | `test` | 3503 | `27b40124f42234a9d7c53cde89cab244b87503d9c685521ffa09c23338418896` |
 | `tests/unit/test_http_mcp_request_injection.py` | `tests` | `test` | 3138 | `f03ad77579f9d76ee58ce0d3e94cc0b0d0a17789718cc0391c82130d3d6b9b66` |
-| `tests/unit/test_http_mcp_transport_wire.py` | `tests` | `test` | 5995 | `3c7b020390a024eef3e69123cb55d695c485c08489053ae9466a3abfa2e9eea5` |
+| `tests/unit/test_http_mcp_transport_wire.py` | `tests` | `test` | 6284 | `9d0e553f583cdfdc2c918c718d7779616e634fd07eab456691d8533f35f85c90` |
 | `tests/unit/test_http_transport_dialect.py` | `tests` | `test` | 1582 | `b903e799b4ac9b269e901f81857f89cd29f4fad72f968e47e951e842a5e0713f` |
 | `tests/unit/test_ingestion.py` | `tests` | `test` | 852 | `1ffd2c304764e6c96267741719019d71f01475dfd431dd8485848a3cc90f753a` |
 | `tests/unit/test_maintenance_authority.py` | `tests` | `test` | 5092 | `5f27e53dd2878b686d5971d380305c0ae654881091f5d1fe2ae4b4bf570a0e7b` |

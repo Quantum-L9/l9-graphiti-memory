@@ -23,6 +23,7 @@ from typing import Any, Protocol
 from l9_graphite_memory.circuit_breaker import CircuitBreaker
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.rate_limiter import RateLimiter
+from l9_graphite_memory.version import PACKAGE_VERSION
 
 
 class MemoryTransport(Protocol):
@@ -148,7 +149,7 @@ class HttpMcpTransport:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "l9-graphite-memory", "version": "2.2.0"},
+                    "clientInfo": {"name": "l9-graphite-memory", "version": PACKAGE_VERSION},
                 },
             }
             try:

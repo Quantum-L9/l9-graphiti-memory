@@ -58,6 +58,14 @@ def test_release_version_is_written_identically_everywhere() -> None:
         "preflight.sh": _preflight_version(),
     }
     assert len(set(seen.values())) == 1, seen
+    # The provider initialize handshake reports the running release. A literal
+    # there survived the 2.3.0-2.5.0 bumps unnoticed, so the wire identity must
+    # come from PACKAGE_VERSION rather than be one more carrier to keep in sync.
+    transport = (REPO_ROOT / "src" / "l9_graphite_memory" / "transport.py").read_text(
+        encoding="utf-8"
+    )
+    assert '"clientInfo": {"name": "l9-graphite-memory", "version": PACKAGE_VERSION}' in transport
+    assert not re.search(r'"clientInfo":\s*\{[^}]*"version":\s*"', transport)
 
 
 def _preflight_version() -> str:

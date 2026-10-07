@@ -414,7 +414,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "d15e2712cd872bbbddf93fcd1a76527ed3c0f18592863fe5bb3ab0951046874f",
+      "sha256": "158d6f87bf332090eee2e440c6285198870d185e301af75c851774cc82146b59",
       "size_bytes": 135947
     },
     {
@@ -7758,8 +7758,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/transport.py",
-      "sha256": "75643012b7b55852c86b1c0b5f7a7b8cccca8480037494d12c1e8c5fb111a351",
-      "size_bytes": 13622
+      "sha256": "7cf9380808ea4fbbcc87bcb9559c16a4895311cbed285b7a84b03cd542a90607",
+      "size_bytes": 13685
     },
     {
       "category": "production_source",
@@ -9934,8 +9934,8 @@
         "version": "2.5.0"
       },
       "path": "tests/regression/test_release_version_consistency.py",
-      "sha256": "ab47feb671b645fcafb0181c85a5a2da73b9093564d49965a8b40e0b5740e951",
-      "size_bytes": 3615
+      "sha256": "69b0e55d10ec0eab657ff6247ed42cb930c01059e914eb80ae1f81c816e6177f",
+      "size_bytes": 4150
     },
     {
       "category": "tests",
@@ -10606,8 +10606,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_http_mcp_transport_wire.py",
-      "sha256": "3c7b020390a024eef3e69123cb55d695c485c08489053ae9466a3abfa2e9eea5",
-      "size_bytes": 5995
+      "sha256": "9d0e553f583cdfdc2c918c718d7779616e634fd07eab456691d8533f35f85c90",
+      "size_bytes": 6284
     },
     {
       "category": "tests",
