@@ -332,7 +332,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-091-graphiti-episode-identity-and-live-qualification.md` | `architecture_decisions` | `adr` | 6723 | `69cf563cf48ab7fcb62e7a63ed9e41576ac38eb725dee4c54d64fe976364dd71` |
 | `docs/adr/ADR-092-graph-campaign-audit-remediation.md` | `architecture_decisions` | `adr` | 11301 | `35da47486c227eda8fe29f3db040b7ce9d67a5c2ec16164f73c54f1bb8680ffe` |
 | `docs/adr/ADR-093-graph-intelligence-v1-closure.md` | `architecture_decisions` | `adr` | 13762 | `eeb3b18af5ad4e8e0e245d0ea97bd6edfd3a30b2c19635b1c283b422a9dbd756` |
-| `docs/adr/ADR-094-product-topology-and-release-governance.md` | `architecture_decisions` | `adr` | 10309 | `c57421af0b762e3ea21ff1e15d0c860e0846fedb0754be8e33cafb538919c40c` |
+| `docs/adr/ADR-094-product-topology-and-release-governance.md` | `architecture_decisions` | `adr` | 10309 | `17db67fb2a9498a363177ab6b8d9e163601027a27bca5ad50306df83ac1b3809` |
 | `docs/adr/README.md` | `architecture_decisions` | `adr` | 11723 | `659e800ed41c3d6fac3f964e3256325cf3bb1b39f8c0ea641fb945f3fc4c07f2` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
@@ -356,12 +356,12 @@ updated: 2026-07-22
 | `hooks/graphiti-session-end.sh` | `hooks` | `hook` | 1591 | `78101e683885431565db87f8d81aef59cece7308f4d5045d86cef5fe9ff3d91a` |
 | `hooks/graphiti_common.sh` | `hooks` | `hook` | 1345 | `76ee5c40245b76f699fc5d6ec767a570da4b376ce9d61b59f5fa8e1ad7b3c71d` |
 | `hooks/graphiti_gate_runner.sh` | `hooks` | `hook` | 880 | `58203955f07dd049ed12c117f13405c7b651aa4f8d8df099a2e698d8a4e7174a` |
-| `product-topology.yaml` | `repository_root` | `repository` | 29219 | `020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed` |
+| `product-topology.yaml` | `repository_root` | `repository` | 29446 | `2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce` |
 | `pyproject.toml` | `repository_root` | `repository` | 6059 | `2e71128c73b4372c1b2409e29cbd00c33e1b69931c2147ab68410e21c004ab70` |
 | `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository` | 5732 | `28e993329fca424d3ede848f45d96a8cb335162388ce5036fa24cf6f3445e95b` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
-| `release-work/product-manifest.json` | `repository_root` | `repository` | 30354 | `d22ea5826bbcd8ddbdab83bcf87e9eea2c72a9a063ee2da490ce6ed96769c317` |
-| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 5854 | `42671980028a9cbd3d4dc8f3880bf76ffb9b35c41cf061b2ba47293eb28a0ba2` |
+| `release-work/product-manifest.json` | `repository_root` | `repository` | 30773 | `64dcb6af2ca3c810afd7d4c279ba65000e72a952c4d8ed8cf5b91df4f653420b` |
+| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 6036 | `83d296a14bca84acb07ea5185e96592586fb9210ad995fecd219be3de52c59f7` |
 | `release-work/repository-review/INDEX.md` | `repository_root` | `repository` | 2788 | `f24c6e0168fc6eec88116f0ba97d85a55b3cba612c459229f9ab664e60a5846f` |
 | `release-work/repository-review/architecture-summary.md` | `repository_root` | `repository` | 7798 | `a2568d87dbb6baf9c3aef5901ebfaa96ccbf7332c7e1761420ebefc4784fc243` |
 | `release-work/repository-review/authority-map.md` | `repository_root` | `repository` | 6048 | `71208da6337ec2934955f2b2bd34d7516d698956bd93c173c03f2f3b20510109` |
@@ -667,7 +667,7 @@ updated: 2026-07-22
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `test` | 4320 | `4ab10fdc1eee8035396984f6960aaaf80100aa6206778a6090d878e1142c6615` |
 | `tests/regression/test_l9_meta_assurance.py` | `tests` | `test` | 17453 | `1a40dc95e93b550455e04fee79139cc50f22ccbd64d2bcfee412a49dfca8a8ef` |
 | `tests/regression/test_phase6_operator.py` | `tests` | `test` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
-| `tests/regression/test_product_release_governance.py` | `tests` | `test` | 5093 | `fbda3139d0a4798fae92809fb2ec42938e229b8f8cd742b6602b73d33c2f6490` |
+| `tests/regression/test_product_release_governance.py` | `tests` | `test` | 5179 | `099706cd7e349e73cb988793827900750425cf93c88c458d7918c57d398e1347` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `test` | 1699 | `b00c392c218b7cbda7adf9fbf5d436a73a796547b43aab926111b49e238a5ac0` |
 | `tests/regression/test_release_shell.py` | `tests` | `test` | 12603 | `a7f810114e8538da25e6aec7bcc37baab8a716db8dac10e723878daec32e3d71` |
 | `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 3615 | `ab47feb671b645fcafb0181c85a5a2da73b9093564d49965a8b40e0b5740e951` |
@@ -770,7 +770,7 @@ updated: 2026-07-22
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `abb8d5db05f4bb64ffc475f6b3af28019acd05fa2373df08dc4e327f2c395339` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2404 | `b7134c65005e4a92ce485b1a1cb582af8a0a0f29931516c3e7493e7373309088` |
-| `tools/assurance/validate_product_topology.py` | `assurance` | `assurance` | 12036 | `2e28a5a91374775c2527f2e11c431f1dad395c110e31b57ebc859256fb76cbe4` |
+| `tools/assurance/validate_product_topology.py` | `assurance` | `assurance` | 12069 | `f728d52406eda85f5a24bdce3caf8c251e1ba51221c627dbca2916d2e15a334f` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2468 | `ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5` |
 | `tools/ci/nightly_maintenance_gate.py` | `assurance` | `assurance` | 3719 | `d67da58aa0c52c21434fdb309d8b4498dcf1e27b563675f43b6cd12c7a108cbb` |
 | `tools/phase6/AGENT_EXECUTION_PROMPT.md` | `assurance` | `repository` | 2506 | `05e1399a3e37cb652198efb42b259c69db003cfaf7917114d0756118e3909009` |

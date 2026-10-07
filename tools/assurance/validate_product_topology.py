@@ -30,7 +30,7 @@ are the ones the bound law states mechanically:
 * every ``Quantum-L9/l9-graphiti-memory/<path>`` reference names a file in
   this repository;
 * ``provenance`` pins the authority checkout's HEAD revision and the git blob
-  ids of the four material authority files exactly as read;
+  ids of the material authority files exactly as read;
 * every ``unknown`` value is backed by a declared material Unknown.
 
 Product-owned ``l9-graphiti-memory:`` identifiers are owned by this
@@ -55,6 +55,7 @@ import yaml
 REPO_PREFIX = "Quantum-L9/l9-graphiti-memory/"
 MATERIAL_AUTHORITY_FILES = (
     "semantics/contracts.yaml",
+    "semantics/authority_model.yaml",
     "semantics/product_topology.schema.yaml",
     "semantics/product_kinds.yaml",
     "semantics/dependency_archetypes.yaml",

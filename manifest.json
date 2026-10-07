@@ -414,7 +414,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "d8afa67cb848e434a8e262f9f9965846e4d72b892a08a5b81338a701f1e49174",
+      "sha256": "2f67dc848c319be3924331ec3295b30649c5960e109ee60769325cc68b1c0865",
       "size_bytes": 135314
     },
     {
@@ -4478,7 +4478,7 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/ADR-094-product-topology-and-release-governance.md",
-      "sha256": "c57421af0b762e3ea21ff1e15d0c860e0846fedb0754be8e33cafb538919c40c",
+      "sha256": "17db67fb2a9498a363177ab6b8d9e163601027a27bca5ad50306df83ac1b3809",
       "size_bytes": 10309
     },
     {
@@ -4862,8 +4862,8 @@
         "version": "2.5.0"
       },
       "path": "product-topology.yaml",
-      "sha256": "020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed",
-      "size_bytes": 29219
+      "sha256": "2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce",
+      "size_bytes": 29446
     },
     {
       "category": "repository_root",
@@ -4926,8 +4926,8 @@
         "version": "2.5.0"
       },
       "path": "release-work/product-manifest.json",
-      "sha256": "d22ea5826bbcd8ddbdab83bcf87e9eea2c72a9a063ee2da490ce6ed96769c317",
-      "size_bytes": 30354
+      "sha256": "64dcb6af2ca3c810afd7d4c279ba65000e72a952c4d8ed8cf5b91df4f653420b",
+      "size_bytes": 30773
     },
     {
       "category": "repository_root",
@@ -4942,8 +4942,8 @@
         "version": "2.5.0"
       },
       "path": "release-work/product-release-binding.yaml",
-      "sha256": "42671980028a9cbd3d4dc8f3880bf76ffb9b35c41cf061b2ba47293eb28a0ba2",
-      "size_bytes": 5854
+      "sha256": "83d296a14bca84acb07ea5185e96592586fb9210ad995fecd219be3de52c59f7",
+      "size_bytes": 6036
     },
     {
       "category": "repository_root",
@@ -9838,8 +9838,8 @@
         "version": "2.5.0"
       },
       "path": "tests/regression/test_product_release_governance.py",
-      "sha256": "fbda3139d0a4798fae92809fb2ec42938e229b8f8cd742b6602b73d33c2f6490",
-      "size_bytes": 5093
+      "sha256": "099706cd7e349e73cb988793827900750425cf93c88c458d7918c57d398e1347",
+      "size_bytes": 5179
     },
     {
       "category": "tests",
@@ -11486,8 +11486,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/validate_product_topology.py",
-      "sha256": "2e28a5a91374775c2527f2e11c431f1dad395c110e31b57ebc859256fb76cbe4",
-      "size_bytes": 12036
+      "sha256": "f728d52406eda85f5a24bdce3caf8c251e1ba51221c627dbca2916d2e15a334f",
+      "size_bytes": 12069
     },
     {
       "category": "assurance",
