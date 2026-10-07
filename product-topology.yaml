@@ -368,15 +368,13 @@ bindings:
       adapter_ref: l9-graphiti-memory:adapter/graphiti-mcp-projection@1
       target_state: active
       manifest: config/projections/facts-v8.yaml
-      technology_ref: unknown
-      unknown_ref: MU-002
+      technology_ref: graphiti-mcp
     - target_id: facts:v8:zep:primary
       adapter_ref: l9-graphiti-memory:adapter/zep-projection@1
       target_state: shadow
       manifest: config/projections/facts-v8.yaml
       rule: shadow results are measured only and never change returned canonical retrieval
-      technology_ref: unknown
-      unknown_ref: MU-002
+      technology_ref: zep
 providers:
   allowed:
     - id: graphiti_mcp
@@ -612,10 +610,10 @@ operations:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-022-release-publishing-and-rollback.md
     - Quantum-L9/l9-graphiti-memory/deployment/generated-data/rollback-runbook.md
 provenance:
-  authority_ref: Quantum-L9/.github@3eaa094be0b1ec74944e832887aa1752c818fc11
+  authority_ref: Quantum-L9/.github@c1d87abe00e31a2b06bda607afe54ea16bfadd77
   source_revision: Quantum-L9/l9-graphiti-memory@2f5f1b4ccfec09c63c8757cd8267641aef189976
   source_refs:
-    - Quantum-L9/.github/semantics/contracts.yaml@ac416e943545caeb6a624141ccca43277db90ebd
+    - Quantum-L9/.github/semantics/contracts.yaml@a8170aae86b617f83bb4afd8592b3684b8a166b1
     - Quantum-L9/.github/semantics/product_topology.schema.yaml@4fd2856bdf84c10a55a4be7e8519848c22c2bdbf
     - Quantum-L9/.github/semantics/product_kinds.yaml@8e5aa829df8e00f89286d99ec8d9529e5da63805
     - Quantum-L9/.github/semantics/dependency_archetypes.yaml@b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a
@@ -630,16 +628,6 @@ unknowns:
         - l9.dependency-archetypes/global@1
         - l9.conformance-model/global@1
         - l9.contract/conformance-resolution@1
-      blocks:
-        - resolved_product_manifest
-        - release_progression
-    - id: MU-002
-      subject: bindings.provider_bindings[*].technology_ref
-      result: unresolved
-      reason: No technology coordinate for the Graphiti MCP or Zep provider realizations is admitted in technology_capabilities.yaml; an unknown provider capability is unsupported until resolved.
-      governing_refs:
-        - l9.binding-catalog/global@1
-        - l9.contract/technology-binding@1
       blocks:
         - resolved_product_manifest
         - release_progression
@@ -665,4 +653,3 @@ unknowns:
         - l9.product-kinds/global@1
   resolution_requirement_refs:
     - l9.contract/conformance-resolution@1
-    - l9.contract/technology-binding@1

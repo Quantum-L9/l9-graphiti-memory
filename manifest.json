@@ -46,7 +46,7 @@
         "version": "2.5.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "6c676a51c2aa7418f0f2686d165152cabbdf9b88297434cf84aa64d0258a1ba3",
+      "sha256": "158181984f87d3590a6eb8ee89153a739940597cb3589dd12f44536f37ddc5a0",
       "size_bytes": 10381
     },
     {
@@ -398,7 +398,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "7d4e12961bdd6055098bacf39101c3dff4ffc9af1cc8438090b3d0f403e4c122",
+      "sha256": "e953521dfab2e53c44a51a4c68a90fb37b58553a287200da8a4bbf2267f0be28",
       "size_bytes": 126329
     },
     {
@@ -4318,8 +4318,8 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/ADR-085-product-topology-and-release-governance.md",
-      "sha256": "2e139a8c1160910d5148f02675a1aa6981c027499503905ddba188eda02ada02",
-      "size_bytes": 10145
+      "sha256": "686357f79489d5ab0d8e9ccdab23043aaca8b1c7858bc0470b6a4784d3f6628a",
+      "size_bytes": 10309
     },
     {
       "category": "architecture_decisions",
@@ -4622,8 +4622,8 @@
         "version": "2.5.0"
       },
       "path": "product-topology.yaml",
-      "sha256": "4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104",
-      "size_bytes": 29790
+      "sha256": "de0db8877ca2925c63efd8b01dc77f13a3c8b68b0b54be6a7f9c4b84ca1cb360",
+      "size_bytes": 29219
     },
     {
       "category": "repository_root",
@@ -4686,8 +4686,8 @@
         "version": "2.5.0"
       },
       "path": "release-work/product-manifest.json",
-      "sha256": "ca6c5e182be0ce49b2a4ddc939461a22d3c18e7535c253da85476be32b96831e",
-      "size_bytes": 31116
+      "sha256": "8dad0ebe6a3d40b8f7d4d7e46e937cf5c7b012b864dac0e4db39fa9284d30da2",
+      "size_bytes": 30354
     },
     {
       "category": "repository_root",
@@ -4702,8 +4702,8 @@
         "version": "2.5.0"
       },
       "path": "release-work/product-release-binding.yaml",
-      "sha256": "abcbdf6402463f44068ca904a22e70b938cf24611ce62b93ff77a5080f4651ac",
-      "size_bytes": 6157
+      "sha256": "ce8ff338447392788c584aa2359cd72f2926df8a7b66244fd25026930448aa21",
+      "size_bytes": 5854
     },
     {
       "category": "repository_root",

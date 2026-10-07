@@ -56,7 +56,7 @@ updated: 2026-07-22
 |---|---|---|---:|---|
 | `.github/issues.json` | `ci` | `ci` | 5755 | `23cbdff3ae0c9491c419771321766af4f510cd954dc671404994e7c7e3771d28` |
 | `.github/labels.json` | `ci` | `ci` | 1530 | `3e30b86079a28b0ca4b7e704c436f4e4364ea084465b35d5a5f039ec0c8827fd` |
-| `.github/workflows/ci.yml` | `ci` | `ci` | 10381 | `6c676a51c2aa7418f0f2686d165152cabbdf9b88297434cf84aa64d0258a1ba3` |
+| `.github/workflows/ci.yml` | `ci` | `ci` | 10381 | `158181984f87d3590a6eb8ee89153a739940597cb3589dd12f44536f37ddc5a0` |
 | `.github/workflows/codeql.yml` | `ci` | `ci` | 589 | `5366c6d30a7c4b66b898ae32737c99d7520351f1d9196079d1ab7ac13e5c33bf` |
 | `.github/workflows/nightly-maintenance.yml` | `ci` | `ci` | 5140 | `0626627b16523ced1bfdf6f13271a434e92a2c0138b862a2ff5ccfb15db41d48` |
 | `.github/workflows/publish.yml` | `ci` | `ci` | 4741 | `d3ff80bb60030f31cda036abb3a4ea5db6408174d31ba1b3a42ea85f30511a25` |
@@ -322,7 +322,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-082-consumer-control-plane-transport-parity.md` | `architecture_decisions` | `adr` | 11067 | `bc051d5679ebfad9c8fc41fdebc5a4c144684bc74829312410301e600dff6f6b` |
 | `docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md` | `architecture_decisions` | `adr` | 13659 | `c6e83a4257c87130d9ba6ddd86b31c2e61cfd4079270723aed9e6cabb4bfc8c7` |
 | `docs/adr/ADR-084-projection-runtime-and-target-aware-lifecycle.md` | `architecture_decisions` | `adr` | 14023 | `134985b079f233041f1901c559640e36190b8812931f2903b7b6c6cdd258c6b2` |
-| `docs/adr/ADR-085-product-topology-and-release-governance.md` | `architecture_decisions` | `adr` | 10145 | `2e139a8c1160910d5148f02675a1aa6981c027499503905ddba188eda02ada02` |
+| `docs/adr/ADR-085-product-topology-and-release-governance.md` | `architecture_decisions` | `adr` | 10309 | `686357f79489d5ab0d8e9ccdab23043aaca8b1c7858bc0470b6a4784d3f6628a` |
 | `docs/adr/README.md` | `architecture_decisions` | `adr` | 10641 | `59c343e7d6cb957571fb87d625de315906f0bb3729ea973971b0991bb609de6c` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
@@ -341,12 +341,12 @@ updated: 2026-07-22
 | `hooks/graphiti-session-end.sh` | `hooks` | `hook` | 1591 | `78101e683885431565db87f8d81aef59cece7308f4d5045d86cef5fe9ff3d91a` |
 | `hooks/graphiti_common.sh` | `hooks` | `hook` | 1345 | `76ee5c40245b76f699fc5d6ec767a570da4b376ce9d61b59f5fa8e1ad7b3c71d` |
 | `hooks/graphiti_gate_runner.sh` | `hooks` | `hook` | 880 | `58203955f07dd049ed12c117f13405c7b651aa4f8d8df099a2e698d8a4e7174a` |
-| `product-topology.yaml` | `repository_root` | `repository` | 29790 | `4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104` |
+| `product-topology.yaml` | `repository_root` | `repository` | 29219 | `de0db8877ca2925c63efd8b01dc77f13a3c8b68b0b54be6a7f9c4b84ca1cb360` |
 | `pyproject.toml` | `repository_root` | `repository` | 5037 | `4d1eb0f6bb8b45cf481cffd5ef8f91bdc5608fb9562e34c0dc35e93073f72ea8` |
 | `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository` | 5732 | `28e993329fca424d3ede848f45d96a8cb335162388ce5036fa24cf6f3445e95b` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
-| `release-work/product-manifest.json` | `repository_root` | `repository` | 31116 | `ca6c5e182be0ce49b2a4ddc939461a22d3c18e7535c253da85476be32b96831e` |
-| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 6157 | `abcbdf6402463f44068ca904a22e70b938cf24611ce62b93ff77a5080f4651ac` |
+| `release-work/product-manifest.json` | `repository_root` | `repository` | 30354 | `8dad0ebe6a3d40b8f7d4d7e46e937cf5c7b012b864dac0e4db39fa9284d30da2` |
+| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 5854 | `ce8ff338447392788c584aa2359cd72f2926df8a7b66244fd25026930448aa21` |
 | `release-work/repository-review/INDEX.md` | `repository_root` | `repository` | 2788 | `f24c6e0168fc6eec88116f0ba97d85a55b3cba612c459229f9ab664e60a5846f` |
 | `release-work/repository-review/architecture-summary.md` | `repository_root` | `repository` | 7798 | `a2568d87dbb6baf9c3aef5901ebfaa96ccbf7332c7e1761420ebefc4784fc243` |
 | `release-work/repository-review/authority-map.md` | `repository_root` | `repository` | 6048 | `71208da6337ec2934955f2b2bd34d7516d698956bd93c173c03f2f3b20510109` |

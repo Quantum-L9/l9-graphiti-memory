@@ -25,8 +25,8 @@ review. It binds exactly one ProductTopology candidate:
 | Coordinate | Value |
 |---|---|
 | ProductTopology | `product-topology.yaml` |
-| Topology digest | `sha256:4a84a2e95ec69d64feb552979d0ee57a448daef27d8751779b88af148c6bd104` |
-| Global authority | `Quantum-L9/.github@3eaa094be0b1ec74944e832887aa1752c818fc11` |
+| Topology digest | `sha256:de0db8877ca2925c63efd8b01dc77f13a3c8b68b0b54be6a7f9c4b84ca1cb360` |
+| Global authority | `Quantum-L9/.github@c1d87abe00e31a2b06bda607afe54ea16bfadd77` |
 | Global release contract | `l9.contract/product-release@1` |
 
 The topology digest is the SHA-256 of the committed `product-topology.yaml`
@@ -126,18 +126,20 @@ restate it.
    `Quantum-L9/Cursor-Governance` selects, installs, binds and proves an
    admitted release on its own side. That outcome never redefines this
    product's ReleaseIdentity.
-8. **Material Unknowns stay explicit.** Two requirements have no admitted
-   global coordinate, and neither is invented:
-   - MU-001: a conformance profile for dependency or semantic-subsystem;
-   - MU-002: technology coordinates for the Graphiti MCP and Zep provider
-     realizations.
+8. **Material Unknowns stay explicit.** A requirement with no admitted global
+   coordinate is recorded, never invented:
+   - MU-001 (open): a conformance profile for dependency or semantic-subsystem.
+     It makes the derived ProductManifest's gate fail
+     (`conformance_requirements_resolved`,
+     `unresolved_hard_semantic_gaps_empty`) and so blocks release progression,
+     which is the intended behaviour of global law.
+   - MU-002 (closed): technology coordinates for the Graphiti MCP and Zep
+     provider realizations. `Quantum-L9/.github` admitted `graphiti-mcp` and
+     `zep` (Semantic Foundation v3.12.0), and the topology's provider bindings
+     consume them, so `provider_bindings_admissible` holds.
 
-   Both make the derived ProductManifest's gate fail
-   (`provider_bindings_admissible`, `conformance_requirements_resolved`,
-   `unresolved_hard_semantic_gaps_empty`), and so they block release
-   progression, which is the intended behaviour of global law. The generator
-   flips the gate to `pass` with no code change once the authority admits
-   those coordinates and the topology consumes them.
+   The generator flips the gate to `pass` with no code change once the
+   authority admits the remaining coordinate and the topology consumes it.
 
 ## Alternatives Considered
 
@@ -174,7 +176,7 @@ restate it.
 ## Consequences
 
 - Release progression is blocked until three things are true:
-  - MU-001 and MU-002 are resolved by their global owners;
+  - MU-001 is resolved by its global owner;
   - the ProductManifest derived from this topology passes the resolved-manifest
     gate;
   - an explicit release admission exists.
