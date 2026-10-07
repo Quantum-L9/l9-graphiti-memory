@@ -265,8 +265,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # source-invalidation test matrix -- 45 store-matrix cases (15 x 3
         # backends) in test_source_invalidation, 5 schema-9 migration cases,
         # 26 request-contract and CLI cases, and 5 live-proof cases.
-        "1519 tests pass",
-        r"1519 passed",
+        #
+        # Re-pinned 1519 -> 1543 for the canonical actor assertion door:
+        # 16 cases in test_signed_assertion.py (the unresolved-result case is
+        # three parameters) and 8 in test_server_principal.py. None are
+        # backend-parameterized or CI-skipped. Same arithmetic: 1519 + 24 = 1543.
+        "1543 tests pass",
+        r"1543 passed",
     ),
     CheckSpec(
         "V-002",
