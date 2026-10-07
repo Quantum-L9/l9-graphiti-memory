@@ -9,19 +9,19 @@
 #   updated: 2026-07-22
 
 schema: l9-graphiti-memory/product-release-binding@1
-# Derived repository execution and proof map (ADR-085). This file is NOT
+# Derived repository execution and proof map (ADR-094). This file is NOT
 # product authority and defines no release semantics: it binds this
 # repository's executable entrypoints to the global release contract, the
 # authoritative ProductTopology, and the derived ProductManifest.
 # It may narrow or strengthen required evidence; it never weakens global law.
 derived_from:
   product_topology: product-topology.yaml
-  decision: docs/adr/ADR-085-product-topology-and-release-governance.md
+  decision: docs/adr/ADR-094-product-topology-and-release-governance.md
 global_release_contract:
   ref: l9.contract/product-release@1
 authority:
   repository: Quantum-L9/.github
-  revision: c1d87abe00e31a2b06bda607afe54ea16bfadd77
+  revision: 07b0df96fc3008d55a96f804923e2177ff312295
   files:
     - path: semantics/contracts.yaml
       blob: a8170aae86b617f83bb4afd8592b3684b8a166b1
@@ -40,15 +40,15 @@ product:
   archetype_ref: l9.dependency-archetype/semantic-subsystem@1
 product_topology:
   path: product-topology.yaml
-  digest: sha256:de0db8877ca2925c63efd8b01dc77f13a3c8b68b0b54be6a7f9c4b84ca1cb360
-  admission_decision_ref: docs/adr/ADR-085-product-topology-and-release-governance.md
+  digest: sha256:020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed
+  admission_decision_ref: docs/adr/ADR-094-product-topology-and-release-governance.md
   mechanical_validation: tools/assurance/validate_product_topology.py --authority-root <Quantum-L9/.github at authority.revision>
 product_manifest:
   status: unresolved
   ref: release-work/product-manifest.json
-  digest: sha256:bb760cfb22cb30ffe641791c00ea0770ee7e2c54598ccc5dab2856bb974cbec1
+  digest: sha256:88ecb2f43fff348890730cd28f5dee5ff82846c5d3659892d1b916cee3f13281
   generator: tools/assurance/generate_product_manifest.py
-  compiler_revision: sha256:8089e419a40868a66c6045be27ea16254b0022105dec3f0ae1a3a1335249b70a
+  compiler_revision: sha256:0c1461e2440a8ae0c5da4e5326e90931962f021f5bea37abf2ddb45310d8aa59
   compiler_profile_ref: l9.compilation/product-build@1
   compiler_profile_digest: sha256:bbcb06d010a1b7bc0d3275766e00e9031d6c481cee576235ff389928287487df
   regenerate: python3 tools/assurance/generate_product_manifest.py --authority-root <Quantum-L9/.github at authority.revision>

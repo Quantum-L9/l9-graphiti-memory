@@ -134,7 +134,7 @@ find "$ROOT" -path "$ROOT/.venv" -prune -o -type f -name '*.pyc' -exec rm -f {} 
 run adr_validation python3 tools/assurance/validate_adrs.py
 run projection_manifests python3 tools/assurance/validate_projection_manifests.py config/projections/facts-v8.yaml
 run harvest_coverage python3 tools/assurance/validate_harvest_coverage.py
-# Product contract (ADR-085): the topology and its derived ProductManifest are
+# Product contract (ADR-094): the topology and its derived ProductManifest are
 # checked against the bound Quantum-L9/.github semantics when a checkout of it
 # is supplied (CI pins one). Global law is read from that checkout, never
 # copied into this repository; the manifest check renders, compares, writes nothing.

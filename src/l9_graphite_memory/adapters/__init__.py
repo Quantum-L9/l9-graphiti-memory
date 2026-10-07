@@ -21,7 +21,7 @@ require the service-issued write capability regardless — see
 submodules for tests and store-contract conformance work.
 """
 
-from .factory import build_projection, build_store
+from .factory import build_graph_intelligence, build_projection, build_store
 from .graphiti_projection import GraphitiProjection
 
 # Concrete stores remain importable from this package for tests and store-contract
@@ -30,13 +30,16 @@ from .graphiti_projection import GraphitiProjection
 # write surface. Their canonical-mutation methods require the service-issued write
 # capability regardless (ports.service_capability, ADR-036).
 from .in_memory_store import InMemoryRecordStore as InMemoryRecordStore
+from .null_graph_intelligence import NullGraphIntelligence
 from .null_projection import NullProjection
 from .postgres_store import PostgresRecordStore as PostgresRecordStore
 from .sqlite_store import SQLiteRecordStore as SQLiteRecordStore
 
 __all__ = [
     "GraphitiProjection",
+    "NullGraphIntelligence",
     "NullProjection",
+    "build_graph_intelligence",
     "build_projection",
     "build_store",
 ]

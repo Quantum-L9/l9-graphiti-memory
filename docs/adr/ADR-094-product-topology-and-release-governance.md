@@ -1,9 +1,9 @@
-# ADR-085: Product Topology and Release Governance
+# ADR-094: Product Topology and Release Governance
 
 <!-- L9_META
 l9_schema: 1
 repo: Quantum-L9/l9-graphiti-memory
-path: docs/adr/ADR-085-product-topology-and-release-governance.md
+path: docs/adr/ADR-094-product-topology-and-release-governance.md
 layer: adr
 owner: memory-control-plane
 status: active
@@ -25,8 +25,8 @@ review. It binds exactly one ProductTopology candidate:
 | Coordinate | Value |
 |---|---|
 | ProductTopology | `product-topology.yaml` |
-| Topology digest | `sha256:de0db8877ca2925c63efd8b01dc77f13a3c8b68b0b54be6a7f9c4b84ca1cb360` |
-| Global authority | `Quantum-L9/.github@c1d87abe00e31a2b06bda607afe54ea16bfadd77` |
+| Topology digest | `sha256:020c6a641e98d5ee6e3d18c30df94420e081c5f0c6741a11fb5c32aadaaff5ed` |
+| Global authority | `Quantum-L9/.github@07b0df96fc3008d55a96f804923e2177ff312295` |
 | Global release contract | `l9.contract/product-release@1` |
 
 The topology digest is the SHA-256 of the committed `product-topology.yaml`

@@ -16,7 +16,7 @@ from typing import Any
 from uuid import UUID
 
 from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
-from l9_graphite_memory.ports import ProjectionHit
+from l9_graphite_memory.ports import ProjectionEntityHit, ProjectionHit
 
 
 class NullProjection:
@@ -75,8 +75,26 @@ class NullProjection:
         namespaces: tuple[str, ...],
         *,
         limit: int,
+        tenant_id: str,
     ) -> list[ProjectionHit]:
         return []
 
-    def search(self, query: str, namespaces: tuple[str, ...], *, limit: int) -> list[ProjectionHit]:
+    def search_entities(
+        self,
+        query: str,
+        namespaces: tuple[str, ...],
+        *,
+        limit: int,
+        tenant_id: str,
+    ) -> list[ProjectionEntityHit]:
+        return []
+
+    def search(
+        self,
+        query: str,
+        namespaces: tuple[str, ...],
+        *,
+        limit: int,
+        tenant_id: str,
+    ) -> list[ProjectionHit]:
         return []

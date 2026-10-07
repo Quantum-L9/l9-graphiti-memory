@@ -68,6 +68,8 @@ from .profiles import (
 )
 from .projection import (
     LEGACY_PROVIDER_TYPE,
+    GraphCutoverReceipt,
+    LegacyProjectionReleaseReceipt,
     ProjectionLink,
     ProjectionRebuildReceipt,
     ProjectionRetirementReceipt,
@@ -147,11 +149,13 @@ __all__ = [
     "DomainMemory",
     "EvidenceKind",
     "EvidenceRef",
+    "GraphCutoverReceipt",
     "HealthReport",
     "HtmlSourceLocator",
     "HydrationRequest",
     "HydrationResult",
     "IdentityProfile",
+    "LegacyProjectionReleaseReceipt",
     "LifecycleTransition",
     "LifecycleTransitionReceipt",
     "LineSourceLocator",

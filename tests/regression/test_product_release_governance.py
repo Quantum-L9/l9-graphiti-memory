@@ -10,7 +10,7 @@
 
 """The product-owner decision, the release binding and the topology must agree.
 
-ADR-085 admits one exact ProductTopology digest. A topology edit that is not
+ADR-094 admits one exact ProductTopology digest. A topology edit that is not
 re-decided would leave the decision silently stale, and a release binding that
 named a different digest would bind release evidence to a topology nobody
 admitted. Both are failures here, not review-time judgement.
@@ -30,7 +30,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TOPOLOGY = REPO_ROOT / "product-topology.yaml"
-DECISION = REPO_ROOT / "docs" / "adr" / "ADR-085-product-topology-and-release-governance.md"
+DECISION = REPO_ROOT / "docs" / "adr" / "ADR-094-product-topology-and-release-governance.md"
 BINDING = REPO_ROOT / "release-work" / "product-release-binding.yaml"
 MANIFEST = REPO_ROOT / "release-work" / "product-manifest.json"
 GENERATOR = REPO_ROOT / "tools" / "assurance" / "generate_product_manifest.py"
@@ -58,7 +58,7 @@ def test_decision_and_binding_name_the_committed_topology_digest() -> None:
     digest = "sha256:" + hashlib.sha256(TOPOLOGY.read_bytes()).hexdigest()
     binding = yaml.safe_load(BINDING.read_text(encoding="utf-8"))
     decided = re.findall(r"`(sha256:[0-9a-f]{64})`", DECISION.read_text(encoding="utf-8"))
-    assert decided == [digest], "ADR-085 is stale: reissue the decision for the new topology digest"
+    assert decided == [digest], "ADR-094 is stale: reissue the decision for the new topology digest"
     assert binding["product_topology"]["digest"] == digest
     assert (
         binding["product_topology"]["admission_decision_ref"]
@@ -85,7 +85,7 @@ def test_binding_never_claims_a_resolved_manifest_without_exact_coordinates() ->
 
 
 def test_derived_product_manifest_is_current_and_bound() -> None:
-    # The ProductManifest is derived in this repository (ADR-085): it must be
+    # The ProductManifest is derived in this repository (ADR-094): it must be
     # the generator's output for the committed topology, carry a digest that
     # recomputes, and agree with the release binding and the CI authority pin.
     # Regenerating it needs the authority checkout; CI runs that --check.

@@ -109,7 +109,16 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-082 | [Consumer Control-Plane Transport Parity](ADR-082-consumer-control-plane-transport-parity.md) | Accepted |
 | ADR-083 | [Server-Side Local Authorization and One Class Vocabulary](ADR-083-server-side-local-authorization-and-one-class-vocabulary.md) | Accepted |
 | ADR-084 | [Projection Runtime and Target-Aware Lifecycle](ADR-084-projection-runtime-and-target-aware-lifecycle.md) | Accepted |
-| ADR-085 | [Product Topology and Release Governance](ADR-085-product-topology-and-release-governance.md) | Accepted |
+| ADR-085 | [Tenant-Safe Graph Scope Key](ADR-085-tenant-safe-graph-scope-key.md) | Accepted |
+| ADR-086 | [Graph Intelligence Port and Read-Only Neo4j Substrate](ADR-086-graph-intelligence-port-and-neo4j-substrate.md) | Accepted |
+| ADR-087 | [Graph Intelligence Contracts, Receipts, and Evidence Binding](ADR-087-graph-intelligence-contracts-and-evidence-binding.md) | Accepted |
+| ADR-088 | [Bounded Structural Graph Operations](ADR-088-bounded-structural-graph-operations.md) | Accepted |
+| ADR-089 | [Stream-Only GDS Graph Analytics](ADR-089-stream-only-gds-graph-analytics.md) | Accepted |
+| ADR-090 | [Graph Intelligence Public Surfaces and Observability](ADR-090-graph-intelligence-public-surfaces-and-observability.md) | Accepted |
+| ADR-091 | [Graphiti Episode Identity and Live Qualification](ADR-091-graphiti-episode-identity-and-live-qualification.md) | Accepted |
+| ADR-092 | [Graph Campaign Audit Remediation](ADR-092-graph-campaign-audit-remediation.md) | Accepted |
+| ADR-093 | [Graph Intelligence V1 Closure](ADR-093-graph-intelligence-v1-closure.md) | Accepted |
+| ADR-094 | [Product Topology and Release Governance](ADR-094-product-topology-and-release-governance.md) | Accepted |
 
 ## Validation
 
@@ -119,4 +128,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-085 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-094 ledger and all mandatory sections.

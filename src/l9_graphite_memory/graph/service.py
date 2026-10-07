@@ -1,0 +1,1060 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/graph/service.py
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.5.0
+#   updated: 2026-07-22
+
+"""Governed graph-intelligence service (ADR-087).
+
+``GraphIntelligenceService`` sits above ``GraphIntelligencePort``. For every
+operation it:
+
+1. authorizes each requested namespace for READ against the principal's
+   server-side claims (ADR-006) — the tenant is the principal's, never a
+   request field;
+2. derives the exact GraphScopeKey v1 groups for those namespaces (ADR-085);
+3. rejects out-of-policy requests before any provider call — relationship
+   types outside the allowlist, inadmissible or over-mature algorithms,
+   disabled link prediction, anchors that are not the principal's records;
+4. invokes the port with a typed provider request;
+5. binds every provider observation back to canonical records
+   (``CanonicalEvidenceLinker``) and applies the cardinality caps
+   deterministically;
+6. returns a typed, deterministic ``GraphIntelligenceReceipt``.
+
+Provider failure is ``FAILED`` (or ``PARTIAL``) with a normalized error class,
+never an empty ``COMPLETE`` (GI-029). A request marked ``required`` fails
+closed on any partial outcome (GI-030).
+"""
+
+from __future__ import annotations
+
+import contextvars
+import hashlib
+import json
+import threading
+import time
+from collections.abc import Callable, Sequence
+from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeoutError
+from dataclasses import dataclass, field
+from typing import Any
+from uuid import UUID
+
+from l9_graphite_memory.authz import NamespacePolicy
+from l9_graphite_memory.contracts import AuthorizationAction, MemoryPrincipal, MemoryState
+from l9_graphite_memory.errors import (
+    AuthorizationError,
+    GraphCapabilityUnavailable,
+    GraphQueryPolicyViolation,
+    GraphRuntimeBudgetExceeded,
+)
+from l9_graphite_memory.observability.graph_metrics import GRAPH_METRICS, GraphMetrics
+from l9_graphite_memory.ports import (
+    ProjectionAdapter,
+    ProjectionEntityHit,
+    ProjectionHit,
+    RecordStore,
+)
+from l9_graphite_memory.projections.runtime import graph_projection_adapter
+
+from .algorithm_policy import (
+    AlgorithmPolicy,
+    GraphAlgorithm,
+    algorithm_identity,
+    algorithm_parameters,
+)
+from .contracts import (
+    GraphAlgorithmIdentity,
+    GraphCapabilityReport,
+    GraphIntelligenceReceipt,
+    GraphIntelligenceRequest,
+    GraphLimits,
+    GraphOperation,
+    GraphProviderIdentity,
+    GraphProviderRequest,
+    GraphProviderResult,
+    GraphReceiptStatus,
+)
+from .evidence import CanonicalEvidenceLinker, EvidenceScope, LinkedEvidence
+from .ports import (
+    DEFAULT_RELATIONSHIP_ALLOWLIST,
+    PORT_METHODS,
+    GraphBackendHealth,
+    GraphCapability,
+    GraphIntelligencePort,
+)
+from .scope import (
+    GRAPH_SCOPE_SCHEME,
+    GRAPH_SCOPE_SCHEME_VERSION,
+    graph_group_ids,
+    graph_scope_digest,
+)
+
+#: Candidate-retrieval operations served by the Graphiti projection strategies.
+# Smallest budget worth starting a provider operation with; it is also the
+# GraphLimits floor for max_runtime_ms.
+MIN_PROVIDER_BUDGET_MS = 10
+
+
+class _BoundedPool:
+    """A worker pool that refuses new work instead of queueing without bound.
+
+    At most ``workers + backlog`` items are in the pool at once (running or
+    queued). When it is full, ``try_submit`` returns ``None`` and the caller
+    answers with a typed refusal, so a hung backend cannot make queued
+    requests pile up in memory (ADR-092).
+    """
+
+    def __init__(self, workers: int, backlog: int, name: str) -> None:
+        self._workers = workers
+        self._name = name
+        self._slots = threading.BoundedSemaphore(workers + backlog)
+        self._executor: ThreadPoolExecutor | None = None
+        self._lock = threading.Lock()
+
+    def try_submit(
+        self, fn: Callable[..., Any], /, *args: Any, **kwargs: Any
+    ) -> Future[Any] | None:
+        if not self._slots.acquire(blocking=False):
+            return None
+        with self._lock:
+            if self._executor is None:
+                self._executor = ThreadPoolExecutor(
+                    max_workers=self._workers, thread_name_prefix=self._name
+                )
+            executor = self._executor
+        try:
+            future = executor.submit(fn, *args, **kwargs)
+        except BaseException:
+            self._slots.release()
+            raise
+        future.add_done_callback(lambda _: self._slots.release())
+        return future
+
+
+# Whole graph operations run here so the caller waits at most its budget.
+_REQUEST_POOL = _BoundedPool(workers=16, backlog=16, name="l9-graph-request")
+# Projection search calls run here so a stalled provider cannot hold a request
+# past its deadline.
+_SEARCH_POOL = _BoundedPool(workers=8, backlog=8, name="l9-graph-search")
+
+
+@dataclass
+class _SearchHits:
+    """Outcome of the per-namespace search fan-out."""
+
+    hits: dict[UUID, ProjectionHit] = field(default_factory=dict)
+    #: Entity-node hits with no canonical record id yet (graph.search only).
+    entities: dict[UUID, ProjectionEntityHit] = field(default_factory=dict)
+    #: Why the fan-out stopped early (deadline or capacity), if it did.
+    stop_class: str | None = None
+    #: Normalized provider failure class; the request fails when set.
+    provider_error: str | None = None
+
+    def keep(self, hit: ProjectionHit | ProjectionEntityHit) -> None:
+        """Keep the best-scoring hit per record, and per unbound entity."""
+
+        if isinstance(hit, ProjectionEntityHit):
+            if hit.record_id is None:
+                if hit.entity_uuid is not None:
+                    current_entity = self.entities.get(hit.entity_uuid)
+                    if current_entity is None or hit.score > current_entity.score:
+                        self.entities[hit.entity_uuid] = hit
+                return
+            hit = ProjectionHit(
+                record_id=hit.record_id,
+                score=hit.score,
+                excerpt=hit.name,
+                metadata={"namespace": hit.namespace, "strategy": "graph-search", "rank": hit.rank},
+            )
+        current = self.hits.get(hit.record_id)
+        if current is None or hit.score > current.score:
+            self.hits[hit.record_id] = hit
+
+
+def _gather_search_hits(
+    fetch: Callable[[str], Sequence[ProjectionHit | ProjectionEntityHit]],
+    namespaces: Sequence[str],
+    remaining_ms: Callable[[], int],
+) -> _SearchHits:
+    """Call ``fetch`` once per namespace and keep the best hits.
+
+    The request deadline is checked between calls, and a call that
+    returns after it is discarded. Each call runs off-thread so the
+    request can stop waiting at its deadline even when the provider
+    stalls; an abandoned call ends at its transport timeout and its
+    result is discarded.
+    """
+
+    gathered = _SearchHits()
+    for namespace in namespaces:
+        if remaining_ms() <= 0:
+            gathered.stop_class = "runtime_budget_exhausted"
+            break
+        future = _SEARCH_POOL.try_submit(fetch, namespace)
+        if future is None:
+            # Search capacity is exhausted (stalled provider calls hold
+            # every slot): stop here rather than queue without bound.
+            gathered.stop_class = "graph_capacity_exhausted"
+            break
+        try:
+            namespace_hits = future.result(timeout=max(remaining_ms(), 0) / 1_000)
+        except FuturesTimeoutError:
+            future.cancel()
+            gathered.stop_class = "runtime_budget_exhausted"
+            break
+        except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
+            gathered.provider_error = f"provider_error:{type(exc).__name__}"
+            return gathered
+        if remaining_ms() <= 0:
+            gathered.stop_class = "runtime_budget_exhausted"
+            break
+        for hit in namespace_hits:
+            gathered.keep(hit)
+    return gathered
+
+
+def _result_key(item: dict[str, Any]) -> str:
+    return str(item.get("record_id") or item.get("entity_uuid") or "")
+
+
+def _limits_applied(
+    request: GraphIntelligenceRequest,
+    limits: GraphLimits,
+    relationship_types: tuple[str, ...],
+) -> dict[str, Any]:
+    """The effective limits and filters a receipt reports."""
+
+    return {
+        **limits.model_dump(),
+        "relationship_types": list(relationship_types),
+        "direction": request.direction,
+        "as_of": request.as_of.isoformat() if request.as_of else None,
+        "recorded_before": (
+            request.recorded_before.isoformat() if request.recorded_before else None
+        ),
+    }
+
+
+def _served_port_method(
+    operation: GraphOperation, capabilities: tuple[GraphCapability, ...]
+) -> str | None:
+    """The port method for a structural operation the backend serves, else None."""
+
+    method_name = PORT_METHODS.get(operation)
+    if method_name is None or GraphCapability(operation.value) not in capabilities:
+        return None
+    return method_name
+
+
+def _structural_status(failures: list[dict[str, Any]], required: bool) -> GraphReceiptStatus:
+    """COMPLETE without failures; FAILED when the result is required, else PARTIAL."""
+
+    if not failures:
+        return GraphReceiptStatus.COMPLETE
+    return GraphReceiptStatus.FAILED if required else GraphReceiptStatus.PARTIAL
+
+
+def _finish_search(
+    linked: LinkedEvidence,
+    max_nodes: int,
+    failures: list[dict[str, Any]],
+    stop_class: str | None,
+    required: bool,
+) -> tuple[GraphReceiptStatus, LinkedEvidence]:
+    """Rank, cap and bind support for search results; decide the status.
+
+    Record and entity hits are ranked together by score. A cap that drops
+    results is reported as ``truncated``; any failure makes the receipt
+    PARTIAL, or FAILED (with no results) when the request is required.
+    """
+
+    # Score first; the provider's own rank breaks ties (Graphiti's node search
+    # returns no score, so its ranking must survive), then a stable key.
+    linked.results.sort(
+        key=lambda item: (
+            -float(item.get("score", 0.0)),
+            int(item.get("rank", 0)),
+            _result_key(item),
+        )
+    )
+    if len(linked.results) > max_nodes:
+        linked.results = linked.results[:max_nodes]
+        failures.append({"class": "truncated", "stage": "limits"})
+    if stop_class is not None:
+        failures.append({"class": stop_class, "stage": "provider"})
+    linked.supporting_record_ids = sorted(
+        {UUID(record_id) for item in linked.results for record_id in item["supporting_record_ids"]},
+        key=str,
+    )
+    if not failures:
+        return GraphReceiptStatus.COMPLETE, linked
+    if required:
+        return GraphReceiptStatus.FAILED, LinkedEvidence()
+    return GraphReceiptStatus.PARTIAL, linked
+
+
+SEARCH_STRATEGIES: dict[GraphOperation, str] = {
+    GraphOperation.SEARCH: "graph-search",
+    GraphOperation.SEMANTIC_SEARCH: "semantic-search",
+}
+
+
+def _canonical_digest(value: Any) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def graph_request_scope_digest(tenant_id: str, namespaces: tuple[str, ...]) -> str:
+    """Digest binding the tenant and the exact authorized namespace set."""
+
+    return _canonical_digest(
+        {
+            "scheme": GRAPH_SCOPE_SCHEME,
+            "tenant_digest": hashlib.sha256(tenant_id.encode("utf-8")).hexdigest(),
+            "namespace_digests": sorted(graph_scope_digest(tenant_id, ns) for ns in namespaces),
+        }
+    )
+
+
+@dataclass(frozen=True)
+class GraphServiceConfig:
+    """Service-level policy. Derived from ``MemorySettings`` by the runtime."""
+
+    max_runtime_ms: int = 3_000
+    relationship_allowlist: tuple[str, ...] = DEFAULT_RELATIONSHIP_ALLOWLIST
+    algorithm_policy: AlgorithmPolicy = field(default_factory=AlgorithmPolicy)
+    required: bool = False
+    projection_provider: str = "graphiti"
+    graphiti_version: str | None = None
+    health_ttl_seconds: float = 30.0
+    raw_vectors_allowed: bool = False
+
+
+def graph_service_for(
+    memory: Any,
+    port: GraphIntelligencePort,
+    *,
+    config: GraphServiceConfig | None = None,
+) -> GraphIntelligenceService:
+    """Compose a graph service over a MemoryService's store, policy, projection."""
+
+    return GraphIntelligenceService(
+        memory.store,
+        port,
+        namespace_policy=memory.namespace_policy,
+        config=config,
+        projection=graph_projection_adapter(memory.projections),
+    )
+
+
+class GraphIntelligenceService:
+    def __init__(
+        self,
+        store: RecordStore,
+        port: GraphIntelligencePort,
+        *,
+        namespace_policy: NamespacePolicy | None = None,
+        config: GraphServiceConfig | None = None,
+        projection: ProjectionAdapter | None = None,
+        metrics: GraphMetrics | None = None,
+        monotonic: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self.metrics = metrics or GRAPH_METRICS
+        self.store = store
+        self.port = port
+        self.projection = projection
+        self.namespace_policy = namespace_policy or NamespacePolicy()
+        self.config = config or GraphServiceConfig()
+        self.linker = CanonicalEvidenceLinker(store)
+        self._monotonic = monotonic
+        self._health: GraphBackendHealth | None = None
+        self._health_at = 0.0
+
+    # -- backend state -------------------------------------------------
+
+    def health(self, *, refresh: bool = False) -> GraphBackendHealth:
+        now = self._monotonic()
+        if (
+            refresh
+            or self._health is None
+            or now - self._health_at >= self.config.health_ttl_seconds
+        ):
+            self._health = self.port.health()
+            self._health_at = now
+        return self._health
+
+    def capabilities(self) -> tuple[GraphCapability, ...]:
+        """Structural capabilities from the port plus projection search strategies."""
+
+        served = list(self.health().capabilities)
+        projection_strategies = set(self.projection.capabilities) if self.projection else set()
+        served.extend(
+            GraphCapability(operation.value)
+            for operation, strategy in SEARCH_STRATEGIES.items()
+            if strategy in projection_strategies
+        )
+        return tuple(served)
+
+    def _provider_identity(self, health: GraphBackendHealth) -> GraphProviderIdentity:
+        return GraphProviderIdentity(
+            projection_provider=self.config.projection_provider,
+            graph_backend=self.port.name,
+            graphiti_version=self.config.graphiti_version,
+            backend_version=health.backend_version,
+            gds_version=health.analytics_version,
+        )
+
+    def capability_report(self, *, refresh: bool = False) -> GraphCapabilityReport:
+        """Typed capability and health report; health dimensions stay separate."""
+
+        backend = self.health(refresh=refresh)
+        catalog_failures = getattr(self.port, "catalog_cleanup_failures", 0)
+        self.metrics.set_gauge("memory_graph_gds_cleanup_failures_seen", float(catalog_failures))
+        if backend.gds_catalog_active is not None:
+            self.metrics.set_gauge(
+                "memory_graph_gds_catalog_active", float(backend.gds_catalog_active)
+            )
+        try:
+            lag: int | None = self.store.outbox_backlog()
+        except Exception:  # noqa: BLE001 - an unreadable backlog is reported as unknown
+            lag = None
+        if lag is not None:
+            self.metrics.set_gauge("memory_graph_projection_lag_events", float(lag))
+        return GraphCapabilityReport(
+            scope_scheme=GRAPH_SCOPE_SCHEME,
+            scope_scheme_version=GRAPH_SCOPE_SCHEME_VERSION,
+            capabilities=tuple(capability.value for capability in self.capabilities()),
+            backend=backend.model_dump(mode="json"),
+            projection_provider=self.projection.name if self.projection else None,
+            projection_strategies=tuple(self.projection.capabilities) if self.projection else (),
+            algorithm_maturity_ceiling=self.config.algorithm_policy.maturity_ceiling.value,
+            link_prediction_enabled=self.config.algorithm_policy.link_prediction_enabled,
+            required=self.config.required,
+            # A disabled backend reports healthy (it serves nothing), so a
+            # required one must also be enabled (ADR-090).
+            ready=(backend.enabled and backend.healthy) or not self.config.required,
+            gds_catalog_cleanup_failures=int(catalog_failures),
+            gds_catalog_active=backend.gds_catalog_active,
+            projection_lag_events=lag,
+            rehydration_success_rate=self.metrics.rehydration_success_rate(),
+        )
+
+    # -- execution -----------------------------------------------------
+
+    def execute(
+        self, principal: MemoryPrincipal, request: GraphIntelligenceRequest
+    ) -> GraphIntelligenceReceipt:
+        """Run one operation and record its metrics and structured log line."""
+
+        started = self._monotonic()
+        # Namespace READ authority is decided first, on the caller's thread:
+        # an unauthorized request never reaches admission, capacity or
+        # deadline handling, and never receives a graph receipt. _execute
+        # repeats the check as defense in depth.
+        try:
+            for namespace in request.namespaces:
+                self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
+        except AuthorizationError:
+            self.metrics.record_scope_denied(request.operation.value)
+            raise
+        budget_ms = min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
+        # The whole operation (health, provider, canonical evidence, GDS
+        # cleanup, projection transport) runs off-thread; the caller waits at
+        # most the request budget and then gets a typed refusal. Work still in
+        # flight finishes against its own statement/transport timeouts and its
+        # result is discarded (ADR-092).
+        future = _REQUEST_POOL.try_submit(
+            contextvars.copy_context().run, self._execute, principal, request
+        )
+        try:
+            if future is None:
+                # Admission is bounded: when every worker and backlog slot is
+                # taken (for example by a hung backend) the request is refused
+                # now instead of queueing without limit.
+                receipt = self._deadline_receipt(
+                    principal, request, failure_class="graph_capacity_exhausted", stage="admission"
+                )
+            else:
+                receipt = future.result(timeout=budget_ms / 1_000)
+        except FuturesTimeoutError:
+            if future is not None:
+                future.cancel()
+            receipt = self._deadline_receipt(principal, request)
+        except AuthorizationError:
+            self.metrics.record_scope_denied(request.operation.value)
+            raise
+        self.metrics.record_operation(
+            operation=request.operation.value,
+            status=receipt.status.value,
+            latency_ms=(self._monotonic() - started) * 1_000,
+            node_count=sum(1 for item in receipt.results if item.get("kind") == "node"),
+            edge_count=sum(1 for item in receipt.results if item.get("kind") == "edge"),
+            unsupported_reasons=[
+                str(item.get("reason", "unknown"))
+                for item in receipt.unsupported_projection_observations
+            ],
+            failure_classes=[str(item.get("class")) for item in receipt.failures],
+            provider=receipt.provider.graph_backend,
+            scope_digest=receipt.scope_digest,
+            algorithm=receipt.algorithm.id if receipt.algorithm else None,
+            result_digest=receipt.result_digest,
+            admitted_count=len(receipt.results),
+        )
+        return receipt
+
+    def _deadline_receipt(
+        self,
+        principal: MemoryPrincipal,
+        request: GraphIntelligenceRequest,
+        *,
+        failure_class: str = "runtime_budget_exceeded",
+        stage: str = "request",
+    ) -> GraphIntelligenceReceipt:
+        """FAILED receipt for an operation still running at its deadline.
+
+        Built without touching the backend: provider identity comes from the
+        cached health report when there is one.
+        """
+
+        limits = request.limits.model_copy(
+            update={
+                "max_runtime_ms": min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
+            }
+        )
+        health = self._health or GraphBackendHealth(
+            name=self.port.name, enabled=True, healthy=False
+        )
+        return self._receipt(
+            GraphReceiptStatus.FAILED,
+            request.operation,
+            graph_request_scope_digest(principal.tenant_id, request.namespaces),
+            self._provider_identity(health),
+            None,
+            {**limits.model_dump(), "direction": request.direction},
+            LinkedEvidence(),
+            [{"class": failure_class, "stage": stage}],
+        )
+
+    def _execute(
+        self, principal: MemoryPrincipal, request: GraphIntelligenceRequest
+    ) -> GraphIntelligenceReceipt:
+        namespaces = request.namespaces
+        for namespace in namespaces:
+            self.namespace_policy.require(principal, AuthorizationAction.READ, namespace)
+        # One request-wide deadline: every stage below draws on the same
+        # max_runtime_ms instead of each receiving all of it (ADR-092).
+        budget_ms = min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
+        deadline = self._monotonic() + budget_ms / 1_000
+
+        def remaining_ms() -> int:
+            return int((deadline - self._monotonic()) * 1_000)
+
+        tenant_id = principal.tenant_id
+        group_ids = graph_group_ids(tenant_id, namespaces)
+        scope_digest = graph_request_scope_digest(tenant_id, namespaces)
+        required, relationship_types = self._effective_policy(request)
+        limits = request.limits.model_copy(
+            update={
+                "max_runtime_ms": min(request.limits.max_runtime_ms, self.config.max_runtime_ms)
+            }
+        )
+        limits_applied = _limits_applied(request, limits, relationship_types)
+        health = self.health()
+        provider = self._provider_identity(health)
+
+        def refuse(
+            failure_class: str, stage: str, algorithm: GraphAlgorithmIdentity | None = None
+        ) -> GraphIntelligenceReceipt:
+            return self._receipt(
+                GraphReceiptStatus.FAILED,
+                request.operation,
+                scope_digest,
+                provider,
+                algorithm,
+                limits_applied,
+                LinkedEvidence(),
+                [{"class": failure_class, "stage": stage}],
+            )
+
+        # Shared request policy runs before any operation-specific path.
+        policy_refusal = self._shared_policy_refusal(request, relationship_types)
+        if policy_refusal is not None:
+            return refuse(policy_refusal, "policy")
+        if request.operation in SEARCH_STRATEGIES:
+            search_algorithm = self._admitted_algorithm(request)
+            if search_algorithm is None:
+                return refuse("algorithm_not_admitted", "policy")
+            return self._search(
+                request,
+                tenant_id,
+                scope_digest,
+                provider,
+                limits,
+                limits_applied,
+                required,
+                search_algorithm,
+                remaining_ms,
+                health.capabilities,
+            )
+        method_name = _served_port_method(request.operation, health.capabilities)
+        if method_name is None:
+            return refuse("capability_unavailable", "capability")
+        algorithm = self._admitted_algorithm(request)
+        if algorithm is None:
+            return refuse("algorithm_not_admitted", "policy")
+        algorithm_config = self._algorithm_config(algorithm, limits_applied)
+        identity = algorithm_identity(algorithm, algorithm_config)
+        if not self._record_anchors_in_scope(request, tenant_id):
+            # Same answer whether the record is absent or foreign.
+            return refuse("anchor_not_in_scope", "anchor", identity)
+
+        budget_left = remaining_ms()
+        if budget_left < MIN_PROVIDER_BUDGET_MS:
+            return refuse("runtime_budget_exhausted", "limits", identity)
+        provider_request = GraphProviderRequest(
+            operation=request.operation,
+            group_ids=group_ids,
+            anchor=request.anchor,
+            target=request.target,
+            relationship_types=relationship_types,
+            direction=request.direction,
+            as_of=request.as_of,
+            recorded_before=request.recorded_before,
+            limits=limits.model_copy(update={"max_runtime_ms": budget_left}),
+            algorithm_id=algorithm.id,
+            algorithm_config=algorithm_config,
+            operation_id=_canonical_digest(
+                {"scope": scope_digest, "request": request.contract_payload()}
+            )[:32],
+        )
+        result, provider_failure = self._call_port(method_name, provider_request)
+        if result is None:
+            return refuse(provider_failure or "provider_error", "provider", identity)
+        if remaining_ms() <= 0:
+            # The provider answered after the request's hard ceiling; serving
+            # it would make max_runtime_ms advisory.
+            return refuse("runtime_budget_exceeded", "provider", identity)
+
+        linked = self.linker.link(
+            result,
+            EvidenceScope(
+                tenant_id=tenant_id,
+                namespaces=frozenset(namespaces),
+                group_ids=frozenset(group_ids),
+                as_of=request.as_of,
+                recorded_before=request.recorded_before,
+                include_raw_vectors=self.config.raw_vectors_allowed,
+                path_direction=request.direction,
+            ),
+        )
+        failures = self._structural_failures(linked, result, limits_applied)
+        status = _structural_status(failures, required)
+        if status is GraphReceiptStatus.FAILED:
+            linked = LinkedEvidence()
+        return self._receipt(
+            status,
+            request.operation,
+            scope_digest,
+            provider,
+            identity,
+            limits_applied,
+            linked,
+            failures,
+        )
+
+    def _effective_policy(self, request: GraphIntelligenceRequest) -> tuple[bool, tuple[str, ...]]:
+        """Whether a result is required, and the relationship types, after defaults."""
+
+        return (
+            request.required or self.config.required,
+            request.relationship_types or self.config.relationship_allowlist,
+        )
+
+    def _admitted_algorithm(self, request: GraphIntelligenceRequest) -> GraphAlgorithm | None:
+        """The algorithm policy admits for this request, or None when it refuses."""
+
+        try:
+            return self.config.algorithm_policy.resolve(request.operation, request.algorithm)
+        except GraphQueryPolicyViolation:
+            return None
+
+    def _shared_policy_refusal(
+        self, request: GraphIntelligenceRequest, relationship_types: tuple[str, ...]
+    ) -> str | None:
+        """The failure class of a request the shared policy refuses, if any."""
+
+        if any(r not in self.config.relationship_allowlist for r in relationship_types):
+            return "relationship_type_not_allowed"
+        if request.profile_ref is not None:
+            # Algorithm profiles are not implemented (devpack V1.2). Refusing
+            # beats accepting a profile that changes nothing (GI-032).
+            return "profile_not_supported"
+        # Search has no traversal: fields that would shape one are refused
+        # rather than silently ignored.
+        if request.operation in SEARCH_STRATEGIES and (
+            request.target is not None or request.relationship_types or request.direction != "both"
+        ):
+            return "request_field_not_applicable"
+        return None
+
+    def _record_anchors_in_scope(self, request: GraphIntelligenceRequest, tenant_id: str) -> bool:
+        """Whether every record anchor is an ACTIVE record of the caller's scope."""
+
+        for anchor in (request.anchor, request.target):
+            if anchor is None or anchor.record_id is None:
+                continue
+            record = self.store.get_record(anchor.record_id)
+            if (
+                record is None
+                or record.tenant_id != tenant_id
+                or record.namespace not in request.namespaces
+                or record.state is not MemoryState.ACTIVE
+            ):
+                return False
+        return True
+
+    def _call_port(
+        self, method_name: str, provider_request: GraphProviderRequest
+    ) -> tuple[GraphProviderResult | None, str | None]:
+        """Run one port operation; a failure becomes a normalized failure class."""
+
+        try:
+            result: GraphProviderResult = getattr(self.port, method_name)(provider_request)
+        except GraphCapabilityUnavailable:
+            return None, "capability_unavailable"
+        except GraphRuntimeBudgetExceeded:
+            return None, "runtime_budget_exhausted"
+        except GraphQueryPolicyViolation:
+            return None, "query_policy_violation"
+        except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
+            return None, f"provider_error:{type(exc).__name__}"
+        return result, None
+
+    def _structural_failures(
+        self,
+        linked: LinkedEvidence,
+        result: GraphProviderResult,
+        limits_applied: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        failures: list[dict[str, Any]] = []
+        if linked.rehydration_error is not None:
+            failures.append(
+                {"class": f"rehydration_error:{linked.rehydration_error}", "stage": "evidence"}
+            )
+        # Caps always apply; a provider-reported truncation must not skip them.
+        capped = self._apply_caps(linked, limits_applied)
+        if result.truncated or capped:
+            failures.append({"class": "truncated", "stage": "limits"})
+        if result.provider_metadata.get("catalog_cleanup") == "failed":
+            failures.append({"class": "gds_catalog_cleanup_failed", "stage": "provider"})
+        if linked.out_of_scope_dropped:
+            failures.append(
+                {
+                    "class": "out_of_scope_dropped",
+                    "stage": "evidence",
+                    "count": linked.out_of_scope_dropped,
+                }
+            )
+        return failures
+
+    def _search(
+        self,
+        request: GraphIntelligenceRequest,
+        tenant_id: str,
+        scope_digest: str,
+        provider: GraphProviderIdentity,
+        limits: Any,
+        limits_applied: dict[str, Any],
+        required: bool,
+        algorithm: GraphAlgorithm,
+        remaining_ms: Callable[[], int],
+        backend_capabilities: tuple[GraphCapability, ...],
+    ) -> GraphIntelligenceReceipt:
+        """graph.search / graph.semantic_search over the existing projection.
+
+        Uses the same Graphiti strategies as ``memory.search`` (whose meaning
+        is unchanged, GI-036), with the principal's tenant, and admits a hit
+        only after canonical rehydration under the request's filters.
+        ``graph.search`` also keeps entity hits that name no record and binds
+        their support through the graph backend (ADR-093).
+        """
+
+        strategy = SEARCH_STRATEGIES[request.operation]
+        identity = algorithm_identity(algorithm, {"strategy": strategy, "limit": limits.max_nodes})
+
+        def fail(failure_class: str, stage: str) -> GraphIntelligenceReceipt:
+            return self._receipt(
+                GraphReceiptStatus.FAILED,
+                request.operation,
+                scope_digest,
+                provider,
+                identity,
+                limits_applied,
+                LinkedEvidence(),
+                [{"class": failure_class, "stage": stage}],
+            )
+
+        if request.anchor is None or request.anchor.query is None:
+            return fail("search_requires_query_anchor", "policy")
+        if self.projection is None or strategy not in self.projection.capabilities:
+            return fail("capability_unavailable", "capability")
+        gathered = _gather_search_hits(
+            self._search_fetch(
+                self.projection,
+                strategy,
+                request.anchor.query,
+                tenant_id,
+                max(1, limits.max_nodes // len(request.namespaces)),
+            ),
+            request.namespaces,
+            remaining_ms,
+        )
+        if gathered.provider_error is not None:
+            return fail(gathered.provider_error, "provider")
+        if gathered.stop_class is not None and not gathered.hits and not gathered.entities:
+            return fail(gathered.stop_class, "provider")
+        scope = EvidenceScope(
+            tenant_id=tenant_id,
+            namespaces=frozenset(request.namespaces),
+            group_ids=frozenset(graph_group_ids(tenant_id, request.namespaces)),
+            as_of=request.as_of,
+            recorded_before=request.recorded_before,
+        )
+        try:
+            linked = self._link_search_hits(list(gathered.hits.values()), scope, strategy)
+        except Exception as exc:  # noqa: BLE001 - reported as a rehydration failure
+            return fail(f"rehydration_error:{type(exc).__name__}", "evidence")
+        failures: list[dict[str, Any]] = []
+        if gathered.entities:
+            entity_failure = self._bind_entity_hits(
+                gathered.entities,
+                request,
+                tenant_id,
+                limits,
+                scope,
+                remaining_ms,
+                backend_capabilities,
+                linked,
+            )
+            if entity_failure is not None:
+                failures.append({"class": entity_failure, "stage": "evidence"})
+        status, linked = _finish_search(
+            linked, limits.max_nodes, failures, gathered.stop_class, required
+        )
+        return self._receipt(
+            status,
+            request.operation,
+            scope_digest,
+            provider,
+            identity,
+            limits_applied,
+            linked,
+            failures,
+        )
+
+    @staticmethod
+    def _search_fetch(
+        projection: ProjectionAdapter,
+        strategy: str,
+        query: str,
+        tenant_id: str,
+        per_namespace: int,
+    ) -> Callable[[str], Sequence[ProjectionHit | ProjectionEntityHit]]:
+        if strategy == "graph-search":
+
+            def fetch_entities(namespace: str) -> Sequence[ProjectionEntityHit]:
+                return projection.search_entities(
+                    query, (namespace,), limit=per_namespace, tenant_id=tenant_id
+                )
+
+            return fetch_entities
+
+        def fetch_strategy(namespace: str) -> Sequence[ProjectionHit]:
+            return projection.search_strategy(
+                strategy, query, (namespace,), limit=per_namespace, tenant_id=tenant_id
+            )
+
+        return fetch_strategy
+
+    def _bind_entity_hits(
+        self,
+        entities: dict[UUID, ProjectionEntityHit],
+        request: GraphIntelligenceRequest,
+        tenant_id: str,
+        limits: Any,
+        scope: EvidenceScope,
+        remaining_ms: Callable[[], int],
+        backend_capabilities: tuple[GraphCapability, ...],
+        linked: LinkedEvidence,
+    ) -> str | None:
+        """Bind entity hits to canonical support through the graph backend.
+
+        Adds admitted entity hits and unsupported observations to ``linked``.
+        Returns a failure class when binding could not run to completion. An
+        entity hit is never dropped silently: without a backend that can bind
+        it, it is reported as an unsupported observation (GI-027, GI-032).
+        """
+
+        ranked = sorted(entities.values(), key=lambda h: (-h.score, h.rank, str(h.entity_uuid)))
+
+        def unsupported(reason: str, hits: list[ProjectionEntityHit]) -> None:
+            linked.unsupported.extend(
+                {"kind": "entity_hit", "entity_uuid": str(hit.entity_uuid), "reason": reason}
+                for hit in hits
+            )
+
+        # Binding reads the same entity -> episode support as the baseline
+        # structural operations, so it is served exactly where they are.
+        if GraphCapability.NEIGHBORHOOD not in backend_capabilities:
+            unsupported("graph_backend_unavailable", ranked)
+            return None
+        budget_left = remaining_ms()
+        if budget_left < MIN_PROVIDER_BUDGET_MS:
+            unsupported("runtime_budget_exhausted", ranked)
+            return "runtime_budget_exhausted"
+        provider_request = GraphProviderRequest(
+            operation=GraphOperation.SEARCH,
+            group_ids=graph_group_ids(tenant_id, request.namespaces),
+            as_of=request.as_of,
+            recorded_before=request.recorded_before,
+            limits=limits.model_copy(update={"max_runtime_ms": budget_left}),
+            operation_id=_canonical_digest(
+                {"scope": scope.tenant_id, "request": request.contract_payload()}
+            )[:32],
+        )
+        uuids = tuple(hit.entity_uuid for hit in ranked if hit.entity_uuid is not None)
+        try:
+            result = self.port.describe_entities(provider_request, uuids)
+        except GraphCapabilityUnavailable:
+            unsupported("graph_backend_unavailable", ranked)
+            return None
+        except GraphRuntimeBudgetExceeded:
+            unsupported("runtime_budget_exhausted", ranked)
+            return "runtime_budget_exhausted"
+        except Exception as exc:  # noqa: BLE001 - normalized; raw text never escapes
+            unsupported("provider_error", ranked)
+            return f"provider_error:{type(exc).__name__}"
+        bound = self.linker.link(result, scope)
+        if bound.rehydration_error is not None:
+            unsupported("rehydration_error", ranked)
+            return f"rehydration_error:{bound.rehydration_error}"
+        found = {node.entity_uuid for node in result.nodes}
+        unsupported("entity_not_found", [h for h in ranked if h.entity_uuid not in found])
+        scores = {str(hit.entity_uuid): hit.score for hit in ranked}
+        ranks = {str(hit.entity_uuid): hit.rank for hit in ranked}
+        for item in bound.results:
+            item["kind"] = "entity_hit"
+            item["score"] = scores.get(item["entity_uuid"], 0.0)
+            item["rank"] = ranks.get(item["entity_uuid"], 0)
+            item["strategy"] = "graph-search"
+        linked.results.extend(bound.results)
+        linked.unsupported.extend(bound.unsupported)
+        linked.out_of_scope_dropped += bound.out_of_scope_dropped
+        return None
+
+    def _link_search_hits(
+        self, hits: list[ProjectionHit], scope: EvidenceScope, strategy: str
+    ) -> LinkedEvidence:
+        """Admit each hit only after canonical rehydration under ``scope``."""
+
+        linked = LinkedEvidence()
+        cache: dict[Any, bool] = {}
+        for hit in sorted(hits, key=lambda h: (-h.score, str(h.record_id))):
+            if self.linker.admit(hit.record_id, scope, cache):
+                linked.results.append(
+                    {
+                        "kind": "record_hit",
+                        "record_id": str(hit.record_id),
+                        "score": hit.score,
+                        "rank": int(hit.metadata.get("rank", 0)),
+                        "strategy": strategy,
+                        "supporting_record_ids": [str(hit.record_id)],
+                        "authority_class": "advisory_projection",
+                    }
+                )
+            else:
+                # The id may name another tenant's record; never echo it.
+                linked.unsupported.append({"kind": "record_hit", "reason": "no_canonical_support"})
+        return linked
+
+    # -- helpers -------------------------------------------------------
+
+    @staticmethod
+    def _algorithm_config(algorithm: GraphAlgorithm, limits: dict[str, Any]) -> dict[str, Any]:
+        return {
+            **algorithm_parameters(algorithm),
+            "algorithm": algorithm.id,
+            "max_depth": limits["max_depth"],
+            "max_nodes": limits["max_nodes"],
+            "max_edges": limits["max_edges"],
+            "max_paths": limits["max_paths"],
+            "relationship_types": limits["relationship_types"],
+            "direction": limits["direction"],
+        }
+
+    @staticmethod
+    def _apply_caps(linked: LinkedEvidence, limits: dict[str, Any]) -> bool:
+        caps = {
+            "node": limits["max_nodes"],
+            "edge": limits["max_edges"],
+            "path": limits["max_paths"],
+            "score": limits["max_nodes"],
+        }
+        kept: list[dict[str, Any]] = []
+        counts: dict[str, int] = {}
+        truncated = False
+        for item in linked.results:
+            kind = item["kind"]
+            counts[kind] = counts.get(kind, 0) + 1
+            if counts[kind] > caps.get(kind, limits["max_nodes"]):
+                truncated = True
+                continue
+            kept.append(item)
+        if truncated:
+            linked.results = kept
+            support = {rid for item in kept for rid in item["supporting_record_ids"]}
+            linked.supporting_record_ids = [
+                r for r in linked.supporting_record_ids if str(r) in support
+            ]
+        return truncated
+
+    @staticmethod
+    def _receipt(
+        status: GraphReceiptStatus,
+        operation: GraphOperation,
+        scope_digest: str,
+        provider: GraphProviderIdentity,
+        algorithm: GraphAlgorithmIdentity | None,
+        limits_applied: dict[str, Any],
+        linked: LinkedEvidence,
+        failures: list[dict[str, Any]],
+    ) -> GraphIntelligenceReceipt:
+        body = {
+            "status": status.value,
+            "operation": operation.value,
+            "scope_digest": scope_digest,
+            "algorithm": algorithm.model_dump() if algorithm else None,
+            "results": linked.results,
+            "supporting_record_ids": [str(r) for r in linked.supporting_record_ids],
+            "unsupported": linked.unsupported,
+            "failures": failures,
+        }
+        return GraphIntelligenceReceipt(
+            status=status,
+            operation=operation,
+            scope_digest=scope_digest,
+            provider=provider,
+            algorithm=algorithm,
+            limits_applied=limits_applied,
+            results=tuple(linked.results),
+            supporting_record_ids=tuple(linked.supporting_record_ids),
+            unsupported_projection_observations=tuple(linked.unsupported),
+            failures=tuple(failures),
+            result_digest=_canonical_digest(body),
+        )

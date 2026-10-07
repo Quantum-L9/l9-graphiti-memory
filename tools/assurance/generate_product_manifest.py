@@ -14,7 +14,7 @@
 Global law names ``l9-semantic-compiler`` as the ProductManifest owner, but no
 such compiler exists. Release progression must not depend on it, so this
 repository derives its ``l9.product-manifest/v1`` deterministically here and
-records exactly that in the manifest's ``compiler`` block (ADR-085 amendment).
+records exactly that in the manifest's ``compiler`` block (ADR-094 amendment).
 An admitted global compiler, if one ever exists, supersedes this generator.
 
 Inputs are read, never copied: ``product-topology.yaml`` from this repository,
@@ -433,7 +433,7 @@ def derive(repo: Path, authority: Path) -> dict[str, Any]:
             "profile_ref": PROFILE_ID,
             "profile_digest": digest(profile),
             "compiler_version": f"{topology_law.REPO_PREFIX}{GENERATOR.as_posix()}@{file_digest(repo / GENERATOR)}",
-            "realization": "repository-local deterministic derivation; no l9-semantic-compiler exists (ADR-085)",
+            "realization": "repository-local deterministic derivation; no l9-semantic-compiler exists (ADR-094)",
         },
         "provenance": {
             "derivation": "deterministic",

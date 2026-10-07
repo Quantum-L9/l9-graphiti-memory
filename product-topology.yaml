@@ -9,7 +9,7 @@
 #   updated: 2026-07-22
 
 schema: l9.product-topology/v1
-# Authoritative ProductTopology for Quantum-L9/l9-graphiti-memory (ADR-085).
+# Authoritative ProductTopology for Quantum-L9/l9-graphiti-memory (ADR-094).
 # Global law is consumed, never copied: every `l9.*` reference resolves in
 # Quantum-L9/.github at the revision pinned under `provenance`. References in
 # the `l9-graphiti-memory:` namespace are product-owned semantics whose
@@ -528,7 +528,7 @@ admission:
     - l9.receipt/validation@1
     - l9.receipt/conformance@1
     - l9.receipt/admission@1
-  decision_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-085-product-topology-and-release-governance.md
+  decision_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-094-product-topology-and-release-governance.md
 lifecycle:
   family_ref: l9.lifecycle/global@1
   applicable_state_refs:
@@ -610,8 +610,8 @@ operations:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-022-release-publishing-and-rollback.md
     - Quantum-L9/l9-graphiti-memory/deployment/generated-data/rollback-runbook.md
 provenance:
-  authority_ref: Quantum-L9/.github@c1d87abe00e31a2b06bda607afe54ea16bfadd77
-  source_revision: Quantum-L9/l9-graphiti-memory@2f5f1b4ccfec09c63c8757cd8267641aef189976
+  authority_ref: Quantum-L9/.github@07b0df96fc3008d55a96f804923e2177ff312295
+  source_revision: Quantum-L9/l9-graphiti-memory@155848b9dc6103850456e6ad72f0df2ec054824c
   source_refs:
     - Quantum-L9/.github/semantics/contracts.yaml@a8170aae86b617f83bb4afd8592b3684b8a166b1
     - Quantum-L9/.github/semantics/product_topology.schema.yaml@4fd2856bdf84c10a55a4be7e8519848c22c2bdbf
