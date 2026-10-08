@@ -5,8 +5,21 @@
 #   layer: operations
 #   owner: memory-control-plane
 #   status: active
-#   version: 1.0.0
-#   updated: 2026-10-02
+#   version: 1.1.0
+#   updated: 2026-10-08
+#
+# Two jobs with different questions:
+#
+# verify (pull_request / push): the committed projection must equal what the
+# generator produces from its own recorded authority revision. It checks out
+# Quantum-L9/.github at exactly `projection.source_revision` from the committed
+# corpus, never at `main`, so an unrelated .github commit cannot turn a current
+# projection stale. Read-only.
+#
+# refresh (schedule / dispatch): inspects the requested authority revision
+# (default main), regenerates, and opens a refresh pull request when the
+# projection materially differs. It never merges. User-controlled refs reach
+# the shell only through `env:` so they are data, not script source.
 name: L9 Repository Corpus Projection
 on:
   pull_request:
@@ -22,7 +35,7 @@ on:
       - "tests/unit/test_repository_corpus.py"
       - "tests/integration/test_repository_corpus_ingestion.py"
       - "rules/96-repository-corpus-authority.mdc"
-      - "docs/adr/ADR-085-canonical-repository-corpus-authority-binding.md"
+      - "docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md"
   push:
     branches:
       - main
@@ -47,8 +60,7 @@ on:
   schedule:
     - cron: "17 */6 * * *"
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 concurrency:
   group: l9-repository-corpus-projection
   cancel-in-progress: false
@@ -56,41 +68,66 @@ jobs:
   verify:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout memory repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           path: memory
-          fetch-depth: 0
-      - name: Checkout canonical organization authority
-        uses: actions/checkout@v4
+          persist-credentials: false
+      - name: Resolve the recorded authority revision
+        id: recorded
+        working-directory: memory
+        shell: bash
+        run: |
+          revision="$(
+            python3 - <<'PY'
+          import re, sys
+          text = open("src/l9_graphite_memory/resources/repository_corpus.yaml", encoding="utf-8").read()
+          match = re.search(r"^\s*source_revision:\s*([0-9a-f]{40})\s*$", text, re.M)
+          if match is None:
+              sys.exit("committed projection records no exact 40-hex source_revision")
+          print(match.group(1))
+          PY
+          )"
+          printf 'revision=%s\n' "$revision" >> "$GITHUB_OUTPUT"
+      - name: Checkout canonical organization authority at the recorded revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           repository: Quantum-L9/.github
-          ref: main
+          ref: ${{ steps.recorded.outputs.revision }}
           path: org-authority
           fetch-depth: 1
-      - name: Set up Python
-        uses: actions/setup-python@v5
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          python-version: "3.12"
-      - name: Install projection dependency
-        run: python -m pip install "pyyaml>=6.0,<7"
-      - name: Verify committed projection matches canonical authority
+          python-version: "3.13"
+          enable-cache: false
+      - name: Install locked dev dependencies
         working-directory: memory
+        run: uv sync --frozen --no-install-project --no-build --extra dev
+      - name: Verify committed projection matches its recorded authority
+        working-directory: memory
+        env:
+          AUTHORITY_REVISION: ${{ steps.recorded.outputs.revision }}
         run: |
-          python tools/authority/project_l9_repository_corpus.py \
+          .venv/bin/python tools/authority/project_l9_repository_corpus.py \
             --authority-root ../org-authority \
+            --source-revision "$AUTHORITY_REVISION" \
             --check
       - name: Verify downstream governing binding
         working-directory: memory
         env:
           PYTHONPATH: src
-        run: python tools/assurance/check_repository_corpus_governance.py
+        run: .venv/bin/python tools/assurance/check_repository_corpus_governance.py
       - name: Run repository corpus tests
         working-directory: memory
+        env:
+          PYTHONPATH: src
         run: |
-          python -m pip install -e ".[dev]"
-          pytest -q \
+          .venv/bin/python -m pytest -q -p no:cacheprovider \
             tests/unit/test_repository_corpus.py \
             tests/integration/test_repository_corpus_ingestion.py
   refresh:
@@ -99,46 +136,60 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout memory repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           path: memory
           fetch-depth: 0
-      - name: Resolve authority revision
+      - name: Resolve requested authority revision
         id: authority
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_AUTHORITY_REF: ${{ inputs.authority_ref }}
+          PAYLOAD_AUTHORITY_REF: ${{ github.event.client_payload.authority_ref }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            printf 'ref=%s\n' "${{ inputs.authority_ref }}" >> "$GITHUB_OUTPUT"
-          elif [[ -n "${{ github.event.client_payload.authority_ref }}" ]]; then
-            printf 'ref=%s\n' "${{ github.event.client_payload.authority_ref }}" >> "$GITHUB_OUTPUT"
-          else
-            printf 'ref=main\n' >> "$GITHUB_OUTPUT"
+          ref="main"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$DISPATCH_AUTHORITY_REF" ]]; then
+            ref="$DISPATCH_AUTHORITY_REF"
+          elif [[ "$EVENT_NAME" == "repository_dispatch" && -n "$PAYLOAD_AUTHORITY_REF" ]]; then
+            ref="$PAYLOAD_AUTHORITY_REF"
           fi
+          if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "refusing authority ref with unexpected characters" >&2
+            exit 1
+          fi
+          printf 'ref=%s\n' "$ref" >> "$GITHUB_OUTPUT"
       - name: Checkout canonical organization authority
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           repository: Quantum-L9/.github
           ref: ${{ steps.authority.outputs.ref }}
           path: org-authority
           fetch-depth: 1
-      - name: Set up Python
-        uses: actions/setup-python@v5
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          python-version: "3.12"
-      - name: Install projection dependency
-        run: python -m pip install "pyyaml>=6.0,<7"
+          python-version: "3.13"
+          enable-cache: false
+      - name: Install locked dev dependencies
+        working-directory: memory
+        run: uv sync --frozen --no-install-project --no-build --extra dev
       - name: Generate repository corpus projection
         working-directory: memory
         run: |
-          python tools/authority/project_l9_repository_corpus.py \
+          .venv/bin/python tools/authority/project_l9_repository_corpus.py \
             --authority-root ../org-authority
       - name: Verify generated governing projection
         working-directory: memory
         env:
           PYTHONPATH: src
-        run: python tools/assurance/check_repository_corpus_governance.py
+        run: .venv/bin/python tools/assurance/check_repository_corpus_governance.py
       - name: Detect projection change
         id: diff
         working-directory: memory
@@ -162,13 +213,13 @@ jobs:
           git config user.name "quantum-l9-automation"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$branch"
-          git add \
+          git add -- \
             src/l9_graphite_memory/resources/repository_corpus.yaml \
             src/l9_graphite_memory/resources/repository_corpus.receipt.yaml
           git commit -m "chore(memory): project canonical L9 repository corpus"
           git push --force-with-lease origin "$branch"
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
-          echo "authority_sha=$authority_sha" >> "$GITHUB_OUTPUT"
+          printf 'branch=%s\n' "$branch" >> "$GITHUB_OUTPUT"
+          printf 'authority_sha=%s\n' "$authority_sha" >> "$GITHUB_OUTPUT"
       - name: Open projection pull request
         if: steps.diff.outputs.changed == 'true'
         working-directory: memory
@@ -193,4 +244,4 @@ jobs:
             --base main \
             --head "$BRANCH" \
             --title "chore(memory): project canonical L9 repository corpus" \
-            --body "Machine-generated projection from Quantum-L9/.github@$AUTHORITY_SHA. Do not edit generated corpus or receipt manually."
+            --body "Machine-generated projection from Quantum-L9/.github@${AUTHORITY_SHA}. Do not edit the generated corpus or receipt manually. This pull request is never auto-merged."

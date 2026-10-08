@@ -9,15 +9,21 @@
 #   version: 1.0.0
 #   updated: 2026-10-02
 """Project the canonical Quantum-L9 repository corpus into this package."""
+
 from __future__ import annotations
+
 import argparse
 import hashlib
+import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
+
 import yaml
+
 REGISTRY_ARTIFACT = "l9.repository-registry/global@1"
 CLASSES_ARTIFACT = "l9.repository-classes/global@1"
 VIEW_REF = "l9.repository-view/memory-namespace-l9@1"
@@ -25,28 +31,30 @@ OUTPUT_ARTIFACT = "l9.projection/memory-repository-corpus@1"
 OUTPUT_SCHEMA = "l9.projection.memory-repository-corpus/v1"
 RECEIPT_SCHEMA = "l9.projection-receipt/v1"
 GENERATOR_ID = "l9-graphiti-memory.repository-corpus-projector/v1"
+
+
 class ProjectionError(RuntimeError):
     pass
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--authority-root", type=Path, required=True)
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path(
-            "src/l9_graphite_memory/resources/repository_corpus.yaml"
-        ),
+        default=Path("src/l9_graphite_memory/resources/repository_corpus.yaml"),
     )
     parser.add_argument(
         "--receipt",
         type=Path,
-        default=Path(
-            "src/l9_graphite_memory/resources/repository_corpus.receipt.yaml"
-        ),
+        default=Path("src/l9_graphite_memory/resources/repository_corpus.receipt.yaml"),
     )
     parser.add_argument("--source-revision")
     parser.add_argument("--check", action="store_true")
     return parser.parse_args()
+
+
 def main() -> int:
     args = parse_args()
     authority_root = args.authority_root.resolve()
@@ -56,7 +64,11 @@ def main() -> int:
     classes_bytes = _read_required(classes_path)
     registry = _yaml_mapping(registry_bytes, registry_path)
     classes = _yaml_mapping(classes_bytes, classes_path)
-    source_revision = args.source_revision or _git_revision(authority_root)
+    source_revision = (
+        _explicit_revision(args.source_revision)
+        if args.source_revision
+        else _git_revision(authority_root)
+    )
     corpus = project(
         registry=registry,
         classes=classes,
@@ -92,6 +104,8 @@ def main() -> int:
     print(args.output)
     print(args.receipt)
     return 0
+
+
 def project(
     *,
     registry: Mapping[str, Any],
@@ -101,37 +115,25 @@ def project(
     classes_digest: str,
 ) -> dict[str, Any]:
     if registry.get("artifact_id") != REGISTRY_ARTIFACT:
-        raise ProjectionError(
-            f"expected {REGISTRY_ARTIFACT}, got {registry.get('artifact_id')}"
-        )
+        raise ProjectionError(f"expected {REGISTRY_ARTIFACT}, got {registry.get('artifact_id')}")
     if classes.get("artifact_id") != CLASSES_ARTIFACT:
-        raise ProjectionError(
-            f"expected {CLASSES_ARTIFACT}, got {classes.get('artifact_id')}"
-        )
+        raise ProjectionError(f"expected {CLASSES_ARTIFACT}, got {classes.get('artifact_id')}")
     if registry.get("canonical") is not True:
         raise ProjectionError("repository registry must be canonical")
     if classes.get("canonical") is not True:
         raise ProjectionError("repository classes must be canonical")
     if registry.get("class_catalog_ref") != CLASSES_ARTIFACT:
-        raise ProjectionError(
-            "repository registry does not reference the expected class catalog"
-        )
+        raise ProjectionError("repository registry does not reference the expected class catalog")
     views = _mapping(classes.get("derived_views"), "derived_views")
     view = _mapping(views.get("l9_memory_namespace"), "l9_memory_namespace")
     if view.get("id") != VIEW_REF:
-        raise ProjectionError(
-            f"expected repository view {VIEW_REF}, got {view.get('id')}"
-        )
+        raise ProjectionError(f"expected repository view {VIEW_REF}, got {view.get('id')}")
     selector = _mapping(view.get("selector"), "selector")
     class_ref = _required_string(selector, "class_ref")
     lifecycle_in = selector.get("lifecycle_in")
     if not isinstance(lifecycle_in, list) or not lifecycle_in:
         raise ProjectionError("repository view lifecycle_in must be a non-empty list")
-    allowed_lifecycles = {
-        str(value)
-        for value in lifecycle_in
-        if isinstance(value, str) and value
-    }
+    allowed_lifecycles = {str(value) for value in lifecycle_in if isinstance(value, str) and value}
     output = _mapping(view.get("output"), "view.output")
     logical_namespace = _required_string(output, "namespace")
     class_catalog = _mapping(classes.get("classes"), "classes")
@@ -145,9 +147,7 @@ def project(
             "repository class memory namespace disagrees with derived repository view"
         )
     if memory.get("membership") != "required":
-        raise ProjectionError(
-            "L9 repository class must require memory namespace membership"
-        )
+        raise ProjectionError("L9 repository class must require memory namespace membership")
     raw_repositories = registry.get("repositories")
     if not isinstance(raw_repositories, list):
         raise ProjectionError("repository registry repositories must be a list")
@@ -217,6 +217,8 @@ def project(
         "repository_class_ref": class_ref,
         "repositories": projected,
     }
+
+
 def build_receipt(
     *,
     corpus: Mapping[str, Any],
@@ -243,11 +245,22 @@ def build_receipt(
             "deterministic": True,
         },
     }
+
+
+def _explicit_revision(value: str) -> str:
+    """An operator-supplied authority revision must be an exact 40-hex commit."""
+    if re.fullmatch(r"[0-9a-f]{40}", value) is None:
+        raise ProjectionError(
+            "--source-revision must be an exact 40-character lowercase commit sha"
+        )
+    return value
+
+
 def _git_revision(root: Path) -> str:
     git = shutil.which("git")
     if git is None:
         raise ProjectionError("git is required to resolve the authority source revision")
-    result = subprocess.run(  # noqa: S603
+    result = subprocess.run(
         [git, "-C", str(root), "rev-parse", "HEAD"],
         capture_output=True,
         check=False,
@@ -255,35 +268,45 @@ def _git_revision(root: Path) -> str:
         timeout=10,
     )
     if result.returncode != 0:
-        raise ProjectionError(
-            f"unable to resolve source revision: {result.stderr.strip()}"
-        )
+        raise ProjectionError(f"unable to resolve source revision: {result.stderr.strip()}")
     revision = result.stdout.strip()
     if len(revision) != 40:
         raise ProjectionError(f"unexpected git revision: {revision}")
     return revision
+
+
 def _read_required(path: Path) -> bytes:
     try:
         return path.read_bytes()
     except FileNotFoundError as exc:
         raise ProjectionError(f"required canonical source is missing: {path}") from exc
+
+
 def _yaml_mapping(raw: bytes, path: Path) -> Mapping[str, Any]:
     try:
         value = yaml.safe_load(raw)
     except yaml.YAMLError as exc:
         raise ProjectionError(f"invalid YAML in {path}: {exc}") from exc
     return _mapping(value, str(path))
+
+
 def _mapping(value: Any, label: str) -> Mapping[str, Any]:
     if not isinstance(value, Mapping):
         raise ProjectionError(f"{label} must be a mapping")
     return value
+
+
 def _required_string(value: Mapping[str, Any], key: str) -> str:
     resolved = value.get(key)
     if not isinstance(resolved, str) or not resolved:
         raise ProjectionError(f"{key} must be a non-empty string")
     return resolved
+
+
 def _digest(raw: bytes) -> str:
     return f"sha256:{hashlib.sha256(raw).hexdigest()}"
+
+
 def _dump_yaml(value: Mapping[str, Any]) -> bytes:
     return yaml.safe_dump(
         dict(value),
@@ -291,8 +314,12 @@ def _dump_yaml(value: Mapping[str, Any]) -> bytes:
         allow_unicode=True,
         width=100,
     ).encode("utf-8")
+
+
 def _write(path: Path, content: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(content)
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

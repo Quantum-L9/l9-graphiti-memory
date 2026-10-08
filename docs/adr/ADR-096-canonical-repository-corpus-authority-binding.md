@@ -1,7 +1,21 @@
-# ADR-085: Canonical Repository Corpus Authority Binding
-Date: 2026-10-02  
-Decision owner: Quantum-L9 memory architecture  
-Applies to: `Quantum-L9/l9-graphiti-memory` v2.5+
+# ADR-096: Canonical Repository Corpus Authority Binding
+
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md
+layer: adr
+owner: memory-control-plane
+status: active
+version: 2.5.0
+updated: 2026-10-08
+/L9_META -->
+
+
+**Date:** 2026-10-02 (renumbered from a draft ADR-085 on 2026-10-08; ADR-085 is the tenant-safe graph scope key)
+**Decision owner:** Quantum-L9 memory architecture
+**Applies to:** `Quantum-L9/l9-graphiti-memory` v2.5+
+
 ## Status
 Accepted
 ## Context

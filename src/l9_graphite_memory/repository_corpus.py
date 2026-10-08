@@ -8,37 +8,54 @@
 #   version: 1.0.0
 #   updated: 2026-10-02
 """Verified downstream view of the canonical Quantum-L9 repository corpus."""
+
 from __future__ import annotations
+
 import hashlib
+from collections.abc import Mapping
 from dataclasses import dataclass
 from importlib import resources
-from typing import Any, Mapping
+from typing import Any
+
 import yaml
+
+from l9_graphite_memory.errors import L9MemoryError
+
 CORPUS_RESOURCE = "repository_corpus.yaml"
 RECEIPT_RESOURCE = "repository_corpus.receipt.yaml"
 BINDING_RESOURCE = "repository_corpus_binding.yaml"
 EXPECTED_CORPUS_SCHEMA = "l9.projection.memory-repository-corpus/v1"
 EXPECTED_RECEIPT_SCHEMA = "l9.projection-receipt/v1"
 EXPECTED_BINDING_SCHEMA = "l9.memory.repository-corpus-binding/v1"
-class RepositoryCorpusError(RuntimeError):
+
+
+class RepositoryCorpusError(L9MemoryError):
     """Raised when repository-corpus authority cannot be resolved safely."""
+
+
 @dataclass(frozen=True, slots=True)
 class RepositoryCoordinate:
     provider: str
     organization: str
     repository: str
+
     @property
     def canonical(self) -> str:
         return f"{self.organization}/{self.repository}"
+
+
 @dataclass(frozen=True, slots=True)
 class RepositoryMember:
     id: str
     coordinate: RepositoryCoordinate
     lifecycle: str
     class_ref: str
+
     @property
     def current(self) -> bool:
         return self.lifecycle == "current"
+
+
 @dataclass(frozen=True, slots=True)
 class RepositoryCorpus:
     artifact_id: str
@@ -49,8 +66,10 @@ class RepositoryCorpus:
     runtime_namespace: str
     required_class_ref: str
     members: tuple[RepositoryMember, ...]
+
     def current_members(self) -> tuple[RepositoryMember, ...]:
         return tuple(member for member in self.members if member.current)
+
     def resolve(self, value: str) -> RepositoryMember | None:
         normalized = normalize_repository_coordinate(value)
         for member in self.members:
@@ -59,6 +78,7 @@ class RepositoryCorpus:
             if normalized == member.coordinate.canonical:
                 return member
         return None
+
     def require_current_member(self, value: str) -> RepositoryMember:
         member = self.resolve(value)
         if member is None:
@@ -71,6 +91,7 @@ class RepositoryCorpus:
                 f"{member.id} ({member.lifecycle})"
             )
         return member
+
     @classmethod
     def from_documents(
         cls,
@@ -85,9 +106,7 @@ class RepositoryCorpus:
             raise RepositoryCorpusError("repository corpus projection must be non-canonical")
         authority = _mapping(corpus_document.get("authority"), "authority")
         if authority.get("authority_class") != "derived":
-            raise RepositoryCorpusError(
-                "repository corpus projection must have derived authority"
-            )
+            raise RepositoryCorpusError("repository corpus projection must have derived authority")
         projection = _mapping(corpus_document.get("projection"), "projection")
         upstream = _mapping(binding_document.get("upstream"), "upstream")
         view = _mapping(upstream.get("repository_view"), "upstream.repository_view")
@@ -144,9 +163,7 @@ class RepositoryCorpus:
                     f"{member_id} has unexpected repository class {class_ref}"
                 )
             if lifecycle not in {"current", "superseded", "retired"}:
-                raise RepositoryCorpusError(
-                    f"{member_id} has unsupported lifecycle {lifecycle}"
-                )
+                raise RepositoryCorpusError(f"{member_id} has unsupported lifecycle {lifecycle}")
             coordinate_map = _mapping(member_map.get("coordinate"), "coordinate")
             coordinate = RepositoryCoordinate(
                 provider=_required_string(coordinate_map, "provider"),
@@ -179,6 +196,8 @@ class RepositoryCorpus:
             required_class_ref=required_class_ref,
             members=tuple(members),
         )
+
+
 def normalize_repository_coordinate(value: str) -> str:
     candidate = value.strip()
     if candidate.startswith("git@github.com:"):
@@ -191,6 +210,8 @@ def normalize_repository_coordinate(value: str) -> str:
         candidate = candidate.removeprefix("http://github.com/")
     candidate = candidate.removesuffix(".git").strip("/")
     return candidate
+
+
 def load_repository_corpus() -> RepositoryCorpus:
     corpus_bytes = _resource_bytes(CORPUS_RESOURCE)
     receipt_bytes = _resource_bytes(RECEIPT_RESOURCE)
@@ -205,6 +226,8 @@ def load_repository_corpus() -> RepositoryCorpus:
         binding_document=binding_document,
     )
     return RepositoryCorpus.from_documents(corpus_document, binding_document)
+
+
 def _verify_receipt(
     *,
     corpus_bytes: bytes,
@@ -234,9 +257,10 @@ def _verify_receipt(
     actual_digest = f"sha256:{hashlib.sha256(corpus_bytes).hexdigest()}"
     if actual_digest != expected_digest:
         raise RepositoryCorpusError(
-            f"repository corpus digest mismatch: expected {expected_digest}, "
-            f"got {actual_digest}"
+            f"repository corpus digest mismatch: expected {expected_digest}, got {actual_digest}"
         )
+
+
 def _resource_bytes(name: str) -> bytes:
     resource = resources.files("l9_graphite_memory").joinpath("resources", name)
     try:
@@ -245,16 +269,22 @@ def _resource_bytes(name: str) -> bytes:
         raise RepositoryCorpusError(
             f"required repository corpus resource is missing: {name}"
         ) from exc
+
+
 def _yaml_mapping(raw: bytes, label: str) -> Mapping[str, Any]:
     try:
         value = yaml.safe_load(raw)
     except yaml.YAMLError as exc:
         raise RepositoryCorpusError(f"invalid YAML in {label}: {exc}") from exc
     return _mapping(value, label)
+
+
 def _mapping(value: Any, label: str) -> Mapping[str, Any]:
     if not isinstance(value, Mapping):
         raise RepositoryCorpusError(f"{label} must be a mapping")
     return value
+
+
 def _required_string(value: Mapping[str, Any], key: str) -> str:
     resolved = value.get(key)
     if not isinstance(resolved, str) or not resolved:

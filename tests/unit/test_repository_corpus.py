@@ -8,12 +8,16 @@
 #   version: 1.0.0
 #   updated: 2026-10-02
 from __future__ import annotations
+
 import pytest
+
 from l9_graphite_memory.repository_corpus import (
     RepositoryCorpus,
     RepositoryCorpusError,
     normalize_repository_coordinate,
 )
+
+
 def binding_document() -> dict:
     return {
         "schema": "l9.memory.repository-corpus-binding/v1",
@@ -35,6 +39,8 @@ def binding_document() -> dict:
             },
         },
     }
+
+
 def corpus_document() -> dict:
     return {
         "schema": "l9.projection.memory-repository-corpus/v1",
@@ -74,6 +80,8 @@ def corpus_document() -> dict:
             },
         ],
     }
+
+
 def test_resolves_repository_by_registry_id() -> None:
     corpus = RepositoryCorpus.from_documents(
         corpus_document(),
@@ -83,6 +91,8 @@ def test_resolves_repository_by_registry_id() -> None:
     assert member is not None
     assert member.coordinate.canonical == "Quantum-L9/Cursor-Governance"
     assert member.current is True
+
+
 @pytest.mark.parametrize(
     "value",
     [
@@ -101,14 +111,16 @@ def test_resolves_supported_github_coordinates(value: str) -> None:
     member = corpus.resolve(value)
     assert member is not None
     assert member.id == "cursor-governance"
+
+
 def test_current_members_exclude_retired_repository() -> None:
     corpus = RepositoryCorpus.from_documents(
         corpus_document(),
         binding_document(),
     )
-    assert [member.id for member in corpus.current_members()] == [
-        "cursor-governance"
-    ]
+    assert [member.id for member in corpus.current_members()] == ["cursor-governance"]
+
+
 def test_require_current_member_rejects_retired_repository() -> None:
     corpus = RepositoryCorpus.from_documents(
         corpus_document(),
@@ -116,6 +128,8 @@ def test_require_current_member_rejects_retired_repository() -> None:
     )
     with pytest.raises(RepositoryCorpusError, match="not ingestion eligible"):
         corpus.require_current_member("golden-repo")
+
+
 def test_require_current_member_rejects_unknown_repository() -> None:
     corpus = RepositoryCorpus.from_documents(
         corpus_document(),
@@ -123,6 +137,8 @@ def test_require_current_member_rejects_unknown_repository() -> None:
     )
     with pytest.raises(RepositoryCorpusError, match="not a member"):
         corpus.require_current_member("Quantum-L9/not-registered")
+
+
 def test_runtime_namespace_comes_from_local_binding() -> None:
     corpus = RepositoryCorpus.from_documents(
         corpus_document(),
@@ -130,27 +146,31 @@ def test_runtime_namespace_comes_from_local_binding() -> None:
     )
     assert corpus.logical_namespace == "l9"
     assert corpus.runtime_namespace == "project-group/l9"
+
+
 def test_projection_cannot_promote_itself_to_canonical() -> None:
     document = corpus_document()
     document["canonical"] = True
     with pytest.raises(RepositoryCorpusError, match="must be non-canonical"):
         RepositoryCorpus.from_documents(document, binding_document())
+
+
 def test_projection_view_must_match_governing_binding() -> None:
     document = corpus_document()
     document["projection"]["view_ref"] = "l9.repository-view/other@1"
     with pytest.raises(RepositoryCorpusError, match="projection view mismatch"):
         RepositoryCorpus.from_documents(document, binding_document())
+
+
 def test_repository_class_must_match_governing_binding() -> None:
     document = corpus_document()
-    document["repositories"][0]["class_ref"] = (
-        "l9.repository-class/org-auxiliary@1"
-    )
+    document["repositories"][0]["class_ref"] = "l9.repository-class/org-auxiliary@1"
     with pytest.raises(RepositoryCorpusError, match="unexpected repository class"):
         RepositoryCorpus.from_documents(document, binding_document())
+
+
 def test_coordinate_normalization_preserves_canonical_identity() -> None:
     assert (
-        normalize_repository_coordinate(
-            "git@github.com:Quantum-L9/l9-graphiti-memory.git"
-        )
+        normalize_repository_coordinate("git@github.com:Quantum-L9/l9-graphiti-memory.git")
         == "Quantum-L9/l9-graphiti-memory"
     )

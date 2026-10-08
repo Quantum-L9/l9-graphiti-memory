@@ -9,41 +9,24 @@
 #   version: 1.0.0
 #   updated: 2026-10-02
 """Fail closed when repository-corpus projection governance is invalid."""
+
 from __future__ import annotations
+
 import hashlib
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
+
 import yaml
+
 ROOT = Path(__file__).resolve().parents[2]
-BINDING_PATH = (
-    ROOT
-    / "src"
-    / "l9_graphite_memory"
-    / "resources"
-    / "repository_corpus_binding.yaml"
-)
-CORPUS_PATH = (
-    ROOT
-    / "src"
-    / "l9_graphite_memory"
-    / "resources"
-    / "repository_corpus.yaml"
-)
-RECEIPT_PATH = (
-    ROOT
-    / "src"
-    / "l9_graphite_memory"
-    / "resources"
-    / "repository_corpus.receipt.yaml"
-)
-REPOSITORY_INGESTION_PATH = (
-    ROOT
-    / "src"
-    / "l9_graphite_memory"
-    / "ingestion"
-    / "repository.py"
-)
+BINDING_PATH = ROOT / "src" / "l9_graphite_memory" / "resources" / "repository_corpus_binding.yaml"
+CORPUS_PATH = ROOT / "src" / "l9_graphite_memory" / "resources" / "repository_corpus.yaml"
+RECEIPT_PATH = ROOT / "src" / "l9_graphite_memory" / "resources" / "repository_corpus.receipt.yaml"
+REPOSITORY_INGESTION_PATH = ROOT / "src" / "l9_graphite_memory" / "ingestion" / "repository.py"
+
+
 def main() -> int:
     failures: list[str] = []
     for path in (
@@ -119,13 +102,9 @@ def main() -> int:
             failures.append(f"duplicate repository id: {repository_id}")
         ids.add(repository_id)
         if class_ref != required_class_ref:
-            failures.append(
-                f"{repository_id} has non-governing repository class {class_ref}"
-            )
+            failures.append(f"{repository_id} has non-governing repository class {class_ref}")
         if lifecycle not in {"current", "superseded", "retired"}:
-            failures.append(
-                f"{repository_id} has unsupported lifecycle {lifecycle}"
-            )
+            failures.append(f"{repository_id} has unsupported lifecycle {lifecycle}")
         provider = coordinate.get("provider")
         organization = coordinate.get("organization")
         repository_name = coordinate.get("repository")
@@ -147,8 +126,7 @@ def main() -> int:
     actual_digest = f"sha256:{hashlib.sha256(CORPUS_PATH.read_bytes()).hexdigest()}"
     if expected_digest != actual_digest:
         failures.append(
-            f"generated corpus digest mismatch: expected {expected_digest}, "
-            f"got {actual_digest}"
+            f"generated corpus digest mismatch: expected {expected_digest}, got {actual_digest}"
         )
     ingestion_source = REPOSITORY_INGESTION_PATH.read_text(encoding="utf-8")
     required_markers = (
@@ -164,11 +142,10 @@ def main() -> int:
             )
     if failures:
         return _report(failures)
-    print(
-        "repository corpus governance: PASS "
-        f"({len(repositories)} projected repositories)"
-    )
+    print(f"repository corpus governance: PASS ({len(repositories)} projected repositories)")
     return 0
+
+
 def _load_yaml(path: Path, failures: list[str]) -> Mapping[str, Any]:
     try:
         value = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -179,11 +156,17 @@ def _load_yaml(path: Path, failures: list[str]) -> Mapping[str, Any]:
         failures.append(f"{path} must contain a YAML mapping")
         return {}
     return value
+
+
 def _mapping(value: Any) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
+
+
 def _report(failures: list[str]) -> int:
     for failure in failures:
         print(f"FAIL repository-corpus-governance: {failure}", file=sys.stderr)
     return 1
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

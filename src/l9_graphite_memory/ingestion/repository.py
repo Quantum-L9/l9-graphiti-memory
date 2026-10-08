@@ -8,9 +8,12 @@
 #   version: 2.5.0
 #   updated: 2026-10-02
 """Bootstrap repository architecture and ADRs through canonical ingestion."""
+
 from __future__ import annotations
+
 import subprocess
 from pathlib import Path
+
 from l9_graphite_memory.contracts import MemoryClass, MemoryPrincipal, WriteReceipt
 from l9_graphite_memory.errors import L9MemoryError
 from l9_graphite_memory.repository_corpus import (
@@ -19,7 +22,10 @@ from l9_graphite_memory.repository_corpus import (
     load_repository_corpus,
 )
 from l9_graphite_memory.services import MemoryService
+
 from .document import DocumentIngestor
+
+
 class RepositoryBootstrapper:
     PRIORITY_FILES = (
         "AGENTS.md",
@@ -29,6 +35,7 @@ class RepositoryBootstrapper:
         "MANIFEST.md",
         "CHANGE_SUMMARY.md",
     )
+
     def __init__(
         self,
         service: MemoryService,
@@ -38,11 +45,12 @@ class RepositoryBootstrapper:
         self.service = service
         self.ingestor = ingestor or DocumentIngestor()
         self.corpus = corpus or load_repository_corpus()
+
     @staticmethod
     def repository_name(path: Path) -> str:
         try:
-            result = subprocess.run(  # noqa: S603
-                ["git", "-C", str(path), "remote", "get-url", "origin"],  # noqa: S607
+            result = subprocess.run(
+                ["git", "-C", str(path), "remote", "get-url", "origin"],
                 capture_output=True,
                 check=False,
                 text=True,
@@ -51,6 +59,7 @@ class RepositoryBootstrapper:
         except (OSError, subprocess.TimeoutExpired):
             return path.name
         return result.stdout.strip() if result.returncode == 0 else path.name
+
     def sources(self, repo: Path) -> tuple[Path, ...]:
         found: list[Path] = []
         for relative in self.PRIORITY_FILES:
@@ -61,6 +70,7 @@ class RepositoryBootstrapper:
         if adr_dir.is_dir():
             found.extend(sorted(adr_dir.glob("ADR-*.md")))
         return tuple(dict.fromkeys(found))
+
     def bootstrap(
         self,
         principal: MemoryPrincipal,
@@ -87,15 +97,13 @@ class RepositoryBootstrapper:
         else:
             if namespace == self.corpus.runtime_namespace:
                 raise L9MemoryError(
-                    f"repository {observed_repository} is not admitted to the "
-                    "canonical L9 repository corpus"
+                    f"repository {observed_repository} is "
+                    "not admitted to the canonical L9 repository corpus"
                 )
             repository = observed_repository
         receipts: list[WriteReceipt] = []
         for source in self.sources(root):
-            memory_class = (
-                MemoryClass.DECISION if "adr" in source.parts else MemoryClass.META
-            )
+            memory_class = MemoryClass.DECISION if "adr" in source.parts else MemoryClass.META
             for request in self.ingestor.requests(
                 source,
                 namespace=namespace,
@@ -106,6 +114,8 @@ class RepositoryBootstrapper:
             ):
                 receipts.append(self.service.write(principal, request))
         return tuple(receipts)
+
+
 __all__ = [
     "RepositoryBootstrapper",
     "RepositoryCorpusError",

@@ -304,9 +304,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 92 -> 93 for ADR-093 (graph intelligence V1 closure).
         # Re-pinned 93 -> 94 for ADR-094 (product topology and release
         # governance). Re-pinned 94 -> 95 for ADR-095 (structured source
-        # invalidation lifecycle).
-        "95 ADRs complete and indexed",
-        r"PASS: 95 ADRs",
+        # invalidation lifecycle). Re-pinned 95 -> 96 for ADR-096 (canonical
+        # repository corpus authority binding).
+        "96 ADRs complete and indexed",
+        r"PASS: 96 ADRs",
     ),
     CheckSpec(
         "V-004",
