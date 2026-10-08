@@ -2,7 +2,7 @@
 #   l9_schema: 1
 #   repo: Quantum-L9/l9-graphiti-memory
 #   path: .github/workflows/l9-repository-corpus-projection.yml
-#   layer: operations
+#   layer: ci
 #   owner: memory-control-plane
 #   status: active
 #   version: 1.1.0

@@ -277,8 +277,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # binding / agent-bindings refs, 1 wrong agent-binding fragment, 2
         # missing evidence refs, and 12 malformed semantic digests as 3 keys x
         # 4 shapes). None are backend-parameterized or CI-skipped. 1543 + 30.
-        "1573 tests pass",
-        r"1573 passed",
+        # Re-pinned 1573 -> 1591 for ADR-096 (canonical repository corpus
+        # authority binding), stacked over the assertion provenance door:
+        # 14 cases in test_repository_corpus.py (one parametrized x 5) and 4
+        # in test_repository_corpus_ingestion.py. None are backend-
+        # parameterized or CI-skipped. 1573 + 18 = 1591.
+        "1591 tests pass",
+        r"1591 passed",
     ),
     CheckSpec(
         "V-002",
