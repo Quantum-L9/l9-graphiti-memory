@@ -414,7 +414,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "496fdc42010c8236103b57d26e269aef7b43d569002b086a8dff0740c28ff56f",
+      "sha256": "c78e17cf2fac53536be8f047a53b98ed319079213c820f27cb099b2db6cc2665",
       "size_bytes": 135950
     },
     {
@@ -4302,8 +4302,8 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md",
-      "sha256": "5c1c6c0c25030705252dc3aaa3168c38d188b0bd0f9fda7bbb2efa77eb9d210b",
-      "size_bytes": 15884
+      "sha256": "e4e8c77e9af8f6277f82eb7eac5b1cb25c715ec548b03b29401a7d0d0bbfdcc6",
+      "size_bytes": 17385
     },
     {
       "category": "architecture_decisions",
@@ -5966,8 +5966,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/authz/signed_assertion.py",
-      "sha256": "0929f03893bbdfeb44a275bab71ac2b7e6b121d305327695af788db0c8f88bab",
-      "size_bytes": 11022
+      "sha256": "92209c57c917f3916e6965bede3b46976dca6640e9657e87b598d59c25f359d9",
+      "size_bytes": 13725
     },
     {
       "category": "production_source",
@@ -6222,8 +6222,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/contracts/identity.py",
-      "sha256": "017623942cbdea25c9fa6ed5578589649afb8a7edb3f868a5df1d0ab7888608a",
-      "size_bytes": 4535
+      "sha256": "b6299a00d4f2d0d52072ee60fedfefd448ea4da627f29afd8bc98e525cc10bff",
+      "size_bytes": 6038
     },
     {
       "category": "production_source",
@@ -10974,8 +10974,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_signed_assertion.py",
-      "sha256": "01f36b714d79304c26ba896d85b07c9596353e975e08313e43bd426d6725a317",
-      "size_bytes": 16476
+      "sha256": "13ee9f40ce559ee3ffd5ff9d2c8fbcbe0bb1e09a7aa5fc9794922105c3b9486b",
+      "size_bytes": 22529
     },
     {
       "category": "tests",
@@ -11022,8 +11022,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_stdio_namespace_resolution.py",
-      "sha256": "c2abf6f08dc424d41a5fbafcce2ad5f54e461f3a2c0cdf54e6e59a268810fc39",
-      "size_bytes": 13802
+      "sha256": "36b85309b5770ca8bc74ef988cfd105c36526ef9aa07e69d3586c08d1762dfd6",
+      "size_bytes": 13718
     },
     {
       "category": "tests",
@@ -11054,8 +11054,8 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_write_agent_mcp.py",
-      "sha256": "68e7c4979a5ac2acc41c7d6fc15faf769861ff30cf9c100adafb0ebb9d32b593",
-      "size_bytes": 15242
+      "sha256": "9fa7cbef2c0bb697ae4f815bc0d73b8f1181b722ce82c0e23891687d9b290c43",
+      "size_bytes": 15158
     },
     {
       "category": "tests",
@@ -11454,8 +11454,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "0e63307176e755aa295ef182e70f3e96258018d9bb74103b79b46a560b781316",
-      "size_bytes": 30894
+      "sha256": "a07b8c63c664046ad8cb149d55037311ba743f8ea0c4ef31bf84fda2a0e91ee4",
+      "size_bytes": 31437
     },
     {
       "category": "assurance",

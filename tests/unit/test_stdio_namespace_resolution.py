@@ -45,6 +45,7 @@ from l9_graphite_memory.server import (
     create_http_app,
 )
 from l9_graphite_memory.services import MemoryService
+from tests.unit.test_signed_assertion import canonical_provenance
 
 # Registered repositories in the packaged registry.
 HOME_REPO = "l9-graphiti-memory"
@@ -315,9 +316,7 @@ def signed_agent(monkeypatch: pytest.MonkeyPatch) -> None:
             "actor_identity": actor,
             "surface_identity": "unknown",
         },
-        "evidence_refs": ["l9.projection/cursor-governance-identity@1"],
-        "resolver_ref": "l9.cursor-governance/resolver/runtime-agent-identity@1",
-        "governing_coordinates": {},
+        **canonical_provenance(agent_id),
         "result": "resolved",
     }
     digest = local_assertion_digest(identity)

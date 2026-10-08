@@ -24,6 +24,36 @@ ACTOR_REGISTRY_PREFIX = "l9.actor-registry/global@1#"
 SURFACE_REGISTRY_PREFIX = "l9.surface-registry/global@1#"
 IdentityAssertionResult = Literal["resolved", "unknown", "ambiguous", "invalid"]
 
+#: Provenance a resolved assertion must carry (global contract
+#: ``l9.contract/provenance-and-coordinate@1``). Memory consumes the assertion;
+#: it never re-derives ActorIdentity, fetches ``.github``, or reads the
+#: Cursor-Governance registry. These coordinates pin which producer and which
+#: authority revision the consumed evidence must come from.
+IDENTITY_RESOLVER_REF = "l9.cursor-governance/resolver/runtime-agent-identity@1"
+IDENTITY_PROJECTION_REF = "l9.projection/cursor-governance-identity@1"
+IDENTITY_BINDING_REF = "l9.cursor-governance/identity-binding@1"
+AGENT_BINDINGS_REF = "l9.cursor-governance/agent-bindings@2"
+#: Exact ``Quantum-L9/.github`` main revision the consumed identity projection
+#: must have been generated from. Bumped only when the global identity
+#: authority is re-projected; a stale or candidate revision is rejected.
+GLOBAL_IDENTITY_AUTHORITY_REVISION = "07b0df96fc3008d55a96f804923e2177ff312295"
+#: ``governing_coordinates`` keys a resolved assertion must carry.
+REQUIRED_GOVERNING_COORDINATES: tuple[str, ...] = (
+    "global_identity_authority_revision",
+    "identity_projection_ref",
+    "identity_projection_digest",
+    "actor_registry_digest",
+    "surface_registry_digest",
+    "identity_binding_ref",
+    "agent_bindings_ref",
+)
+#: Governing coordinates that must carry a ``sha256:<64 lowercase hex>`` digest.
+SEMANTIC_DIGEST_COORDINATES: tuple[str, ...] = (
+    "identity_projection_digest",
+    "actor_registry_digest",
+    "surface_registry_digest",
+)
+
 
 class MemoryPrincipal(BaseModel):
     """Server-derived identity used for every authorization decision."""

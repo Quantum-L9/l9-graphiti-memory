@@ -26,6 +26,7 @@ from l9_graphite_memory.contracts import MemoryClass
 from l9_graphite_memory.errors import AuthenticationError, AuthorizationError
 from l9_graphite_memory.mcp_tools import ALIASES, MCPToolApplication, tool_definitions
 from l9_graphite_memory.server import _stdio_principal
+from tests.unit.test_signed_assertion import canonical_provenance
 
 # ---------------------------------------------------------------------------
 # memory.write_agent tool — discovery
@@ -241,9 +242,7 @@ def _identity_transport(agent_id: str, signing_key: str) -> tuple[str, str]:
             "actor_identity": actor,
             "surface_identity": "unknown",
         },
-        "evidence_refs": ["l9.projection/cursor-governance-identity@1"],
-        "resolver_ref": "l9.cursor-governance/resolver/runtime-agent-identity@1",
-        "governing_coordinates": {},
+        **canonical_provenance(agent_id),
         "result": "resolved",
     }
     digest = local_assertion_digest(body)

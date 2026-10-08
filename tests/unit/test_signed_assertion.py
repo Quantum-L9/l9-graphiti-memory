@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 
 import pytest
@@ -24,6 +25,15 @@ from l9_graphite_memory.authz.signed_assertion import (
     signing_keys_from_config,
     verify_assertion,
     verify_canonical_identity_assertion,
+)
+from l9_graphite_memory.contracts.identity import (
+    AGENT_BINDINGS_REF,
+    GLOBAL_IDENTITY_AUTHORITY_REVISION,
+    IDENTITY_BINDING_REF,
+    IDENTITY_PROJECTION_REF,
+    IDENTITY_RESOLVER_REF,
+    REQUIRED_GOVERNING_COORDINATES,
+    SEMANTIC_DIGEST_COORDINATES,
 )
 from l9_graphite_memory.errors import AuthenticationError
 
@@ -252,6 +262,40 @@ _ACTOR = "l9.actor-registry/global@1#claude-code"
 _SURFACE = "l9.surface-registry/global@1#claude-code-cli"
 
 
+def canonical_provenance(agent_id: str) -> dict:
+    """The provenance a resolved assertion must carry for ``agent_id``.
+
+    Shared by every door fixture: the producer coordinates, the exact
+    ``.github`` authority revision the identity projection was generated from,
+    the registry and projection digests, and the binding that ties the runtime
+    to this actor. Memory pins these; it does not fetch what they name.
+    """
+
+    return {
+        "evidence_refs": [
+            IDENTITY_PROJECTION_REF,
+            IDENTITY_BINDING_REF,
+            f"{AGENT_BINDINGS_REF}#{agent_id}",
+        ],
+        "resolver_ref": IDENTITY_RESOLVER_REF,
+        "governing_coordinates": {
+            "actor_registry_digest": (
+                "sha256:34fbe4abc246e21c28401941025317be52c109c88335577616a2648cc93c6f6f"
+            ),
+            "agent_bindings_ref": AGENT_BINDINGS_REF,
+            "global_identity_authority_revision": GLOBAL_IDENTITY_AUTHORITY_REVISION,
+            "identity_binding_ref": IDENTITY_BINDING_REF,
+            "identity_projection_digest": (
+                "sha256:489195262a26195a649170c63145f6ad317a99eb082bf360444164ad3ef5a667"
+            ),
+            "identity_projection_ref": IDENTITY_PROJECTION_REF,
+            "surface_registry_digest": (
+                "sha256:d7200409ff02141a274ff8c9221d31429f6a6fae27539e6d9c8d20f1a6eba988"
+            ),
+        },
+    }
+
+
 def _golden_body() -> dict:
     return {
         "schema": "l9.identity-assertion/v1",
@@ -442,3 +486,121 @@ def test_identity_assertion_roles_are_not_authorization() -> None:
     dumped = parsed.model_dump()
     assert "roles" not in dumped
     assert "write_namespaces" not in dumped
+
+
+# ---------------------------------------------------------------------------
+# Provenance / currentness of the consumed assertion
+# ---------------------------------------------------------------------------
+
+
+def test_golden_body_carries_the_pinned_provenance() -> None:
+    """The golden vector is the provenance contract: same refs, same revision."""
+
+    body = _golden_body()
+    expected = canonical_provenance("claude-code")
+    assert body["evidence_refs"] == expected["evidence_refs"]
+    assert body["resolver_ref"] == expected["resolver_ref"]
+    assert body["governing_coordinates"] == expected["governing_coordinates"]
+    assert set(REQUIRED_GOVERNING_COORDINATES) == set(body["governing_coordinates"])
+
+
+def test_empty_evidence_refs_is_rejected() -> None:
+    body = _golden_body()
+    body["evidence_refs"] = []
+    with pytest.raises(AuthenticationError, match="evidence_refs is empty"):
+        _verify(body)
+
+
+def test_missing_governing_coordinates_is_rejected() -> None:
+    body = _golden_body()
+    body["governing_coordinates"] = {}
+    with pytest.raises(AuthenticationError, match="governing_coordinates is empty"):
+        _verify(body)
+
+
+@pytest.mark.parametrize("key", REQUIRED_GOVERNING_COORDINATES)
+def test_missing_required_governing_coordinate_is_rejected(key: str) -> None:
+    body = _golden_body()
+    del body["governing_coordinates"][key]
+    with pytest.raises(AuthenticationError, match=f"coordinate {key} is missing"):
+        _verify(body)
+
+
+def test_wrong_resolver_ref_is_rejected() -> None:
+    body = _golden_body()
+    body["resolver_ref"] = "l9-graphiti-memory:resolver/server-side-principal@1"
+    with pytest.raises(AuthenticationError, match="resolver_ref is not"):
+        _verify(body)
+
+
+def test_wrong_global_authority_revision_is_rejected() -> None:
+    """A candidate or stale .github revision is not the pinned identity authority."""
+
+    body = _golden_body()
+    body["governing_coordinates"]["global_identity_authority_revision"] = "c46d91e0" + "0" * 32
+    with pytest.raises(AuthenticationError, match="global_identity_authority_revision is not"):
+        _verify(body)
+
+
+def test_wrong_identity_projection_ref_is_rejected() -> None:
+    body = _golden_body()
+    body["governing_coordinates"]["identity_projection_ref"] = (
+        "l9.projection/cursor-governance-identity@2"
+    )
+    with pytest.raises(AuthenticationError, match="identity_projection_ref is not"):
+        _verify(body)
+
+
+def test_wrong_identity_binding_ref_is_rejected() -> None:
+    body = _golden_body()
+    body["governing_coordinates"]["identity_binding_ref"] = (
+        "l9.cursor-governance/identity-binding@2"
+    )
+    with pytest.raises(AuthenticationError, match="identity_binding_ref is not"):
+        _verify(body)
+
+
+def test_wrong_agent_bindings_ref_is_rejected() -> None:
+    body = _golden_body()
+    body["governing_coordinates"]["agent_bindings_ref"] = "l9.cursor-governance/agent-bindings@1"
+    with pytest.raises(AuthenticationError, match="agent_bindings_ref is not"):
+        _verify(body)
+
+
+def test_agent_binding_fragment_must_name_the_authenticated_agent() -> None:
+    """The evidence must bind this actor, not merely some actor."""
+
+    body = _golden_body()
+    body["evidence_refs"] = [
+        IDENTITY_PROJECTION_REF,
+        IDENTITY_BINDING_REF,
+        f"{AGENT_BINDINGS_REF}#codex",
+    ]
+    with pytest.raises(AuthenticationError, match="lacks .*agent-bindings@2#claude-code"):
+        _verify(body)
+
+
+@pytest.mark.parametrize("ref", [IDENTITY_PROJECTION_REF, IDENTITY_BINDING_REF])
+def test_missing_required_evidence_ref_is_rejected(ref: str) -> None:
+    body = _golden_body()
+    body["evidence_refs"] = [r for r in body["evidence_refs"] if r != ref]
+    with pytest.raises(AuthenticationError, match=f"lacks {re.escape(ref)}"):
+        _verify(body)
+
+
+@pytest.mark.parametrize("key", SEMANTIC_DIGEST_COORDINATES)
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "sha256:" + "A" * 64,
+        "sha256:" + "0" * 63,
+        "sha1:" + "0" * 40,
+        "0" * 64,
+    ],
+    ids=["uppercase-hex", "short", "wrong-algorithm", "no-prefix"],
+)
+def test_malformed_semantic_digest_is_rejected(key: str, bad: str) -> None:
+    body = _golden_body()
+    body["governing_coordinates"][key] = bad
+    with pytest.raises(AuthenticationError, match=f"{key} is not a semantic digest"):
+        _verify(body)
