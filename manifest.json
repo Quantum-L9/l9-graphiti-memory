@@ -430,7 +430,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "8a8492a434fe1dd0ed1117784b908ee588ffed38d5aabc5b252b7a7db9a54c90",
+      "sha256": "3a28b46a948b3c5bb26a700aa8052adb9c3bab293b5d16ec863aaedcd2d5d6f4",
       "size_bytes": 137754
     },
     {
@@ -7438,8 +7438,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/repository_corpus.py",
-      "sha256": "03e9dc8c5f9432216cecabfb48023a98d760934c7782442738e75fda6bed6a33",
-      "size_bytes": 12124
+      "sha256": "e46617cbf5a981d5d77647c53417a04691c3335f6969e986741b94fe76691855",
+      "size_bytes": 12133
     },
     {
       "category": "production_source",

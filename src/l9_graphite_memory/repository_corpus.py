@@ -262,7 +262,7 @@ def _verify_receipt(
 
 
 def _resource_bytes(name: str) -> bytes:
-    resource = resources.files("l9_graphite_memory").joinpath("resources", name)
+    resource = resources.files("l9_graphite_memory").joinpath("resources").joinpath(name)
     try:
         return resource.read_bytes()
     except FileNotFoundError as exc:
