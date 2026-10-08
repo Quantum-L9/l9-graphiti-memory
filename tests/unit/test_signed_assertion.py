@@ -256,8 +256,8 @@ def test_the_door_fails_closed_where_verify_assertion_alone_raises_typeerror() -
 # ---------------------------------------------------------------------------
 
 GOLDEN_KEY = "golden-identity-hmac-key"
-GOLDEN_DIGEST = "sha256:8c72474b8c0a21b465ec6d8971217455754b89008fcd61c88d51fecc47af816f"
-GOLDEN_HMAC = "a937237875b4b8b3c3ed51ec151383806480c03da8e4e8606c8fc69435373b2e"
+GOLDEN_DIGEST = "sha256:cf7b14bef03986dbabbb926267a470b0ea14d24154ae99e1d95dc4242de21ab4"
+GOLDEN_HMAC = "ae9a689df2cdd819fe8fa980b5474030e0d64ec333a31d2f641b7cb74f076108"
 _ACTOR = "l9.actor-registry/global@1#claude-code"
 _SURFACE = "l9.surface-registry/global@1#claude-code-cli"
 
@@ -286,7 +286,7 @@ def canonical_provenance(agent_id: str) -> dict:
             "global_identity_authority_revision": GLOBAL_IDENTITY_AUTHORITY_REVISION,
             "identity_binding_ref": IDENTITY_BINDING_REF,
             "identity_projection_digest": (
-                "sha256:489195262a26195a649170c63145f6ad317a99eb082bf360444164ad3ef5a667"
+                "sha256:9d7491d507b7204caeaa9892019ab39a5e459cf507c59fa192fa238e3a953c5c"
             ),
             "identity_projection_ref": IDENTITY_PROJECTION_REF,
             "surface_registry_digest": (
@@ -323,10 +323,10 @@ def _golden_body() -> dict:
                 "sha256:34fbe4abc246e21c28401941025317be52c109c88335577616a2648cc93c6f6f"
             ),
             "agent_bindings_ref": "l9.cursor-governance/agent-bindings@2",
-            "global_identity_authority_revision": "07b0df96fc3008d55a96f804923e2177ff312295",
+            "global_identity_authority_revision": "9b27869dd893fcd28f76f99c9184a90435542c76",
             "identity_binding_ref": "l9.cursor-governance/identity-binding@1",
             "identity_projection_digest": (
-                "sha256:489195262a26195a649170c63145f6ad317a99eb082bf360444164ad3ef5a667"
+                "sha256:9d7491d507b7204caeaa9892019ab39a5e459cf507c59fa192fa238e3a953c5c"
             ),
             "identity_projection_ref": "l9.projection/cursor-governance-identity@1",
             "surface_registry_digest": (

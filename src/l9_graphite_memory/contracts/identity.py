@@ -36,7 +36,7 @@ AGENT_BINDINGS_REF = "l9.cursor-governance/agent-bindings@2"
 #: Exact ``Quantum-L9/.github`` main revision the consumed identity projection
 #: must have been generated from. Bumped only when the global identity
 #: authority is re-projected; a stale or candidate revision is rejected.
-GLOBAL_IDENTITY_AUTHORITY_REVISION = "07b0df96fc3008d55a96f804923e2177ff312295"
+GLOBAL_IDENTITY_AUTHORITY_REVISION = "9b27869dd893fcd28f76f99c9184a90435542c76"
 #: ``governing_coordinates`` keys a resolved assertion must carry.
 REQUIRED_GOVERNING_COORDINATES: tuple[str, ...] = (
     "global_identity_authority_revision",

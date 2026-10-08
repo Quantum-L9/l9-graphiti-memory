@@ -430,7 +430,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "ef0114a284cecaabb375d9b6852d6e9f8acb7b409153d659f25a6b1881dbbc78",
+      "sha256": "307c4284016a0da3071a6e52ea64b84a06ec7eba4344ce13b685e7b611b81060",
       "size_bytes": 137754
     },
     {
@@ -6270,7 +6270,7 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/contracts/identity.py",
-      "sha256": "b6299a00d4f2d0d52072ee60fedfefd448ea4da627f29afd8bc98e525cc10bff",
+      "sha256": "e736fde000a1820d3e6e866f698da14e40c27b75b68e4395fc0a43db7370a0c8",
       "size_bytes": 6038
     },
     {
@@ -7566,8 +7566,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/resources/repository_corpus.receipt.yaml",
-      "sha256": "a629cc2dc9733701b741bb7c0429a1a1a04d91c71eb6a5f69c2cdab6a8cfb8a2",
-      "size_bytes": 1070
+      "sha256": "81741b68de3f6ce273f59c5f466268b9d87d6b2f1101cbb88af8064be53cba0e",
+      "size_bytes": 1140
     },
     {
       "category": "production_source",
@@ -7582,8 +7582,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/resources/repository_corpus.yaml",
-      "sha256": "4524bb7dd5ceb0effcdf3b042791576e02aa93a5245f5318fcd3f721296d6330",
-      "size_bytes": 1065
+      "sha256": "772a8d878805c14c91847ad887985789f4fbad0c4d012349bc9d4d23e94ce785",
+      "size_bytes": 6743
     },
     {
       "category": "production_source",
@@ -11118,7 +11118,7 @@
         "version": "2.5.0"
       },
       "path": "tests/unit/test_signed_assertion.py",
-      "sha256": "13ee9f40ce559ee3ffd5ff9d2c8fbcbe0bb1e09a7aa5fc9794922105c3b9486b",
+      "sha256": "1603bce77662213099cf28be1bedc60c7b535ae62da54e6587517cdc6ed10740",
       "size_bytes": 22529
     },
     {

@@ -8,16 +8,6 @@
 #   version: 2.5.0
 #   updated: 2026-07-22
 
-# MACHINE GENERATED.
-# DO NOT HAND AUTHOR THIS FILE.
-#
-# Generate with:
-#
-# python tools/authority/project_l9_repository_corpus.py \
-#   --authority-root /path/to/Quantum-L9/.github
-#
-# This placeholder intentionally fails governance validation until replaced by
-# the first deterministic projection from the committed canonical authority.
 schema: l9.projection.memory-repository-corpus/v1
 artifact_id: l9.projection/memory-repository-corpus@1
 canonical: false
@@ -28,9 +18,239 @@ authority:
 projection:
   view_ref: l9.repository-view/memory-namespace-l9@1
   source_repository: Quantum-L9/.github
-  source_revision: UNGENERATED
-  sources: {}
+  source_revision: 9b27869dd893fcd28f76f99c9184a90435542c76
+  sources:
+    repository_registry:
+      artifact_ref: l9.repository-registry/global@1
+      digest: sha256:d940346433309a0b51dcc921a290bd19b57ddb4b9c4d17cbb3a8bfc7be90a686
+    repository_classes:
+      artifact_ref: l9.repository-classes/global@1
+      digest: sha256:1ba62a3e03423a35a55fd08dcc53bd8ce377d5c2406da32cc741ee7a385b7cdd
 namespace:
   logical: l9
 repository_class_ref: l9.repository-class/l9@1
-repositories: []
+repositories:
+- id: cursor-governance
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: Cursor-Governance
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: dot-github
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: .github
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: igorbot
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: igorbot
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-assurance
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-assurance
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-ci-core
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-ci-core
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-ci-debt-intelligence
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-ci-debt-intelligence
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-ci-debt-lsp
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-ci-debt-lsp
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-ci-debt-resolver
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-ci-debt-resolver
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-ci-sdk
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-ci-sdk
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-codegen
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-codegen
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-cognitive-runtime
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-cognitive-runtime
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-constellation-ingest
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-constellation-ingest
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-constellation-topology
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-constellation-topology
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-dependency-template
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-dependency-template
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-deploy
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-deploy
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-devpack-compiler
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-devpack-compiler
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-goose
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-goose
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-graphiti-memory
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-graphiti-memory
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-harness
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-harness
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-meta-injector
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-meta-injector
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-node-chain-of-search
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-node-chain-of-search
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-node-template
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-node-template
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-observability-core
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-observability-core
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-ops-mcp
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: L9-Ops-MCP
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-original-repo
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: L9_Original_Repo
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-pr-repair
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-pr-repair
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-prompt-generator
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: L9-Prompt-Generator
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-repo-template
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-repo-template
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-semantic-compiler-engine
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-semantic-compiler-engine
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-wip
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-wip
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: seo-bot
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: SEO-Bot
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: website-bot
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: Website-Bot
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1

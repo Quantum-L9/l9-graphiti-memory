@@ -444,7 +444,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/contracts/enums.py` | `production_source` | `contract` | 3562 | `3b615650dec2e89e437a903d7aaf8abc3541331bfdf2a1c4ddaa44b0630478e9` |
 | `src/l9_graphite_memory/contracts/evidence.py` | `production_source` | `contract` | 9966 | `10370bdd3bc10ceb7355b29af26cb14f351d5c6c54102a533c8a620f9ca7cd1e` |
 | `src/l9_graphite_memory/contracts/generated_data.py` | `production_source` | `contract` | 21322 | `db4f70c35628cdb74be8fb96bf01d9bae614ce4cce56a1f74f9abe1f85e6e62c` |
-| `src/l9_graphite_memory/contracts/identity.py` | `production_source` | `contract` | 6038 | `b6299a00d4f2d0d52072ee60fedfefd448ea4da627f29afd8bc98e525cc10bff` |
+| `src/l9_graphite_memory/contracts/identity.py` | `production_source` | `contract` | 6038 | `e736fde000a1820d3e6e866f698da14e40c27b75b68e4395fc0a43db7370a0c8` |
 | `src/l9_graphite_memory/contracts/maintenance.py` | `production_source` | `contract` | 5023 | `6f443f034da3aa1aad27b6806ac914de323097734e10fcd6a63b300b007a4ce5` |
 | `src/l9_graphite_memory/contracts/memory.py` | `production_source` | `contract` | 3667 | `447e14f3d13ddd07337a7bbccd2bbc3328068b7e0edf64854cc78b40582b6a0b` |
 | `src/l9_graphite_memory/contracts/privacy.py` | `production_source` | `contract` | 2137 | `90c7d4f7b99f907d6b286dbb09de4a84cf79e297d9a73bdbe457fac0435e2d10` |
@@ -525,8 +525,8 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/resources/group_registry.yaml` | `production_source` | `package` | 1339 | `104626fb987d50bf6ca63902ca4abb16b810db70fa272ab0cc8e0875fe51b825` |
 | `src/l9_graphite_memory/resources/memory_contract.yaml` | `production_source` | `package` | 947 | `f01e8c8307cf923bbc16981cfda2862f93c5f0968a624ff460cd9f748f989030` |
 | `src/l9_graphite_memory/resources/projections/schema.json` | `production_source` | `package` | 10374 | `7d65fe82ab419e749eec0cb6a3b5daa1aea1fe1cb12e5011169fb35fe30cd16a` |
-| `src/l9_graphite_memory/resources/repository_corpus.receipt.yaml` | `production_source` | `package` | 1070 | `a629cc2dc9733701b741bb7c0429a1a1a04d91c71eb6a5f69c2cdab6a8cfb8a2` |
-| `src/l9_graphite_memory/resources/repository_corpus.yaml` | `production_source` | `package` | 1065 | `4524bb7dd5ceb0effcdf3b042791576e02aa93a5245f5318fcd3f721296d6330` |
+| `src/l9_graphite_memory/resources/repository_corpus.receipt.yaml` | `production_source` | `package` | 1140 | `81741b68de3f6ce273f59c5f466268b9d87d6b2f1101cbb88af8064be53cba0e` |
+| `src/l9_graphite_memory/resources/repository_corpus.yaml` | `production_source` | `package` | 6743 | `772a8d878805c14c91847ad887985789f4fbad0c4d012349bc9d4d23e94ce785` |
 | `src/l9_graphite_memory/resources/repository_corpus_binding.yaml` | `production_source` | `package` | 3945 | `0923de8cc0ad251b9ffd239589293e14c6c6f26a39274daedf7381deefce42d5` |
 | `src/l9_graphite_memory/retrieval/__init__.py` | `production_source` | `package` | 634 | `090e3caf5486287a3e9d187e3803c6388be3a4a30b90b7f97ca2b58e99bc5350` |
 | `src/l9_graphite_memory/retrieval/budget.py` | `production_source` | `package` | 3391 | `5c7f83be5ec8b3b0dd04625a88db93a10f38cec8d8176d5d43bb5d8a1857d1c7` |
@@ -747,7 +747,7 @@ updated: 2026-07-22
 | `tests/unit/test_schema_registry.py` | `tests` | `test` | 964 | `008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee` |
 | `tests/unit/test_search_request_identity.py` | `tests` | `test` | 12163 | `404b53b970e22673e799d3aba4b1deccef211f284094f766e74c8ae42e71559b` |
 | `tests/unit/test_server_principal.py` | `tests` | `test` | 6689 | `dc593908677d28918386db3e81247564030b02f91c82da17a6f5ecd08dc6f1ec` |
-| `tests/unit/test_signed_assertion.py` | `tests` | `test` | 22529 | `13ee9f40ce559ee3ffd5ff9d2c8fbcbe0bb1e09a7aa5fc9794922105c3b9486b` |
+| `tests/unit/test_signed_assertion.py` | `tests` | `test` | 22529 | `1603bce77662213099cf28be1bedc60c7b535ae62da54e6587517cdc6ed10740` |
 | `tests/unit/test_source_invalidation_contract.py` | `tests` | `test` | 11719 | `aca7c84df1c9fb281a1019ce83aa3758c10f658b66d1601a461ec5dd218cb460` |
 | `tests/unit/test_source_locator_contract.py` | `tests` | `test` | 7831 | `e7d88d9f95d4406cd4b33e1785ff7a9c748a1089100eab8cab368424bd03623b` |
 | `tests/unit/test_stdio_namespace_resolution.py` | `tests` | `test` | 13718 | `36b85309b5770ca8bc74ef988cfd105c36526ef9aa07e69d3586c08d1762dfd6` |
