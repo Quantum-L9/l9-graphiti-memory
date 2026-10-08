@@ -193,6 +193,12 @@ When `L9_MEMORY_AGENTS_DOOR_SECRET` is set, both identity transport values are m
 
 Roles and namespaces still come only from `L9_MEMORY_AGENT_GRANTS_JSON`. An identity assertion that names an actor and also carries a role or namespace does not widen `MemoryPrincipal`.
 
+### Provenance and currentness
+
+A resolved assertion is consumed only when it carries the provenance the global contract `l9.contract/provenance-and-coordinate@1` makes mandatory. The door requires `evidence_refs` to be non-empty and to contain `l9.projection/cursor-governance-identity@1`, `l9.cursor-governance/identity-binding@1` and `l9.cursor-governance/agent-bindings@2#<authenticated agent_id>`; `resolver_ref` to equal `l9.cursor-governance/resolver/runtime-agent-identity@1`; and `governing_coordinates` to carry `global_identity_authority_revision`, `identity_projection_ref`, `identity_projection_digest`, `actor_registry_digest`, `surface_registry_digest`, `identity_binding_ref` and `agent_bindings_ref`. The three digests must be `sha256:<64 lowercase hex>`. `identity_projection_ref`, `identity_binding_ref` and `agent_bindings_ref` must equal the coordinates above, and `global_identity_authority_revision` must equal the exact `Quantum-L9/.github` main revision pinned as `GLOBAL_IDENTITY_AUTHORITY_REVISION` in `contracts/identity.py`. That pin is bumped only when the global identity authority is re-projected; a stale or candidate revision is rejected before any grant is loaded.
+
+This is still assertion consumption. Memory does not fetch `.github`, read Cursor-Governance's `agent_registry.yaml`, read Cursor or Claude runtime markers, re-resolve ActorIdentity, or grant a role from the assertion. It compares the coordinates the producer recorded with the coordinates it pins.
+
 `MemoryPrincipal.agent_id` stays the authenticated actor id fragment. `Provenance.source_agent_id` continues to copy that field. `MEMORY_SCHEMA_VERSION` stays `2.2.0`.
 
 ### Local assertion digest

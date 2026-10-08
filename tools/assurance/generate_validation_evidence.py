@@ -270,8 +270,15 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # 16 cases in test_signed_assertion.py (the unresolved-result case is
         # three parameters) and 8 in test_server_principal.py. None are
         # backend-parameterized or CI-skipped. Same arithmetic: 1519 + 24 = 1543.
-        "1543 tests pass",
-        r"1543 passed",
+        # Re-pinned 1543 -> 1573 for assertion provenance validation at the
+        # same door: 30 cases in test_signed_assertion.py (1 golden-provenance
+        # check, 1 empty evidence_refs, 1 empty governing_coordinates, 7 missing
+        # required coordinates, 5 wrong resolver / revision / projection /
+        # binding / agent-bindings refs, 1 wrong agent-binding fragment, 2
+        # missing evidence refs, and 12 malformed semantic digests as 3 keys x
+        # 4 shapes). None are backend-parameterized or CI-skipped. 1543 + 30.
+        "1573 tests pass",
+        r"1573 passed",
     ),
     CheckSpec(
         "V-002",

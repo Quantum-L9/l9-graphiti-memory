@@ -21,6 +21,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import time
 from collections.abc import Mapping
 from typing import Any
@@ -29,8 +30,15 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from l9_graphite_memory.contracts.identity import (
     ACTOR_REGISTRY_PREFIX,
+    AGENT_BINDINGS_REF,
+    GLOBAL_IDENTITY_AUTHORITY_REVISION,
     IDENTITY_ASSERTION_SCHEMA,
+    IDENTITY_BINDING_REF,
+    IDENTITY_PROJECTION_REF,
+    IDENTITY_RESOLVER_REF,
     MEMORY_PRODUCT_REF,
+    REQUIRED_GOVERNING_COORDINATES,
+    SEMANTIC_DIGEST_COORDINATES,
     SURFACE_REGISTRY_PREFIX,
     IdentityAssertion,
 )
@@ -272,4 +280,56 @@ def verify_canonical_identity_assertion(
     )
     if not surface_ok:
         raise AuthenticationError("malformed surface coordinate")
+    _verify_assertion_provenance(parsed, agent_id=agent_id)
     return parsed
+
+
+_SEMANTIC_DIGEST_RE = re.compile(r"\Asha256:[0-9a-f]{64}\Z")
+
+
+def _verify_assertion_provenance(parsed: IdentityAssertion, *, agent_id: str) -> None:
+    """Require the provenance the global contract makes mandatory on a resolved assertion.
+
+    An assertion that resolves an actor without saying which resolver produced
+    it, which identity projection it consulted, which ``.github`` revision that
+    projection was generated from, and which bindings tied the runtime to the
+    actor is not evidence memory may consume. This is assertion consumption,
+    not identity re-derivation: memory compares coordinates to pinned
+    constants and never fetches the authority it names.
+    """
+
+    if not parsed.evidence_refs:
+        raise AuthenticationError("identity assertion evidence_refs is empty")
+    if parsed.resolver_ref != IDENTITY_RESOLVER_REF:
+        raise AuthenticationError(f"identity assertion resolver_ref is not {IDENTITY_RESOLVER_REF}")
+    coordinates = parsed.governing_coordinates
+    if not coordinates:
+        raise AuthenticationError("identity assertion governing_coordinates is empty")
+    for key in REQUIRED_GOVERNING_COORDINATES:
+        value = coordinates.get(key)
+        if not isinstance(value, str) or not value:
+            raise AuthenticationError(f"identity assertion governing coordinate {key} is missing")
+    for key in SEMANTIC_DIGEST_COORDINATES:
+        if _SEMANTIC_DIGEST_RE.fullmatch(coordinates[key]) is None:
+            raise AuthenticationError(
+                f"identity assertion governing coordinate {key} is not a semantic digest"
+            )
+    expected = {
+        "global_identity_authority_revision": GLOBAL_IDENTITY_AUTHORITY_REVISION,
+        "identity_projection_ref": IDENTITY_PROJECTION_REF,
+        "identity_binding_ref": IDENTITY_BINDING_REF,
+        "agent_bindings_ref": AGENT_BINDINGS_REF,
+    }
+    for key, expected_value in expected.items():
+        if coordinates[key] != expected_value:
+            raise AuthenticationError(
+                f"identity assertion governing coordinate {key} is not {expected_value}"
+            )
+    required_evidence = (
+        IDENTITY_PROJECTION_REF,
+        IDENTITY_BINDING_REF,
+        f"{AGENT_BINDINGS_REF}#{agent_id}",
+    )
+    for ref in required_evidence:
+        if ref not in parsed.evidence_refs:
+            raise AuthenticationError(f"identity assertion evidence_refs lacks {ref}")
