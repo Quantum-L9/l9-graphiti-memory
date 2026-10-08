@@ -430,7 +430,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "3a28b46a948b3c5bb26a700aa8052adb9c3bab293b5d16ec863aaedcd2d5d6f4",
+      "sha256": "876048337918fd27fefc888d0650ed4676c527c85ee2bdb618f9c53b4365d1cc",
       "size_bytes": 137754
     },
     {
@@ -11742,8 +11742,8 @@
         "version": "2.5.0"
       },
       "path": "tools/authority/project_l9_repository_corpus.py",
-      "sha256": "f696b52ed82d821a1da32fa4928a061b67be7168ad5494766f9bf40c17daac71",
-      "size_bytes": 12806
+      "sha256": "3f0cb12ce04a2f25b368e730954b1fbd3ad7815c0f3b9217d254103a777a633b",
+      "size_bytes": 13407
     },
     {
       "category": "assurance",

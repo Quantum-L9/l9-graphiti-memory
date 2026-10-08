@@ -336,9 +336,24 @@ def _dump_yaml(value: Mapping[str, Any], *, relative: str) -> bytes:
     return (_l9_meta_header(relative) + body).encode("utf-8")
 
 
+def _within_workspace(path: Path) -> Path:
+    """Resolve ``path`` and refuse anything outside the current repository tree.
+
+    The projector writes package resources. Its ``--output`` / ``--receipt``
+    arguments are operator input, so a value that escapes the tree the tool
+    was invoked in is refused rather than honoured.
+    """
+    root = Path.cwd().resolve()
+    target = path.resolve()
+    if target != root and root not in target.parents:
+        raise ProjectionError(f"refusing to write outside the repository tree: {path}")
+    return target
+
+
 def _write(path: Path, content: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(content)
+    target = _within_workspace(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(content)
 
 
 if __name__ == "__main__":
