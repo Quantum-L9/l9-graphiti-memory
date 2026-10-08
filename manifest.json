@@ -1,5 +1,5 @@
 {
-  "file_count": 828,
+  "file_count": 839,
   "files": [
     {
       "category": "ci",
@@ -80,6 +80,22 @@
       "path": ".github/workflows/graph-qualification.yml",
       "sha256": "a7da59f9be9af095f36dd7903d62f5789188aebc787b44c589e316fd5923cf89",
       "size_bytes": 4391
+    },
+    {
+      "category": "ci",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "ci",
+        "owner": "memory-control-plane",
+        "path": ".github/workflows/l9-repository-corpus-projection.yml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": ".github/workflows/l9-repository-corpus-projection.yml",
+      "sha256": "927a4032a66cd512601ef727797a3a92a772c38130ceb6a73ad102e84cec349b",
+      "size_bytes": 10057
     },
     {
       "category": "ci",
@@ -414,8 +430,8 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "c78e17cf2fac53536be8f047a53b98ed319079213c820f27cb099b2db6cc2665",
-      "size_bytes": 135950
+      "sha256": "ef0114a284cecaabb375d9b6852d6e9f8acb7b409153d659f25a6b1881dbbc78",
+      "size_bytes": 137754
     },
     {
       "category": "repository_root",
@@ -4503,6 +4519,22 @@
         "l9_schema": 1,
         "layer": "adr",
         "owner": "memory-control-plane",
+        "path": "docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md",
+      "sha256": "256e3af3967e08ca164de66fcad22c9b8f5fbd8f32f171a5957ea96afc063a14",
+      "size_bytes": 10847
+    },
+    {
+      "category": "architecture_decisions",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "adr",
+        "owner": "memory-control-plane",
         "path": "docs/adr/README.md",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -4510,8 +4542,8 @@
         "version": "2.5.0"
       },
       "path": "docs/adr/README.md",
-      "sha256": "eadca27f0e8080ebf687eabd52f88ad32585df0360ef9e62320c70eea3bf220f",
-      "size_bytes": 11844
+      "sha256": "f914fad720693bf62218a619cfa3912b3697a654c7f62ed93f40f4f597779701",
+      "size_bytes": 11975
     },
     {
       "category": "documentation",
@@ -5216,6 +5248,22 @@
       "path": "rules/03-graphiti-memory.mdc",
       "sha256": "20e03434589675053d739e5fa182eb650aaf821acf0cf757a913e60df7c879a6",
       "size_bytes": 603
+    },
+    {
+      "category": "configuration",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "configuration",
+        "owner": "memory-control-plane",
+        "path": "rules/96-repository-corpus-authority.mdc",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "rules/96-repository-corpus-authority.mdc",
+      "sha256": "e50b288e42e9862bcec92d4cbf91cb4ee4722b242d524e46fa31c40bf78037be",
+      "size_bytes": 2195
     },
     {
       "category": "configuration",
@@ -6766,8 +6814,8 @@
         "version": "2.5.0"
       },
       "path": "src/l9_graphite_memory/ingestion/repository.py",
-      "sha256": "b664de965a16b438a0ac73a22876e21b5e3fdc6295856b37744630bacaab56cb",
-      "size_bytes": 2723
+      "sha256": "bf8a18dccd4cc0734626140123b3ff36f1541af4682f2226272cdca3b995b99f",
+      "size_bytes": 4075
     },
     {
       "category": "production_source",
@@ -7383,6 +7431,22 @@
         "l9_schema": 1,
         "layer": "package",
         "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/repository_corpus.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/repository_corpus.py",
+      "sha256": "e46617cbf5a981d5d77647c53417a04691c3335f6969e986741b94fe76691855",
+      "size_bytes": 12133
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "package",
+        "owner": "memory-control-plane",
         "path": "src/l9_graphite_memory/resources/active_memory_redis_capabilities.yaml",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -7488,6 +7552,54 @@
       "path": "src/l9_graphite_memory/resources/projections/schema.json",
       "sha256": "7d65fe82ab419e749eec0cb6a3b5daa1aea1fe1cb12e5011169fb35fe30cd16a",
       "size_bytes": 10374
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "package",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/resources/repository_corpus.receipt.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/resources/repository_corpus.receipt.yaml",
+      "sha256": "a629cc2dc9733701b741bb7c0429a1a1a04d91c71eb6a5f69c2cdab6a8cfb8a2",
+      "size_bytes": 1070
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "package",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/resources/repository_corpus.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/resources/repository_corpus.yaml",
+      "sha256": "4524bb7dd5ceb0effcdf3b042791576e02aa93a5245f5318fcd3f721296d6330",
+      "size_bytes": 1065
+    },
+    {
+      "category": "production_source",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "package",
+        "owner": "memory-control-plane",
+        "path": "src/l9_graphite_memory/resources/repository_corpus_binding.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "src/l9_graphite_memory/resources/repository_corpus_binding.yaml",
+      "sha256": "0923de8cc0ad251b9ffd239589293e14c6c6f26a39274daedf7381deefce42d5",
+      "size_bytes": 3945
     },
     {
       "category": "production_source",
@@ -9687,6 +9799,22 @@
         "l9_schema": 1,
         "layer": "test",
         "owner": "memory-control-plane",
+        "path": "tests/integration/test_repository_corpus_ingestion.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/integration/test_repository_corpus_ingestion.py",
+      "sha256": "1becf822cb37f129fc127e2a585d0da307423770eaa6e672974f233524a7f568",
+      "size_bytes": 3218
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "test",
+        "owner": "memory-control-plane",
         "path": "tests/integration/test_retention_lineage_phase_lock.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -10903,6 +11031,22 @@
         "l9_schema": 1,
         "layer": "test",
         "owner": "memory-control-plane",
+        "path": "tests/unit/test_repository_corpus.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tests/unit/test_repository_corpus.py",
+      "sha256": "8041e11033ad4b44125d8047bbc9c868b11611d6a59ab67791202cae33a8950e",
+      "size_bytes": 5635
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "test",
+        "owner": "memory-control-plane",
         "path": "tests/unit/test_retrieval_projection_hydration.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -11383,6 +11527,22 @@
         "l9_schema": 1,
         "layer": "assurance",
         "owner": "memory-control-plane",
+        "path": "tools/assurance/check_repository_corpus_governance.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tools/assurance/check_repository_corpus_governance.py",
+      "sha256": "13c445f5dbfeda069c010929f6661a6f6d0c0352db767be358bc247729d2baae",
+      "size_bytes": 7889
+    },
+    {
+      "category": "assurance",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "assurance",
+        "owner": "memory-control-plane",
         "path": "tools/assurance/check_secrets.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -11454,8 +11614,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "a07b8c63c664046ad8cb149d55037311ba743f8ea0c4ef31bf84fda2a0e91ee4",
-      "size_bytes": 31437
+      "sha256": "72ea76f40cab4efbe4942211d2d374fa1d4c0593ce6702a7570f13888a66f81e",
+      "size_bytes": 32006
     },
     {
       "category": "assurance",
@@ -11502,7 +11662,7 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/validate_adrs.py",
-      "sha256": "205c66fae587a2bf01628c7ee317dbf7328b81debb38023781c644fe2bbdc71f",
+      "sha256": "402c01f91a5b9aa5893ca023e94964287362ff160db6830e5438a4718c4bc56a",
       "size_bytes": 2580
     },
     {
@@ -11568,6 +11728,22 @@
       "path": "tools/assurance/validate_projection_manifests.py",
       "sha256": "ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5",
       "size_bytes": 2468
+    },
+    {
+      "category": "assurance",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "assurance",
+        "owner": "memory-control-plane",
+        "path": "tools/authority/project_l9_repository_corpus.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.5.0"
+      },
+      "path": "tools/authority/project_l9_repository_corpus.py",
+      "sha256": "3f0cb12ce04a2f25b368e730954b1fbd3ad7815c0f3b9217d254103a777a633b",
+      "size_bytes": 13407
     },
     {
       "category": "assurance",

@@ -277,8 +277,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # binding / agent-bindings refs, 1 wrong agent-binding fragment, 2
         # missing evidence refs, and 12 malformed semantic digests as 3 keys x
         # 4 shapes). None are backend-parameterized or CI-skipped. 1543 + 30.
-        "1573 tests pass",
-        r"1573 passed",
+        # Re-pinned 1573 -> 1591 for ADR-096 (canonical repository corpus
+        # authority binding), stacked over the assertion provenance door:
+        # 14 cases in test_repository_corpus.py (one parametrized x 5) and 4
+        # in test_repository_corpus_ingestion.py. None are backend-
+        # parameterized or CI-skipped. 1573 + 18 = 1591.
+        "1591 tests pass",
+        r"1591 passed",
     ),
     CheckSpec(
         "V-002",
@@ -311,9 +316,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 92 -> 93 for ADR-093 (graph intelligence V1 closure).
         # Re-pinned 93 -> 94 for ADR-094 (product topology and release
         # governance). Re-pinned 94 -> 95 for ADR-095 (structured source
-        # invalidation lifecycle).
-        "95 ADRs complete and indexed",
-        r"PASS: 95 ADRs",
+        # invalidation lifecycle). Re-pinned 95 -> 96 for ADR-096 (canonical
+        # repository corpus authority binding).
+        "96 ADRs complete and indexed",
+        r"PASS: 96 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -409,8 +415,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 139 -> 140 for ADR-090: observability/graph_metrics.py.
         # Re-pinned 128 -> 141 when the campaign merged over ADR-084: main's 128
         # plus the campaign's 13 graph-intelligence files.
-        "141 production files pass",
-        r"PASS: 141 production Python files",
+        # Re-pinned 141 -> 142 for ADR-096: src/l9_graphite_memory/
+        # repository_corpus.py joins the production surface.
+        "142 production files pass",
+        r"PASS: 142 production Python files",
     ),
     CheckSpec(
         "V-012",
