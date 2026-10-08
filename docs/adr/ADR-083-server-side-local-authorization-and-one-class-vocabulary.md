@@ -7,12 +7,12 @@ path: docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.
 layer: adr
 owner: memory-control-plane
 status: active
-version: 2.5.0
-updated: 2026-09-24
+version: 2.6.0
+updated: 2026-10-07
 /L9_META -->
 
 
-**Date:** 2026-09-19 (authorization decision revised 2026-09-24)
+**Date:** 2026-09-19 (authorization decision revised 2026-09-24; Tier-2 identity rule added 2026-10-07)
 **Decision owner:** Quantum-L9 memory architecture
 **Applies to:** `Quantum-L9/l9-graphiti-memory` v2.5+ and its consumer `Quantum-L9/Cursor-Governance`
 
@@ -179,6 +179,38 @@ adapts to it.
 - `INV-VOCAB-03` Every alias target is writable on the agent lane.
 - `INV-VOCAB-04` Descriptions and help text naming classes are generated from
   the table.
+
+## Tier-2 identity rule (2026-10-07)
+
+The signed-agent door now checks two different assertions, and neither one grants namespaces:
+
+1. **Authentication** is the existing HMAC token `agent_id.exp.nonce.hexsig`. It proves possession of that agent's signing key. Its payload and wire format are unchanged.
+2. **Canonical identity** is `l9.identity-assertion/v1`, supplied as `L9_MEMORY_IDENTITY_ASSERTION_JSON` and bound by `L9_MEMORY_IDENTITY_ASSERTION_HMAC`. It proves the ActorIdentity resolution. The actor-registry fragment must equal the already authenticated `agent_id`. `subject_ref` must equal `resolved_dimensions.actor_identity`. `result` must be `resolved`. `product_ref` must be `l9-graphiti-memory:product/l9-graphite-memory`.
+
+A resolved surface must be a `l9.surface-registry/global@1#…` coordinate. `surface_identity: unknown` is accepted: ProductTopology makes SurfaceIdentity non-material, and memory does not re-resolve Cursor or Claude runtime markers. Memory does not read Cursor-Governance's registry and does not fetch `.github`.
+
+When `L9_MEMORY_AGENTS_DOOR_SECRET` is set, both identity transport values are mandatory. Missing either one is `AuthenticationError`. The door does not fall through to Tier 3.
+
+Roles and namespaces still come only from `L9_MEMORY_AGENT_GRANTS_JSON`. An identity assertion that names an actor and also carries a role or namespace does not widen `MemoryPrincipal`.
+
+### Provenance and currentness
+
+A resolved assertion is consumed only when it carries the provenance the global contract `l9.contract/provenance-and-coordinate@1` makes mandatory. The door requires `evidence_refs` to be non-empty and to contain `l9.projection/cursor-governance-identity@1`, `l9.cursor-governance/identity-binding@1` and `l9.cursor-governance/agent-bindings@2#<authenticated agent_id>`; `resolver_ref` to equal `l9.cursor-governance/resolver/runtime-agent-identity@1`; and `governing_coordinates` to carry `global_identity_authority_revision`, `identity_projection_ref`, `identity_projection_digest`, `actor_registry_digest`, `surface_registry_digest`, `identity_binding_ref` and `agent_bindings_ref`. The three digests must be `sha256:<64 lowercase hex>`. `identity_projection_ref`, `identity_binding_ref` and `agent_bindings_ref` must equal the coordinates above, and `global_identity_authority_revision` must equal the exact `Quantum-L9/.github` main revision pinned as `GLOBAL_IDENTITY_AUTHORITY_REVISION` in `contracts/identity.py`. That pin is bumped only when the global identity authority is re-projected; a stale or candidate revision is rejected before any grant is loaded.
+
+This is still assertion consumption. Memory does not fetch `.github`, read Cursor-Governance's `agent_registry.yaml`, read Cursor or Claude runtime markers, re-resolve ActorIdentity, or grant a role from the assertion. It compares the coordinates the producer recorded with the coordinates it pins.
+
+`MemoryPrincipal.agent_id` stays the authenticated actor id fragment. `Provenance.source_agent_id` continues to copy that field. `MEMORY_SCHEMA_VERSION` stays `2.2.0`.
+
+### Local assertion digest
+
+`.github` requires `assertion_digest` and does not define a global canonicalization algorithm. This repository and Cursor-Governance share one **interop implementation rule**, which is not global L9 semantic law:
+
+1. copy the assertion object;
+2. remove `assertion_digest`;
+3. render UTF-8 JSON with `sort_keys=True`, `separators=(",", ":")`, and `ensure_ascii=False`;
+4. SHA-256 that text and prefix `sha256:`.
+
+`L9_MEMORY_IDENTITY_ASSERTION_HMAC` is HMAC-SHA256 of the ASCII digest under the same per-agent signing key. It is transport integrity. It grants nothing.
 
 ## Consequences
 

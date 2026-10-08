@@ -19,13 +19,29 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import os
+import re
 import time
 from collections.abc import Mapping
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from l9_graphite_memory.contracts.identity import (
+    ACTOR_REGISTRY_PREFIX,
+    AGENT_BINDINGS_REF,
+    GLOBAL_IDENTITY_AUTHORITY_REVISION,
+    IDENTITY_ASSERTION_SCHEMA,
+    IDENTITY_BINDING_REF,
+    IDENTITY_PROJECTION_REF,
+    IDENTITY_RESOLVER_REF,
+    MEMORY_PRODUCT_REF,
+    REQUIRED_GOVERNING_COORDINATES,
+    SEMANTIC_DIGEST_COORDINATES,
+    SURFACE_REGISTRY_PREFIX,
+    IdentityAssertion,
+)
 from l9_graphite_memory.errors import AuthenticationError
 
 _SEP = "."
@@ -166,3 +182,154 @@ def verify_assertion(
         raise AuthenticationError(f"invalid assertion signature for agent_id={agent_id!r}")
 
     return agent_id
+
+
+def local_assertion_digest(assertion: Mapping[str, Any]) -> str:
+    """Local interop digest for ``l9.identity-assertion/v1``.
+
+    This is not global L9 semantic law. ``.github`` requires ``assertion_digest``
+    and does not define a canonicalization algorithm, so both sides of this
+    door share one implementation rule: copy the object, drop
+    ``assertion_digest``, and hash UTF-8 JSON with sorted keys and compact
+    separators. The result is prefixed ``sha256:``.
+    """
+
+    body = {key: value for key, value in assertion.items() if key != "assertion_digest"}
+    payload = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def identity_assertion_hmac(assertion_digest: str, signing_key: str | bytes) -> str:
+    """HMAC-SHA256 of the ASCII assertion digest under the agent's signing key.
+
+    Transport integrity for the identity assertion. It grants no role or
+    namespace. The key is the same per-agent secret the signed-agent token uses.
+    """
+
+    if not isinstance(assertion_digest, str) or not assertion_digest.isascii():
+        raise AuthenticationError("identity assertion digest is not ASCII")
+    key = signing_key.encode("utf-8") if isinstance(signing_key, str) else signing_key
+    return hmac.new(key, assertion_digest.encode("ascii"), hashlib.sha256).hexdigest()
+
+
+def _same_secret(expected: str, supplied: object) -> bool:
+    if not isinstance(supplied, str):
+        return False
+    candidate = supplied.strip().lower()
+    if len(candidate) != len(expected):
+        return False
+    return hmac.compare_digest(expected, candidate)
+
+
+def _coordinate_fragment(value: object, prefix: str) -> str | None:
+    if not isinstance(value, str) or not value.startswith(prefix):
+        return None
+    fragment = value[len(prefix) :]
+    if not fragment or "#" in fragment:
+        return None
+    return fragment
+
+
+def verify_canonical_identity_assertion(
+    raw: Mapping[str, Any],
+    *,
+    supplied_hmac: str,
+    agent_id: str,
+    signing_key: str | bytes,
+) -> IdentityAssertion:
+    """Verify canonical identity evidence against the already-authenticated agent.
+
+    Authentication of the signed-agent token has already proved key possession
+    for ``agent_id``. This checks that the supplied identity assertion was
+    resolved, was not altered in transport, and names that same actor. It does
+    not read roles or namespaces from the assertion.
+    """
+
+    if not isinstance(raw, Mapping):
+        raise AuthenticationError("malformed identity assertion JSON")
+    if raw.get("schema") != IDENTITY_ASSERTION_SCHEMA:
+        raise AuthenticationError("invalid global schema value")
+    try:
+        parsed = IdentityAssertion.model_validate(dict(raw))
+    except ValidationError as exc:
+        raise AuthenticationError(f"malformed identity assertion: {exc}") from exc
+
+    expected_digest = local_assertion_digest(raw)
+    if not _same_secret(expected_digest, raw.get("assertion_digest")):
+        raise AuthenticationError("identity assertion digest mismatch")
+    expected_hmac = identity_assertion_hmac(expected_digest, signing_key)
+    if not _same_secret(expected_hmac, supplied_hmac):
+        raise AuthenticationError("identity assertion HMAC mismatch")
+
+    if parsed.result != "resolved":
+        raise AuthenticationError(f"identity assertion result is {parsed.result}")
+    if parsed.product_ref != MEMORY_PRODUCT_REF:
+        raise AuthenticationError(
+            "identity assertion product_ref is not l9-graphiti-memory:product/l9-graphite-memory"
+        )
+    actor = _coordinate_fragment(parsed.resolved_dimensions.actor_identity, ACTOR_REGISTRY_PREFIX)
+    if actor is None:
+        raise AuthenticationError("actor identity has the wrong coordinate prefix")
+    if actor != agent_id:
+        raise AuthenticationError("actor identity does not match the authenticated agent_id")
+    if parsed.subject_ref != parsed.resolved_dimensions.actor_identity:
+        raise AuthenticationError("subject_ref differs from actor identity")
+    surface = parsed.resolved_dimensions.surface_identity
+    surface_ok = surface in (None, "unknown") or _coordinate_fragment(
+        surface, SURFACE_REGISTRY_PREFIX
+    )
+    if not surface_ok:
+        raise AuthenticationError("malformed surface coordinate")
+    _verify_assertion_provenance(parsed, agent_id=agent_id)
+    return parsed
+
+
+_SEMANTIC_DIGEST_RE = re.compile(r"\Asha256:[0-9a-f]{64}\Z")
+
+
+def _verify_assertion_provenance(parsed: IdentityAssertion, *, agent_id: str) -> None:
+    """Require the provenance the global contract makes mandatory on a resolved assertion.
+
+    An assertion that resolves an actor without saying which resolver produced
+    it, which identity projection it consulted, which ``.github`` revision that
+    projection was generated from, and which bindings tied the runtime to the
+    actor is not evidence memory may consume. This is assertion consumption,
+    not identity re-derivation: memory compares coordinates to pinned
+    constants and never fetches the authority it names.
+    """
+
+    if not parsed.evidence_refs:
+        raise AuthenticationError("identity assertion evidence_refs is empty")
+    if parsed.resolver_ref != IDENTITY_RESOLVER_REF:
+        raise AuthenticationError(f"identity assertion resolver_ref is not {IDENTITY_RESOLVER_REF}")
+    coordinates = parsed.governing_coordinates
+    if not coordinates:
+        raise AuthenticationError("identity assertion governing_coordinates is empty")
+    for key in REQUIRED_GOVERNING_COORDINATES:
+        value = coordinates.get(key)
+        if not isinstance(value, str) or not value:
+            raise AuthenticationError(f"identity assertion governing coordinate {key} is missing")
+    for key in SEMANTIC_DIGEST_COORDINATES:
+        if _SEMANTIC_DIGEST_RE.fullmatch(coordinates[key]) is None:
+            raise AuthenticationError(
+                f"identity assertion governing coordinate {key} is not a semantic digest"
+            )
+    expected = {
+        "global_identity_authority_revision": GLOBAL_IDENTITY_AUTHORITY_REVISION,
+        "identity_projection_ref": IDENTITY_PROJECTION_REF,
+        "identity_binding_ref": IDENTITY_BINDING_REF,
+        "agent_bindings_ref": AGENT_BINDINGS_REF,
+    }
+    for key, expected_value in expected.items():
+        if coordinates[key] != expected_value:
+            raise AuthenticationError(
+                f"identity assertion governing coordinate {key} is not {expected_value}"
+            )
+    required_evidence = (
+        IDENTITY_PROJECTION_REF,
+        IDENTITY_BINDING_REF,
+        f"{AGENT_BINDINGS_REF}#{agent_id}",
+    )
+    for ref in required_evidence:
+        if ref not in parsed.evidence_refs:
+            raise AuthenticationError(f"identity assertion evidence_refs lacks {ref}")

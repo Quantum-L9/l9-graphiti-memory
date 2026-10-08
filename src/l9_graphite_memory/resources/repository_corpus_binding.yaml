@@ -1,0 +1,114 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: src/l9_graphite_memory/resources/repository_corpus_binding.yaml
+#   layer: package
+#   owner: memory-control-plane
+#   status: active
+#   version: 1.0.0
+#   updated: 2026-10-02
+schema: l9.memory.repository-corpus-binding/v1
+artifact_id: l9.memory/repository-corpus-binding@1
+canonical: true
+authority:
+  owner: Quantum-L9/l9-graphiti-memory
+  scope: downstream_repository_corpus_binding
+  authority_class: local_canonical_binding
+purpose: >
+  Bind the canonical Quantum-L9 L9 repository view to the memory control
+  plane as the exclusive governing source for L9 repository-corpus
+  eligibility. Repository identity, classification, lifecycle, and L9
+  membership remain owned by Quantum-L9/.github.
+upstream:
+  owner: Quantum-L9/.github
+  repository_registry:
+    artifact_ref: l9.repository-registry/global@1
+    source_ref: l9.source/repository-registry@1
+    path: semantics/repository_registry.yaml
+  repository_classes:
+    artifact_ref: l9.repository-classes/global@1
+    source_ref: l9.source/repository-classes@1
+    path: semantics/repository_classes.yaml
+  repository_view:
+    ref: l9.repository-view/memory-namespace-l9@1
+generated_projection:
+  artifact_ref: l9.projection/memory-repository-corpus@1
+  schema: l9.projection.memory-repository-corpus/v1
+  resource: repository_corpus.yaml
+  receipt_resource: repository_corpus.receipt.yaml
+  authority:
+    canonical: false
+    authority_class: derived
+  generation:
+    deterministic: true
+    manual_edit: forbidden
+    regenerate_instead_of_patch: true
+    provenance_required: true
+    source_revision_required: true
+    source_digests_required: true
+    output_digest_required: true
+    receipt_required: true
+governing_binding:
+  enabled: true
+  failure_mode: fail_closed
+  governs:
+    - l9_repository_corpus_membership
+    - l9_repository_ingestion_eligibility
+    - l9_repository_namespace_binding
+  does_not_govern:
+    - repository_content_meaning
+    - repository_domain_semantics
+    - memory_assertion_admission
+    - memory_record_lifecycle
+    - memory_retention
+    - canonical_memory_persistence
+    - provider_projection_lifecycle
+  local_membership_override: forbidden
+  inferred_membership: forbidden
+repository_class:
+  required_ref: l9.repository-class/l9@1
+lifecycle:
+  current:
+    ingestion_eligible: true
+    historical_resolution_allowed: true
+  superseded:
+    ingestion_eligible: false
+    historical_resolution_allowed: true
+  retired:
+    ingestion_eligible: false
+    historical_resolution_allowed: true
+namespace_binding:
+  logical:
+    expected: l9
+    source: upstream_repository_view
+  runtime:
+    visibility_class: project_group
+    project_group: l9
+    namespace: project-group/l9
+  rules:
+    l9_member_must_use_runtime_namespace: true
+    nonmember_may_not_use_runtime_namespace: true
+    local_namespace_override: forbidden
+    implicit_cross_repository_membership: forbidden
+    source_repository_identity_must_be_preserved: true
+runtime:
+  loader: l9_graphite_memory.repository_corpus:load_repository_corpus
+  enforcement_surface: l9_graphite_memory.ingestion.repository:RepositoryBootstrapper
+  requirements:
+    projection_receipt_verified_before_use: true
+    current_member_required_for_l9_namespace_ingestion: true
+    nonmember_rejected_from_l9_namespace: true
+    stale_or_invalid_projection_rejected: true
+    MemoryService_remains_canonical_write_path: true
+forbidden:
+  - hand_authored_l9_repository_list
+  - infer_l9_membership_from_repository_name
+  - infer_l9_membership_from_l9_prefix
+  - infer_l9_membership_from_github_organization
+  - infer_l9_membership_from_repository_shape
+  - mutate_generated_repository_corpus
+  - locally_add_repository_to_l9_corpus
+  - locally_remove_repository_from_l9_corpus
+  - treat_generated_projection_as_global_canonical_authority
+  - treat_memory_representation_as_repository_authority
+  - bypass_MemoryService

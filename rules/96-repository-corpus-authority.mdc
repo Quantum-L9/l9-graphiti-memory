@@ -1,0 +1,28 @@
+---
+description: Canonical L9 repository corpus authority and downstream governing projection
+alwaysApply: true
+---
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: rules/96-repository-corpus-authority.mdc
+layer: configuration
+owner: memory-control-plane
+status: active
+version: 1.0.0
+updated: 2026-10-02
+/L9_META -->
+- `Quantum-L9/.github` owns canonical repository identity, lifecycle, RepositoryClass assignment, and L9 repository membership.
+- This repository MUST consume those facts through the generated `repository_corpus.yaml` projection and MUST NOT maintain a competing L9 repository-membership list.
+- `repository_corpus.yaml` is derived and non-canonical globally, but its verified projection is the exclusive governing input for L9 repository-ingestion eligibility in this repository.
+- `repository_corpus_binding.yaml` owns only the local binding of the projected logical namespace `l9` to runtime namespace `project-group/l9`.
+- A current repository projected from `l9.repository-class/l9@1` MUST use `project-group/l9` for organization-corpus ingestion.
+- A repository absent from the projection MUST NOT be ingested into `project-group/l9`.
+- Superseded and retired repositories are historical sources and MUST NOT receive new organization-corpus ingestion.
+- Agents MUST NOT infer L9 membership from repository names, `l9-` prefixes, organization hosting, local paths, Git remotes, repository shape, or `group_registry.yaml`.
+- Agents MUST NOT manually edit `repository_corpus.yaml` or `repository_corpus.receipt.yaml`; regenerate them from canonical `.github` authority.
+- `group_registry.yaml` may provide local discovery hints but MUST NOT be treated as repository-membership authority.
+- Projection authority does not transfer source-repository semantic ownership.
+- Repository eligibility does not imply memory assertion admission; all writes still pass through `MemoryService`.
+- Graphiti, Zep, and other provider projections remain downstream projections and MUST NOT become repository-membership or canonical-memory authorities.
+- Missing, stale, malformed, unverifiable, or conflicting corpus projection state fails closed for L9 corpus ingestion.

@@ -30,7 +30,11 @@ from typing import Any
 import pytest
 
 from l9_graphite_memory.adapters import InMemoryRecordStore, NullProjection
-from l9_graphite_memory.authz.signed_assertion import mint_assertion
+from l9_graphite_memory.authz.signed_assertion import (
+    identity_assertion_hmac,
+    local_assertion_digest,
+    mint_assertion,
+)
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
 from l9_graphite_memory.mcp_tools import MCPToolApplication
@@ -41,6 +45,7 @@ from l9_graphite_memory.server import (
     create_http_app,
 )
 from l9_graphite_memory.services import MemoryService
+from tests.unit.test_signed_assertion import canonical_provenance
 
 # Registered repositories in the packaged registry.
 HOME_REPO = "l9-graphiti-memory"
@@ -299,6 +304,25 @@ def signed_agent(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "open-sesame")
     monkeypatch.setenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", json.dumps({agent_id: key}))
     monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", mint_assertion(agent_id, key))
+    actor = f"l9.actor-registry/global@1#{agent_id}"
+    identity = {
+        "schema": "l9.identity-assertion/v1",
+        "subject_ref": actor,
+        "product_ref": "l9-graphiti-memory:product/l9-graphite-memory",
+        "resolved_dimensions": {
+            "release_identity": "unknown",
+            "runtime_identity": "unknown",
+            "constellation_identity": "unknown",
+            "actor_identity": actor,
+            "surface_identity": "unknown",
+        },
+        **canonical_provenance(agent_id),
+        "result": "resolved",
+    }
+    digest = local_assertion_digest(identity)
+    identity["assertion_digest"] = digest
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_JSON", json.dumps(identity))
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_HMAC", identity_assertion_hmac(digest, key))
     monkeypatch.setenv(
         "L9_MEMORY_AGENT_GRANTS_JSON",
         json.dumps(

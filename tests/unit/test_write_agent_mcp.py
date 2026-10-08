@@ -16,12 +16,17 @@ import json
 
 import pytest
 
-from l9_graphite_memory.authz.signed_assertion import mint_assertion
+from l9_graphite_memory.authz.signed_assertion import (
+    identity_assertion_hmac,
+    local_assertion_digest,
+    mint_assertion,
+)
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryClass
 from l9_graphite_memory.errors import AuthenticationError, AuthorizationError
 from l9_graphite_memory.mcp_tools import ALIASES, MCPToolApplication, tool_definitions
 from l9_graphite_memory.server import _stdio_principal
+from tests.unit.test_signed_assertion import canonical_provenance
 
 # ---------------------------------------------------------------------------
 # memory.write_agent tool — discovery
@@ -218,6 +223,33 @@ def test_stdio_principal_human_door_grants_admin(monkeypatch) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _identity_transport(agent_id: str, signing_key: str) -> tuple[str, str]:
+    """Canonical identity evidence for an already-authenticated agent id.
+
+    Existing door tests name their own agent id. Memory checks that the actor
+    fragment matches that id; it does not consult a Cursor registry.
+    """
+
+    actor = f"l9.actor-registry/global@1#{agent_id}"
+    body = {
+        "schema": "l9.identity-assertion/v1",
+        "subject_ref": actor,
+        "product_ref": "l9-graphiti-memory:product/l9-graphite-memory",
+        "resolved_dimensions": {
+            "release_identity": "unknown",
+            "runtime_identity": "unknown",
+            "constellation_identity": "unknown",
+            "actor_identity": actor,
+            "surface_identity": "unknown",
+        },
+        **canonical_provenance(agent_id),
+        "result": "resolved",
+    }
+    digest = local_assertion_digest(body)
+    body["assertion_digest"] = digest
+    return json.dumps(body), identity_assertion_hmac(digest, signing_key)
+
+
 def _agent_env(monkeypatch, *, agent_id: str, signing_key: str, token: str | None = None) -> None:
     monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "open-sesame")
     monkeypatch.setenv(
@@ -242,6 +274,9 @@ def _agent_env(monkeypatch, *, agent_id: str, signing_key: str, token: str | Non
     )
     if token is not None:
         monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", token)
+    identity_json, identity_hmac = _identity_transport(agent_id, signing_key)
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_JSON", identity_json)
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_HMAC", identity_hmac)
 
 
 def test_stdio_principal_agent_assertion_succeeds(monkeypatch) -> None:
@@ -320,6 +355,9 @@ def test_stringy_false_admin_claim_does_not_grant_admin_through_the_door(monkeyp
     monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "open-sesame")
     monkeypatch.setenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", json.dumps({agent_id: key}))
     monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", token)
+    identity_json, identity_hmac = _identity_transport(agent_id, key)
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_JSON", identity_json)
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_HMAC", identity_hmac)
     monkeypatch.setenv(
         "L9_MEMORY_AGENT_GRANTS_JSON",
         json.dumps({agent_id: {"is_admin": "false", "write_namespaces": ["repo-a"]}}),
@@ -336,6 +374,9 @@ def test_malformed_grant_field_denies_the_door(monkeypatch) -> None:
     monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "open-sesame")
     monkeypatch.setenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", json.dumps({agent_id: key}))
     monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", mint_assertion(agent_id, key))
+    identity_json, identity_hmac = _identity_transport(agent_id, key)
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_JSON", identity_json)
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_HMAC", identity_hmac)
     monkeypatch.setenv(
         "L9_MEMORY_AGENT_GRANTS_JSON",
         json.dumps({agent_id: {"write_namespaces": {"repo-a": True}}}),

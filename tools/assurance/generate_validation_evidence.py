@@ -265,8 +265,25 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # source-invalidation test matrix -- 45 store-matrix cases (15 x 3
         # backends) in test_source_invalidation, 5 schema-9 migration cases,
         # 26 request-contract and CLI cases, and 5 live-proof cases.
-        "1519 tests pass",
-        r"1519 passed",
+        #
+        # Re-pinned 1519 -> 1543 for the canonical actor assertion door:
+        # 16 cases in test_signed_assertion.py (the unresolved-result case is
+        # three parameters) and 8 in test_server_principal.py. None are
+        # backend-parameterized or CI-skipped. Same arithmetic: 1519 + 24 = 1543.
+        # Re-pinned 1543 -> 1573 for assertion provenance validation at the
+        # same door: 30 cases in test_signed_assertion.py (1 golden-provenance
+        # check, 1 empty evidence_refs, 1 empty governing_coordinates, 7 missing
+        # required coordinates, 5 wrong resolver / revision / projection /
+        # binding / agent-bindings refs, 1 wrong agent-binding fragment, 2
+        # missing evidence refs, and 12 malformed semantic digests as 3 keys x
+        # 4 shapes). None are backend-parameterized or CI-skipped. 1543 + 30.
+        # Re-pinned 1573 -> 1591 for ADR-096 (canonical repository corpus
+        # authority binding), stacked over the assertion provenance door:
+        # 14 cases in test_repository_corpus.py (one parametrized x 5) and 4
+        # in test_repository_corpus_ingestion.py. None are backend-
+        # parameterized or CI-skipped. 1573 + 18 = 1591.
+        "1591 tests pass",
+        r"1591 passed",
     ),
     CheckSpec(
         "V-002",
@@ -299,9 +316,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 92 -> 93 for ADR-093 (graph intelligence V1 closure).
         # Re-pinned 93 -> 94 for ADR-094 (product topology and release
         # governance). Re-pinned 94 -> 95 for ADR-095 (structured source
-        # invalidation lifecycle).
-        "95 ADRs complete and indexed",
-        r"PASS: 95 ADRs",
+        # invalidation lifecycle). Re-pinned 95 -> 96 for ADR-096 (canonical
+        # repository corpus authority binding).
+        "96 ADRs complete and indexed",
+        r"PASS: 96 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -397,8 +415,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 139 -> 140 for ADR-090: observability/graph_metrics.py.
         # Re-pinned 128 -> 141 when the campaign merged over ADR-084: main's 128
         # plus the campaign's 13 graph-intelligence files.
-        "141 production files pass",
-        r"PASS: 141 production Python files",
+        # Re-pinned 141 -> 142 for ADR-096: src/l9_graphite_memory/
+        # repository_corpus.py joins the production surface.
+        "142 production files pass",
+        r"PASS: 142 production Python files",
     ),
     CheckSpec(
         "V-012",
