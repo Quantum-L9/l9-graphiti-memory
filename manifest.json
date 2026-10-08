@@ -430,7 +430,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "e9cf625d3397bb769c8a4ff4aa3e4fa3293994c4a13a9c3c51277be161745ae0",
+      "sha256": "5484b5d940415bcee22b160a5673731325854bd2350a7622d74bca8fd52d5e8f",
       "size_bytes": 137754
     },
     {
@@ -11534,8 +11534,8 @@
         "version": "2.5.0"
       },
       "path": "tools/assurance/check_repository_corpus_governance.py",
-      "sha256": "d62d4925025eb5c4e2075f9fb88a0ef16753158f0e9b7cac0ce21304756135b0",
-      "size_bytes": 7866
+      "sha256": "13c445f5dbfeda069c010929f6661a6f6d0c0352db767be358bc247729d2baae",
+      "size_bytes": 7889
     },
     {
       "category": "assurance",
@@ -11742,8 +11742,8 @@
         "version": "2.5.0"
       },
       "path": "tools/authority/project_l9_repository_corpus.py",
-      "sha256": "523285ce16c410d78d54024ccfb726222202defcabbf2c38a37998c2a71ca522",
-      "size_bytes": 12782
+      "sha256": "f696b52ed82d821a1da32fa4928a061b67be7168ad5494766f9bf40c17daac71",
+      "size_bytes": 12806
     },
     {
       "category": "assurance",

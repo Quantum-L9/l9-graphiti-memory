@@ -95,14 +95,13 @@ def main() -> int:
             errors.append(f"stale projection receipt: {args.receipt}")
         if errors:
             for error in errors:
-                print(error, file=sys.stderr)
+                sys.stderr.write(f"{error}\n")
             return 1
-        print("repository corpus projection is current")
+        sys.stdout.write("repository corpus projection is current\n")
         return 0
     _write(args.output, output_bytes)
     _write(args.receipt, receipt_bytes)
-    print(args.output)
-    print(args.receipt)
+    sys.stdout.write(f"{args.output}\n{args.receipt}\n")
     return 0
 
 

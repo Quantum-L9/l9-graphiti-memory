@@ -773,7 +773,7 @@ updated: 2026-07-22
 | `tools/assurance/check_layer_boundaries.py` | `assurance` | `assurance` | 3359 | `d65b4f49acbebea145fbb1dc6a956b285cae50e6c38f17f3b56fb9d1c707fe70` |
 | `tools/assurance/check_memory_write_bypass.py` | `assurance` | `assurance` | 11376 | `229d4aba176a192add8b33cf5651e2abee57e6268b0eeacf85061ac73107cc05` |
 | `tools/assurance/check_recursive_alignment.py` | `assurance` | `assurance` | 12429 | `044df55ddc7f17a5c12de2b60a135067506080af87ae0784c9eff8df2d2b06f8` |
-| `tools/assurance/check_repository_corpus_governance.py` | `assurance` | `assurance` | 7866 | `d62d4925025eb5c4e2075f9fb88a0ef16753158f0e9b7cac0ce21304756135b0` |
+| `tools/assurance/check_repository_corpus_governance.py` | `assurance` | `assurance` | 7889 | `13c445f5dbfeda069c010929f6661a6f6d0c0352db767be358bc247729d2baae` |
 | `tools/assurance/check_secrets.py` | `assurance` | `assurance` | 4336 | `d12bafc5452798c633a03ebf039c554f5825b4e5db1d5568c843770f31aab2ab` |
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `ea1725f52033612043d5f8640950f363d3f0b8fe04350aa8d35a1c8fb698419a` |
@@ -786,7 +786,7 @@ updated: 2026-07-22
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2404 | `b7134c65005e4a92ce485b1a1cb582af8a0a0f29931516c3e7493e7373309088` |
 | `tools/assurance/validate_product_topology.py` | `assurance` | `assurance` | 12069 | `f728d52406eda85f5a24bdce3caf8c251e1ba51221c627dbca2916d2e15a334f` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2468 | `ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5` |
-| `tools/authority/project_l9_repository_corpus.py` | `assurance` | `assurance` | 12782 | `523285ce16c410d78d54024ccfb726222202defcabbf2c38a37998c2a71ca522` |
+| `tools/authority/project_l9_repository_corpus.py` | `assurance` | `assurance` | 12806 | `f696b52ed82d821a1da32fa4928a061b67be7168ad5494766f9bf40c17daac71` |
 | `tools/ci/nightly_maintenance_gate.py` | `assurance` | `assurance` | 3719 | `d67da58aa0c52c21434fdb309d8b4498dcf1e27b563675f43b6cd12c7a108cbb` |
 | `tools/phase6/AGENT_EXECUTION_PROMPT.md` | `assurance` | `repository` | 2506 | `05e1399a3e37cb652198efb42b259c69db003cfaf7917114d0756118e3909009` |
 | `tools/phase6/BUILD_REPORT.md` | `assurance` | `repository` | 1092 | `092960451042850b00f0fefd41a0edc7dc857146316846685681d7974972eb76` |

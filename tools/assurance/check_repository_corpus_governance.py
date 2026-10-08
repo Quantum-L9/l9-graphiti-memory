@@ -142,7 +142,9 @@ def main() -> int:
             )
     if failures:
         return _report(failures)
-    print(f"repository corpus governance: PASS ({len(repositories)} projected repositories)")
+    sys.stdout.write(
+        f"repository corpus governance: PASS ({len(repositories)} projected repositories)\n"
+    )
     return 0
 
 
@@ -164,7 +166,7 @@ def _mapping(value: Any) -> Mapping[str, Any]:
 
 def _report(failures: list[str]) -> int:
     for failure in failures:
-        print(f"FAIL repository-corpus-governance: {failure}", file=sys.stderr)
+        sys.stderr.write(f"FAIL repository-corpus-governance: {failure}\n")
     return 1
 
 
