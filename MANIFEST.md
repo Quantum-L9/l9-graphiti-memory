@@ -665,7 +665,7 @@ updated: 2026-07-22
 | `tests/integration/test_projection_retirement_recovery.py` | `tests` | `test` | 10937 | `e91bd43402dc4550673618e74c53b34ea57192562f4509dde624c63544ce2805` |
 | `tests/integration/test_projection_targets.py` | `tests` | `test` | 36328 | `315e7eb881e1c93f4f9a65bfc4789f7b5d53e47604feb7cedc58483e78e5b7e6` |
 | `tests/integration/test_quarantine_review_maintenance.py` | `tests` | `test` | 13532 | `a7c16264d263e4c96cd1bdfa00fa5f688064865d0a1d5d8a2720803c4598d27a` |
-| `tests/integration/test_repository_corpus_ingestion.py` | `tests` | `test` | 5089 | `a391ee4a88786a19b2f0626f839cead38ea58feedca7e52bd4f8e1bea13a6fcf` |
+| `tests/integration/test_repository_corpus_ingestion.py` | `tests` | `test` | 3218 | `1becf822cb37f129fc127e2a585d0da307423770eaa6e672974f233524a7f568` |
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `test` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `test` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |
 | `tests/integration/test_source_invalidation.py` | `tests` | `test` | 20914 | `ac5775433358b966bf0a7e38b409b5b9f9ed65f9ced8c4fc1c2648d70c0dc7d0` |

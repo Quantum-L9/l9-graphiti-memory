@@ -430,7 +430,7 @@
         "version": "2.5.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "876048337918fd27fefc888d0650ed4676c527c85ee2bdb618f9c53b4365d1cc",
+      "sha256": "ef0114a284cecaabb375d9b6852d6e9f8acb7b409153d659f25a6b1881dbbc78",
       "size_bytes": 137754
     },
     {
@@ -9806,8 +9806,8 @@
         "version": "2.5.0"
       },
       "path": "tests/integration/test_repository_corpus_ingestion.py",
-      "sha256": "a391ee4a88786a19b2f0626f839cead38ea58feedca7e52bd4f8e1bea13a6fcf",
-      "size_bytes": 5089
+      "sha256": "1becf822cb37f129fc127e2a585d0da307423770eaa6e672974f233524a7f568",
+      "size_bytes": 3218
     },
     {
       "category": "tests",

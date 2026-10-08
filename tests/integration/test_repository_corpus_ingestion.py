@@ -16,6 +16,7 @@ import pytest
 from l9_graphite_memory.errors import L9MemoryError
 from l9_graphite_memory.ingestion.repository import RepositoryBootstrapper
 from l9_graphite_memory.repository_corpus import RepositoryCorpus
+from tests.unit.test_repository_corpus import binding_document, corpus_document
 
 
 class EmptyIngestor:
@@ -29,66 +30,9 @@ class NoopService:
 
 
 def corpus() -> RepositoryCorpus:
-    return RepositoryCorpus.from_documents(
-        {
-            "schema": "l9.projection.memory-repository-corpus/v1",
-            "artifact_id": "l9.projection/memory-repository-corpus@1",
-            "canonical": False,
-            "authority": {
-                "authority_class": "derived",
-            },
-            "projection": {
-                "view_ref": "l9.repository-view/memory-namespace-l9@1",
-                "source_repository": "Quantum-L9/.github",
-                "source_revision": "a" * 40,
-            },
-            "namespace": {
-                "logical": "l9",
-            },
-            "repositories": [
-                {
-                    "id": "cursor-governance",
-                    "coordinate": {
-                        "provider": "github",
-                        "organization": "Quantum-L9",
-                        "repository": "Cursor-Governance",
-                    },
-                    "lifecycle": "current",
-                    "class_ref": "l9.repository-class/l9@1",
-                },
-                {
-                    "id": "golden-repo",
-                    "coordinate": {
-                        "provider": "github",
-                        "organization": "Quantum-L9",
-                        "repository": "golden-repo",
-                    },
-                    "lifecycle": "retired",
-                    "class_ref": "l9.repository-class/l9@1",
-                },
-            ],
-        },
-        {
-            "schema": "l9.memory.repository-corpus-binding/v1",
-            "upstream": {
-                "owner": "Quantum-L9/.github",
-                "repository_view": {
-                    "ref": "l9.repository-view/memory-namespace-l9@1",
-                },
-            },
-            "repository_class": {
-                "required_ref": "l9.repository-class/l9@1",
-            },
-            "namespace_binding": {
-                "logical": {
-                    "expected": "l9",
-                },
-                "runtime": {
-                    "namespace": "project-group/l9",
-                },
-            },
-        },
-    )
+    """The same two-member corpus and binding the unit suite verifies against."""
+
+    return RepositoryCorpus.from_documents(corpus_document(), binding_document())
 
 
 @pytest.mark.integration
