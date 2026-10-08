@@ -415,8 +415,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 139 -> 140 for ADR-090: observability/graph_metrics.py.
         # Re-pinned 128 -> 141 when the campaign merged over ADR-084: main's 128
         # plus the campaign's 13 graph-intelligence files.
-        "141 production files pass",
-        r"PASS: 141 production Python files",
+        # Re-pinned 141 -> 142 for ADR-096: src/l9_graphite_memory/
+        # repository_corpus.py joins the production surface.
+        "142 production files pass",
+        r"PASS: 142 production Python files",
     ),
     CheckSpec(
         "V-012",
