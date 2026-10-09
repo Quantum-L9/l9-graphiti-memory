@@ -282,8 +282,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # 14 cases in test_repository_corpus.py (one parametrized x 5) and 4
         # in test_repository_corpus_ingestion.py. None are backend-
         # parameterized or CI-skipped. 1573 + 18 = 1591.
-        "1591 tests pass",
-        r"1591 passed",
+        # Re-pinned 1591 -> 1595 for the repair-retest fixes that travel with
+        # 2.6.0: 2 cases in test_release_shell.py (symlink overlap guard,
+        # spaced missing artifact directory) and 2 in
+        # test_cursor_client_config.py (absolute launcher, relative or missing
+        # launcher). None are backend-parameterized or CI-skipped. 1591 + 4.
+        "1595 tests pass",
+        r"1595 passed",
     ),
     CheckSpec(
         "V-002",
