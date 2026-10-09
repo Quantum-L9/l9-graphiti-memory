@@ -1,5 +1,5 @@
 {
-  "file_count": 841,
+  "file_count": 849,
   "files": [
     {
       "category": "ci",
@@ -430,8 +430,8 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "87cd7a4de9b21847bde0851114876b1debf73ed7fa0aa44b66c6c8fece7004c5",
-      "size_bytes": 138081
+      "sha256": "600ff656ce6d38764f3b76988063a799fa3abc0d9fd4db5c6504af451b7d29d8",
+      "size_bytes": 139341
     },
     {
       "category": "repository_root",
@@ -5502,8 +5502,8 @@
         "version": "2.6.0"
       },
       "path": "skill/SKILL.md",
-      "sha256": "9e9af67d407d1448176abf32b476f88d586f7b13d1618fd8f56ced15a2ee3d01",
-      "size_bytes": 4860
+      "sha256": "e3d60af8a486bd6270a34371347a97c5011aee001625298c070045246b877c1f",
+      "size_bytes": 5189
     },
     {
       "category": "skill",
@@ -5520,6 +5520,134 @@
       "path": "skill/agents/openai.yaml",
       "sha256": "24dde8236b9e5eb99ae579cce0b06185f11da542b5b151bbbbd8f1792a21cb59",
       "size_bytes": 344
+    },
+    {
+      "category": "skill",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "skill",
+        "owner": "memory-control-plane",
+        "path": "skill/l9-release-publication/SKILL.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "skill/l9-release-publication/SKILL.md",
+      "sha256": "c829946e3ca60fe6d7e5c99d4c0dd3806b14458492d590b933b7328152418784",
+      "size_bytes": 5259
+    },
+    {
+      "category": "skill",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "skill",
+        "owner": "memory-control-plane",
+        "path": "skill/l9-release-publication/adapters/ungoverned-git.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "skill/l9-release-publication/adapters/ungoverned-git.md",
+      "sha256": "220ece73501bae22a9b4b61c31d605db09863c7f67119628aa931ce31a12172e",
+      "size_bytes": 968
+    },
+    {
+      "category": "skill",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "skill",
+        "owner": "memory-control-plane",
+        "path": "skill/l9-release-publication/expertise_model.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "skill/l9-release-publication/expertise_model.yaml",
+      "sha256": "3472525bd5d07e907d6b6dfe7c87644ccc28490e32ac9676b69ae2d973d2f570",
+      "size_bytes": 3477
+    },
+    {
+      "category": "skill",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "skill",
+        "owner": "memory-control-plane",
+        "path": "skill/l9-release-publication/references/github-release.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "skill/l9-release-publication/references/github-release.md",
+      "sha256": "f8c08b0050be2da711b71f492871937223bfed0b3c053de89b8e6beded320fc4",
+      "size_bytes": 2197
+    },
+    {
+      "category": "skill",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "skill",
+        "owner": "memory-control-plane",
+        "path": "skill/l9-release-publication/references/publication-plane.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "skill/l9-release-publication/references/publication-plane.md",
+      "sha256": "1a04f8ace71d6f7d972f4043a466de54674fb8a5f84977c80a4db79bf07099b9",
+      "size_bytes": 2720
+    },
+    {
+      "category": "skill",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "skill",
+        "owner": "memory-control-plane",
+        "path": "skill/l9-release-publication/scripts/verify_release_tag.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "skill/l9-release-publication/scripts/verify_release_tag.py",
+      "sha256": "b28791ef25acf1dd924551fc1d50804545830a86b05632b628554ac36fffc636",
+      "size_bytes": 5107
+    },
+    {
+      "category": "skill",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "skill",
+        "owner": "memory-control-plane",
+        "path": "skill/l9-release-publication/skill_intelligence_report.yaml",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "skill/l9-release-publication/skill_intelligence_report.yaml",
+      "sha256": "3c9c1fc35f769a4334e87f3a72f777a983b11bf08b236786936ce9c89f232a1c",
+      "size_bytes": 4835
+    },
+    {
+      "category": "skill",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "skill",
+        "owner": "memory-control-plane",
+        "path": "skill/l9-release-publication/tests/test_verify_release_tag.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "skill/l9-release-publication/tests/test_verify_release_tag.py",
+      "sha256": "39f279955d852eb59fd1b6187112ab798e16b11334c0101612f490a92529c14c",
+      "size_bytes": 5471
     },
     {
       "category": "production_source",

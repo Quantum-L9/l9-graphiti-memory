@@ -41,11 +41,11 @@ updated: 2026-07-22
 | `operations` | 8 |
 | `production_source` | 152 |
 | `repository_root` | 73 |
-| `skill` | 2 |
+| `skill` | 10 |
 | `tests` | 216 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **840**
+- Hashed inventory files below: **848**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -396,8 +396,16 @@ updated: 2026-07-22
 | `scripts/validate_release.sh` | `operations` | `operations` | 13222 | `554ac26b44c7f99bc1176a5ded4c527d402b1bb2d1b873a376f17d78b36772c7` |
 | `scripts/write_claude_config.py` | `operations` | `operations` | 2369 | `d74bb0efbd6b42319f44948d95de85f20cf4d308b7f0e242792728eb9e3b2c66` |
 | `scripts/write_cursor_config.py` | `operations` | `operations` | 2617 | `955a2ff0903c9a7f4deeee776eff2f3d1a0aad4b31a2f8ae0609334aa0a2afe7` |
-| `skill/SKILL.md` | `skill` | `skill` | 4860 | `9e9af67d407d1448176abf32b476f88d586f7b13d1618fd8f56ced15a2ee3d01` |
+| `skill/SKILL.md` | `skill` | `skill` | 5189 | `e3d60af8a486bd6270a34371347a97c5011aee001625298c070045246b877c1f` |
 | `skill/agents/openai.yaml` | `skill` | `skill` | 344 | `24dde8236b9e5eb99ae579cce0b06185f11da542b5b151bbbbd8f1792a21cb59` |
+| `skill/l9-release-publication/SKILL.md` | `skill` | `skill` | 5259 | `c829946e3ca60fe6d7e5c99d4c0dd3806b14458492d590b933b7328152418784` |
+| `skill/l9-release-publication/adapters/ungoverned-git.md` | `skill` | `skill` | 968 | `220ece73501bae22a9b4b61c31d605db09863c7f67119628aa931ce31a12172e` |
+| `skill/l9-release-publication/expertise_model.yaml` | `skill` | `skill` | 3477 | `3472525bd5d07e907d6b6dfe7c87644ccc28490e32ac9676b69ae2d973d2f570` |
+| `skill/l9-release-publication/references/github-release.md` | `skill` | `skill` | 2197 | `f8c08b0050be2da711b71f492871937223bfed0b3c053de89b8e6beded320fc4` |
+| `skill/l9-release-publication/references/publication-plane.md` | `skill` | `skill` | 2720 | `1a04f8ace71d6f7d972f4043a466de54674fb8a5f84977c80a4db79bf07099b9` |
+| `skill/l9-release-publication/scripts/verify_release_tag.py` | `skill` | `skill` | 5107 | `b28791ef25acf1dd924551fc1d50804545830a86b05632b628554ac36fffc636` |
+| `skill/l9-release-publication/skill_intelligence_report.yaml` | `skill` | `skill` | 4835 | `3c9c1fc35f769a4334e87f3a72f777a983b11bf08b236786936ce9c89f232a1c` |
+| `skill/l9-release-publication/tests/test_verify_release_tag.py` | `skill` | `skill` | 5471 | `39f279955d852eb59fd1b6187112ab798e16b11334c0101612f490a92529c14c` |
 | `src/l9_graphite_memory/__init__.py` | `production_source` | `package` | 971 | `c05467d592ba4ecc03ed9344afab6357fb153e42d6bd9b544ac632c314219c8b` |
 | `src/l9_graphite_memory/__main__.py` | `production_source` | `package` | 340 | `3eedfcbce155174df8ff657ebd9bead64d6e063f25711bf682bbd00b55293c2f` |
 | `src/l9_graphite_memory/active/__init__.py` | `production_source` | `package` | 2632 | `857b70d345df3939fab45b366f25066bee059c3b083866c9373732c9c4a23b7e` |
