@@ -145,9 +145,34 @@ def _context(data: Mapping[str, Any]) -> ActiveContext:
 
 @dataclass(slots=True)
 class RedisHealth:
+    """Result of the startup capability probe the deployment contract requires.
+
+    ``capabilities`` names each probe step that completed (``ping``,
+    ``scalar``, ``sorted_set``, ``publish``). ``connectivity`` is ``healthy``
+    only when every step the adapter needs completed; ``authentication`` is
+    ``failed`` when the server refused the credential, ``authenticated``
+    otherwise.
+    """
+
     backend: str = "redis"
     connectivity: str = "healthy"
     authentication: str = "authenticated"
+    capabilities: tuple[str, ...] = ()
+    error: str | None = None
+
+
+def _classify_failure(exc: Exception) -> tuple[str, str]:
+    """Map a Redis failure to (connectivity, authentication) for the probe."""
+
+    try:
+        from redis.exceptions import AuthenticationError, NoPermissionError
+    except ImportError:  # pragma: no cover - redis extra missing
+        return "unavailable", "unknown"
+    if isinstance(exc, AuthenticationError):
+        return "unavailable", "failed"
+    if isinstance(exc, NoPermissionError):
+        return "healthy", "insufficient_acl"
+    return "unavailable", "unknown"
 
 
 @dataclass(slots=True)
@@ -445,8 +470,58 @@ class RedisActiveStore:
         return RedisPage(tuple(items), str(start + limit) if len(members) == limit else None)
 
     async def health(self) -> RedisHealth:
-        await self._call(self._r.ping)
-        return RedisHealth()
+        """Run the capability probe: PING, scalar read/write, sorted-set read/write.
+
+        This is the startup probe `docs/ACTIVE_MEMORY_DEPLOYMENT_CONTRACT.md`
+        item 6 requires, over the commands the store actually issues
+        (``resources/active_memory_redis_capabilities.yaml``), under a probe
+        key inside this deployment's prefix so a restricted ACL is exercised
+        exactly as production traffic would be. Raises
+        `ActiveMemoryUnavailableError` when the server is unreachable; returns
+        a non-healthy snapshot when a step is refused.
+        """
+
+        completed: list[str] = []
+        probe_key = f"{self._prefix}:probe:{self._clock().timestamp()}"
+        steps: tuple[tuple[str, Callable[[], Any]], ...] = (
+            ("ping", lambda: self._r.ping()),
+            ("scalar", lambda: self._probe_scalar(probe_key)),
+            ("sorted_set", lambda: self._probe_sorted_set(probe_key)),
+        )
+        for name, step in steps:
+            try:
+                await step()
+            except Exception as exc:
+                _, _, redis_error_cls = _redis_modules()
+                if not isinstance(exc, redis_error_cls):
+                    raise
+                connectivity, authentication = _classify_failure(exc)
+                if name == "ping" or connectivity == "unavailable":
+                    raise ActiveMemoryUnavailableError(f"{name} probe failed: {exc}") from exc
+                return RedisHealth(
+                    connectivity="degraded",
+                    authentication=authentication,
+                    capabilities=tuple(completed),
+                    error=f"{name} probe failed: {exc}",
+                )
+            completed.append(name)
+        return RedisHealth(capabilities=tuple(completed))
+
+    async def _probe_scalar(self, key: str) -> None:
+        await self._r.set(key, "probe", ex=5)
+        if await self._r.get(key) != "probe":
+            raise ActiveMemoryUnavailableError("scalar probe read back a different value")
+        await self._r.unlink(key)
+
+    async def _probe_sorted_set(self, key: str) -> None:
+        zkey = f"{key}:zset"
+        await self._r.zadd(zkey, {"probe": 1.0})
+        await self._r.expire(zkey, 5)
+        if await self._r.zrange(zkey, 0, 0) != ["probe"]:
+            raise ActiveMemoryUnavailableError("sorted-set probe read back a different member")
+        await self._r.zremrangebyscore(zkey, "-inf", "+inf")
+        await self._r.zrem(zkey, "probe")
+        await self._r.unlink(zkey)
 
     async def close(self) -> None:
         await self._r.aclose()
@@ -465,6 +540,7 @@ class RedisAwarenessBus:
     ) -> None:
         redis, _, _ = _redis_modules()
         self._r = client or redis.from_url(url, decode_responses=True)
+        self._d = deployment
         self._base = f"{channel_prefix}.v1.{derive_deployment_hash(deployment)}"
 
     def _channel(self, group_id: str | None) -> str:
@@ -476,16 +552,31 @@ class RedisAwarenessBus:
         except Exception as exc:
             raise ActiveMemoryUnavailableError(str(exc)) from exc
 
+    @staticmethod
+    def _matches(scope: AgentScope, event: AgentEvent) -> bool:
+        # The channel already partitions by deployment hash and group; the
+        # scope's deployment and role filters are applied here so every
+        # AwarenessBus adapter answers a subscription identically.
+        if event.deployment_id != scope.deployment_id:
+            return False
+        if scope.role is not None and event.role != scope.role:
+            return False
+        return scope.group_id is None or event.group_id == scope.group_id
+
     async def subscribe(self, subscription: AgentSubscription) -> AsyncIterator[AgentEvent]:
         channel = self._channel(subscription.scope.group_id)
-        pubsub = self._r.pubsub()
-        await pubsub.subscribe(channel)
+        _, _, redis_error_cls = _redis_modules()
+        try:
+            pubsub = self._r.pubsub()
+            await pubsub.subscribe(channel)
+        except redis_error_cls as exc:
+            raise ActiveMemoryUnavailableError(str(exc)) from exc
         try:
             async for message in pubsub.listen():
                 if message.get("type") != "message":
                     continue
                 data = json.loads(message["data"])
-                yield AgentEvent(
+                event = AgentEvent(
                     event_id=data["event_id"],
                     event_type=AgentEventType(data["event_type"]),
                     agent_id=data["agent_id"],
@@ -498,13 +589,42 @@ class RedisAwarenessBus:
                     state_version=data.get("state_version"),
                     trace_id=data.get("trace_id"),
                 )
+                if self._matches(subscription.scope, event):
+                    yield event
+        except redis_error_cls as exc:
+            # The port requires a typed error the session can catch to
+            # resynchronize, never a silent end of the stream.
+            raise ActiveMemoryUnavailableError(str(exc)) from exc
         finally:
-            await pubsub.unsubscribe(channel)
-            await pubsub.aclose()
+            try:
+                await pubsub.unsubscribe(channel)
+                await pubsub.aclose()
+            except redis_error_cls:
+                pass
 
     async def health(self) -> RedisHealth:
-        await self._r.ping()
-        return RedisHealth()
+        """Probe PING and PUBLISH on the deployment's probe channel."""
+
+        completed: list[str] = []
+        try:
+            await self._r.ping()
+            completed.append("ping")
+            await self._r.publish(f"{self._base}.probe", "probe")
+            completed.append("publish")
+        except Exception as exc:
+            _, _, redis_error_cls = _redis_modules()
+            if not isinstance(exc, redis_error_cls):
+                raise
+            connectivity, authentication = _classify_failure(exc)
+            if not completed or connectivity == "unavailable":
+                raise ActiveMemoryUnavailableError(f"awareness probe failed: {exc}") from exc
+            return RedisHealth(
+                connectivity="degraded",
+                authentication=authentication,
+                capabilities=tuple(completed),
+                error=f"publish probe failed: {exc}",
+            )
+        return RedisHealth(capabilities=tuple(completed))
 
     async def close(self) -> None:
         await self._r.aclose()

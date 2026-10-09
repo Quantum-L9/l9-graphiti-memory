@@ -27,7 +27,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -45,6 +45,7 @@ from l9_graphite_memory.active.models import (
     ActiveContext,
     ActiveContextDraft,
     AgentEvent,
+    AgentEventType,
     AgentIdentity,
     AgentLease,
     AgentPresence,
@@ -71,14 +72,132 @@ class _SessionRuntimeConfig:
     resync_backoff_seconds: float
 
 
+@dataclass(slots=True)
+class ActiveMemoryHealth:
+    """Independent health of the active store and the awareness bus.
+
+    ``store`` and ``bus`` carry each adapter's own probe result (or the
+    typed failure that stopped it). ``healthy`` is true only when both
+    probes completed; a disabled binding is never healthy, it is simply
+    not selected (``enabled`` is false), so a deployment that requires
+    active memory cannot read a null adapter as green.
+    """
+
+    enabled: bool
+    backend: str
+    healthy: bool
+    store: dict[str, object]
+    bus: dict[str, object]
+    deployment: dict[str, object]
+    error: str | None = None
+
+
+@dataclass(slots=True)
+class ActiveMemoryBinding:
+    """One configured active-memory runtime: adapters, identity and policy.
+
+    Built by `l9_graphite_memory.adapters.factory.build_active_memory` from
+    `MemorySettings` and held by `MemoryRuntime`. It is the only supported
+    way a consumer obtains an `ActiveAgentClient` against a configured
+    backend (ADR-067): the consumer calls `client()` and never instantiates
+    an adapter. The binding also answers independent readiness for the
+    store and the bus, which is how the deployment proves the Redis leg is
+    real rather than inferring it from an installed symbol.
+    """
+
+    backend: str
+    enabled: bool
+    required: bool
+    deployment_id: str
+    trust_domain: str
+    environment: str
+    store: ActiveStore
+    bus: AwarenessBus
+    credential_source: str | None = None
+    heartbeat_interval_seconds: int = 10
+    lease_ttl_seconds: int = 30
+    heartbeat_failure_threshold: int = 3
+    resync_backoff_seconds: float = 1.0
+
+    def client(self, *, clock: Clock = _default_clock) -> ActiveAgentClient:
+        """Construct a session client bound to this deployment's adapters."""
+
+        return ActiveAgentClient(
+            store=self.store,
+            bus=self.bus,
+            deployment_id=self.deployment_id,
+            clock=clock,
+            heartbeat_interval_seconds=self.heartbeat_interval_seconds,
+            lease_ttl_seconds=self.lease_ttl_seconds,
+            heartbeat_failure_threshold=self.heartbeat_failure_threshold,
+            resync_backoff_seconds=self.resync_backoff_seconds,
+        )
+
+    def describe(self) -> dict[str, object]:
+        """Non-secret description for receipts and readiness output."""
+
+        return {
+            "backend": self.backend,
+            "enabled": self.enabled,
+            "required": self.required,
+            "deployment_id": self.deployment_id,
+            "trust_domain": self.trust_domain,
+            "environment": self.environment,
+            "credential_source": self.credential_source,
+        }
+
+    async def health(self) -> ActiveMemoryHealth:
+        """Probe the store and the bus independently; never raise."""
+
+        store_result = await _probe(self.store.health)
+        bus_result = await _probe(self.bus.health)
+        failures = [r["error"] for r in (store_result, bus_result) if r.get("error")]
+        return ActiveMemoryHealth(
+            enabled=self.enabled,
+            backend=self.backend,
+            healthy=self.enabled and not failures,
+            store=store_result,
+            bus=bus_result,
+            deployment=self.describe(),
+            error="; ".join(str(f) for f in failures) or None,
+        )
+
+    async def close(self) -> None:
+        """Release both adapters; a connection already torn down is not a failure."""
+
+        for name, adapter in (("store", self.store), ("bus", self.bus)):
+            try:
+                await adapter.close()
+            except (ActiveMemoryUnavailableError, RuntimeError, OSError) as exc:
+                logger.debug("active-memory %s close reported %s", name, exc)
+
+
+async def _probe(probe: Callable[[], Awaitable[object]]) -> dict[str, object]:
+    """Run one adapter health probe and flatten its structural result."""
+
+    try:
+        result = await probe()
+    except ActiveMemoryUnavailableError as exc:
+        return {"connectivity": "unavailable", "error": str(exc)}
+    snapshot: dict[str, object] = {}
+    for name in ("backend", "connectivity", "authentication", "capabilities", "error"):
+        value = getattr(result, name, None)
+        if value is not None:
+            snapshot[name] = list(value) if isinstance(value, tuple) else value
+    if snapshot.get("connectivity") != "healthy" and "error" not in snapshot:
+        snapshot["error"] = f"connectivity={snapshot.get('connectivity', 'unknown')}"
+    return snapshot
+
+
 class ActiveAgentClient:
     """Entry point for constructing external-runtime active-memory sessions.
 
-    Instances are constructed by the runtime factory
-    (`l9_graphite_memory.adapters.factory.ActiveMemoryFactory`) and bound
-    to exactly one `ActiveStore`/`AwarenessBus` pair for one deployment.
-    External consumer code receives an already-constructed
-    `ActiveAgentClient` and never instantiates adapters itself.
+    Instances are constructed through `ActiveMemoryBinding.client()`, the
+    binding `l9_graphite_memory.adapters.factory.build_active_memory` yields
+    from settings, and are bound to exactly one `ActiveStore`/`AwarenessBus`
+    pair for one deployment. External consumer code receives an
+    already-constructed `ActiveAgentClient` and never instantiates adapters
+    itself.
     """
 
     def __init__(
@@ -255,9 +374,42 @@ class ActiveAgentSession:
             expires_at=now + timedelta(seconds=self._runtime_config.lease_ttl_seconds),
             heartbeat_interval_seconds=self._runtime_config.heartbeat_interval_seconds,
         )
-        await self._store.register(identity, lease)
+        presence = await self._store.register(identity, lease)
         self._lease = lease
         self._heartbeat_failures = 0
+        await self._announce(AgentEventType.AGENT_REGISTERED, presence.presence_version)
+
+    async def _announce(self, event_type: AgentEventType, state_version: int | None) -> None:
+        """Publish a lifecycle pointer on the awareness bus, best effort.
+
+        The bus is lossy by contract (`AwarenessBus`): a publish failure is
+        logged and never fails the store operation it follows. One event per
+        requested group, plus the deployment-wide channel, so a peer
+        subscribed to either sees the pointer and re-reads current state.
+        """
+
+        now = self._clock()
+        for group_id in (*self._group_ids, None):
+            event = AgentEvent(
+                event_id=uuid.uuid4().hex,
+                event_type=event_type,
+                agent_id=self._agent_id,
+                instance_id=self._instance_id,
+                role=self._role,
+                deployment_id=self._deployment_id,
+                occurred_at=now,
+                group_id=group_id,
+                state_version=state_version,
+            )
+            try:
+                await self._bus.publish(event)
+            except ActiveMemoryUnavailableError as exc:
+                logger.debug(
+                    "awareness publish skipped for agent_id=%s event=%s: %s",
+                    self._agent_id,
+                    event_type.value,
+                    exc,
+                )
 
     async def _heartbeat_loop(self) -> None:
         interval = self._runtime_config.heartbeat_interval_seconds
@@ -288,6 +440,10 @@ class ActiveAgentSession:
             if self._lifecycle.state is ActiveAgentSessionState.DEGRADED:
                 await self._resynchronize()
         except LeaseExpiredError:
+            if self._lifecycle.state is ActiveAgentSessionState.DRAINING:
+                # Shutdown is under way; the lease lapsing now is the
+                # expected end state, not a reason to register again.
+                return
             await self._reregister()
         except ActiveMemoryUnavailableError:
             self._heartbeat_failures += 1
@@ -309,6 +465,14 @@ class ActiveAgentSession:
             self._lifecycle.transition_to(ActiveAgentSessionState.DEGRADED)
 
     async def _reregister(self) -> None:
+        if self._lifecycle.state is ActiveAgentSessionState.DEGRADED:
+            # ADR-067: a degraded session recovers through RESYNCHRONIZING,
+            # and only an expired lease found there leads to RE_REGISTERING.
+            # An outage longer than the lease TTL reaches here with the lease
+            # already rejected, so the resynchronization step is the
+            # transition itself; skipping it was an illegal edge that ended
+            # the heartbeat loop for good.
+            self._lifecycle.transition_to(ActiveAgentSessionState.RESYNCHRONIZING)
         self._lifecycle.transition_to(ActiveAgentSessionState.RE_REGISTERING)
         self._instance_id = self._generate_instance_id()
         try:
@@ -349,7 +513,27 @@ class ActiveAgentSession:
             working_on=working_on,
             blockers=blockers,
         )
-        return await self._store.put_context(self._lease, expected_version, draft)
+        context = await self._store.put_context(self._lease, expected_version, draft)
+        await self._announce(AgentEventType.AGENT_CONTEXT_UPDATED, context.version)
+        return context
+
+    async def get_peer_context(self, agent_id: str, instance_id: str) -> ActiveContext | None:
+        """Read another agent instance's current context, or None if absent/expired.
+
+        Discovery comes from `list_active()`; this reads the content a peer
+        committed with `replace_context()`. It is a read of shared state,
+        permitted in every non-terminal session state.
+        """
+
+        if self._lifecycle.state in (
+            ActiveAgentSessionState.CLOSED,
+            ActiveAgentSessionState.FAILED,
+            ActiveAgentSessionState.NEW,
+        ):
+            raise ActiveMemoryUnavailableError(
+                f"cannot read peer context while session is in state {self.state.value!r}"
+            )
+        return await self._store.get_context(agent_id, instance_id)
 
     async def list_active(
         self, *, group_id: str | None = None, roles: frozenset[str] | None = None
@@ -384,13 +568,14 @@ class ActiveAgentSession:
         async for event in self._bus.subscribe(subscription):
             yield event
 
-    async def drain(self) -> None:  # NOSONAR(S7503) - kept async for SDK-wide calling consistency
+    async def drain(self) -> None:
         """Begin graceful shutdown: stop writes, keep lease until close()."""
         if self._lifecycle.state in (
             ActiveAgentSessionState.ACTIVE,
             ActiveAgentSessionState.DEGRADED,
         ):
             self._lifecycle.transition_to(ActiveAgentSessionState.DRAINING)
+            await self._announce(AgentEventType.AGENT_DRAINING, None)
 
     async def _cancel_heartbeat_task(self) -> None:
         if self._heartbeat_task is None:
@@ -414,6 +599,7 @@ class ActiveAgentSession:
             return
         try:
             await self._store.unregister(self._lease)
+            await self._announce(AgentEventType.AGENT_UNREGISTERED, None)
         except ActiveMemoryUnavailableError:
             logger.warning(
                 "failed to unregister lease during close for "

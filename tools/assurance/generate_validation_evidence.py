@@ -287,8 +287,19 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # spaced missing artifact directory) and 2 in
         # test_cursor_client_config.py (absolute launcher, relative or missing
         # launcher). None are backend-parameterized or CI-skipped. 1591 + 4.
-        "1595 tests pass",
-        r"1595 passed",
+        # Re-pinned 1595 -> 1618 for ADR-097 (active-memory runtime composition
+        # and full-capability readiness): 14 cases in
+        # test_active_memory_runtime.py, the 6 AwarenessBus contract cases on
+        # the Redis leg of tests/conformance/active (the bus fixture is now
+        # parameterized like the store fixture; CI runs Redis), 2 live Redis
+        # cases in test_active_memory_redis_live.py (the stop/start outage case
+        # skips here without server control and runs in full-capability-live),
+        # and the 1 unparameterized case of
+        # test_full_capability_readiness_live.py (its 6 backend-bound cases
+        # need Neo4j beside PostgreSQL and Redis and run in
+        # full-capability-live). 1595 + 14 + 6 + 2 + 1 = 1618; CI skips 51.
+        "1618 tests pass",
+        r"1618 passed",
     ),
     CheckSpec(
         "V-002",
@@ -322,9 +333,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 93 -> 94 for ADR-094 (product topology and release
         # governance). Re-pinned 94 -> 95 for ADR-095 (structured source
         # invalidation lifecycle). Re-pinned 95 -> 96 for ADR-096 (canonical
-        # repository corpus authority binding).
-        "96 ADRs complete and indexed",
-        r"PASS: 96 ADRs",
+        # repository corpus authority binding). Re-pinned 96 -> 97 for ADR-097
+        # (active-memory runtime composition and full-capability readiness).
+        "97 ADRs complete and indexed",
+        r"PASS: 97 ADRs",
     ),
     CheckSpec(
         "V-004",

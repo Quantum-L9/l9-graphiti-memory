@@ -22,6 +22,8 @@ contents here are domain-neutral and reusable by any external runtime.
 from l9_graphite_memory.active.client import (
     ActiveAgentClient,
     ActiveAgentSession,
+    ActiveMemoryBinding,
+    ActiveMemoryHealth,
 )
 from l9_graphite_memory.active.credentials import (
     AmbiguousCredentialSourceError,
@@ -70,7 +72,9 @@ __all__ = [
     "ActiveContext",
     "ActiveContextDraft",
     "ActiveDeployment",
+    "ActiveMemoryBinding",
     "ActiveMemoryError",
+    "ActiveMemoryHealth",
     "ActiveMemoryUnavailableError",
     "ActiveObservation",
     "AgentEvent",

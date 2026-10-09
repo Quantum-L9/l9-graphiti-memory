@@ -34,10 +34,20 @@ import pytest
 
 from l9_graphite_memory.active.deployment import ActiveDeployment, DeploymentEnvironment
 from l9_graphite_memory.active.inmemory import InMemoryActiveStore, InMemoryAwarenessBus
-from l9_graphite_memory.active.redis_adapters import RedisActiveStore
+from l9_graphite_memory.active.redis_adapters import RedisActiveStore, RedisAwarenessBus
 
 REDIS_URL_ENV = "L9_MEMORY_TEST_REDIS_URL"
 ACTIVE_STORE_BACKENDS = ("memory", "redis")
+
+
+def redis_test_url() -> str:
+    url = os.environ.get(REDIS_URL_ENV, "").strip()
+    if not url:
+        pytest.skip(
+            f"{REDIS_URL_ENV} is not set; the Redis leg of the active-memory "
+            "conformance matrix requires a throwaway Redis server"
+        )
+    return url
 
 
 class FakeClock:
@@ -113,14 +123,8 @@ async def store(
             presence_ttl_seconds=30,
         )
         return
-    url = os.environ.get(REDIS_URL_ENV, "").strip()
-    if not url:
-        pytest.skip(
-            f"{REDIS_URL_ENV} is not set; the Redis leg of the active-store "
-            "conformance matrix requires a throwaway Redis server"
-        )
     redis_store = ConformanceRedisActiveStore(
-        url,
+        redis_test_url(),
         deployment,
         clock=clock,
         key_prefix=f"l9gm:conformance:{uuid.uuid4().hex}",
@@ -134,7 +138,32 @@ async def store(
         await redis_store.close()
 
 
-@pytest.fixture
-def bus(deployment: ActiveDeployment) -> InMemoryAwarenessBus:
-    """Reference AwarenessBus adapter under test."""
-    return InMemoryAwarenessBus(deployment)
+class ConformanceRedisAwarenessBus(RedisAwarenessBus):
+    """The production bus plus the outage toggle the suite drives."""
+
+    def __init__(self, url: str, deployment: ActiveDeployment, **kwargs: Any) -> None:
+        super().__init__(url, deployment, **kwargs)
+        self._live_client = self._r
+
+    def set_unavailable(self, value: bool) -> None:
+        self._r = _UnavailableClient() if value else self._live_client
+
+
+@pytest.fixture(params=ACTIVE_STORE_BACKENDS)
+async def bus(
+    request: pytest.FixtureRequest, deployment: ActiveDeployment
+) -> AsyncIterator[InMemoryAwarenessBus | ConformanceRedisAwarenessBus]:
+    """Every AwarenessBus adapter under test, one per parameter."""
+
+    if request.param == "memory":
+        yield InMemoryAwarenessBus(deployment)
+        return
+    redis_bus = ConformanceRedisAwarenessBus(
+        redis_test_url(),
+        deployment,
+        channel_prefix=f"l9gm:conformance:{uuid.uuid4().hex}",
+    )
+    try:
+        yield redis_bus
+    finally:
+        await redis_bus.close()
