@@ -1,5 +1,5 @@
 {
-  "file_count": 840,
+  "file_count": 841,
   "files": [
     {
       "category": "ci",
@@ -430,8 +430,8 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "78e60ba00eb23099482fa0cb307b11d2485b66c4ca4d8f594ac9714782f364f5",
-      "size_bytes": 137922
+      "sha256": "87cd7a4de9b21847bde0851114876b1debf73ed7fa0aa44b66c6c8fece7004c5",
+      "size_bytes": 138081
     },
     {
       "category": "repository_root",
@@ -4752,6 +4752,22 @@
       "path": "docs/harvest_coverage.yaml",
       "sha256": "f8f176363d0353af788ef0504001d341ec63ff256d8011273b7a39c330afa2fe",
       "size_bytes": 24462
+    },
+    {
+      "category": "documentation",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "documentation",
+        "owner": "memory-control-plane",
+        "path": "docs/receipts/l9-memory-release-2.6.0.md",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "docs/receipts/l9-memory-release-2.6.0.md",
+      "sha256": "a81d6b1f841c246a319b1ec01769136d09ba69485f24ecc3ea98ed99c4d4d3d3",
+      "size_bytes": 1727
     },
     {
       "category": "documentation",

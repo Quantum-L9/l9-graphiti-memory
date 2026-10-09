@@ -36,7 +36,7 @@ updated: 2026-07-22
 | `assurance` | 97 |
 | `ci` | 10 |
 | `configuration` | 11 |
-| `documentation` | 134 |
+| `documentation` | 135 |
 | `hooks` | 9 |
 | `operations` | 8 |
 | `production_source` | 152 |
@@ -45,7 +45,7 @@ updated: 2026-07-22
 | `tests` | 216 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **839**
+- Hashed inventory files below: **840**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -350,6 +350,7 @@ updated: 2026-07-22
 | `docs/graph-intelligence/TENANT_SCOPE_MIGRATION.md` | `documentation` | `documentation` | 4450 | `af0ac5ff1cf4ac1be5eda659b91be470f9358061a9c4e5e07715367f9a7c848e` |
 | `docs/graph-intelligence/USAGE.md` | `documentation` | `documentation` | 4635 | `81bdeb5ddd235118a5f6584861f92fa9a7f000b82efae84fc9a0992059ecf7ea` |
 | `docs/harvest_coverage.yaml` | `documentation` | `documentation` | 24462 | `f8f176363d0353af788ef0504001d341ec63ff256d8011273b7a39c330afa2fe` |
+| `docs/receipts/l9-memory-release-2.6.0.md` | `documentation` | `documentation` | 1727 | `a81d6b1f841c246a319b1ec01769136d09ba69485f24ecc3ea98ed99c4d4d3d3` |
 | `docs/receipts/l9-memory-repair-retest-20261008.md` | `documentation` | `documentation` | 4859 | `1788021c6ffaf8fc4738003b289a921a3a473481bfec21afebb21a7f11e3a46d` |
 | `hooks/graphiti-gate-edits.sh` | `hooks` | `hook` | 358 | `29c1929141d3a27581a191b61021c197c5a2e30f6c47b3aa7574dccf388ac248` |
 | `hooks/graphiti-gate-shell.sh` | `hooks` | `hook` | 351 | `a0d160caeca8a0b2be539d9a012b31f2805954bb54741d41ae2f4927637e5385` |
