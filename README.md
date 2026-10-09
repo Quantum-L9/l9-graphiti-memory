@@ -125,6 +125,38 @@ Projection choices:
 
 The HTTP adapter discovers the live Graphiti tool inventory. It supports the current `add_memory`, `search_memory_facts`, `search_nodes`, and `delete_episode` dialect plus the older `add_episode` and `search_facts` compatibility dialect.
 
+## Consumer-selected full-capability shared deployment
+
+The installable `l9-graphite-memory` product remains a locally composed L9
+Dependency. Individual consumers may select a stricter deployment profile
+without making PostgreSQL, Redis or Graphiti mandatory for all installations.
+
+A consumer choosing the full-capability shared-agent deployment MUST:
+
+1. Use one PostgreSQL canonical record store, with an explicit safe transition
+   from any existing canonical ledger. Every memory read and write flows through
+   `MemoryService`; projections are never canonical.
+2. Enable and qualify the Graphiti projection/outbox and the separate Neo4j
+   graph-intelligence reader using real backends and the existing product tools.
+3. Meet `docs/ACTIVE_MEMORY_DEPLOYMENT_CONTRACT.md` for Redis and prove both
+   Redis active-store and actual Redis awareness-bus behavior. An installed
+   `ActiveAgentClient` symbol is not proof an agent consumer can use it.
+4. Bind every process to the intended tenant, namespace authorization and
+   backend identity using product-supported runtime configuration. Never store
+   credentials in tracked deployment files or generated MCP settings.
+5. Report canonical, graph and Redis active-memory health independently and
+   require all three capability families for the full-capability readiness
+   verdict. A generic `/healthz` success is not full-stack proof.
+6. Prove recovery and backend outage behavior, including canonical write safety
+   if projection or active-memory infrastructure is unavailable.
+
+This defines a deployment qualification target, not an assertion that the
+standard package runtime currently composes Redis active-agent sessions or
+that its HTTP surface is approved as a remote canonical dependency consumer.
+The accepted `product-topology.yaml` and its dependency consumption boundary
+remain unchanged. A consumer owns its process, deployment choices and exact
+release binding. The generic deployment platform does not own memory behavior.
+
 ## Validation
 
 ```bash

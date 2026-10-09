@@ -430,7 +430,7 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "97d5c65d965b68e3bf027fa7af075bf2770589bb11f339df5882a4263e15725d",
+      "sha256": "a3aa3c27c75e283fd96976fb05745edf7e15c004cec28a74649da9a293d40545",
       "size_bytes": 139341
     },
     {
@@ -478,8 +478,8 @@
         "version": "2.6.0"
       },
       "path": "README.md",
-      "sha256": "cdeb0271b676598689999e394f4ff87cda93005bfb8c39c315d8dd91d953615c",
-      "size_bytes": 7389
+      "sha256": "d36ed11e0d8725c0ff8077725a432b2f275298c606ab0d0075714a4a8d48c350",
+      "size_bytes": 9385
     },
     {
       "category": "repository_root",

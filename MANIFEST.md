@@ -82,7 +82,7 @@ updated: 2026-07-22
 | `MANIFEST.in` | `repository_root` | `repository` | 624 | `0b09fe70fcf48900117c6dfd3a56a4037d93e3b1c50f2dad9cfa1e5286b54986` |
 | `MIGRATION.md` | `repository_root` | `repository` | 4254 | `328c85b8d4f7a11d30b1c5a5518e99f6764f1cf4f42140d6291bb3b810a6250d` |
 | `QUICKSTART.md` | `repository_root` | `repository` | 1907 | `a406510d18ce914d4fa9f848cc6735370245782b889f66ef12fb91f72b03de0c` |
-| `README.md` | `repository_root` | `repository` | 7389 | `cdeb0271b676598689999e394f4ff87cda93005bfb8c39c315d8dd91d953615c` |
+| `README.md` | `repository_root` | `repository` | 9385 | `d36ed11e0d8725c0ff8077725a432b2f275298c606ab0d0075714a4a8d48c350` |
 | `ROADMAP.md` | `repository_root` | `repository` | 2353 | `c184c97f914bd12f626064f998de29db7bf6a26f135ad9db16328c6d7bd0532a` |
 | `RUNBOOK.md` | `repository_root` | `repository` | 19960 | `643eeb81b080e37db86c528f1c6e3ff5550207977bfd22c30ce3fee859023652` |
 | `SECURITY.md` | `repository_root` | `repository` | 1718 | `8eb44c129daf83b389343dcf462662b6c6282a63cac6048cf084e10d2b964980` |
