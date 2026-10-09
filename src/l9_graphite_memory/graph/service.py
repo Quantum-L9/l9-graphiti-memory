@@ -99,6 +99,12 @@ from .scope import (
 # Smallest budget worth starting a provider operation with; it is also the
 # GraphLimits floor for max_runtime_ms.
 MIN_PROVIDER_BUDGET_MS = 10
+# The caller in execute() waits the request budget and, if that wait ends
+# first, reports runtime_budget_exceeded (stage request). A search call that
+# is abandoned at that same instant never gets to publish its own stop class.
+# This slack is only the time to return the abandonment receipt. It does not
+# extend the caller's budget and it does not change the provider floor.
+_SEARCH_RETURN_SLACK_MS = 25
 
 
 class _BoundedPool:
@@ -193,7 +199,11 @@ def _gather_search_hits(
 
     gathered = _SearchHits()
     for namespace in namespaces:
-        if remaining_ms() <= 0:
+        # Stop early enough that this function can return the search stop
+        # class before the caller's request wait expires. Otherwise the same
+        # stall is reported as the outer runtime_budget_exceeded.
+        wait_ms = remaining_ms() - _SEARCH_RETURN_SLACK_MS
+        if wait_ms <= 0:
             gathered.stop_class = "runtime_budget_exhausted"
             break
         future = _SEARCH_POOL.try_submit(fetch, namespace)
@@ -203,7 +213,7 @@ def _gather_search_hits(
             gathered.stop_class = "graph_capacity_exhausted"
             break
         try:
-            namespace_hits = future.result(timeout=max(remaining_ms(), 0) / 1_000)
+            namespace_hits = future.result(timeout=wait_ms / 1_000)
         except FuturesTimeoutError:
             future.cancel()
             gathered.stop_class = "runtime_budget_exhausted"

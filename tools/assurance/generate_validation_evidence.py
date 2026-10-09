@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.5.0"
+RELEASE: Final = "2.6.0"
 DEFAULT_EVIDENCE_DIR: Final = Path("build") / "release-validation"
 
 
@@ -282,8 +282,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # 14 cases in test_repository_corpus.py (one parametrized x 5) and 4
         # in test_repository_corpus_ingestion.py. None are backend-
         # parameterized or CI-skipped. 1573 + 18 = 1591.
-        "1591 tests pass",
-        r"1591 passed",
+        # Re-pinned 1591 -> 1595 for the repair-retest fixes that travel with
+        # 2.6.0: 2 cases in test_release_shell.py (symlink overlap guard,
+        # spaced missing artifact directory) and 2 in
+        # test_cursor_client_config.py (absolute launcher, relative or missing
+        # launcher). None are backend-parameterized or CI-skipped. 1591 + 4.
+        "1595 tests pass",
+        r"1595 passed",
     ),
     CheckSpec(
         "V-002",
@@ -465,8 +470,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # recorded by digest, and the release wheel must be in it.
         "sha256sum over the validated release artifact directory",
         "logs/release_artifacts.txt",
-        "v2.5.0 wheel present in the validated artifact set",
-        r"l9_graphite_memory-2\.5\.0-py3-none-any\.whl",
+        "v2.6.0 wheel present in the validated artifact set",
+        r"l9_graphite_memory-2\.6\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -475,7 +480,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.5\.0",
+        r"l9-graphite-memory==2\.6\.0",
     ),
     CheckSpec(
         "V-018",

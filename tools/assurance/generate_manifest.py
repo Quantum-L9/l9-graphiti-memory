@@ -34,7 +34,7 @@ from pathlib import Path
 import l9_meta
 
 REPOSITORY = l9_meta.REPOSITORY
-RELEASE = "2.5.0"
+RELEASE = "2.6.0"
 META_STATUS = "active"
 META_UPDATED = "2026-07-22"
 MANIFEST_MARKDOWN = "MANIFEST.md"

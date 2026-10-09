@@ -302,7 +302,12 @@ def test_search_within_budget_is_complete() -> None:
 
 
 def test_a_stalled_provider_search_is_abandoned_at_the_deadline() -> None:
-    """Codex review: the in-flight projection call must not outlive the budget."""
+    """A stalled search is abandoned as runtime_budget_exhausted (ADR-092).
+
+    The token is the search stop class at stage provider: the call returned
+    nothing before its wait ended. runtime_budget_exceeded at stage request is
+    the outer caller wait, used when the worker itself does not return.
+    """
 
     import threading
     import time
@@ -335,6 +340,7 @@ def test_a_stalled_provider_search_is_abandoned_at_the_deadline() -> None:
     assert time.monotonic() - started < 1.0
     assert receipt.status is GraphReceiptStatus.FAILED
     assert receipt.failures[0]["class"] == "runtime_budget_exhausted"
+    assert receipt.failures[0]["stage"] == "provider"
 
 
 # -- audit F-03: the budget bounds the caller's wall-clock time -------------
