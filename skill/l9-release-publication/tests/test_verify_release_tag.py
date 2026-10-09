@@ -148,6 +148,74 @@ def test_require_remote_rejects_absence(tmp_path: Path) -> None:
     assert json.loads(result.stdout)["status"] == "MISMATCH"
 
 
+def test_bind_origin_rejects_a_different_repository(tmp_path: Path) -> None:
+    repo, tag_object, commit = _repo(tmp_path)
+    _git(repo, "remote", "add", "origin", "https://github.com/other/repo.git")
+    result = _run(
+        repo,
+        "--tag-object",
+        tag_object,
+        "--peeled-commit",
+        commit,
+        "--remote",
+        "example/repo",
+        "--bind-origin",
+    )
+    assert result.returncode == 1
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "MISMATCH"
+    assert payload["origin"] == "other/repo"
+
+
+def test_bind_origin_keeps_absence_on_the_verified_repository(tmp_path: Path) -> None:
+    repo, tag_object, commit = _repo(tmp_path)
+    _git(repo, "remote", "add", "origin", "https://github.com/example/repo.git")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    fake = bin_dir / "gh"
+    fake.write_text(
+        "#!/bin/sh\necho 'gh: Not Found (HTTP 404)' >&2\nexit 1\n",
+        encoding="utf-8",
+    )
+    fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
+    result = _run(
+        repo,
+        "--tag-object",
+        tag_object,
+        "--peeled-commit",
+        commit,
+        "--remote",
+        "example/repo",
+        "--bind-origin",
+        gh_bin=bin_dir,
+    )
+    assert result.returncode == 2
+    assert json.loads(result.stdout)["status"] == "REMOTE_ABSENT"
+
+
+def test_disallowed_tag_is_rejected(tmp_path: Path) -> None:
+    repo, tag_object, commit = _repo(tmp_path)
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--repo-dir",
+            str(repo),
+            "--tag",
+            "v1/extra",
+            "--tag-object",
+            tag_object,
+            "--peeled-commit",
+            commit,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 1
+    assert json.loads(result.stdout)["status"] == "MISMATCH"
+
+
 def test_remote_match(tmp_path: Path) -> None:
     repo, tag_object, commit = _repo(tmp_path)
     bin_dir = tmp_path / "bin"

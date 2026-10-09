@@ -31,7 +31,9 @@ python3 ops/autonomy/breakglass_receipt.py \
   --reason 'publish existing annotated tag <tag> object <tag-object> peeled <commit>; no force, no recreate'
 ```
 
-Confirm the status line says the grant is in force. Then, in a later command, push exactly one ref:
+Confirm the status line says the grant is in force. The verifier must already have been run with `--remote owner/name --bind-origin`, and that result must be `REMOTE_ABSENT` or `MATCH` for the same `owner/name`. `--bind-origin` fails when `origin` is a different repository. Do not push until that check passes.
+
+Then, in a later command, push exactly one ref to that bound origin:
 
 ```bash
 git push origin refs/tags/<tag>

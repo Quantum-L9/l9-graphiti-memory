@@ -47,8 +47,8 @@ Use this skill only when the operator names an existing annotated tag and its ad
 ## Sequence
 
 1. Run [verify_release_tag.py](scripts/verify_release_tag.py) against the local repository. Exit 1 means stop. Do not delete, move, or recreate the tag.
-2. Run the same script with `--remote owner/name`. `REMOTE_ABSENT` is the only result that permits a push. `MATCH` means the tag is already on the host; go to step 5. Any other result stops the publication.
-3. Publish that one ref. Load [publication-plane.md](references/publication-plane.md) and follow it. Write the receipt, then push, as two commands. No `--force` and no `--tags`. `make pr` pushes the current branch and cannot publish a tag. Do not create the tag object through the host API.
+2. Run the same script with `--remote owner/name --bind-origin`. `REMOTE_ABSENT` permits a push only when that command also reports origin as the same `owner/name`. `MATCH` means the tag is already on that host; go to step 5. Any other result stops the publication. Do not push to a different origin.
+3. Publish that one ref to the bound origin. Load [publication-plane.md](references/publication-plane.md) and follow it. Write the receipt, then push, as two commands. No `--force` and no `--tags`. `make pr` pushes the current branch and cannot publish a tag. Do not create the tag object through the host API.
 4. Run the script again with `--remote` and `--require-remote`. Continue only on `MATCH` for both the tag object and the peeled commit.
 5. Watch the single workflow run created by that tag push. Do not dispatch another run. If the run is waiting on an environment reviewer, stop and give the operator the run URL, the job URL, the environment name, and the reviewer. Resume that same run after the operator approves it.
 6. After that run succeeds, compare its artifact digests to the admitted checksums. Record package publication from the run and the package registry. A local rebuild is not publication evidence.
@@ -71,15 +71,17 @@ The core sequence assumes the L9 publication plane evaluates the push. When that
 
 ## Verification
 
+From this repository root:
+
 ```bash
-python3 scripts/verify_release_tag.py \
+python3 skill/l9-release-publication/scripts/verify_release_tag.py \
   --repo-dir <checkout> \
   --tag <tag> \
   --tag-object <annotated-tag-sha> \
   --peeled-commit <admitted-commit-sha>
 ```
 
-Add `--remote owner/name` before the push. Add `--require-remote` after it. The script prints one JSON object. Exit 0 is `MATCH`, exit 2 is `REMOTE_ABSENT`, exit 1 is a mismatch, exit 3 is a transport block.
+Add `--remote owner/name --bind-origin` before the push. Add `--require-remote` after it. The script prints one JSON object. Exit 0 is `MATCH`, exit 2 is `REMOTE_ABSENT`, exit 1 is a mismatch, exit 3 is a transport block.
 
 ## After use
 

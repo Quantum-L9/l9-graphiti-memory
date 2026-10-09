@@ -430,7 +430,7 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "1ac73b139ab0fade56e89a902063792112cb5fe95fd3612e639ddd89ff003e0e",
+      "sha256": "97d5c65d965b68e3bf027fa7af075bf2770589bb11f339df5882a4263e15725d",
       "size_bytes": 139341
     },
     {
@@ -5534,8 +5534,8 @@
         "version": "2.6.0"
       },
       "path": "skill/l9-release-publication/SKILL.md",
-      "sha256": "c829946e3ca60fe6d7e5c99d4c0dd3806b14458492d590b933b7328152418784",
-      "size_bytes": 5259
+      "sha256": "636fb2abee884a55d0853e6c3a24eff94a214bb0900099452a70cdd56facc602",
+      "size_bytes": 5444
     },
     {
       "category": "skill",
@@ -5598,8 +5598,8 @@
         "version": "2.6.0"
       },
       "path": "skill/l9-release-publication/references/publication-plane.md",
-      "sha256": "1a04f8ace71d6f7d972f4043a466de54674fb8a5f84977c80a4db79bf07099b9",
-      "size_bytes": 2720
+      "sha256": "f773dd9c1ed0fdc60165264004c5ddb1590b3a98050d2cc9b6fc71b408dc850c",
+      "size_bytes": 3002
     },
     {
       "category": "skill",
@@ -5614,8 +5614,8 @@
         "version": "2.6.0"
       },
       "path": "skill/l9-release-publication/scripts/verify_release_tag.py",
-      "sha256": "7902a05d3ac80f9fc94d4efae81dd5bf67edbc84787cc66526084e174a77c9e7",
-      "size_bytes": 5120
+      "sha256": "16198c4b3c5f32a78e342add318cacab6e6083292b6a4824c411fd624489bf0f",
+      "size_bytes": 8103
     },
     {
       "category": "skill",
@@ -5646,8 +5646,8 @@
         "version": "2.6.0"
       },
       "path": "skill/l9-release-publication/tests/test_verify_release_tag.py",
-      "sha256": "1bf9d8f26da79ba835f62bd83bf831b1b057fb22ea42e3e325f01197ff658400",
-      "size_bytes": 5492
+      "sha256": "cfee2b7e161a6eef090e0c5a77f081d390c2f77c39dfb9994e20ff0fbc611d5c",
+      "size_bytes": 7419
     },
     {
       "category": "production_source",

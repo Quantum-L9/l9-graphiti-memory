@@ -23,13 +23,26 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from typing import Any
 
+_TAG = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
+_REMOTE = re.compile(r"\A[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
+_SHA = re.compile(r"\A[0-9a-fA-F]{40}\Z")
+_ORIGIN = re.compile(
+    r"\A(?:https://github\.com/|git@github\.com:)([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\.git)?\Z"
+)
+
 
 def _run(cmd: list[str], cwd: str | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=False)
+
+
+def _accepted(pattern: re.Pattern[str], value: str | None) -> str:
+    match = pattern.fullmatch(value or "")
+    return "" if match is None else match.group(0)
 
 
 def _emit(payload: dict[str, Any], code: int) -> int:
@@ -38,9 +51,12 @@ def _emit(payload: dict[str, Any], code: int) -> int:
 
 
 def local_identity(repo: str, tag: str) -> tuple[str, str, str]:
-    kind = _run(["git", "cat-file", "-t", tag], cwd=repo)
-    obj = _run(["git", "rev-parse", tag], cwd=repo)
-    peeled = _run(["git", "rev-parse", f"{tag}^{{}}"], cwd=repo)
+    kind = _run(["git", "cat-file", "-t", "--", tag], cwd=repo)
+    obj = _run(["git", "rev-parse", "--verify", "--end-of-options", tag], cwd=repo)
+    peeled = _run(
+        ["git", "rev-parse", "--verify", "--end-of-options", f"{tag}^{{}}"],
+        cwd=repo,
+    )
     return (
         kind.stdout.strip() if kind.returncode == 0 else "",
         obj.stdout.strip() if obj.returncode == 0 else "",
@@ -53,37 +69,76 @@ def gh_api(path: str) -> tuple[int, str, str]:
     return result.returncode, result.stdout, result.stderr
 
 
-def remote_identity(remote: str, tag: str) -> tuple[str, dict[str, str]]:
-    code, out, err = gh_api(f"repos/{remote}/git/ref/tags/{tag}")
-    if code != 0:
-        blob = f"{out}\n{err}"
-        if "404" in blob:
-            return "absent", {}
-        return "blocked", {"detail": err.strip() or out.strip()}
+def _json_object(text: str) -> dict[str, Any] | None:
     try:
-        ref = json.loads(out)
+        parsed = json.loads(text)
     except json.JSONDecodeError:
-        return "blocked", {"detail": "remote ref response was not JSON"}
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def _transport(code: int, out: str, err: str, detail: str) -> tuple[str, dict[str, str]] | None:
+    if code == 0:
+        return None
+    if "404" in f"{out}\n{err}":
+        return "blocked", {"detail": detail}
+    return "blocked", {"detail": err.strip() or out.strip()}
+
+
+def _annotated_sha(owner: str, name: str, tag: str) -> tuple[str, dict[str, str], str]:
+    code, out, err = gh_api(f"repos/{owner}/{name}/git/ref/tags/{tag}")
+    if code != 0 and "404" in f"{out}\n{err}":
+        return "absent", {}, ""
+    failed = _transport(code, out, err, "tag ref request failed")
+    if failed is not None:
+        return failed[0], failed[1], ""
+    ref = _json_object(out)
     obj = ref.get("object") if isinstance(ref, dict) else None
     if not isinstance(obj, dict):
-        return "blocked", {"detail": "remote ref has no object"}
-    sha = str(obj.get("sha") or "")
-    kind = str(obj.get("type") or "")
-    if kind != "tag" or not sha:
-        return "mismatch", {"remote_tag_object": sha, "remote_kind": kind}
-    code, out, err = gh_api(f"repos/{remote}/git/tags/{sha}")
-    if code != 0:
-        blob = f"{out}\n{err}"
-        if "404" in blob:
-            return "blocked", {"detail": "tag object sha from the ref was not found"}
-        return "blocked", {"detail": err.strip() or out.strip()}
-    try:
-        tag_obj = json.loads(out)
-    except json.JSONDecodeError:
-        return "blocked", {"detail": "remote tag object response was not JSON"}
+        return "blocked", {"detail": "remote ref has no object"}, ""
+    sha = _accepted(_SHA, str(obj.get("sha") or ""))
+    if str(obj.get("type") or "") != "tag" or not sha:
+        return (
+            "mismatch",
+            {
+                "remote_tag_object": str(obj.get("sha") or ""),
+                "remote_kind": str(obj.get("type") or ""),
+            },
+            "",
+        )
+    return "tag", {}, sha
+
+
+def _peeled_commit(owner: str, name: str, sha: str) -> tuple[str, dict[str, str]]:
+    code, out, err = gh_api(f"repos/{owner}/{name}/git/tags/{sha}")
+    failed = _transport(code, out, err, "tag object sha from the ref was not found")
+    if failed is not None and "404" in f"{out}\n{err}":
+        return failed
+    if failed is not None:
+        return failed
+    tag_obj = _json_object(out)
     target = tag_obj.get("object") if isinstance(tag_obj, dict) else None
-    peeled = str(target.get("sha") or "") if isinstance(target, dict) else ""
-    return "present", {"remote_tag_object": sha, "remote_peeled": peeled}
+    if not isinstance(target, dict):
+        return "blocked", {"detail": "remote tag object response was not JSON"}
+    return "present", {"remote_tag_object": sha, "remote_peeled": str(target.get("sha") or "")}
+
+
+def remote_identity(remote: str, tag: str) -> tuple[str, dict[str, str]]:
+    owner, _, name = remote.partition("/")
+    state, payload, sha = _annotated_sha(owner, name, tag)
+    if state != "tag":
+        return state, payload
+    return _peeled_commit(owner, name, sha)
+
+
+def origin_repository(repo: str) -> str:
+    result = _run(["git", "remote", "get-url", "origin"], cwd=repo)
+    if result.returncode != 0:
+        return ""
+    match = _ORIGIN.fullmatch(result.stdout.strip())
+    if match is None:
+        return ""
+    return f"{match.group(1)}/{match.group(2)}"
 
 
 def main() -> int:
@@ -94,6 +149,11 @@ def main() -> int:
     parser.add_argument("--peeled-commit", required=True)
     parser.add_argument("--remote", help="owner/name")
     parser.add_argument(
+        "--bind-origin",
+        action="store_true",
+        help="Require git origin to be the same owner/name as --remote before a push.",
+    )
+    parser.add_argument(
         "--require-remote",
         action="store_true",
         help="Treat a missing remote ref as a mismatch. Use after the push.",
@@ -101,6 +161,25 @@ def main() -> int:
     args = parser.parse_args()
     if args.require_remote and not args.remote:
         return _emit({"status": "MISMATCH", "detail": "--require-remote needs --remote"}, 1)
+    if args.bind_origin and not args.remote:
+        return _emit({"status": "MISMATCH", "detail": "--bind-origin needs --remote"}, 1)
+    tag = _accepted(_TAG, args.tag)
+    tag_object = _accepted(_SHA, args.tag_object)
+    peeled_commit = _accepted(_SHA, args.peeled_commit)
+    remote = _accepted(_REMOTE, args.remote) if args.remote else ""
+    if not tag or not tag_object or not peeled_commit or (args.remote and not remote):
+        return _emit(
+            {
+                "status": "MISMATCH",
+                "detail": "tag, object, peel, or remote is not an allowlisted token",
+            },
+            1,
+        )
+    args.tag = tag
+    args.tag_object = tag_object
+    args.peeled_commit = peeled_commit
+    if args.remote:
+        args.remote = remote
 
     kind, obj, peeled = local_identity(args.repo_dir, args.tag)
     payload: dict[str, Any] = {
@@ -119,6 +198,14 @@ def main() -> int:
     if not args.remote:
         payload["status"] = "MATCH"
         return _emit(payload, 0)
+
+    if args.bind_origin:
+        bound = origin_repository(args.repo_dir)
+        payload["origin"] = bound
+        if bound != args.remote:
+            payload["status"] = "MISMATCH"
+            payload["detail"] = "origin is not the verified owner/name"
+            return _emit(payload, 1)
 
     state, remote = remote_identity(args.remote, args.tag)
     payload.update(remote)
