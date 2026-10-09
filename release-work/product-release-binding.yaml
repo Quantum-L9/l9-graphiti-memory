@@ -21,11 +21,11 @@ global_release_contract:
   ref: l9.contract/product-release@1
 authority:
   repository: Quantum-L9/.github
-  revision: 07b0df96fc3008d55a96f804923e2177ff312295
+  revision: 976eedb58358355919a7eb39b4c78bd52a54a102
   files:
     - path: semantics/contracts.yaml
-      blob: a8170aae86b617f83bb4afd8592b3684b8a166b1
-      digest: sha256:1f6fbe4582d612b89e48a0e9f286bc307cc65e24d23dd8906f7d673284266bac
+      blob: 4b4ca1b7abf456ba28df2f2a8071412a2bd1ff84
+      digest: sha256:fe6064bf5a4dd9849fbb8033c1ff66dcc9bddb2672d5824a1af60d84e7327896
     - path: semantics/authority_model.yaml
       blob: 34b6767e5145203b67eefb92c869ad6a06021471
       digest: sha256:6afd6c102c6d1103e6946613bc14674dbd214a5a1c7da4c3fa23b6cbfd175b5e
@@ -43,24 +43,22 @@ product:
   archetype_ref: l9.dependency-archetype/semantic-subsystem@1
 product_topology:
   path: product-topology.yaml
-  digest: sha256:2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce
+  digest: sha256:03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e
   admission_decision_ref: docs/adr/ADR-094-product-topology-and-release-governance.md
   mechanical_validation: tools/assurance/validate_product_topology.py --authority-root <Quantum-L9/.github at authority.revision>
 product_manifest:
-  status: unresolved
+  status: resolved
   ref: release-work/product-manifest.json
-  digest: sha256:05feb850648f0d42b24f7317f1e13abe73301b4cbbec5d50db2d36c067f7dafe
+  digest: sha256:1507ff20a50d18ed42227a6133d145047ef24ba916df7c5059d37c25c859b04f
   generator: tools/assurance/generate_product_manifest.py
   compiler_revision: sha256:0c1461e2440a8ae0c5da4e5326e90931962f021f5bea37abf2ddb45310d8aa59
   compiler_profile_ref: l9.compilation/product-build@1
   compiler_profile_digest: sha256:bbcb06d010a1b7bc0d3275766e00e9031d6c481cee576235ff389928287487df
   regenerate: python3 tools/assurance/generate_product_manifest.py --authority-root <Quantum-L9/.github at authority.revision>
   check: python3 tools/assurance/generate_product_manifest.py --authority-root <Quantum-L9/.github at authority.revision> --check
-  resolved_manifest_gate: fail
-  reasons:
-    - conformance_requirements_resolved: "conformance profile unresolved: unknown"
-    - unresolved_hard_semantic_gaps_empty: "material Unknown MU-001: conformance.profile_refs"
-  consequence: release progression is BLOCKED until the derived ProductManifest's resolved_manifest_gate passes; no external compiler is required.
+  resolved_manifest_gate: pass
+  reasons: []
+  consequence: the derived ProductManifest gate passes for this topology; release progression still requires an explicit release admission of the frozen candidate.
 release_identity:
   version_source: src/l9_graphite_memory/version.py::PACKAGE_VERSION
   identity_tuple:

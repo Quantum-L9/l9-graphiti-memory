@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.5.0"
+RELEASE: Final = "2.6.0"
 DEFAULT_EVIDENCE_DIR: Final = Path("build") / "release-validation"
 
 
@@ -465,8 +465,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # recorded by digest, and the release wheel must be in it.
         "sha256sum over the validated release artifact directory",
         "logs/release_artifacts.txt",
-        "v2.5.0 wheel present in the validated artifact set",
-        r"l9_graphite_memory-2\.5\.0-py3-none-any\.whl",
+        "v2.6.0 wheel present in the validated artifact set",
+        r"l9_graphite_memory-2\.6\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -475,7 +475,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.5\.0",
+        r"l9-graphite-memory==2\.6\.0",
     ),
     CheckSpec(
         "V-018",

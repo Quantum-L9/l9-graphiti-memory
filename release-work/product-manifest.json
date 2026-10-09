@@ -114,8 +114,8 @@
         "path": "semantics/compilation_profiles.yaml"
       },
       {
-        "blob": "a8170aae86b617f83bb4afd8592b3684b8a166b1",
-        "digest": "sha256:1f6fbe4582d612b89e48a0e9f286bc307cc65e24d23dd8906f7d673284266bac",
+        "blob": "4b4ca1b7abf456ba28df2f2a8071412a2bd1ff84",
+        "digest": "sha256:fe6064bf5a4dd9849fbb8033c1ff66dcc9bddb2672d5824a1af60d84e7327896",
         "path": "semantics/contracts.yaml"
       },
       {
@@ -151,7 +151,7 @@
     ],
     "product_semantic_owner": "l9-graphiti-memory:authority/memory-architecture",
     "repository": "Quantum-L9/.github",
-    "revision": "07b0df96fc3008d55a96f804923e2177ff312295"
+    "revision": "976eedb58358355919a7eb39b4c78bd52a54a102"
   },
   "bindings": {
     "product_bindings": [],
@@ -287,7 +287,7 @@
     "fixture_profile_refs": [],
     "negative_proof_refs": [],
     "profile_refs": [
-      "unknown"
+      "l9.fixture-profile/core@1"
     ],
     "provider_conformance_refs": [
       "Quantum-L9/l9-graphiti-memory/docs/adr/ADR-021-testing-and-adapter-conformance.md"
@@ -434,7 +434,7 @@
       "l9.contract/admission-and-promotion@1"
     ]
   },
-  "manifest_digest": "sha256:05feb850648f0d42b24f7317f1e13abe73301b4cbbec5d50db2d36c067f7dafe",
+  "manifest_digest": "sha256:1507ff20a50d18ed42227a6133d145047ef24ba916df7c5059d37c25c859b04f",
   "observability": {
     "audit_requirement_refs": [],
     "capability_metrics": [],
@@ -476,7 +476,7 @@
     "derivation": "deterministic",
     "inputs": [
       {
-        "digest": "sha256:2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce",
+        "digest": "sha256:03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e",
         "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
       },
       {
@@ -488,8 +488,8 @@
         "ref": "Quantum-L9/.github/semantics/compilation_profiles.yaml@323dce7e53a406f0c2b4662e9a093f20cca44322"
       },
       {
-        "digest": "sha256:1f6fbe4582d612b89e48a0e9f286bc307cc65e24d23dd8906f7d673284266bac",
-        "ref": "Quantum-L9/.github/semantics/contracts.yaml@a8170aae86b617f83bb4afd8592b3684b8a166b1"
+        "digest": "sha256:fe6064bf5a4dd9849fbb8033c1ff66dcc9bddb2672d5824a1af60d84e7327896",
+        "ref": "Quantum-L9/.github/semantics/contracts.yaml@4b4ca1b7abf456ba28df2f2a8071412a2bd1ff84"
       },
       {
         "digest": "sha256:909db431aa0ccc7668ce3f2dcd46addc26df39c8f3e7303925469b47d6a4617d",
@@ -678,10 +678,8 @@
         "reasons": []
       },
       "conformance_requirements_resolved": {
-        "holds": false,
-        "reasons": [
-          "conformance profile unresolved: unknown"
-        ]
+        "holds": true,
+        "reasons": []
       },
       "governance_profile_separate_from_identity": {
         "holds": true,
@@ -728,13 +726,11 @@
         "reasons": []
       },
       "unresolved_hard_semantic_gaps_empty": {
-        "holds": false,
-        "reasons": [
-          "material Unknown MU-001: conformance.profile_refs"
-        ]
+        "holds": true,
+        "reasons": []
       }
     },
-    "result": "fail"
+    "result": "pass"
   },
   "runtime": {
     "concurrency_model": "canonical store transactions; one outbox intent per projection target",
@@ -772,7 +768,7 @@
     "trust_source_refs": []
   },
   "source_topology": {
-    "digest": "sha256:2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce",
+    "digest": "sha256:03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e",
     "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
   },
   "state": {
@@ -812,18 +808,5 @@
       }
     ]
   },
-  "unresolved": [
-    {
-      "condition": "conformance_requirements_resolved",
-      "reasons": [
-        "conformance profile unresolved: unknown"
-      ]
-    },
-    {
-      "condition": "unresolved_hard_semantic_gaps_empty",
-      "reasons": [
-        "material Unknown MU-001: conformance.profile_refs"
-      ]
-    }
-  ]
+  "unresolved": []
 }

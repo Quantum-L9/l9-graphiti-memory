@@ -90,7 +90,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Quantum-L9/.github
-          ref: 07b0df96fc3008d55a96f804923e2177ff312295
+          ref: 976eedb58358355919a7eb39b4c78bd52a54a102
           path: build/semantic-authority
           persist-credentials: false
       - run: bash scripts/validate_release.sh

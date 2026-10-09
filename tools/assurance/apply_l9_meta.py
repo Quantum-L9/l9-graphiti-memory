@@ -29,7 +29,7 @@ from pathlib import Path
 import l9_meta
 
 REPOSITORY = l9_meta.REPOSITORY
-VERSION = "2.5.0"
+VERSION = "2.6.0"
 # Artifact fields stamped on a block this tool inserts. An existing block keeps
 # its own artifact fields: reconciliation never rewrites them from location.
 INSERTED_STATUS = "active"

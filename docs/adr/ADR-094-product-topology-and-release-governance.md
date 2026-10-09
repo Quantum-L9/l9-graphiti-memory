@@ -25,8 +25,8 @@ review. It binds exactly one ProductTopology candidate:
 | Coordinate | Value |
 |---|---|
 | ProductTopology | `product-topology.yaml` |
-| Topology digest | `sha256:2e5b25fc0ef304d5aae4e022e03bc934bfcd3f2f0a93b1110582e6e16735abce` |
-| Global authority | `Quantum-L9/.github@07b0df96fc3008d55a96f804923e2177ff312295` |
+| Topology digest | `sha256:03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e` |
+| Global authority | `Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102` |
 | Global release contract | `l9.contract/product-release@1` |
 
 The topology digest is the SHA-256 of the committed `product-topology.yaml`
@@ -128,11 +128,12 @@ restate it.
    product's ReleaseIdentity.
 8. **Material Unknowns stay explicit.** A requirement with no admitted global
    coordinate is recorded, never invented:
-   - MU-001 (open): a conformance profile for dependency or semantic-subsystem.
-     It makes the derived ProductManifest's gate fail
-     (`conformance_requirements_resolved`,
-     `unresolved_hard_semantic_gaps_empty`) and so blocks release progression,
-     which is the intended behaviour of global law.
+   - MU-001 (closed): a conformance profile for dependency or semantic-subsystem.
+     `Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102` admits
+     `l9.fixture-profile/core@1` and this topology consumes that coordinate.
+     The derived ProductManifest therefore no longer fails
+     `conformance_requirements_resolved` or
+     `unresolved_hard_semantic_gaps_empty` for lack of that coordinate.
    - MU-002 (closed): technology coordinates for the Graphiti MCP and Zep
      provider realizations. `Quantum-L9/.github` admitted `graphiti-mcp` and
      `zep` (Semantic Foundation v3.12.0), and the topology's provider bindings
@@ -175,8 +176,8 @@ restate it.
 
 ## Consequences
 
-- Release progression is blocked until three things are true:
-  - MU-001 is resolved by its global owner;
+- MU-001 is resolved by its global owner and consumed by this topology.
+- Release progression still requires two things:
   - the ProductManifest derived from this topology passes the resolved-manifest
     gate;
   - an explicit release admission exists.

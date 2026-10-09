@@ -54,6 +54,30 @@ def test_managed_entry_rejects_empty_interpreter() -> None:
         managed_server_entry("   ")
 
 
+def test_managed_entry_uses_an_absolute_launcher_without_an_env_block(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    launcher = tmp_path / "run_memory_mcp.sh"
+    launcher.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    launcher.chmod(0o755)
+    monkeypatch.setenv("L9_MEMORY_MCP_COMMAND", str(launcher))
+    config = managed_server_entry(sys.executable).as_config()
+    assert config["command"] == str(launcher)
+    assert config["args"] == ["-m", "l9_graphite_memory.server", "--transport", "stdio"]
+    assert "env" not in config
+
+
+def test_managed_entry_refuses_a_relative_or_missing_launcher(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("L9_MEMORY_MCP_COMMAND", "run_memory_mcp.sh")
+    with pytest.raises(ConfigurationError):
+        managed_server_entry(sys.executable)
+    monkeypatch.setenv("L9_MEMORY_MCP_COMMAND", str(tmp_path / "missing"))
+    with pytest.raises(ConfigurationError):
+        managed_server_entry(sys.executable)
+
+
 def test_install_creates_config_with_only_managed_entry(tmp_path: Path) -> None:
     configurator = _configurator(tmp_path)
     receipt = configurator.install()

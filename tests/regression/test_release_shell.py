@@ -236,6 +236,29 @@ def test_release_validation_refuses_tracked_overlap_as_evidence_root(tmp_path: P
     assert "overlaps tracked content" in result.stderr
 
 
+def test_release_validation_resolves_a_symlink_before_the_overlap_guard(tmp_path: Path) -> None:
+    link = tmp_path / "tracked alias"
+    link.symlink_to(ROOT / "docs" / "adr")
+    result = _run_validator(tmp_path, L9_RELEASE_EVIDENCE_DIR=str(link))
+    assert result.returncode != 0
+    assert "overlaps tracked content" in result.stderr
+
+
+def test_release_validation_rejects_a_missing_artifact_directory_with_spaces(
+    tmp_path: Path,
+) -> None:
+    missing = tmp_path / "no such dir"
+    evidence = tmp_path / "evidence dir"
+    result = _run_validator(
+        tmp_path,
+        L9_RELEASE_ARTIFACT_DIR=str(missing),
+        L9_RELEASE_EVIDENCE_DIR=str(evidence),
+    )
+    assert result.returncode != 0
+    assert "not a directory" in result.stderr
+    assert not evidence.exists()
+
+
 def test_release_validation_refuses_missing_or_empty_artifact_directory(tmp_path: Path) -> None:
     missing = _run_validator(
         tmp_path,

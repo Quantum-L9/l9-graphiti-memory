@@ -32,6 +32,31 @@ fi
 
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
+# GNU realpath -m is not on Darwin (BSD realpath rejects -m). Same semantics:
+# absolute form, collapse . and .., resolve symlinks on the longest existing
+# prefix, and keep a not-yet-existing suffix. A string prefix of the raw path
+# is not the guard.
+canon_path() {
+  python3 - "$1" <<'PY'
+import os
+import sys
+
+path = os.path.abspath(sys.argv[1])
+rest = path
+missing = []
+while rest and rest != os.sep and not os.path.lexists(rest):
+    rest, tail = os.path.split(rest)
+    missing.append(tail)
+if rest and os.path.lexists(rest):
+    resolved = os.path.realpath(rest)
+else:
+    resolved = rest or os.sep
+for tail in reversed(missing):
+    resolved = os.path.join(resolved, tail)
+print(os.path.normpath(resolved))
+PY
+}
+
 # --- Evidence workspace -------------------------------------------------------
 OUT="${L9_RELEASE_EVIDENCE_DIR:-$ROOT/build/release-validation}"
 case "$OUT" in
@@ -41,8 +66,8 @@ esac
 # Canonicalize lexically even when components do not exist yet, so a path such
 # as "$ROOT/missing/../validation" is recognized as the tracked tree before
 # anything is created or deleted.
-OUT="$(realpath -m -- "$OUT")"
-ROOT_REAL="$(realpath -- "$ROOT")"
+OUT="$(canon_path "$OUT")"
+ROOT_REAL="$(canon_path "$ROOT")"
 case "$OUT" in
   "$ROOT_REAL"/validation|"$ROOT_REAL"/validation/*)
     fail "tracked validation/ is candidate content, not an evidence workspace (set L9_RELEASE_EVIDENCE_DIR elsewhere)" ;;

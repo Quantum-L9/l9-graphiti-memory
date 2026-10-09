@@ -41,6 +41,12 @@ from .contracts import (
 MANAGED_SERVER_KEY = "l9-graphite-memory"
 _SERVER_ARGS = ("-m", "l9_graphite_memory.server", "--transport", "stdio")
 _MODE = 0o600
+#: Absolute executable the configurator uses as the managed command when set.
+#: The path is written as ``command`` only. It is never copied into an env
+#: block. Unset keeps the interpreter command, which is the pinned-release
+#: behavior. A relative path or a missing file fails the install: regeneration
+#: must not fall back to the direct module after a launcher was requested.
+LAUNCHER_COMMAND_ENV = "L9_MEMORY_MCP_COMMAND"
 
 
 def default_cursor_config_path() -> Path:
@@ -48,12 +54,26 @@ def default_cursor_config_path() -> Path:
     return Path.home() / ".cursor" / "mcp.json"
 
 
+def _command_for_entry(interpreter: str | None) -> str:
+    requested = os.environ.get(LAUNCHER_COMMAND_ENV, "").strip()
+    if not requested:
+        command = interpreter or sys.executable
+        if not command or not str(command).strip():
+            raise ConfigurationError("interpreter for the managed entry is empty")
+        return str(command)
+    path = Path(requested)
+    if not path.is_absolute():
+        raise ConfigurationError(f"{LAUNCHER_COMMAND_ENV} must be an absolute path")
+    if not path.is_file() or not os.access(path, os.X_OK):
+        raise ConfigurationError(f"{LAUNCHER_COMMAND_ENV} is not an executable file")
+    return str(path)
+
+
 def managed_server_entry(interpreter: str | None = None) -> ManagedServerEntry:
     """Build the exact managed entry: argv array only, never a shell string."""
-    command = interpreter or sys.executable
-    if not command or not str(command).strip():
-        raise ConfigurationError("interpreter for the managed entry is empty")
-    return ManagedServerEntry(key=MANAGED_SERVER_KEY, command=str(command), args=_SERVER_ARGS)
+    return ManagedServerEntry(
+        key=MANAGED_SERVER_KEY, command=_command_for_entry(interpreter), args=_SERVER_ARGS
+    )
 
 
 def _sha256_bytes(payload: bytes) -> str:

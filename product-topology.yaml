@@ -548,7 +548,7 @@ lifecycle:
   retirement_contract_ref: l9.contract/revision-and-supersession@1
 conformance:
   profile_refs:
-    - unknown
+    - l9.fixture-profile/core@1
   required_classes:
     - core
   fixture_profile_refs: []
@@ -610,29 +610,26 @@ operations:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-022-release-publishing-and-rollback.md
     - Quantum-L9/l9-graphiti-memory/deployment/generated-data/rollback-runbook.md
 provenance:
-  authority_ref: Quantum-L9/.github@07b0df96fc3008d55a96f804923e2177ff312295
+  authority_ref: Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102
   source_revision: Quantum-L9/l9-graphiti-memory@155848b9dc6103850456e6ad72f0df2ec054824c
   source_refs:
-    - Quantum-L9/.github/semantics/contracts.yaml@a8170aae86b617f83bb4afd8592b3684b8a166b1
+    - Quantum-L9/.github/semantics/contracts.yaml@4b4ca1b7abf456ba28df2f2a8071412a2bd1ff84
     - Quantum-L9/.github/semantics/authority_model.yaml@34b6767e5145203b67eefb92c869ad6a06021471
     - Quantum-L9/.github/semantics/product_topology.schema.yaml@4fd2856bdf84c10a55a4be7e8519848c22c2bdbf
     - Quantum-L9/.github/semantics/product_kinds.yaml@8e5aa829df8e00f89286d99ec8d9529e5da63805
     - Quantum-L9/.github/semantics/dependency_archetypes.yaml@b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a
   predecessor_topology_ref: null
 unknowns:
-  material:
+  material: []
+  non_material:
     - id: MU-001
       subject: conformance.profile_refs
-      result: unresolved
-      reason: Global L9 semantics require ProductKind dependency / archetype semantic-subsystem to satisfy conformance class `core` and assign conformance-profile ownership to `l9-conformance`, but no authority-resolved reachable publication surface currently provides an admitted profile for that requirement. A profile identity or dependency is not invented.
+      result: resolved
+      reason: Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102 records l9.fixture-profile/core@1, published by Quantum-L9/l9-conformance at catalog/fixture-profile-core-1.yaml digest sha256:3d2cb01a2b872215a3e2298b4e3b3d7ae99ecf867d6486f5730a3f98aba2bb2f. The profile is consumed in conformance.profile_refs. This repository did not invent the id.
       governing_refs:
         - l9.dependency-archetypes/global@1
         - l9.conformance-model/global@1
         - l9.contract/conformance-resolution@1
-      blocks:
-        - resolved_product_manifest
-        - release_progression
-  non_material:
     - id: NM-001
       subject: product-owned reference grammar
       result: unresolved
