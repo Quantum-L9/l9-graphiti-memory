@@ -69,7 +69,12 @@ if the mapping is carried by something Graphiti preserves: the episode name
 5. **Fact search mapping.** When a fact carries no record id, the projection
    maps its `episodes` through one bounded `get_episodes` listing per group.
    Entity-node search has no provenance to map and returns no canonical hits
-   (a disclosed limitation, not a guess).
+   (a disclosed limitation, not a guess). The official server's results carry
+   no score field; a mapped hit scores by its rank (first 1.0, then 1/(1+rank))
+   so that a provider hit is credited as a projection contribution rather than
+   as nothing (2026-10-09, Phase 5 seam 3: scored 0.0, a live hit surfaced only
+   when the canonical lexical match found the record on its own). An explicit
+   `relevance` or `score` field still wins.
 6. **Qualification harness.** `tests/qualification` runs the production
    projection, outbox, graph adapter and service against real `graphiti_core`
    0.30.2 on Neo4j 5.26 + GDS 2.13. The LLM, embedder and reranker are

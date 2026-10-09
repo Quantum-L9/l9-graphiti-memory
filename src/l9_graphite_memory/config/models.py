@@ -107,6 +107,33 @@ class MemorySettings(BaseModel):
     graph_link_prediction_enabled: bool = False
     graph_algorithm_maturity_ceiling: Literal["production", "beta", "alpha"] = "production"
 
+    # Active memory: ephemeral presence, leases, context and awareness shared by
+    # concurrently running agents (ADR-065 .. ADR-068). ``none`` binds the null
+    # adapters, which refuse every operation explicitly; ``redis`` binds the
+    # Redis store and the Redis awareness bus to one deployment identity. The
+    # credential is never a settings value: exactly one ADR-066 source names
+    # where it is read at runtime.
+    active_memory_backend: Literal["none", "redis"] = "none"
+    active_memory_required: bool = False
+    active_deployment_id: str | None = None
+    active_trust_domain: str | None = None
+    active_environment: Literal["development", "test", "staging", "production"] = "development"
+    active_redis_url_env: str | None = None
+    active_redis_url_file: Path | None = None
+    active_redis_password_file: Path | None = None
+    active_redis_secret_reference: str | None = None
+    active_redis_host: str | None = None
+    active_redis_port: int = Field(default=6379, ge=1, le=65_535)
+    active_redis_database: int = Field(default=0, ge=0, le=15)
+    active_redis_tls: bool = True
+    active_redis_username: str | None = None
+    active_key_prefix: str = "l9gm:active"
+    active_context_ttl_seconds: int = Field(default=60, ge=1, le=86_400)
+    active_presence_ttl_seconds: int = Field(default=30, ge=1, le=86_400)
+    active_heartbeat_interval_seconds: int = Field(default=10, ge=1, le=3_600)
+    active_lease_ttl_seconds: int = Field(default=30, ge=2, le=86_400)
+    active_heartbeat_failure_threshold: int = Field(default=3, ge=1, le=100)
+
     http_auth_required: bool = True
     auth_tokens: dict[str, TokenPrincipalConfig] = Field(default_factory=dict)
     local_principal_id: str = "local-operator"
@@ -143,6 +170,8 @@ class MemorySettings(BaseModel):
         "database_path",
         "registry_path",
         "projection_manifest",
+        "active_redis_url_file",
+        "active_redis_password_file",
         mode="before",
     )
     @classmethod
@@ -185,6 +214,57 @@ class MemorySettings(BaseModel):
             raise ValueError(
                 "graph_intelligence_backend 'neo4j' requires graph_neo4j_uri "
                 "(set L9_MEMORY_GRAPH_NEO4J_URI)"
+            )
+        return self
+
+    @property
+    def active_redis_credential_sources(self) -> tuple[str, ...]:
+        """The ADR-066 credential sources this configuration names."""
+
+        return tuple(
+            name
+            for name, value in (
+                ("url_file", self.active_redis_url_file),
+                ("password_file", self.active_redis_password_file),
+                ("secret_provider_reference", self.active_redis_secret_reference),
+                ("url_env", self.active_redis_url_env),
+            )
+            if value
+        )
+
+    @model_validator(mode="after")
+    def validate_active_memory(self) -> MemorySettings:
+        if self.active_memory_backend != "redis":
+            return self
+        missing = [
+            name
+            for name, value in (
+                (
+                    "active_deployment_id (L9_MEMORY_ACTIVE_DEPLOYMENT_ID)",
+                    self.active_deployment_id,
+                ),
+                ("active_trust_domain (L9_MEMORY_ACTIVE_TRUST_DOMAIN)", self.active_trust_domain),
+            )
+            if not (value or "").strip()
+        ]
+        if missing:
+            raise ValueError(
+                "active_memory_backend 'redis' requires a deployment identity: "
+                + ", ".join(missing)
+            )
+        sources = self.active_redis_credential_sources
+        if len(sources) != 1:
+            raise ValueError(
+                "active_memory_backend 'redis' requires exactly one credential source "
+                "(active_redis_url_file, active_redis_password_file with active_redis_host, "
+                f"active_redis_secret_reference, or active_redis_url_env); found {list(sources)}"
+            )
+        if sources == ("password_file",) and not (self.active_redis_host or "").strip():
+            raise ValueError("active_redis_password_file requires active_redis_host")
+        if self.active_lease_ttl_seconds <= self.active_heartbeat_interval_seconds:
+            raise ValueError(
+                "active_lease_ttl_seconds must exceed active_heartbeat_interval_seconds, "
+                "or every heartbeat would find its lease already lapsed"
             )
         return self
 

@@ -51,6 +51,7 @@ from l9_graphite_memory.contracts import (
     PhaseLockRequest,
     PromotionRequest,
     Provenance,
+    ReadinessReport,
     build_capabilities,
 )
 from l9_graphite_memory.contracts.class_vocabulary import (
@@ -170,6 +171,29 @@ def cmd_health(args: argparse.Namespace) -> int:
         report = runtime.service.health()
         _print(report)
         return 0 if report.status.value == "complete" else 1
+    finally:
+        runtime.close()
+
+
+def cmd_readiness(args: argparse.Namespace) -> int:
+    """Independent capability-family readiness and the aggregate verdict (ADR-097)."""
+
+    import asyncio
+
+    runtime = _runtime(args)
+
+    async def probe_then_release() -> ReadinessReport:
+        # One loop for the probe and the teardown: the Redis connections the
+        # probe opened belong to it and are closed on it.
+        try:
+            return await runtime.readiness()
+        finally:
+            await runtime.active_memory.close()
+
+    try:
+        report = asyncio.run(probe_then_release())
+        _print(report)
+        return 0 if report.ready else 1
     finally:
         runtime.close()
 
@@ -1075,6 +1099,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("health")
+    sub.add_parser("readiness")
     resolve = sub.add_parser("resolve")
     resolve.add_argument("--group-id", default=None)
 
@@ -1376,6 +1401,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     handlers = {
         "health": cmd_health,
+        "readiness": cmd_readiness,
         "resolve": cmd_resolve,
         "write": cmd_write,
         "search": cmd_search,

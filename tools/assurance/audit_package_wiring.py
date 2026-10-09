@@ -81,20 +81,12 @@ def main() -> int:
         "l9_graphite_memory.prune": "v0.2 programmatic prune compatibility",
         "l9_graphite_memory.projections": "ADR-063 projection control-plane surface",
         "l9_graphite_memory.active": (
-            "ADR-067 public SDK surface for external runtimes; not consumed"
-            " by this repository's own entrypoints"
+            "ADR-067 public SDK surface for external runtimes; the binding is"
+            " composed by adapters.factory.build_active_memory (ADR-097)"
         ),
         "l9_graphite_memory.active.inmemory": (
-            "ADR-067 default ActiveStore/AwarenessBus adapter; selected by"
-            " external consumers, not imported internally"
-        ),
-        "l9_graphite_memory.active.null_adapters": (
-            "ADR-067 no-op ActiveStore/AwarenessBus adapter; selected by"
-            " external consumers, not imported internally"
-        ),
-        "l9_graphite_memory.active.redis_adapters": (
-            "ADR-065/ADR-068 Redis-backed ActiveStore/AwarenessBus adapter;"
-            " selected by external consumers, not imported internally"
+            "ADR-067 reference ActiveStore/AwarenessBus adapter for the"
+            " conformance suite; never selected by the runtime factory"
         ),
         "l9_graphite_memory.trust_boundary": (
             "Release B model-process trust-boundary proof; called by assurance"

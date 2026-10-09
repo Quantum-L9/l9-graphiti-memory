@@ -72,7 +72,7 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: Sync locked environment
-        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres --extra active
+        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres --extra active --extra zep
       - name: Put uv venv on PATH
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Expose src on PYTHONPATH
@@ -287,8 +287,12 @@ jobs:
             tests/integration/test_neo4j_graph_intelligence_live.py \
             tests/integration/test_neo4j_graph_traversal.py \
             tests/integration/test_neo4j_restart_outage_live.py | sort)"
+          # The full-capability suite binds Neo4j too, but it needs PostgreSQL
+          # and Redis beside it, so it runs in full-capability-live below.
           actual="$(grep -rlE 'live_neo4j_settings|L9_MEMORY_TEST_NEO4J_URI' tests/integration \
-            | grep -v neo4j_graph_fixture.py | sort)"
+            | grep -v neo4j_graph_fixture.py \
+            | grep -v test_full_capability_readiness_live.py \
+            | grep -v test_projection_seams_live.py | sort)"
           if [ "$expected" != "$actual" ]; then
             echo "Live graph test files changed; update this job's test list." >&2
             diff <(echo "$expected") <(echo "$actual") || true
@@ -316,4 +320,107 @@ jobs:
           if skipped:
               raise SystemExit(f"{skipped} live graph test(s) skipped")
           print("no live graph test skipped")
+          PY
+
+  # ADR-097: the consumer-selected full-capability deployment is one process
+  # composed from settings over the shared PostgreSQL store, the Neo4j
+  # graph-intelligence reader and the Redis active store plus awareness bus,
+  # every family required. `validate` has no Neo4j and `graph-live` has no
+  # PostgreSQL or Redis, so the suite that proves the composed chain, the
+  # per-family readiness verdict and the Redis outage behavior gets the three
+  # backends here and fails if any of its cases skips.
+  full-capability-live:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: l9memtest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      neo4j:
+        image: neo4j:5.26.31
+        env:
+          NEO4J_AUTH: neo4j/l9-ci-${{ github.run_id }}
+          NEO4J_PLUGINS: '["graph-data-science"]'
+          NEO4J_dbms_security_procedures_unrestricted: gds.*
+          NEO4J_dbms_security_procedures_allowlist: gds.*
+        ports:
+          - 7687:7687
+          - 7474:7474
+        options: >-
+          --health-cmd "wget -q --spider http://localhost:7474 || exit 1"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 30
+          --health-start-period 30s
+    env:
+      L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
+      L9_MEMORY_TEST_REDIS_URL: redis://localhost:6379/0
+      L9_MEMORY_TEST_NEO4J_URI: bolt://localhost:7687
+      L9_MEMORY_TEST_NEO4J_USER: neo4j
+      L9_MEMORY_TEST_NEO4J_PASSWORD: l9-ci-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: '3.13'
+      - name: Sync locked environment
+        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres --extra active
+      - name: Wait for Bolt and GDS
+        run: |
+          PYTHONPATH=src .venv/bin/python - <<'PY'
+          import os, time
+          import neo4j
+          auth = ("neo4j", os.environ["L9_MEMORY_TEST_NEO4J_PASSWORD"])
+          deadline = time.monotonic() + 180
+          while True:
+              try:
+                  with neo4j.GraphDatabase.driver("bolt://localhost:7687", auth=auth) as d:
+                      version = d.execute_query("RETURN gds.version() AS v").records[0]["v"]
+                  print(f"GDS {version} ready")
+                  break
+              except Exception as exc:
+                  if time.monotonic() > deadline:
+                      raise SystemExit(f"Neo4j/GDS not ready: {type(exc).__name__}")
+                  time.sleep(3)
+          PY
+      - name: Run the composed full-capability and live active-memory suites
+        env:
+          # The outage cases stop and start this job's own Redis container.
+          L9_MEMORY_TEST_REDIS_STOP_CMD: docker stop ${{ job.services.redis.id }}
+          L9_MEMORY_TEST_REDIS_START_CMD: docker start ${{ job.services.redis.id }}
+        run: |
+          PYTHONPATH=src .venv/bin/python -m pytest -rs -p no:cacheprovider \
+            --junitxml=full-capability-live.xml \
+            tests/integration/test_active_memory_redis_live.py \
+            tests/integration/test_full_capability_readiness_live.py
+      - name: Fail if any live test skipped
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          suites = ET.parse("full-capability-live.xml").getroot().iter("testsuite")
+          skipped = sum(int(s.get("skipped", 0)) for s in suites)
+          if skipped:
+              raise SystemExit(f"{skipped} full-capability live test(s) skipped")
+          print("no full-capability live test skipped")
           PY

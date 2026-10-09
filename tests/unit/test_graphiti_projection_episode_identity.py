@@ -205,3 +205,29 @@ def test_fact_search_maps_provider_episodes_to_records_within_the_group() -> Non
     assert {hit.record_id for hit in hits} == {first, second}
     lookups = [args for tool, args in transport.calls if tool == "get_episodes"]
     assert lookups == [{"group_ids": [group], "max_episodes": 1000}]
+
+
+def test_fact_search_scores_unscored_provider_hits_by_rank() -> None:
+    """The official server ranks facts without a score field (Phase 5 seam 3)."""
+
+    group = graph_group_id("tenant-a", "repo-a")
+    first, second = uuid4(), uuid4()
+    transport = ScriptedTransport(
+        episodes=[
+            {"uuid": "ep-1", "name": episode_name(first), "group_id": group},
+            {"uuid": "ep-2", "name": episode_name(second), "group_id": group},
+        ]
+    )
+    transport.facts = [
+        {"fact": "Falcon is on the billing platform team.", "episodes": ["ep-1"]},
+        {"fact": "Falcon reports to Osprey.", "episodes": ["ep-2"]},
+        {"fact": "explicitly scored", "episodes": ["ep-2"], "score": 0.1},
+    ]
+    hits = GraphitiProjection(transport).search_strategy(
+        "semantic-search", "falcon", ("repo-a",), limit=10, tenant_id="tenant-a"
+    )
+    scores = {hit.record_id: hit.score for hit in hits}
+    # Rank order is the relevance: first 1.0, second 0.5; an explicit score
+    # never outranks the better rank-derived one for the same record.
+    assert scores == {first: 1.0, second: 0.5}
+    assert [hit.record_id for hit in hits] == [first, second]
