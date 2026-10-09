@@ -31,14 +31,18 @@ class FakeGraph:
         self.fail = False
         self.episode = FakeEpisodeApi()
 
-    def add(self, **_kwargs):
+    # Keyword-only, named exactly as zep-cloud 3.x names them: the pinned
+    # client rejects the pre-3.0 ``group_id`` spelling, and so does this fake.
+    def add(self, *, graph_id: str, data: str, type: str, source_description: str, metadata):
         if self.fail:
             raise RuntimeError("zep unavailable")
+        assert graph_id
         return SimpleNamespace(uuid="episode-1")
 
-    def search(self, **_kwargs):
+    def search(self, *, graph_id: str, query: str, scope: str, limit: int):
         if self.fail:
             raise RuntimeError("zep unavailable")
+        assert graph_id
         return SimpleNamespace(edges=[])
 
 

@@ -1,5 +1,5 @@
 {
-  "file_count": 854,
+  "file_count": 855,
   "files": [
     {
       "category": "ci",
@@ -46,8 +46,8 @@
         "version": "2.6.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "d464ca3884f90b3d78fe362d65ac26d95fc523fe400fcf6f464774e4cb25c530",
-      "size_bytes": 20043
+      "sha256": "2a7689254927a5e5fddc6713c8387ca80b58da59b615472874bd10720c3d1cc6",
+      "size_bytes": 20109
     },
     {
       "category": "ci",
@@ -430,8 +430,8 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "f459ea439f695e41d88ff0cadd87a24a54f1e9724a97f4aa4f2c1cf84bb3d129",
-      "size_bytes": 140182
+      "sha256": "e20f6301ada1a0bb75ec53c4aa8d65d0b11adaf9993c87834bb97a9415a75d16",
+      "size_bytes": 140332
     },
     {
       "category": "repository_root",
@@ -1102,8 +1102,8 @@
         "version": "2.6.0"
       },
       "path": "docs/ACTIVE_MEMORY_SDK.md",
-      "sha256": "2d87e4db381a37252154eb5537593044ca7ee4531be9e4ef68b6d27c55c7049d",
-      "size_bytes": 5532
+      "sha256": "156d5a05359e1ca4f43e6f19e2ee86b157f849b50117c56ed28b20c7de3e5b4c",
+      "size_bytes": 5972
     },
     {
       "category": "documentation",
@@ -4446,8 +4446,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-091-graphiti-episode-identity-and-live-qualification.md",
-      "sha256": "69cf563cf48ab7fcb62e7a63ed9e41576ac38eb725dee4c54d64fe976364dd71",
-      "size_bytes": 6723
+      "sha256": "f7a29669b2be2cfcc4618f7e4d5d2ae8483f7b6f4db55c9f8698d8c48fdedbd6",
+      "size_bytes": 7120
     },
     {
       "category": "architecture_decisions",
@@ -4782,8 +4782,8 @@
         "version": "2.6.0"
       },
       "path": "docs/receipts/l9-memory-full-capability-activation-20261009.md",
-      "sha256": "63fd752e2185923a72588afc2c5cf0554e40c8865905788253d61a394c336c9d",
-      "size_bytes": 18982
+      "sha256": "0da907b946d06444cb9d27701385784797a695bd1ba070f3432e0deface53c99",
+      "size_bytes": 26856
     },
     {
       "category": "documentation",
@@ -5742,8 +5742,8 @@
         "version": "2.6.0"
       },
       "path": "src/l9_graphite_memory/active/client.py",
-      "sha256": "f274331b16ddb839501942310d92a43c2117eefabaa2e27d0b0f79c5bf5003db",
-      "size_bytes": 24273
+      "sha256": "a2adf49e459639b8389dc3e910b32b013fa180a849568deaed352371713afed4",
+      "size_bytes": 24946
     },
     {
       "category": "production_source",
@@ -5886,8 +5886,8 @@
         "version": "2.6.0"
       },
       "path": "src/l9_graphite_memory/active/redis_adapters.py",
-      "sha256": "aa0914db98192b6f405d04f9830a642a5eb109d1af1381f0d43ecd3d74b86886",
-      "size_bytes": 25020
+      "sha256": "3af2952efcb1a44c4dfb94e5b7f4dacd189ea32fe45038490a7c61e74dfe440a",
+      "size_bytes": 25699
     },
     {
       "category": "production_source",
@@ -5934,8 +5934,8 @@
         "version": "2.6.0"
       },
       "path": "src/l9_graphite_memory/adapters/graphiti_projection.py",
-      "sha256": "69f04cae1936bcd13c04b09c604ddc62290480fe10edcb03d556cd8200659d66",
-      "size_bytes": 24614
+      "sha256": "b7e5d76d14143e98e2fa1256d1ef54d548c6534deab752815d52034701aa216a",
+      "size_bytes": 25449
     },
     {
       "category": "production_source",
@@ -7886,8 +7886,8 @@
         "version": "2.6.0"
       },
       "path": "src/l9_graphite_memory/runtime.py",
-      "sha256": "29a7a7099a893d481dce2a9363b6a1d0ef235f7d94aea7ec218fd58eb9c6e690",
-      "size_bytes": 12610
+      "sha256": "5699e2418d9e47b07205d431e7adcce741c63eb3cee672958a992cfc7a8ec6e3",
+      "size_bytes": 14048
     },
     {
       "category": "production_source",
@@ -8110,8 +8110,8 @@
         "version": "2.6.0"
       },
       "path": "src/l9_graphite_memory/zep_transport.py",
-      "sha256": "a416084ad396cffec087c08e18bb7b810529ca7c0336462db9cfede50ece617e",
-      "size_bytes": 8688
+      "sha256": "950de8452d64790992b8d6828914a0e51bf976b8a122a2fcf82409bf726195bf",
+      "size_bytes": 8922
     },
     {
       "category": "tests",
@@ -9582,8 +9582,8 @@
         "version": "2.6.0"
       },
       "path": "tests/integration/test_active_memory_redis_live.py",
-      "sha256": "a185ca14ffd466463c4194752dd0f90ace2d56b2a0de8a9942bf18c6f34a51e0",
-      "size_bytes": 10174
+      "sha256": "05aa9da02abee359552eed2692e882dc6abd4f432eb7c3f4b891f1db0119b5e8",
+      "size_bytes": 10497
     },
     {
       "category": "tests",
@@ -9646,8 +9646,8 @@
         "version": "2.6.0"
       },
       "path": "tests/integration/test_full_capability_readiness_live.py",
-      "sha256": "f63bc59464e27a97adac1560a0a05f196bd7decf3b3f38250c153254b0582fa4",
-      "size_bytes": 13968
+      "sha256": "d4aef20da9aafc2c9f6179c97b572525669368eb169a9263aab1ae151db65242",
+      "size_bytes": 14598
     },
     {
       "category": "tests",
@@ -9984,6 +9984,22 @@
       "path": "tests/integration/test_projection_retirement_recovery.py",
       "sha256": "e91bd43402dc4550673618e74c53b34ea57192562f4509dde624c63544ce2805",
       "size_bytes": 10937
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "test",
+        "owner": "memory-control-plane",
+        "path": "tests/integration/test_projection_seams_live.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "2.6.0"
+      },
+      "path": "tests/integration/test_projection_seams_live.py",
+      "sha256": "eb1588b12569680bfde08fe9b4d6c441485db0fcd4d3d603157dcdf98990070b",
+      "size_bytes": 31682
     },
     {
       "category": "tests",
@@ -10478,8 +10494,8 @@
         "version": "2.6.0"
       },
       "path": "tests/unit/test_active_memory_runtime.py",
-      "sha256": "0adf34130c4339d5a5b52dc66dbe2fa8eda06802bed64d356d17198041c30323",
-      "size_bytes": 15293
+      "sha256": "5faca5101cb38805e3f789caac4edb95fc9e40cf8068d02ded2d495686c57dda",
+      "size_bytes": 17409
     },
     {
       "category": "tests",
@@ -10926,8 +10942,8 @@
         "version": "2.6.0"
       },
       "path": "tests/unit/test_graphiti_projection_episode_identity.py",
-      "sha256": "65c4e9b8328294d015e938950369f551edee3d71ecd50ea7120d9222142e3d64",
-      "size_bytes": 8391
+      "sha256": "13217f756a4a4b8af6cb968611e0cadd056f1c163025560cc465853cba29a6a7",
+      "size_bytes": 9572
     },
     {
       "category": "tests",
@@ -11454,8 +11470,8 @@
         "version": "2.6.0"
       },
       "path": "tests/unit/test_zep_transport.py",
-      "sha256": "130bd0c3c2dd41d9abdb37c1b4e87a4a81d7e0e00c42de25af52ab76915d6dda",
-      "size_bytes": 2594
+      "sha256": "09e38caa88ce4fc56d9268d1d4f9b712e48f805e39f7f0ad78e4ee76cb147b78",
+      "size_bytes": 2902
     },
     {
       "category": "tests",
@@ -11854,8 +11870,8 @@
         "version": "2.6.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "3d3e98b8f20617402106a6d89581e32db72114f72df0d5c858a63a4bfd3fad18",
-      "size_bytes": 33256
+      "sha256": "21e04113dbdf5ff5c3e8c06163dc75685961a142185070cbbf431ff2c560a780",
+      "size_bytes": 33841
     },
     {
       "category": "assurance",

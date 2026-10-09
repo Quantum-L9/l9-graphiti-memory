@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -191,7 +191,31 @@ class MemoryRuntime:
             checked_at=self.service.clock.now(),
         )
 
+    async def aclose(self) -> None:
+        """Release every resource from inside a running event loop.
+
+        The active-memory adapters are async; awaiting their teardown here is
+        what makes the release deterministic for an async consumer. A
+        synchronous caller uses :meth:`close`, which runs the same teardown on
+        a fresh loop.
+        """
+
+        try:
+            await self.active_memory.close()
+        finally:
+            try:
+                self.graph_intelligence.close()
+            finally:
+                self.service.store.close()
+
     def close(self) -> None:
+        """Synchronous release; from inside a running loop prefer :meth:`aclose`.
+
+        When a loop is already running the active-memory teardown can only be
+        scheduled on it, not awaited, so an async consumer that needs the
+        Redis connections released before returning awaits :meth:`aclose`.
+        """
+
         try:
             self.graph_intelligence.close()
         finally:
@@ -230,7 +254,20 @@ def _family(
     )
 
 
-def build_runtime(config_path: str | Path | None = None) -> MemoryRuntime:
+def build_runtime(
+    config_path: str | Path | None = None,
+    *,
+    secret_provider: Callable[[str], str] | None = None,
+) -> MemoryRuntime:
+    """Compose one process from settings.
+
+    ``secret_provider`` is the consumer's ADR-066 callback for the
+    ``active_redis_secret_reference`` credential source. The CLI and the MCP
+    server compose without one, so that source is usable only by a consumer
+    that composes the runtime itself (``python_sdk`` entry mode); selecting it
+    on a surface without a provider fails startup with the resolver's reason.
+    """
+
     settings = load_settings(config_path)
     configure_logging(settings.log_level, json_output=settings.json_logs)
     store = build_store(settings)
@@ -240,7 +277,7 @@ def build_runtime(config_path: str | Path | None = None) -> MemoryRuntime:
     try:
         projections = build_projection_runtime(settings)
         graph_intelligence = build_graph_intelligence(settings)
-        active_memory = build_active_memory(settings)
+        active_memory = build_active_memory(settings, secret_provider=secret_provider)
     except Exception:
         store.close()
         raise

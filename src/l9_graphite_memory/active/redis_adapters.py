@@ -495,11 +495,16 @@ class RedisActiveStore:
                 _, _, redis_error_cls = _redis_modules()
                 if not isinstance(exc, redis_error_cls):
                     raise
-                connectivity, authentication = _classify_failure(exc)
-                if name == "ping" or connectivity == "unavailable":
+                _connectivity, authentication = _classify_failure(exc)
+                if authentication == "unknown":
+                    # The server itself is out of reach: a typed unavailable
+                    # error, as every other store operation reports it.
                     raise ActiveMemoryUnavailableError(f"{name} probe failed: {exc}") from exc
+                # The server answered and refused the credential or the
+                # command: that classification is the finding, so it is
+                # returned, never collapsed into "unreachable".
                 return RedisHealth(
-                    connectivity="degraded",
+                    connectivity="unavailable" if authentication == "failed" else "degraded",
                     authentication=authentication,
                     capabilities=tuple(completed),
                     error=f"{name} probe failed: {exc}",
@@ -600,6 +605,10 @@ class RedisAwarenessBus:
                 await pubsub.unsubscribe(channel)
                 await pubsub.aclose()
             except redis_error_cls:
+                # Teardown of a subscription whose connection already failed:
+                # the typed error (if any) was raised above, and a second
+                # failure while releasing the socket adds nothing a caller
+                # could act on.
                 pass
 
     async def health(self) -> RedisHealth:
@@ -615,14 +624,14 @@ class RedisAwarenessBus:
             _, _, redis_error_cls = _redis_modules()
             if not isinstance(exc, redis_error_cls):
                 raise
-            connectivity, authentication = _classify_failure(exc)
-            if not completed or connectivity == "unavailable":
+            _connectivity, authentication = _classify_failure(exc)
+            if authentication == "unknown":
                 raise ActiveMemoryUnavailableError(f"awareness probe failed: {exc}") from exc
             return RedisHealth(
-                connectivity="degraded",
+                connectivity="unavailable" if authentication == "failed" else "degraded",
                 authentication=authentication,
                 capabilities=tuple(completed),
-                error=f"publish probe failed: {exc}",
+                error=f"awareness probe failed: {exc}",
             )
         return RedisHealth(capabilities=tuple(completed))
 

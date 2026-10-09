@@ -474,7 +474,18 @@ class ActiveAgentSession:
             # the heartbeat loop for good.
             self._lifecycle.transition_to(ActiveAgentSessionState.RESYNCHRONIZING)
         self._lifecycle.transition_to(ActiveAgentSessionState.RE_REGISTERING)
+        previous = self._lease
         self._instance_id = self._generate_instance_id()
+        if previous is not None:
+            # The old incarnation is gone with its lease, but its presence and
+            # context keys may outlive it until their own TTL (a backend that
+            # persisted through the outage keeps them). Clear them so peers
+            # do not list two instances of one agent; the store's unregister
+            # is idempotent and inert for a lease it no longer recognizes.
+            try:
+                await self._store.unregister(previous)
+            except ActiveMemoryUnavailableError as exc:
+                logger.debug("stale presence cleanup deferred for %s: %s", self._agent_id, exc)
         try:
             await self._register()
         except ActiveMemoryUnavailableError:

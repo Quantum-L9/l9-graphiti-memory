@@ -255,8 +255,12 @@ async def test_a_real_outage_degrades_and_recovery_re_registers(prefix) -> None:
             assert session.instance_id != first_instance
             assert session.background_exception() is None
             await session.replace_context(objective="recovered", status=AgentStatus.ACTIVE)
+            # Whether or not the backend persisted through the outage, peers
+            # see exactly one incarnation of the agent: re-registration clears
+            # the previous instance's presence instead of leaving it to its TTL.
             peers = await session.list_active()
             assert [p.identity.instance_id for p in peers] == [session.instance_id]
+            assert await binding.store.get_presence("worker", first_instance) is None
         up = await binding.health()
         assert up.healthy, up.error
     finally:

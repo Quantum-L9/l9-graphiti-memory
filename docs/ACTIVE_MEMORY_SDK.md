@@ -35,7 +35,7 @@ export L9_MEMORY_ACTIVE_REDIS_URL_ENV=MY_APP_REDIS_URL
 from l9_graphite_memory.runtime import build_runtime
 
 runtime = build_runtime()
-client = runtime.active_memory.client()   # ActiveAgentClient bound to Redis
+client = runtime.active_memory.client()  # ActiveAgentClient bound to Redis
 ```
 
 `runtime.active_memory` is an `ActiveMemoryBinding`: it carries the backend,
@@ -56,8 +56,16 @@ The other credential sources are `L9_MEMORY_ACTIVE_REDIS_URL_FILE` (a mounted
 file holding the URL), `L9_MEMORY_ACTIVE_REDIS_PASSWORD_FILE` with
 `L9_MEMORY_ACTIVE_REDIS_HOST` / `_PORT` / `_DATABASE` / `_TLS` / `_USERNAME`,
 and `L9_MEMORY_ACTIVE_REDIS_SECRET_REFERENCE` resolved by a `secret_provider`
-callback passed to `build_active_memory`. Exactly one must be set; the
-credential never appears in settings, receipts or logs.
+callback passed to `build_runtime(secret_provider=...)` or
+`build_active_memory(settings, secret_provider=...)`. That source is therefore
+usable only by a consumer that composes the runtime itself; the `l9-memory`
+CLI and `l9-memory-server` carry no provider callback and refuse it at startup
+with the resolver's reason. Exactly one source must be set; the credential
+never appears in settings, receipts or logs.
+
+An async consumer releases the composed runtime with `await runtime.aclose()`
+so the Redis connections are closed before it returns; `runtime.close()` is
+the synchronous form.
 
 With the default `L9_MEMORY_ACTIVE_BACKEND=none` the binding holds the null
 adapters: every session operation raises `ActiveMemoryUnavailableError`, and
@@ -94,9 +102,7 @@ async with client.open_session(
 
     peers = await agent.list_active(group_id="project:example")
     for peer in peers:
-        shared = await agent.get_peer_context(
-            peer.identity.agent_id, peer.identity.instance_id
-        )
+        shared = await agent.get_peer_context(peer.identity.agent_id, peer.identity.instance_id)
 
     async for event in agent.subscribe(group_id="project:example"):
         handle_event(event)

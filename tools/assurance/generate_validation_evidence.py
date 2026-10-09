@@ -298,8 +298,16 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # test_full_capability_readiness_live.py (its 6 backend-bound cases
         # need Neo4j beside PostgreSQL and Redis and run in
         # full-capability-live). 1595 + 14 + 6 + 2 + 1 = 1618; CI skips 51.
-        "1618 tests pass",
-        r"1618 passed",
+        # Re-pinned 1618 -> 1630 for the Phase 5 projection seam qualification:
+        # 10 cases of test_projection_seams_live.py run in CI shape against
+        # PostgreSQL with the in-process official-dialect Graphiti server (the
+        # 11th, seam 2, needs a live endpoint and Neo4j and skips), 1 case in
+        # test_active_memory_runtime.py (refused credential reported as an
+        # authentication failure) and 1 in
+        # test_graphiti_projection_episode_identity.py (rank-derived scores
+        # for unscored provider hits). 1618 + 10 + 1 + 1 = 1630; CI skips 52.
+        "1630 tests pass",
+        r"1630 passed",
     ),
     CheckSpec(
         "V-002",

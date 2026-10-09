@@ -372,3 +372,64 @@ async def test_two_sessions_share_presence_context_and_awareness() -> None:
     assert kinds[0] is AgentEventType.AGENT_REGISTERED
     assert AgentEventType.AGENT_CONTEXT_UPDATED in kinds
     assert all(event.agent_id == "worker" for event in received)
+
+
+# --- redis probe classification (no server) ----------------------------------
+
+
+class _RefusingRedis:
+    """A Redis client whose server answers and refuses the credential."""
+
+    def __init__(self, exc: Exception) -> None:
+        self._exc = exc
+
+    async def ping(self) -> bool:
+        raise self._exc
+
+    async def aclose(self) -> None:
+        return None
+
+
+@pytest.mark.asyncio
+async def test_a_refused_credential_is_reported_as_an_authentication_failure() -> None:
+    from redis.exceptions import AuthenticationError, ConnectionError, NoPermissionError
+
+    from l9_graphite_memory.active.errors import ActiveMemoryUnavailableError
+    from l9_graphite_memory.active.redis_adapters import RedisActiveStore, RedisAwarenessBus
+
+    deployment = ActiveDeployment(
+        deployment_id="unit-dep", trust_domain="unit", environment=DeploymentEnvironment.TEST
+    )
+    refused = RedisActiveStore(
+        "redis://127.0.0.1:1/0", deployment, client=_RefusingRedis(AuthenticationError("WRONGPASS"))
+    )
+    health = await refused.health()
+    assert (health.connectivity, health.authentication) == ("unavailable", "failed")
+    assert health.capabilities == () and "WRONGPASS" in str(health.error)
+
+    restricted = RedisAwarenessBus(
+        "redis://127.0.0.1:1/0", deployment, client=_RefusingRedis(NoPermissionError("NOPERM"))
+    )
+    bus_health = await restricted.health()
+    assert bus_health.authentication == "insufficient_acl"
+
+    unreachable = RedisActiveStore(
+        "redis://127.0.0.1:1/0", deployment, client=_RefusingRedis(ConnectionError("refused"))
+    )
+    with pytest.raises(ActiveMemoryUnavailableError):
+        await unreachable.health()
+
+    binding = ActiveMemoryBinding(
+        backend="redis",
+        enabled=True,
+        required=True,
+        deployment_id="unit-dep",
+        trust_domain="unit",
+        environment="test",
+        store=refused,
+        bus=restricted,
+    )
+    report = await binding.health()
+    assert report.healthy is False
+    assert report.store["authentication"] == "failed"
+    assert report.bus["authentication"] == "insufficient_acl"

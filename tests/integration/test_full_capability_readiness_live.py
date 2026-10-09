@@ -133,6 +133,19 @@ def full_capability_env(monkeypatch, tmp_path):
         monkeypatch.setenv(key, value)
     for key in ("L9_MEMORY_PROJECTION_BACKEND", "GRAPHITI_MCP_URL", "GRAPHITI_MCP_TOKEN"):
         monkeypatch.delenv(key, raising=False)
+    # Graph-intelligence health qualifies the Graphiti schema (Entity and
+    # Episodic labels, MENTIONS and RELATES_TO types). A brand-new Neo4j has
+    # none until Graphiti's first write, so seed the shape Graphiti persists,
+    # as the live graph suites do; the fixture is the only writer.
+    seed = GraphitiShapedGraph(neo4j)
+    seed_group = seed.group("tenant-seed", "seed")
+    seed_episode = uuid.uuid4()
+    seed.relate(
+        seed.entity(seed_group, "SeedA", episodes=(seed_episode,)),
+        seed.entity(seed_group, "SeedB", episodes=(seed_episode,)),
+        seed_group,
+        episodes=(seed_episode,),
+    )
     try:
         yield {"schema": schema, "prefix": prefix, "neo4j": neo4j}
     finally:

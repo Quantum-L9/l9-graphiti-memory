@@ -72,7 +72,7 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: Sync locked environment
-        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres --extra active
+        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres --extra active --extra zep
       - name: Put uv venv on PATH
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Expose src on PYTHONPATH
@@ -291,7 +291,8 @@ jobs:
           # and Redis beside it, so it runs in full-capability-live below.
           actual="$(grep -rlE 'live_neo4j_settings|L9_MEMORY_TEST_NEO4J_URI' tests/integration \
             | grep -v neo4j_graph_fixture.py \
-            | grep -v test_full_capability_readiness_live.py | sort)"
+            | grep -v test_full_capability_readiness_live.py \
+            | grep -v test_projection_seams_live.py | sort)"
           if [ "$expected" != "$actual" ]; then
             echo "Live graph test files changed; update this job's test list." >&2
             diff <(echo "$expected") <(echo "$actual") || true
