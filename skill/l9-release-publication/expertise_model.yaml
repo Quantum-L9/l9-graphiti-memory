@@ -1,0 +1,74 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: skill/l9-release-publication/expertise_model.yaml
+#   layer: skill
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.6.0
+#   updated: 2026-07-22
+
+expertise_model:
+  experts:
+    - release operator who publishes an existing annotated tag without moving it
+    - publication-plane reviewer who distinguishes a tag push from a branch pull request
+    - workflow watcher who treats environment approval as a stop
+  doctrine:
+    - the admitted tag object is the release identity
+    - a package workflow success is not a host Release
+    - pending approval is not publication
+    - the publication plane denies a tag push that has no pull request
+    - a command-prefix environment variable is not the hook process environment
+    - the publish-path receipt is removed as soon as the push returns
+    - the receipt must already be on disk before the push command is evaluated
+  invariants:
+    - do not recreate, move, or force-push the tag
+    - do not open a source pull request to publish a tag
+    - do not start a second workflow run while the tag push already started one
+    - do not report RELEASE_VERIFIED before the remote tag, the workflow, and the host Release all match
+    - write the publish-path receipt and push the tag as separate commands
+    - missing asset law or transport state stays Unknown
+  authority_hierarchy:
+    - operator instruction naming the tag object and peeled commit
+    - local annotated tag object
+    - remote tag object returned by the host
+    - repository release decision and the tag-triggered workflow run
+    - model inference
+  activation_signals:
+    - publish an existing annotated release tag whose object and peel are already fixed
+    - the remote tag is absent and must be the same object
+    - finish package publication and the host Release after the tag push
+    - an environment approval is blocking the release workflow
+    - do not recreate or force-push the tag
+  reject_signals:
+    - the version, source, or tag still needs a pull request
+    - the task is a production deploy or a governance rebind
+    - the operator wants a new tag or a moved tag
+    - the task is ordinary package building without publication
+    - the task is to approve the environment on the operator's behalf
+  adapters:
+    - name: ungoverned-git
+      load_when: the push is evaluated where the first-publication gate is not installed
+      changes: push the exact ref and do not write a publish-path receipt
+  failure_modes:
+    - name: recreated_tag
+      prevention: verify the tag object SHA before and after the push and refuse an API-created tag
+    - name: lingering_breakglass
+      prevention: delete the publish-path receipt on every push return, including failure
+    - name: duplicate_workflow
+      prevention: watch only the run the tag push started
+    - name: approval_counted_as_success
+      prevention: stop at a waiting environment and name the reviewer
+    - name: workflow_counted_as_release
+      prevention: require the host Release assets after the workflow succeeds
+  leverage_points:
+    - name: deterministic tag identity script
+      score: 25
+    - name: explicit approval stop
+      score: 23
+    - name: receipt removed on every return
+      score: 22
+    - name: RELEASE_VERIFIED gated on tag, workflow, and host Release
+      score: 24
+    - name: ungoverned adapter that does not invent a receipt
+      score: 18

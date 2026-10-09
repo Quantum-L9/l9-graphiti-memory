@@ -96,6 +96,11 @@ Require source digests, exact ranges, candidate status, and idempotency evidence
 
 Fail closed for authentication, authorization, consent, canonical persistence, phase locks, deletion proof, and audit receipts. Allow typed partial results only for optional projections or enrichment. Never convert an exception into an empty successful result. Never use a direct database or provider write as a recovery path.
 
+
+## Release publication
+
+When the operator asks to publish an existing annotated release tag, follow [skill/l9-release-publication/SKILL.md](l9-release-publication/SKILL.md). That pack publishes the admitted tag object. It does not replace this skill, open a source pull request to move a tag, or approve a release environment.
+
 ## Validation
 
 ```bash

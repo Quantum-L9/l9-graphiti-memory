@@ -1,0 +1,110 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: skill/l9-release-publication/skill_intelligence_report.yaml
+#   layer: skill
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.6.0
+#   updated: 2026-07-22
+
+skill_intelligence_report:
+  activation_model:
+    strong_signals:
+      - operator asks to publish an existing annotated tag and names its object SHA and peeled commit
+      - remote tag absence or identity is the remaining publication step
+      - package workflow and host Release must both be true before RELEASE_VERIFIED
+    weak_signals:
+      - a release workflow is waiting on an environment reviewer
+      - the operator says not to open another source pull request
+    reject_signals:
+      - version, source, or tag still needs a pull request
+      - production deploy or governance rebind
+      - operator wants the tag recreated, moved, or force-pushed
+    specificity_score: 5
+    false_positive_risk_score: 1
+  authority_model:
+    order:
+      - operator instruction naming the tag object and peeled commit
+      - local annotated tag object
+      - remote tag object returned by the host
+      - repository release decision and the tag-triggered workflow run
+      - model inference
+    conflict_rule: higher authority wins
+    unknown_rule: Unknown outranks an inferred SHA, digest, or publication claim
+  expert_heuristics:
+    - condition: the local tag object and peel match and the remote ref is absent
+      judgment: the existing object is the thing to publish
+      action: push that one ref with no force and no new tag object
+    - condition: the push command also writes the receipt, or prefixes L9_LOCAL_PUSH_AUTHORIZED
+      judgment: the publication-plane hook reads the receipt before that command runs and does not inherit a command prefix
+      action: write the scoped receipt in one command, push the one tag ref in a later command, then delete the receipt
+    - condition: the workflow job is waiting on an environment reviewer
+      judgment: approval is the operator's act
+      action: stop with the run URL, job URL, environment, and reviewer
+    - condition: the package workflow succeeded and the host has no Release
+      judgment: the workflow does not create the Release
+      action: create the Release from the successful artifacts only after digest checks pass
+    - condition: the remote tag object or peel differs from the admitted values
+      judgment: the release identity has diverged
+      action: stop and do not force the ref
+    - condition: git cannot reach the host after the receipt is written
+      judgment: the grant must not outlive the attempt
+      action: delete the receipt and report the transport blocker
+    - condition: the repository names no release command and no asset law
+      judgment: the Release step is unspecified
+      action: label the command and the asset set Unknown and stop
+  doctrine:
+    - the admitted tag object is the release identity
+    - package publication and the host Release are separate gates
+    - pending approval is not success
+    - the receipt exists only for the one authorized tag push
+    - inference never supplies a SHA
+  invariants:
+    - no recreate, move, or force-push
+    - no second workflow run
+    - no RELEASE_VERIFIED while any of the three gates is open
+    - no lingering publish-path receipt
+    - no receipt written inside the push command
+  adapter_map:
+    core_default: L9 publication plane evaluates the tag push
+    adapters:
+      - ungoverned-git
+  failure_modes:
+    - recreated tag object
+    - lingering publish-path receipt
+    - duplicate workflow run
+    - approval reported as success
+    - workflow reported as the host Release
+  leverage_points:
+    - deterministic tag identity check
+    - approval stop with an exact location
+    - receipt removed on every return
+    - three-gate RELEASE_VERIFIED rule
+    - ungoverned adapter that refuses to invent a receipt
+  evidence_hierarchy:
+    - operator-named tag object and peeled commit
+    - verify_release_tag.py JSON
+    - host tag object
+    - workflow run conclusion and digest file
+    - host Release asset list
+  self_improvement_hook:
+    capture_only_when_observed:
+      - missed trigger
+      - false trigger
+      - recurring operator correction of the transport
+      - a release claim that required manual rework
+    action: update the smallest signal, heuristic, or adapter and rerun validate_exemplary_skill.py
+  exemplary_gate_results:
+    activation_precision: pass
+    adapter_architecture: pass
+    evidence_hierarchy: pass
+    doctrine_extraction: pass
+    expert_heuristics: pass
+    failure_modes: pass
+    leverage_model: pass
+    self_improvement_hook: pass
+    compiler_enforcement_gates: pass
+    skill_intelligence_report: pass
+  tier_decision:
+    tier: exemplary
