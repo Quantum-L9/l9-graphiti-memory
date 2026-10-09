@@ -430,7 +430,7 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "600ff656ce6d38764f3b76988063a799fa3abc0d9fd4db5c6504af451b7d29d8",
+      "sha256": "1ac73b139ab0fade56e89a902063792112cb5fe95fd3612e639ddd89ff003e0e",
       "size_bytes": 139341
     },
     {
@@ -5614,8 +5614,8 @@
         "version": "2.6.0"
       },
       "path": "skill/l9-release-publication/scripts/verify_release_tag.py",
-      "sha256": "b28791ef25acf1dd924551fc1d50804545830a86b05632b628554ac36fffc636",
-      "size_bytes": 5107
+      "sha256": "7902a05d3ac80f9fc94d4efae81dd5bf67edbc84787cc66526084e174a77c9e7",
+      "size_bytes": 5120
     },
     {
       "category": "skill",
@@ -5646,8 +5646,8 @@
         "version": "2.6.0"
       },
       "path": "skill/l9-release-publication/tests/test_verify_release_tag.py",
-      "sha256": "39f279955d852eb59fd1b6187112ab798e16b11334c0101612f490a92529c14c",
-      "size_bytes": 5471
+      "sha256": "1bf9d8f26da79ba835f62bd83bf831b1b057fb22ea42e3e325f01197ff658400",
+      "size_bytes": 5492
     },
     {
       "category": "production_source",

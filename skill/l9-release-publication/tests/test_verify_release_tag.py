@@ -65,6 +65,7 @@ def _run(repo: Path, *extra: str, gh_bin: Path | None = None) -> subprocess.Comp
         capture_output=True,
         text=True,
         env=env,
+        check=False,
     )
 
 

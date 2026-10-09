@@ -29,7 +29,7 @@ from typing import Any
 
 
 def _run(cmd: list[str], cwd: str | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=False)
 
 
 def _emit(payload: dict[str, Any], code: int) -> int:

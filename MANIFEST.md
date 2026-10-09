@@ -403,9 +403,9 @@ updated: 2026-07-22
 | `skill/l9-release-publication/expertise_model.yaml` | `skill` | `skill` | 3477 | `3472525bd5d07e907d6b6dfe7c87644ccc28490e32ac9676b69ae2d973d2f570` |
 | `skill/l9-release-publication/references/github-release.md` | `skill` | `skill` | 2197 | `f8c08b0050be2da711b71f492871937223bfed0b3c053de89b8e6beded320fc4` |
 | `skill/l9-release-publication/references/publication-plane.md` | `skill` | `skill` | 2720 | `1a04f8ace71d6f7d972f4043a466de54674fb8a5f84977c80a4db79bf07099b9` |
-| `skill/l9-release-publication/scripts/verify_release_tag.py` | `skill` | `skill` | 5107 | `b28791ef25acf1dd924551fc1d50804545830a86b05632b628554ac36fffc636` |
+| `skill/l9-release-publication/scripts/verify_release_tag.py` | `skill` | `skill` | 5120 | `7902a05d3ac80f9fc94d4efae81dd5bf67edbc84787cc66526084e174a77c9e7` |
 | `skill/l9-release-publication/skill_intelligence_report.yaml` | `skill` | `skill` | 4835 | `3c9c1fc35f769a4334e87f3a72f777a983b11bf08b236786936ce9c89f232a1c` |
-| `skill/l9-release-publication/tests/test_verify_release_tag.py` | `skill` | `skill` | 5471 | `39f279955d852eb59fd1b6187112ab798e16b11334c0101612f490a92529c14c` |
+| `skill/l9-release-publication/tests/test_verify_release_tag.py` | `skill` | `skill` | 5492 | `1bf9d8f26da79ba835f62bd83bf831b1b057fb22ea42e3e325f01197ff658400` |
 | `src/l9_graphite_memory/__init__.py` | `production_source` | `package` | 971 | `c05467d592ba4ecc03ed9344afab6357fb153e42d6bd9b544ac632c314219c8b` |
 | `src/l9_graphite_memory/__main__.py` | `production_source` | `package` | 340 | `3eedfcbce155174df8ff657ebd9bead64d6e063f25711bf682bbd00b55293c2f` |
 | `src/l9_graphite_memory/active/__init__.py` | `production_source` | `package` | 2632 | `857b70d345df3939fab45b366f25066bee059c3b083866c9373732c9c4a23b7e` |
