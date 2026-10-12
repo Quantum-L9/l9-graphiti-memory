@@ -434,7 +434,8 @@ class ReadinessReport(BaseModel):
     """Full-capability readiness: every family reported on its own evidence.
 
     ``ready`` is the aggregate verdict (every family ready). ``full_capability``
-    is stricter: every family is selected and healthy, which is what a
+    is stricter: every family is selected and healthy over the shared
+    PostgreSQL canonical store, which is what a
     consumer that chose the full-capability deployment must observe before
     declaring it live. ``status`` follows the health vocabulary: FAILED when
     a required family is not ready, PARTIAL when a selected optional family

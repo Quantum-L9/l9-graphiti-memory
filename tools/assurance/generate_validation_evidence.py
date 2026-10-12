@@ -311,8 +311,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # x 4, incomplete bus probe x 2, refused or unproven probe x 5, the
         # complete-probe and optional-unproven cases). None are backend-
         # parameterized or CI-skipped. 1630 + 13 = 1643; CI skips 52.
-        "1643 tests pass",
-        r"1643 passed",
+        # Re-pinned 1643 -> 1648 for the #91 review fixes: 5 cases in
+        # test_active_memory_runtime.py (full capability requires the shared
+        # PostgreSQL store, SQLite canonical reports not shared, shadow-only
+        # projection not selected, active-target projection selected and
+        # probed, refused EXPIRE leaves no probe key). None are backend-
+        # parameterized or CI-skipped. 1643 + 5 = 1648; CI skips 52.
+        "1648 tests pass",
+        r"1648 passed",
     ),
     CheckSpec(
         "V-002",

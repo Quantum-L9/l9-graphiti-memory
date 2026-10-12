@@ -37,8 +37,12 @@ from l9_graphite_memory.cli import build_parser
 from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.contracts import OperationStatus
 from l9_graphite_memory.errors import ConfigurationError
-from l9_graphite_memory.runtime import READINESS_FAMILIES, MemoryRuntime
+from l9_graphite_memory.projections.compiler import compile_projection
+from l9_graphite_memory.projections.manifest import parse_projection_manifest_data
+from l9_graphite_memory.projections.runtime import ProjectionRuntime
+from l9_graphite_memory.runtime import READINESS_FAMILIES, MemoryRuntime, _family, _full_capability
 from tests.conftest import make_store
+from tests.unit.test_projection_runtime import GRAPHITI, ZEP, StubAdapter, with_modes
 
 # --- settings ----------------------------------------------------------------
 
@@ -254,13 +258,18 @@ def _binding(
     )
 
 
-def _runtime(settings: MemorySettings, binding: ActiveMemoryBinding, tmp_path) -> MemoryRuntime:
+def _runtime(
+    settings: MemorySettings,
+    binding: ActiveMemoryBinding,
+    tmp_path,
+    projections: ProjectionRuntime | None = None,
+) -> MemoryRuntime:
     from l9_graphite_memory.runtime import build_graph_service
     from l9_graphite_memory.services import MemoryService
 
     store = make_store("memory", tmp_path)
     store.initialize()
-    service = MemoryService(store, build_projection_runtime(settings))
+    service = MemoryService(store, projections or build_projection_runtime(settings))
     service.initialize()
     from l9_graphite_memory.adapters import NullGraphIntelligence
 
@@ -449,6 +458,134 @@ def test_an_optional_unproven_active_memory_only_degrades(tmp_path) -> None:
     assert store.healthy is False and store.ready is True
     assert report.ready is True and report.status is OperationStatus.PARTIAL
     assert report.full_capability is False
+
+
+def _families(*, all_healthy: bool) -> list:
+    reasons: list[str] = []
+    return [
+        _family(
+            name,
+            selected=True,
+            required=True,
+            healthy=all_healthy or name != "graph",
+            detail={},
+            reasons=reasons,
+        )
+        for name in READINESS_FAMILIES
+    ]
+
+
+def test_full_capability_requires_the_shared_postgres_canonical_store() -> None:
+    assert _full_capability(_families(all_healthy=True), shared_store=True) is True
+    # Every family selected and healthy over a process-local SQLite ledger is
+    # still not the shared-agent deployment.
+    assert _full_capability(_families(all_healthy=True), shared_store=False) is False
+    assert _full_capability(_families(all_healthy=False), shared_store=True) is False
+
+
+def test_a_sqlite_canonical_store_is_ready_but_reports_it_is_not_shared(tmp_path) -> None:
+    report = asyncio.run(_runtime(MemorySettings(), _binding(), tmp_path).readiness())
+    canonical = report.family("canonical")
+    assert canonical.ready and canonical.healthy
+    assert canonical.detail["shared_store"] is False
+    assert report.full_capability is False
+
+
+def _manifest_projections(graphiti_mode: str, zep_mode: str, status: str, *, healthy: bool):
+    compiled = compile_projection(
+        parse_projection_manifest_data(with_modes(graphiti_mode, zep_mode, status=status))
+    )
+    return ProjectionRuntime.from_compiled(
+        compiled,
+        {
+            GRAPHITI: StubAdapter("graphiti", healthy=healthy),
+            ZEP: StubAdapter("zep", healthy=healthy),
+        },
+    )
+
+
+def test_a_shadow_only_projection_is_not_a_selected_family(tmp_path) -> None:
+    # Both targets unreachable: a shadow target delivers but never feeds
+    # retrieval or degrades health, so it must not stand in for a projection.
+    projections = _manifest_projections("shadow", "shadow", "shadow", healthy=False)
+    assert projections.enabled and not projections.active_targets()
+    report = asyncio.run(
+        _runtime(MemorySettings(), _binding(), tmp_path, projections=projections).readiness()
+    )
+    projection = report.family("projection")
+    assert projection.selected is False and projection.healthy is False
+    assert projection.ready is True  # an unselected optional family never blocks ready
+    assert report.full_capability is False
+
+
+def test_a_projection_with_an_active_target_is_selected_and_probed(tmp_path) -> None:
+    healthy = _manifest_projections("active", "shadow", "active", healthy=True)
+    report = asyncio.run(
+        _runtime(MemorySettings(), _binding(), tmp_path, projections=healthy).readiness()
+    )
+    assert report.family("projection").selected and report.family("projection").healthy
+
+    down = _manifest_projections("active", "shadow", "active", healthy=False)
+    report = asyncio.run(
+        _runtime(MemorySettings(), _binding(), tmp_path, projections=down).readiness()
+    )
+    assert report.family("projection").selected and not report.family("projection").healthy
+    assert report.ready is False and report.full_capability is False
+
+
+class _ExpireDeniedRedis:
+    """Permits ZADD but refuses EXPIRE, as a misconfigured restricted ACL does."""
+
+    def __init__(self, refusal: Exception) -> None:
+        self._refusal = refusal
+        self.values: dict[str, str] = {}
+        self.zsets: dict[str, dict[str, float]] = {}
+
+    async def ping(self) -> bool:
+        return True
+
+    async def set(self, key: str, value: str, ex: int | None = None) -> None:
+        self.values[key] = value
+
+    async def get(self, key: str) -> str | None:
+        return self.values.get(key)
+
+    async def unlink(self, key: str) -> None:
+        self.values.pop(key, None)
+        self.zsets.pop(key, None)
+
+    async def zadd(self, key: str, mapping: dict[str, float]) -> None:
+        self.zsets.setdefault(key, {}).update(mapping)
+
+    async def expire(self, key: str, seconds: int) -> None:
+        raise self._refusal
+
+    async def zrem(self, key: str, member: str) -> None:
+        members = self.zsets.get(key, {})
+        members.pop(member, None)
+        if key in self.zsets and not members:
+            del self.zsets[key]  # Redis deletes an emptied sorted set
+
+    async def aclose(self) -> None:
+        return None
+
+
+@pytest.mark.asyncio
+async def test_a_refused_expire_leaves_no_probe_key_behind() -> None:
+    from redis.exceptions import NoPermissionError
+
+    from l9_graphite_memory.active.redis_adapters import RedisActiveStore
+
+    deployment = ActiveDeployment(
+        deployment_id="unit-dep", trust_domain="unit", environment=DeploymentEnvironment.TEST
+    )
+    client = _ExpireDeniedRedis(NoPermissionError("NOPERM expire"))
+    store = RedisActiveStore("redis://127.0.0.1:1/0", deployment, client=client)
+    for _ in range(3):  # every readiness poll uses a fresh timestamped key
+        health = await store.health()
+        assert health.authentication == "insufficient_acl"
+        assert health.capabilities == ("ping", "scalar")
+    assert client.zsets == {} and client.values == {}
 
 
 def test_cli_exposes_readiness() -> None:

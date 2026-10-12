@@ -16,6 +16,7 @@ package importable without Redis support installed.
 
 from __future__ import annotations
 
+import contextlib
 import json
 from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import asdict, dataclass
@@ -521,12 +522,23 @@ class RedisActiveStore:
     async def _probe_sorted_set(self, key: str) -> None:
         zkey = f"{key}:zset"
         await self._r.zadd(zkey, {"probe": 1.0})
-        await self._r.expire(zkey, 5)
-        if await self._r.zrange(zkey, 0, 0) != ["probe"]:
-            raise ActiveMemoryUnavailableError("sorted-set probe read back a different member")
-        await self._r.zremrangebyscore(zkey, "-inf", "+inf")
-        await self._r.zrem(zkey, "probe")
-        await self._r.unlink(zkey)
+        try:
+            await self._r.expire(zkey, 5)
+            if await self._r.zrange(zkey, 0, 0) != ["probe"]:
+                raise ActiveMemoryUnavailableError("sorted-set probe read back a different member")
+            await self._r.zremrangebyscore(zkey, "-inf", "+inf")
+            await self._r.zrem(zkey, "probe")
+            await self._r.unlink(zkey)
+        except Exception:
+            # A step after ZADD failed (an ACL that permits ZADD but denies
+            # EXPIRE, a dropped connection): the timestamped probe key would
+            # otherwise outlive this poll with no TTL, one per poll. Removing
+            # the only member deletes the sorted set. Best effort: a refused
+            # cleanup never replaces the failure being reported.
+            _, _, redis_error_cls = _redis_modules()
+            with contextlib.suppress(redis_error_cls):
+                await self._r.zrem(zkey, "probe")
+            raise
 
     async def close(self) -> None:
         await self._r.aclose()
