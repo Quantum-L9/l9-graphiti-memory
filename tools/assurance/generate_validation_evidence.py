@@ -317,8 +317,15 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # projection not selected, active-target projection selected and
         # probed, refused EXPIRE leaves no probe key). None are backend-
         # parameterized or CI-skipped. 1643 + 5 = 1648; CI skips 52.
-        "1648 tests pass",
-        r"1648 passed",
+        # Re-pinned 1648 -> 1704 for the RECON-0 namespace registrations: 46
+        # cases in test_group_resolver.py (copy parity, one-to-one allowlist,
+        # pre-RECON preservation, 31 exact-remote fixtures, nested .github,
+        # 9 lookalike remotes, ambiguous path, bare directory name) and 10 in
+        # test_stdio_namespace_resolution.py (Tier 3 and signed Tier 2
+        # non-widening x 5 namespaces). None are backend-parameterized or
+        # CI-skipped. 1648 + 46 + 10 = 1704; CI skips 52.
+        "1704 tests pass",
+        r"1704 passed",
     ),
     CheckSpec(
         "V-002",
