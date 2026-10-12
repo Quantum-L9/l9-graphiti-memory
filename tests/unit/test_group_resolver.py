@@ -260,7 +260,8 @@ def test_ambiguous_path_without_remote_fails_closed(
     result = resolve_group(path, settings=MemorySettings())
     assert result.group_id is None
     assert result.readonly is True
-    assert result.error is not None and "ambiguous" in result.error
+    assert result.error is not None
+    assert "ambiguous" in result.error
 
 
 def test_recon_directory_name_without_remote_does_not_resolve(

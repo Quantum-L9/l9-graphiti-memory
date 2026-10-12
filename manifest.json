@@ -430,7 +430,7 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "f2c4472515cf84d619846c5d1a7561d2e649acbb28665476d23b961835912095",
+      "sha256": "1d47ec2e61513d802b2676b607f99c05fa682d1c7cb7fe3c7c1d37db5cba88e2",
       "size_bytes": 140334
     },
     {
@@ -10958,8 +10958,8 @@
         "version": "2.6.0"
       },
       "path": "tests/unit/test_group_resolver.py",
-      "sha256": "1676d67f6ada68d05f3392a6bd23e9fedb1f7b78fac38a827dd59da8362a1c6e",
-      "size_bytes": 11638
+      "sha256": "4a2eba39e0b8bb35a315e2fdbc44cc7fe85212cae13e3f2222175f6460025a84",
+      "size_bytes": 11645
     },
     {
       "category": "tests",

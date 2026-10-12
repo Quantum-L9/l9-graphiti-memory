@@ -737,7 +737,7 @@ updated: 2026-07-22
 | `tests/unit/test_graph_search_entity_binding.py` | `tests` | `test` | 11051 | `101f2e9a5e2989eb2503d9770acdd9bff1b94d9bcd577e6f19efe9f1050c0fc7` |
 | `tests/unit/test_graph_service.py` | `tests` | `test` | 14673 | `b937df3aab0f95e1a17fee113ea10ff06834004d3b82a16c40fd8d309bf72874` |
 | `tests/unit/test_graphiti_projection_episode_identity.py` | `tests` | `test` | 9572 | `13217f756a4a4b8af6cb968611e0cadd056f1c163025560cc465853cba29a6a7` |
-| `tests/unit/test_group_resolver.py` | `tests` | `test` | 11638 | `1676d67f6ada68d05f3392a6bd23e9fedb1f7b78fac38a827dd59da8362a1c6e` |
+| `tests/unit/test_group_resolver.py` | `tests` | `test` | 11645 | `4a2eba39e0b8bb35a315e2fdbc44cc7fe85212cae13e3f2222175f6460025a84` |
 | `tests/unit/test_http_mcp_request_injection.py` | `tests` | `test` | 3138 | `f03ad77579f9d76ee58ce0d3e94cc0b0d0a17789718cc0391c82130d3d6b9b66` |
 | `tests/unit/test_http_mcp_transport_wire.py` | `tests` | `test` | 6284 | `9d0e553f583cdfdc2c918c718d7779616e634fd07eab456691d8533f35f85c90` |
 | `tests/unit/test_http_transport_dialect.py` | `tests` | `test` | 1582 | `b903e799b4ac9b269e901f81857f89cd29f4fad72f968e47e951e842a5e0713f` |
