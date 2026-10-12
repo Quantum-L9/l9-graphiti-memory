@@ -306,8 +306,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # authentication failure) and 1 in
         # test_graphiti_projection_episode_identity.py (rank-derived scores
         # for unscored provider hits). 1618 + 10 + 1 + 1 = 1630; CI skips 52.
-        "1630 tests pass",
-        r"1630 passed",
+        # Re-pinned 1630 -> 1643 for fail-closed Redis readiness (F90-1):
+        # 13 cases in test_active_memory_runtime.py (incomplete store probe
+        # x 4, incomplete bus probe x 2, refused or unproven probe x 5, the
+        # complete-probe and optional-unproven cases). None are backend-
+        # parameterized or CI-skipped. 1630 + 13 = 1643; CI skips 52.
+        "1643 tests pass",
+        r"1643 passed",
     ),
     CheckSpec(
         "V-002",
