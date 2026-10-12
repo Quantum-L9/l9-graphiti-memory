@@ -12,6 +12,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
+from l9_graphite_memory.active.client import ActiveMemoryBinding
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.errors import ConfigurationError
 from l9_graphite_memory.graph.ports import GraphIntelligencePort
@@ -135,6 +138,109 @@ def build_graph_intelligence(settings: MemorySettings) -> GraphIntelligencePort:
         )
     raise ConfigurationError(
         f"unsupported graph intelligence backend: {settings.graph_intelligence_backend}"
+    )
+
+
+def build_active_memory(
+    settings: MemorySettings,
+    *,
+    secret_provider: Callable[[str], str] | None = None,
+) -> ActiveMemoryBinding:
+    """Construct the configured active-memory binding (ADR-065 .. ADR-068).
+
+    ``none`` binds the null adapters, which refuse every operation
+    explicitly; ``redis`` resolves exactly one ADR-066 credential source at
+    construction time and binds the Redis store and the Redis awareness bus
+    to one deployment identity. The credential never enters settings,
+    receipts, or logs: only its source name is recorded. An unreachable
+    server is not a construction error (connections open lazily); the
+    binding's ``health()`` probe and the runtime readiness report say so.
+    """
+
+    from l9_graphite_memory.active.deployment import ActiveDeployment, DeploymentEnvironment
+
+    if settings.active_memory_backend == "none":
+        from l9_graphite_memory.active.null_adapters import NullActiveStore, NullAwarenessBus
+
+        return ActiveMemoryBinding(
+            backend="none",
+            enabled=False,
+            required=settings.active_memory_required,
+            deployment_id=settings.active_deployment_id or "active-memory-disabled",
+            trust_domain=settings.active_trust_domain or "active-memory-disabled",
+            environment=settings.active_environment,
+            store=NullActiveStore(),
+            bus=NullAwarenessBus(),
+            heartbeat_interval_seconds=settings.active_heartbeat_interval_seconds,
+            lease_ttl_seconds=settings.active_lease_ttl_seconds,
+            heartbeat_failure_threshold=settings.active_heartbeat_failure_threshold,
+        )
+    if settings.active_memory_backend != "redis":
+        raise ConfigurationError(
+            f"unsupported active memory backend: {settings.active_memory_backend}"
+        )
+    from l9_graphite_memory.active.credentials import (
+        CredentialResolutionError,
+        RedisCredentialSettings,
+        resolve_redis_credential,
+    )
+    from l9_graphite_memory.active.deployment import DeploymentIdentityError
+    from l9_graphite_memory.active.errors import ActiveMemoryUnavailableError
+    from l9_graphite_memory.active.redis_adapters import RedisActiveStore, RedisAwarenessBus
+
+    try:
+        deployment = ActiveDeployment(
+            deployment_id=str(settings.active_deployment_id),
+            trust_domain=str(settings.active_trust_domain),
+            environment=DeploymentEnvironment(settings.active_environment),
+        )
+    except DeploymentIdentityError as exc:
+        raise ConfigurationError(f"active memory deployment identity rejected: {exc}") from exc
+    try:
+        credential = resolve_redis_credential(
+            RedisCredentialSettings(
+                username=settings.active_redis_username,
+                password_file=settings.active_redis_password_file,
+                url_file=settings.active_redis_url_file,
+                url_env=settings.active_redis_url_env,
+                secret_provider_reference=settings.active_redis_secret_reference,
+                host=settings.active_redis_host,
+                port=settings.active_redis_port,
+                database=settings.active_redis_database,
+                tls=settings.active_redis_tls,
+            ),
+            secret_provider=secret_provider,
+        )
+    except CredentialResolutionError as exc:
+        raise ConfigurationError(f"active memory credential unresolved: {exc}") from exc
+    try:
+        store = RedisActiveStore(
+            credential.redis_url,
+            deployment,
+            key_prefix=settings.active_key_prefix,
+            context_ttl_seconds=settings.active_context_ttl_seconds,
+            presence_ttl_seconds=settings.active_presence_ttl_seconds,
+        )
+        bus = RedisAwarenessBus(
+            credential.redis_url, deployment, channel_prefix=settings.active_key_prefix
+        )
+    except ActiveMemoryUnavailableError as exc:
+        raise ConfigurationError(
+            f"active memory backend 'redis' needs the optional dependency: {exc}"
+        ) from exc
+    return ActiveMemoryBinding(
+        backend="redis",
+        enabled=True,
+        required=settings.active_memory_required,
+        deployment_id=deployment.deployment_id,
+        trust_domain=deployment.trust_domain,
+        environment=deployment.environment.value,
+        store=store,
+        bus=bus,
+        credential_source=credential.credential_source,
+        heartbeat_interval_seconds=settings.active_heartbeat_interval_seconds,
+        lease_ttl_seconds=settings.active_lease_ttl_seconds,
+        heartbeat_failure_threshold=settings.active_heartbeat_failure_threshold,
     )
 
 

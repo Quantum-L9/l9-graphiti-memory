@@ -125,6 +125,56 @@ Projection choices:
 
 The HTTP adapter discovers the live Graphiti tool inventory. It supports the current `add_memory`, `search_memory_facts`, `search_nodes`, and `delete_episode` dialect plus the older `add_episode` and `search_facts` compatibility dialect.
 
+## Consumer-selected full-capability shared deployment
+
+The installable `l9-graphite-memory` product remains a locally composed L9
+Dependency. Individual consumers may select a stricter deployment profile
+without making PostgreSQL, Redis or Graphiti mandatory for all installations.
+
+A consumer choosing the full-capability shared-agent deployment MUST:
+
+1. Use one PostgreSQL canonical record store. Every memory read and write flows
+   through `MemoryService`; projections are never canonical. The two lawful
+   paths to that store are distinct and are never collapsed:
+   - **Greenfield** (the selected fresh full-capability staging deployment):
+     provision a brand-new, empty PostgreSQL canonical database. No prior
+     SQLite ledger, PostgreSQL database, Graphiti/Neo4j graph, Redis state,
+     backup, transcript or other existing memory is imported, restored,
+     merged or reused, and no historical reconciliation or migration runs.
+   - **Migration** (only for a consumer that separately chooses to move an
+     existing canonical ledger): ADR-072 and ADR-077 govern the explicit
+     transition acknowledgement and migration boundary. This section neither
+     changes that law nor authorizes any data move.
+2. Enable and qualify the Graphiti projection/outbox and the separate Neo4j
+   graph-intelligence reader using real backends and the existing product tools.
+3. Meet `docs/ACTIVE_MEMORY_DEPLOYMENT_CONTRACT.md` for Redis and prove both
+   Redis active-store and actual Redis awareness-bus behavior. An installed
+   `ActiveAgentClient` symbol is not proof an agent consumer can use it.
+4. Bind every process to the intended tenant, namespace authorization and
+   backend identity using product-supported runtime configuration. Never store
+   credentials in tracked deployment files or generated MCP settings.
+5. Report the five capability families independently, each on its own
+   evidence: `canonical`, `projection`, `graph`, `active_store` and
+   `awareness_bus`. The full-capability verdict is `full_capability=true`:
+   every family selected and healthy over the shared PostgreSQL canonical
+   store. A SQLite canonical store, a shadow-only projection or an incomplete
+   Redis capability probe never yields it. An HTTP
+   200 from `/healthz` or `/readyz` alone is not full-capability proof:
+   `/readyz` answers the aggregate `ready` verdict over required families,
+   which is weaker than `full_capability`. The five-family readiness report
+   is implemented by PR #90 (ADR-097, proposed until merged) and must be
+   proven in the final combined candidate; the published 2.6.0 release does
+   not include it.
+6. Prove recovery and backend outage behavior, including canonical write safety
+   if projection or active-memory infrastructure is unavailable.
+
+This defines a deployment qualification target, not an assertion that the
+standard package runtime currently composes Redis active-agent sessions or
+that its HTTP surface is approved as a remote canonical dependency consumer.
+The accepted `product-topology.yaml` and its dependency consumption boundary
+remain unchanged. A consumer owns its process, deployment choices and exact
+release binding. The generic deployment platform does not own memory behavior.
+
 ## Validation
 
 ```bash

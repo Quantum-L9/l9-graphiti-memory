@@ -21,7 +21,12 @@ require the service-issued write capability regardless — see
 submodules for tests and store-contract conformance work.
 """
 
-from .factory import build_graph_intelligence, build_projection, build_store
+from .factory import (
+    build_active_memory,
+    build_graph_intelligence,
+    build_projection,
+    build_store,
+)
 from .graphiti_projection import GraphitiProjection
 
 # Concrete stores remain importable from this package for tests and store-contract
@@ -39,6 +44,7 @@ __all__ = [
     "GraphitiProjection",
     "NullGraphIntelligence",
     "NullProjection",
+    "build_active_memory",
     "build_graph_intelligence",
     "build_projection",
     "build_store",

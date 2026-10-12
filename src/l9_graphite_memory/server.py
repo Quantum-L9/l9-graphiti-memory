@@ -419,16 +419,19 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
 
     @app.get("/readyz")
     async def readyz() -> JSONResponse:
-        report = runtime.service.health()
-        ready = report.status.value == "complete"
-        content = report.model_dump(mode="json")
+        # Every capability family is probed on its own evidence (ADR-097):
+        # canonical and an enabled projection always gate; graph and active
+        # memory gate only when the deployment marks them required.
+        readiness = await runtime.readiness()
+        content = runtime.service.health().model_dump(mode="json")
         if runtime.graph_service is not None:
-            # A separate dimension; it gates readiness only when the deployment
-            # marks graph intelligence as required (ADR-090).
-            graph = runtime.graph_service.capability_report(refresh=True)
-            content["graph"] = graph.model_dump(mode="json")
-            ready = ready and graph.ready
-        return JSONResponse(status_code=200 if ready else 503, content=content)
+            content["graph"] = readiness.family("graph").detail
+        content["active_memory"] = {
+            "store": readiness.family("active_store").model_dump(mode="json"),
+            "bus": readiness.family("awareness_bus").model_dump(mode="json"),
+        }
+        content["readiness"] = readiness.model_dump(mode="json")
+        return JSONResponse(status_code=200 if readiness.ready else 503, content=content)
 
     return app
 

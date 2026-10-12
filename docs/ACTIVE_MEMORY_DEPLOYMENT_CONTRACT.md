@@ -37,12 +37,19 @@ A compliant deployment MUST:
    `allkeys-lru`) on the Redis backend.
 6. Run a startup capability probe (PING, authenticated scalar
    read/write, sorted-set read/write, publish) before declaring the
-   deployment healthy.
+   deployment healthy. The package performs this probe in
+   `RedisActiveStore.health()` and `RedisAwarenessBus.health()`; it is
+   reported per family by `l9-memory readiness` and `GET /readyz`
+   (ADR-097), and the consumer's health check must consume that report
+   rather than a bare `PING`.
 7. Test backend-outage behavior at least once before declaring
    production readiness: stop the backend, confirm the consumer
-   application degrades according to its configured `required` flag,
-   and confirm canonical (non-active-memory) operations are
-   unaffected.
+   application degrades according to its configured
+   `active_memory_required` flag (`L9_MEMORY_ACTIVE_REQUIRED`), and
+   confirm canonical (non-active-memory) operations are unaffected.
+   `tests/integration/test_active_memory_redis_live.py` and
+   `tests/integration/test_full_capability_readiness_live.py` are the
+   package's own executable form of this check.
 8. Run the adapter-conformance smoke subset
    (`tests/conformance/active/`) against the deployed backend
    configuration as part of deployment validation.
@@ -71,7 +78,8 @@ without needing to read this package's source code:
 - [ ] Redis authentication enabled.
 - [ ] Credential source chosen and secret material never committed.
 - [ ] `maxmemory` and eviction policy configured.
-- [ ] Startup capability probe passes.
+- [ ] Startup capability probe passes (`l9-memory readiness` reports
+      `active_store` and `awareness_bus` healthy).
 - [ ] Backend-outage test performed at least once.
 - [ ] Adapter-conformance smoke subset passes against the real backend.
 - [ ] Diagnostic output reviewed for credential leakage.

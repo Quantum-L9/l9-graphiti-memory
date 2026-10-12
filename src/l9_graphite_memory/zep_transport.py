@@ -139,8 +139,11 @@ class ZepCloudTransport:
             if isinstance(value, (str, int, float, bool, list))
         }
         try:
+            # zep-cloud >= 3 names the graph ``graph_id``; the memory group is
+            # that graph. ``group_id`` was the pre-3.0 spelling and is rejected
+            # by the pinned client, so a shadow delivery could never land.
             result = self.client.graph.add(
-                group_id=group_id,
+                graph_id=group_id,
                 data=body[:10_000],
                 type="json" if body.lstrip().startswith(("{", "[")) else "text",
                 source_description=str(kwargs.pop("source_description", f"l9-memory/{kind}"))[:500],
@@ -193,7 +196,7 @@ class ZepCloudTransport:
             raise ProjectionError("Zep circuit is open")
         try:
             response = self.client.graph.search(
-                group_id=group_id,
+                graph_id=group_id,
                 query=query,
                 scope="edges",
                 limit=limit,
