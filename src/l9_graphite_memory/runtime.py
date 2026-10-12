@@ -52,6 +52,33 @@ READINESS_FAMILIES: tuple[str, ...] = (
     "awareness_bus",
 )
 
+#: Probe steps each Redis-backed family must have completed to be healthy:
+#: the commands the store and bus actually issue (ADR-097, deployment
+#: contract item 6). A probe that ran fewer steps is not proof.
+_ACTIVE_FAMILY_CAPABILITIES: dict[str, frozenset[str]] = {
+    "active_store": frozenset({"ping", "scalar", "sorted_set"}),
+    "awareness_bus": frozenset({"ping", "publish"}),
+}
+
+
+def _probe_proven(enabled: bool, probe: dict[str, object], family: str) -> bool:
+    """Is one active-memory family healthy on its own positive evidence?
+
+    Fails closed: the absence of an ``error`` key is not proof. The probe must
+    explicitly report healthy connectivity, an authenticated credential and
+    every capability step the family needs.
+    """
+
+    capabilities = probe.get("capabilities")
+    return (
+        enabled
+        and probe.get("error") is None
+        and probe.get("connectivity") == "healthy"
+        and probe.get("authentication") == "authenticated"
+        and isinstance(capabilities, list | tuple)
+        and _ACTIVE_FAMILY_CAPABILITIES[family].issubset(capabilities)
+    )
+
 
 def _disabled_active_memory() -> ActiveMemoryBinding:
     return build_active_memory(MemorySettings())
@@ -157,7 +184,7 @@ class MemoryRuntime:
                 "active_store",
                 selected=active.enabled,
                 required=self.active_memory.required,
-                healthy=active.enabled and "error" not in active.store,
+                healthy=_probe_proven(active.enabled, active.store, "active_store"),
                 detail={**active.deployment, **active.store},
                 reasons=reasons,
             )
@@ -167,7 +194,7 @@ class MemoryRuntime:
                 "awareness_bus",
                 selected=active.enabled,
                 required=self.active_memory.required,
-                healthy=active.enabled and "error" not in active.bus,
+                healthy=_probe_proven(active.enabled, active.bus, "awareness_bus"),
                 detail={**active.deployment, **active.bus},
                 reasons=reasons,
             )

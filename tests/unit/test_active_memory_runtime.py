@@ -27,8 +27,10 @@ from l9_graphite_memory.active import (
     LeaseExpiredError,
 )
 from l9_graphite_memory.active.deployment import ActiveDeployment, DeploymentEnvironment
+from l9_graphite_memory.active.errors import ActiveMemoryUnavailableError
 from l9_graphite_memory.active.inmemory import InMemoryActiveStore, InMemoryAwarenessBus
 from l9_graphite_memory.active.null_adapters import NullActiveStore, NullAwarenessBus
+from l9_graphite_memory.active.redis_adapters import RedisHealth
 from l9_graphite_memory.adapters import build_active_memory
 from l9_graphite_memory.adapters.factory import build_projection_runtime
 from l9_graphite_memory.cli import build_parser
@@ -166,6 +168,56 @@ class _Clock:
         self.now_value += timedelta(seconds=seconds)
 
 
+_COMPLETE_STORE_PROBE = RedisHealth(capabilities=("ping", "scalar", "sorted_set"))
+_COMPLETE_BUS_PROBE = RedisHealth(capabilities=("ping", "publish"))
+
+
+class _ProbedStore(InMemoryActiveStore):
+    """In-memory store whose probe reports the evidence a complete Redis probe yields.
+
+    The bare in-memory adapter runs no capability probe, so readiness must not
+    read it as proven; this double supplies the positive evidence explicitly.
+    """
+
+    async def health(self):  # type: ignore[override]
+        observed = await super().health()
+        return _COMPLETE_STORE_PROBE if observed.connectivity == "healthy" else observed
+
+
+class _ProbedBus(InMemoryAwarenessBus):
+    async def health(self):  # type: ignore[override]
+        observed = await super().health()
+        return _COMPLETE_BUS_PROBE if observed.connectivity == "healthy" else observed
+
+
+class _FixedHealth:
+    """Adapter stub whose probe returns (or raises) exactly the given result."""
+
+    def __init__(self, result: object) -> None:
+        self._result = result
+
+    async def health(self) -> object:
+        if isinstance(self._result, Exception):
+            raise self._result
+        return self._result
+
+    async def close(self) -> None:
+        return None
+
+
+def _probed_binding(store: object, bus: object, *, required: bool = True) -> ActiveMemoryBinding:
+    return ActiveMemoryBinding(
+        backend="redis",
+        enabled=True,
+        required=required,
+        deployment_id="unit-dep",
+        trust_domain="unit",
+        environment="test",
+        store=_FixedHealth(store),  # type: ignore[arg-type]
+        bus=_FixedHealth(bus),  # type: ignore[arg-type]
+    )
+
+
 def _binding(
     *,
     enabled: bool = True,
@@ -187,9 +239,9 @@ def _binding(
             store=NullActiveStore(),
             bus=NullAwarenessBus(),
         )
-    store = InMemoryActiveStore(deployment, clock=_Clock())
+    store = _ProbedStore(deployment, clock=_Clock())
     store.set_unavailable(store_unavailable)
-    bus = InMemoryAwarenessBus(deployment, simulate_unavailable=bus_unavailable)
+    bus = _ProbedBus(deployment, simulate_unavailable=bus_unavailable)
     return ActiveMemoryBinding(
         backend="memory",
         enabled=True,
@@ -285,6 +337,118 @@ def test_readyz_carries_the_active_memory_families_and_gates_on_them(tmp_path) -
     response = TestClient(create_http_app(runtime)).get("/readyz")
     assert response.status_code == 200
     assert response.json()["readiness"]["ready"] is True
+
+
+def _active_families(binding: ActiveMemoryBinding, tmp_path):
+    report = asyncio.run(_runtime(MemorySettings(), binding, tmp_path).readiness())
+    return report, report.family("active_store"), report.family("awareness_bus")
+
+
+@pytest.mark.parametrize(
+    "store_probe",
+    [
+        RedisHealth(),  # a probe that completed no step at all
+        RedisHealth(capabilities=("ping",)),
+        RedisHealth(capabilities=("ping", "scalar")),  # sorted_set missing
+        RedisHealth(capabilities=("ping", "sorted_set")),  # scalar missing
+    ],
+    ids=["empty", "ping-only", "no-sorted-set", "no-scalar"],
+)
+def test_an_incomplete_store_probe_is_never_green(store_probe, tmp_path) -> None:
+    report, store, bus = _active_families(
+        _probed_binding(store_probe, _COMPLETE_BUS_PROBE), tmp_path
+    )
+    assert store.healthy is False and store.ready is False
+    assert bus.healthy is True and bus.ready is True  # the bus is judged on its own evidence
+    assert report.ready is False and report.status is OperationStatus.FAILED
+    assert report.full_capability is False
+    assert "active_store is unhealthy" in report.degraded_reasons
+
+
+@pytest.mark.parametrize(
+    "bus_probe",
+    [RedisHealth(), RedisHealth(capabilities=("ping",))],
+    ids=["empty", "ping-only-no-publish"],
+)
+def test_an_incomplete_bus_probe_is_never_green(bus_probe, tmp_path) -> None:
+    report, store, bus = _active_families(
+        _probed_binding(_COMPLETE_STORE_PROBE, bus_probe), tmp_path
+    )
+    assert bus.healthy is False and bus.ready is False
+    assert store.healthy is True
+    assert report.ready is False and report.full_capability is False
+
+
+class _NoAuthenticationField:
+    """A structurally incomplete probe result: no authentication attribute."""
+
+    backend = "redis"
+    connectivity = "healthy"
+    capabilities = ("ping", "scalar", "sorted_set")
+
+
+@pytest.mark.parametrize(
+    ("store_probe", "expected_detail"),
+    [
+        (
+            RedisHealth(
+                connectivity="unavailable",
+                authentication="failed",
+                capabilities=(),
+                error="ping probe failed: invalid password",
+            ),
+            {"authentication": "failed"},
+        ),
+        (
+            RedisHealth(
+                connectivity="degraded",
+                authentication="insufficient_acl",
+                capabilities=("ping",),
+                error="scalar probe failed: NOPERM",
+            ),
+            {"authentication": "insufficient_acl"},
+        ),
+        # ACL denial classified without an error string must still fail closed.
+        (
+            RedisHealth(authentication="insufficient_acl", capabilities=("ping",)),
+            {"authentication": "insufficient_acl"},
+        ),
+        (
+            ActiveMemoryUnavailableError("ping probe failed: connection refused"),
+            {"connectivity": "unavailable"},
+        ),
+        (_NoAuthenticationField(), {"connectivity": "healthy"}),
+    ],
+    ids=["auth-refused", "acl-denied", "acl-denied-no-error", "unavailable", "no-auth-field"],
+)
+def test_a_refused_or_unproven_probe_fails_closed_and_keeps_its_classification(
+    store_probe, expected_detail, tmp_path
+) -> None:
+    report, store, _ = _active_families(_probed_binding(store_probe, _COMPLETE_BUS_PROBE), tmp_path)
+    assert store.healthy is False and store.ready is False
+    assert report.full_capability is False
+    for key, value in expected_detail.items():
+        assert store.detail[key] == value
+
+
+def test_complete_probes_are_healthy_and_leave_canonical_writes_independent(tmp_path) -> None:
+    report, store, bus = _active_families(
+        _probed_binding(_COMPLETE_STORE_PROBE, _COMPLETE_BUS_PROBE), tmp_path
+    )
+    assert store.healthy and store.ready and bus.healthy and bus.ready
+    assert report.ready is True and report.status is OperationStatus.COMPLETE
+    # Projection and graph are not selected here, so the stricter verdict is
+    # still withheld; the live suite proves full_capability=true end to end.
+    assert report.full_capability is False
+
+
+def test_an_optional_unproven_active_memory_only_degrades(tmp_path) -> None:
+    report, store, _ = _active_families(
+        _probed_binding(RedisHealth(), _COMPLETE_BUS_PROBE, required=False), tmp_path
+    )
+    assert store.healthy is False and store.ready is True
+    assert report.ready is True and report.status is OperationStatus.PARTIAL
+    assert report.full_capability is False
 
 
 def test_cli_exposes_readiness() -> None:

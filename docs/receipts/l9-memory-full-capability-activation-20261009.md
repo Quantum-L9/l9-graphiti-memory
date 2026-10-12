@@ -34,6 +34,16 @@ this session), **SATISFIED** (already satisfied before this session, evidence
 cited), **BLOCKED** (exact cause, owner and proof request). Classification is
 the mission's: `REQUIRED_ACTIVE`, `REQUIRED_SHADOW`, `DEFERRED_BY_DESIGN`.
 
+`REQUIRED_SHADOW` records how this 2026-10-09 mission classified its own
+selected Zep shadow target. It is not one of the five ADR-097 readiness
+families (`canonical`, `projection`, `graph`, `active_store`,
+`awareness_bus`) and is not a general prerequisite for a full-capability
+deployment. A consumer whose selected target is PostgreSQL, Graphiti
+projection, Neo4j graph intelligence and Redis active memory carries no Zep
+obligation. Zep shadow qualification becomes a gate only for a consumer
+binding that explicitly selects the Zep shadow target, and then for that
+binding alone.
+
 Evidence keys: `PG` = local PostgreSQL 16.15 at `127.0.0.1:55432`; `RD` =
 local authenticated Redis 7.0.15 at `127.0.0.1:56379` with `volatile-lru`;
 `N4` = local Neo4j 5.26.0 with GDS 2.13.13 (the CI-qualified pair) at
@@ -164,12 +174,14 @@ remains is consumer-owned and must not be placed in the package:
    `GRAPHITI_MCP_URL` and `GRAPHITI_MCP_TOKEN` with either
    `L9_MEMORY_PROJECTION_BACKEND=http` or the manifest runtime
    (`L9_MEMORY_PROJECTION_RUNTIME=manifest`, `L9_MEMORY_PROJECTION_MANIFEST=config/projections/facts-v8.yaml`,
-   and `ZEP_API_KEY` for the shadow target). Acceptance: `l9-memory readiness`
+   plus `ZEP_API_KEY` only if the consumer explicitly selects the optional
+   Zep shadow target). Acceptance: `l9-memory readiness`
    returns `full_capability: true`; `/readyz` 200 with every family
    `selected`, `healthy`, `ready`.
 3. **External substrates and credentials.** A Graphiti MCP endpoint reachable
-   from the deployment, the model key its extraction needs, and (for the
-   shadow target) a Zep subscription. Acceptance per the BLOCKED rows above.
+   from the deployment and the model key its extraction needs. A Zep
+   subscription is needed only by a consumer that explicitly selects the Zep
+   shadow target. Acceptance per the BLOCKED rows above.
 4. **Governance readiness ladder.** `ops/memory` readiness (`R0 … R9`) should
    consume `ReadinessReport` families instead of `memory.health` alone, so
    the governance surface cannot report green while a required family is
@@ -262,6 +274,10 @@ required family is absent. The deployment is not READY because:
    sandbox (section E), not against the deployment's endpoint, which is not
    reachable from this session or CI (owner: deployment owner / secrets).
 2. Zep shadow delivery is unproven: no subscription key (owner: consumer).
+   This blocked the shadow target this mission selected. It does not block a
+   deployment whose selected families are the five ADR-097 families without
+   a Zep shadow; it gates only a consumer binding that explicitly selects
+   the Zep shadow target.
 3. PostgreSQL restore and the outage drills have not run on the authorized
    target store (owner: deployment owner).
 4. The consumer is bound to 2.6.0, which predates this change; a new release
