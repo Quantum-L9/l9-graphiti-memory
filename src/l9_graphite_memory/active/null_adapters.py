@@ -10,11 +10,12 @@
 
 """Null-object adapters used when active memory is disabled.
 
-When `active_memory.enabled = false`, the runtime factory MUST wire
-these adapters instead of `InMemoryActiveStore`/`InMemoryAwarenessBus`
-or a Redis adapter. Every operation raises `ActiveMemoryUnavailableError`
-so that callers using the stable SDK degrade predictably rather than
-silently succeeding with fabricated state.
+When ``active_memory_backend`` is ``none`` (the default), the runtime
+factory (`adapters.factory.build_active_memory`) wires these adapters
+instead of `InMemoryActiveStore`/`InMemoryAwarenessBus` or a Redis
+adapter. Every operation raises `ActiveMemoryUnavailableError` so that
+callers using the stable SDK degrade predictably rather than silently
+succeeding with fabricated state.
 """
 
 from __future__ import annotations
@@ -33,8 +34,9 @@ from l9_graphite_memory.active.models import (
 )
 
 _DISABLED_MESSAGE = (
-    "active memory is disabled for this deployment; enable "
-    "active_memory.enabled to use presence, context, or awareness features"
+    "active memory is disabled for this deployment; set "
+    "active_memory_backend (L9_MEMORY_ACTIVE_BACKEND) to use presence, "
+    "context, or awareness features"
 )
 
 

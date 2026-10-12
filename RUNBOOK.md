@@ -347,6 +347,50 @@ Never restore secrets into the repository.
 | maintenance action failed with `quarantined` | admission held the derived record for review | review the quarantined candidate as an administrator |
 | legacy queue item retained | pre-v2.3 queued write could not be admitted | inspect the preserved file and the reported error |
 | prefetch hook error | hydration failed | leave gates off during diagnosis or restore service |
+| readiness `failed`, reason `active_store is required but not configured` | the deployment requires active memory and `L9_MEMORY_ACTIVE_BACKEND` is `none` | bind the Redis backend (below) or drop `L9_MEMORY_ACTIVE_REQUIRED` |
+| readiness `failed`, reason `active_store is unhealthy` | the Redis probe could not PING, write a scalar or a sorted set | restore Redis or its ACL; canonical memory is unaffected meanwhile |
+| session state `degraded` | heartbeat renewals failed past the threshold | none; the session resynchronizes and re-registers when Redis returns |
+
+## Active memory (Redis)
+
+Presence, leases, context and awareness shared by concurrently running agents
+are composed beside canonical memory (ADR-097). Select the backend, the
+deployment identity (ADR-065) and exactly one credential source (ADR-066):
+
+```bash
+export L9_MEMORY_ACTIVE_BACKEND=redis
+export L9_MEMORY_ACTIVE_REQUIRED=true
+export L9_MEMORY_ACTIVE_DEPLOYMENT_ID=fleet-production
+export L9_MEMORY_ACTIVE_TRUST_DOMAIN=my-organization
+export L9_MEMORY_ACTIVE_ENVIRONMENT=production
+# Name the variable (or mounted file) that holds the URL; never the URL itself.
+export L9_MEMORY_ACTIVE_REDIS_URL_ENV=FLEET_REDIS_URL
+l9-memory readiness
+```
+
+A consumer process obtains its client from the composed runtime
+(`build_runtime().active_memory.client()`, see `docs/ACTIVE_MEMORY_SDK.md`).
+Startup refuses a placeholder identity in production, an ambiguous or missing
+credential source, and a lease TTL that does not exceed the heartbeat
+interval. An unreachable server is not a startup failure: readiness reports
+it, and canonical memory keeps working.
+
+## Full-capability readiness
+
+`l9-memory readiness` and `GET /readyz` report five capability families on
+their own evidence: `canonical` (always required), `projection` (required
+when enabled), `graph` (`L9_MEMORY_GRAPH_REQUIRED`), `active_store` and
+`awareness_bus` (`L9_MEMORY_ACTIVE_REQUIRED`). Each carries `selected`,
+`required`, `healthy` and `ready`; `ready` is the aggregate, and
+`full_capability` is true only when every family is selected and healthy. A
+required family that is absent or unhealthy is `failed`, never green; an
+optional unhealthy family is `partial`. `l9-memory health` and `memory.health`
+keep the canonical-plus-projection shape consumers already bind to.
+
+For the consumer-selected full-capability shared deployment (PostgreSQL
+canonical store, Graphiti projection plus Neo4j graph intelligence, Redis
+active store plus awareness bus) set every `*_REQUIRED` flag and require
+`full_capability: true` before declaring the deployment live.
 
 ## Constellation Gate health
 

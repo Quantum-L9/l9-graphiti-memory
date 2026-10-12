@@ -427,7 +427,7 @@ class GraphitiProjection:
                 arguments["group_id"] = group_id
             result = self.transport.call_tool(tool, arguments)
             episode_records: dict[str, UUID] | None = None
-            for item in self._result_items(result, strategy):
+            for rank, item in enumerate(self._result_items(result, strategy)):
                 record_ids: list[UUID] = []
                 record_id = self._extract_record_id(item)
                 if record_id is not None:
@@ -442,7 +442,7 @@ class GraphitiProjection:
                         for episode in item["episodes"]
                         if str(episode) in episode_records
                     )
-                score = self._score(item)
+                score = self._score(item, rank=rank)
                 for record_id in dict.fromkeys(record_ids):
                     hit = ProjectionHit(
                         record_id=record_id,
@@ -464,8 +464,22 @@ class GraphitiProjection:
         return sorted(hits.values(), key=lambda item: item.score, reverse=True)[:limit]
 
     @staticmethod
-    def _score(item: dict[str, Any]) -> float:
-        raw_score = item.get("relevance", item.get("score", 0.0))
+    def _score(item: dict[str, Any], *, rank: int | None = None) -> float:
+        """The provider's relevance in [0, 1], or its rank when it reports none.
+
+        The official Graphiti MCP server answers ``search_memory_facts`` and
+        ``search_nodes`` with ranked results that carry no score field. A hit
+        it returned is a contribution, not a miss: scoring it 0.0 let the
+        planner resolve the record and then credit the projection with
+        nothing, so the hit surfaced only when the canonical lexical match
+        found it on its own. Its order is the ranking (as ``search_entities``
+        already treats nodes): the first result scores 1.0, the next 0.5, ...
+        An explicit ``relevance`` or ``score`` field still wins.
+        """
+
+        raw_score = item.get("relevance", item.get("score"))
+        if raw_score is None:
+            return 0.0 if rank is None else 1.0 / (1.0 + rank)
         try:
             return max(0.0, min(float(raw_score), 1.0))
         except (TypeError, ValueError):

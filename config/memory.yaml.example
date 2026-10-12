@@ -21,6 +21,27 @@ graph_intelligence_required: false
 graph_neo4j_uri: null
 graph_neo4j_database: neo4j
 
+# Active memory: shared presence, leases, context and awareness (ADR-065..068):
+# none | redis. "redis" needs a deployment identity and exactly one ADR-066
+# credential source; the credential itself is read at runtime from the named
+# environment variable, mounted file, or secret provider, never from this file.
+active_memory_backend: none
+active_memory_required: false
+active_deployment_id: null
+active_trust_domain: null
+# development | test | staging | production
+active_environment: development
+# Name of the environment variable holding the Redis URL (not the URL).
+active_redis_url_env: null
+active_redis_url_file: null
+active_redis_password_file: null
+active_redis_host: null
+active_redis_port: 6379
+active_redis_tls: true
+active_key_prefix: l9gm:active
+active_heartbeat_interval_seconds: 10
+active_lease_ttl_seconds: 30
+
 # Remote HTTP is authenticated by default.
 http_auth_required: true
 

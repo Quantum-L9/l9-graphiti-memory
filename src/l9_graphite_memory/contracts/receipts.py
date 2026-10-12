@@ -409,6 +409,57 @@ class HealthReport(BaseModel):
     checked_at: datetime = Field(default_factory=utc_now)
 
 
+class ReadinessFamily(BaseModel):
+    """One independently probed capability family of a deployment.
+
+    ``selected`` says the deployment configured the family; ``required`` says
+    readiness must fail without it; ``healthy`` is the family's own probe
+    result. ``ready`` is ``healthy`` when required, otherwise always true, so
+    an optional family can degrade without blocking and a required one can
+    never be read as green while absent or unproven.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    name: str
+    selected: bool
+    required: bool
+    healthy: bool
+    ready: bool
+    detail: dict[str, Any] = Field(default_factory=dict)
+    reasons: tuple[str, ...] = ()
+
+
+class ReadinessReport(BaseModel):
+    """Full-capability readiness: every family reported on its own evidence.
+
+    ``ready`` is the aggregate verdict (every family ready). ``full_capability``
+    is stricter: every family is selected and healthy, which is what a
+    consumer that chose the full-capability deployment must observe before
+    declaring it live. ``status`` follows the health vocabulary: FAILED when
+    a required family is not ready, PARTIAL when a selected optional family
+    is unhealthy, COMPLETE otherwise.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    status: OperationStatus
+    ready: bool
+    full_capability: bool
+    package_version: str
+    schema_version: str
+    contract_version: str = CONTROL_PLANE_CONTRACT_VERSION
+    families: tuple[ReadinessFamily, ...]
+    degraded_reasons: tuple[str, ...] = ()
+    checked_at: datetime = Field(default_factory=utc_now)
+
+    def family(self, name: str) -> ReadinessFamily:
+        for family in self.families:
+            if family.name == name:
+                return family
+        raise KeyError(name)
+
+
 class CloseReceipt(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
