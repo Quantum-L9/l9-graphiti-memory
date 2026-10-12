@@ -430,7 +430,7 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "ca8f2eaf5bb4b4f429a467da1108c536c2df87f05b56cdb0f971c00fb5cea3bd",
+      "sha256": "f2eca3299b8bcede1fbf93674403e1f0449b34056a6f2706fcff564844be3b05",
       "size_bytes": 140333
     },
     {
@@ -478,8 +478,8 @@
         "version": "2.6.0"
       },
       "path": "README.md",
-      "sha256": "02c3f61e95587b64875b1a4b2dc8065b609eb911748cdf4fc6683b5a553aeda1",
-      "size_bytes": 10503
+      "sha256": "16c6cbb99e33ed642f2b8d29acb70999490ce8bfe7d3479c61f074b6389252fe",
+      "size_bytes": 10630
     },
     {
       "category": "repository_root",
@@ -4542,8 +4542,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md",
-      "sha256": "eb7db702cad853156ff4fc7950d10ab99d9c5e5d52a238d62fbd57da64e6f33a",
-      "size_bytes": 12346
+      "sha256": "eaf77b5b39d7b09364bedcd054239349843f367c70c9bb22221f978780896c81",
+      "size_bytes": 13048
     },
     {
       "category": "architecture_decisions",
@@ -5886,8 +5886,8 @@
         "version": "2.6.0"
       },
       "path": "src/l9_graphite_memory/active/redis_adapters.py",
-      "sha256": "3af2952efcb1a44c4dfb94e5b7f4dacd189ea32fe45038490a7c61e74dfe440a",
-      "size_bytes": 25699
+      "sha256": "a9099ef371a66887baf291f84575cba4153b2d178313cc085d57fb4064ee812d",
+      "size_bytes": 26329
     },
     {
       "category": "production_source",
@@ -6558,8 +6558,8 @@
         "version": "2.6.0"
       },
       "path": "src/l9_graphite_memory/contracts/receipts.py",
-      "sha256": "24968f083c66f08285f60027e79126d9199542d495122a7ae9db78d7d72b29e0",
-      "size_bytes": 17117
+      "sha256": "5805f16d42295d930f2402586663bf0cb70cf5ed8dd6f83f50a46cdc95a0301a",
+      "size_bytes": 17164
     },
     {
       "category": "production_source",
@@ -7886,8 +7886,8 @@
         "version": "2.6.0"
       },
       "path": "src/l9_graphite_memory/runtime.py",
-      "sha256": "61082799d174027f71e76b3f641bd172676503662cb08b2ecef0f881395e2060",
-      "size_bytes": 15180
+      "sha256": "0da90653024de1babf4032b362796daba0445af4d9e3a78962be483bf7377f80",
+      "size_bytes": 15980
     },
     {
       "category": "production_source",
@@ -10494,8 +10494,8 @@
         "version": "2.6.0"
       },
       "path": "tests/unit/test_active_memory_runtime.py",
-      "sha256": "aaff52ec779dbfd8f905f42c74942f2ac5aefd4c1cd3d41b4735eb4008d80256",
-      "size_bytes": 23658
+      "sha256": "ff2085704e3bfd5ec502228447bfe31c16db28aeaf4fbd89902feb16844a245f",
+      "size_bytes": 29140
     },
     {
       "category": "tests",
@@ -11870,8 +11870,8 @@
         "version": "2.6.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "1995ce29601238fb6a247e758d2031158e6e5071558da667435950b2b5ef068a",
-      "size_bytes": 34210
+      "sha256": "84f4aba2b364c81e2bc07b1520cd6bf2bf526d8d28a952a1d9a675a24436703d",
+      "size_bytes": 34649
     },
     {
       "category": "assurance",
