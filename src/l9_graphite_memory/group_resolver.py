@@ -104,19 +104,22 @@ def resolve_group(
         raise ConfigurationError("registry repos must be a mapping")
     remote = _git_remote_url(current)
     path_text = str(current)
-    matches: list[str] = []
+    remote_matches: list[str] = []
+    path_matches: list[str] = []
     for slug, raw_config in repositories.items():
         if not isinstance(raw_config, dict):
             continue
         patterns = raw_config.get("remote_patterns") or []
         hints = raw_config.get("path_hints") or []
         if remote and any(fnmatch(remote, str(pattern)) for pattern in patterns):
-            matches.append(str(slug))
+            remote_matches.append(str(slug))
             continue
         if any(str(hint).casefold() in path_text.casefold() for hint in hints):
-            matches.append(str(slug))
+            path_matches.append(str(slug))
 
-    unique = tuple(sorted(set(matches)))
+    # Resolution order is git_remote before path_hint: a checkout nested under a
+    # directory carrying another repository's hint keeps its own remote identity.
+    unique = tuple(sorted(set(remote_matches or path_matches)))
     if len(unique) == 1:
         return GroupResolution(
             group_id=unique[0], method="registry", readonly=False, matches=unique

@@ -279,3 +279,20 @@ def test_recon_directory_name_without_remote_does_not_resolve(
         result = resolve_group(path, settings=MemorySettings())
         assert result.group_id != slug, owner_repo
         assert result.readonly is True
+
+
+def test_exact_remote_outranks_an_enclosing_path_hint(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Registry order is git_remote before path_hint: a nested checkout keeps its identity."""
+
+    monkeypatch.delenv("L9_MEMORY_NAMESPACE", raising=False)
+    monkeypatch.delenv("GRAPHITI_GROUP_ID", raising=False)
+    nested = _checkout(
+        tmp_path / "Cursor-Governance" / "l9-ci-core",
+        "https://github.com/Quantum-L9/l9-ci-core.git",
+    )
+    result = resolve_group(nested, settings=MemorySettings())
+    assert result.group_id == "l9-ci-core"
+    assert result.matches == ("l9-ci-core",)
+    assert result.readonly is False

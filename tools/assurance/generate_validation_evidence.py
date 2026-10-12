@@ -324,8 +324,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # test_stdio_namespace_resolution.py (Tier 3 and signed Tier 2
         # non-widening x 5 namespaces). None are backend-parameterized or
         # CI-skipped. 1648 + 46 + 10 = 1704; CI skips 52.
-        "1704 tests pass",
-        r"1704 passed",
+        # Re-pinned 1704 -> 1705 for the remote-over-path-hint precedence fix:
+        # 1 case in test_group_resolver.py (nested checkout under a directory
+        # carrying another repository's hint). Not CI-skipped. 1704 + 1 = 1705.
+        "1705 tests pass",
+        r"1705 passed",
     ),
     CheckSpec(
         "V-002",
