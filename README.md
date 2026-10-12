@@ -155,8 +155,10 @@ A consumer choosing the full-capability shared-agent deployment MUST:
    credentials in tracked deployment files or generated MCP settings.
 5. Report the five capability families independently, each on its own
    evidence: `canonical`, `projection`, `graph`, `active_store` and
-   `awareness_bus`. The full-capability verdict is `full_capability=true`,
-   the conjunction of every family being both selected and healthy. An HTTP
+   `awareness_bus`. The full-capability verdict is `full_capability=true`:
+   every family selected and healthy over the shared PostgreSQL canonical
+   store. A SQLite canonical store, a shadow-only projection or an incomplete
+   Redis capability probe never yields it. An HTTP
    200 from `/healthz` or `/readyz` alone is not full-capability proof:
    `/readyz` answers the aggregate `ready` verdict over required families,
    which is weaker than `full_capability`. The five-family readiness report
