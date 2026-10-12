@@ -80,6 +80,17 @@ def _probe_proven(enabled: bool, probe: dict[str, object], family: str) -> bool:
     )
 
 
+def _full_capability(families: list[ReadinessFamily], *, shared_store: bool) -> bool:
+    """The strict verdict a full-capability shared-agent deployment must observe.
+
+    Every family selected and healthy, over the shared PostgreSQL canonical
+    store: a process-local SQLite ledger is a valid canonical family for
+    ``ready`` but never qualifies the shared deployment (ADR-097).
+    """
+
+    return shared_store and all(family.selected and family.healthy for family in families)
+
+
 def _disabled_active_memory() -> ActiveMemoryBinding:
     return build_active_memory(MemorySettings())
 
@@ -127,16 +138,19 @@ class MemoryRuntime:
                 selected=True,
                 required=True,
                 healthy=store_healthy,
-                detail=dict(health.store),
+                detail={**health.store, "shared_store": self.settings.is_shared_store},
                 reasons=reasons,
             )
         )
 
-        projection_selected = self.service.projections.enabled
+        # Only an active target is a retrievable projection. A shadow target
+        # delivers but never feeds retrieval and never degrades health, so a
+        # shadow-only projection must not read as a selected, healthy family.
+        projection_selected = bool(self.service.projections.active_targets())
         projection_healthy = bool(health.projection.get("healthy", True))
         projection_detail = dict(health.projection)
         projection_detail["outbox_backlog"] = health.outbox_backlog
-        # An enabled projection is a selected capability: its failure keeps
+        # A projection with an active target is a selected capability: its failure keeps
         # the process from reporting ready, exactly as the health status
         # ``partial`` already did for ``/readyz`` before families existed.
         families.append(
@@ -210,7 +224,7 @@ class MemoryRuntime:
         return ReadinessReport(
             status=status,
             ready=ready,
-            full_capability=all(family.selected and family.healthy for family in families),
+            full_capability=_full_capability(families, shared_store=self.settings.is_shared_store),
             package_version=PACKAGE_VERSION,
             schema_version=MEMORY_SCHEMA_VERSION,
             families=tuple(families),

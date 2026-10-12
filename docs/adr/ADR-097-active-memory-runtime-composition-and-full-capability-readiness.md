@@ -75,7 +75,15 @@ acceptance criteria of a deployment that selected the capability.
    and carries `selected`, `required`, `healthy` and `ready`. A required
    family is ready only when it is selected and healthy; an optional family is
    always ready and only degrades the status. `ready` is the aggregate;
-   `full_capability` is true only when every family is selected and healthy.
+   `full_capability` is true only when every family is selected and healthy
+   and the canonical store is the shared PostgreSQL backend: a process-local
+   SQLite ledger is a valid canonical family for `ready` but never qualifies
+   the shared-agent deployment. The projection family is selected only by an
+   active target; a shadow target delivers but never feeds retrieval, so a
+   shadow-only projection is not a selected family. A Redis family is healthy
+   only on positive probe evidence: explicit healthy connectivity, an
+   authenticated credential and every capability step it needs (store
+   `ping`, `scalar`, `sorted_set`; bus `ping`, `publish`).
    `GET /readyz` and `l9-memory readiness` expose the report; `/readyz`
    returns 503 whenever the aggregate is not ready. `memory.health` and
    `/healthz` keep their canonical-plus-projection shape (ADR-090).
@@ -144,7 +152,8 @@ a contract consumers bind to by version without changing the version.
   readiness report or in a log; only `credential_source` does.
 - A required family that is absent or unhealthy makes `ReadinessReport.ready`
   false and `/readyz` 503. `full_capability` is never true while any family
-  is unselected or unhealthy.
+  is unselected or unhealthy, while the canonical store is not the shared
+  PostgreSQL backend, or on a Redis probe that did not complete every step.
 - Every edge the session takes exists in the ADR-067 diagram.
 - The Redis adapters' `health()` reports the probe steps that actually ran.
 
