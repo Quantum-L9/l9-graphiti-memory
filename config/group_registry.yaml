@@ -35,3 +35,146 @@ repos:
     remote_patterns: ["*/L9-Node-Template*"]
     path_hints: [L9-Node-Template]
     integrates_with: [cursor-governance]
+  # --- RECON-0 allowlist registered 2026-10-12: exact owner/repo remote match only,
+  # no path hints (substring path hints cannot distinguish e.g. a nested .github dir).
+  # A registration is an address; it grants nothing (ADR-006, ADR-083).
+  quantum-l9-github:
+    github: Quantum-L9/.github
+    remote_patterns: ["*/Quantum-L9/.github", "*/Quantum-L9/.github.git", "*:Quantum-L9/.github", "*:Quantum-L9/.github.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  constellation-gate:
+    github: Quantum-L9/Constellation.Gate
+    remote_patterns: ["*/Quantum-L9/Constellation.Gate", "*/Quantum-L9/Constellation.Gate.git", "*:Quantum-L9/Constellation.Gate", "*:Quantum-L9/Constellation.Gate.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  enrichment-inference-engine:
+    github: Quantum-L9/Enrichment.Inference.Engine
+    remote_patterns: ["*/Quantum-L9/Enrichment.Inference.Engine", "*/Quantum-L9/Enrichment.Inference.Engine.git", "*:Quantum-L9/Enrichment.Inference.Engine", "*:Quantum-L9/Enrichment.Inference.Engine.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  gate-sdk:
+    github: Quantum-L9/Gate_SDK
+    remote_patterns: ["*/Quantum-L9/Gate_SDK", "*/Quantum-L9/Gate_SDK.git", "*:Quantum-L9/Gate_SDK", "*:Quantum-L9/Gate_SDK.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  ideaos:
+    github: Quantum-L9/IdeaOS
+    remote_patterns: ["*/Quantum-L9/IdeaOS", "*/Quantum-L9/IdeaOS.git", "*:Quantum-L9/IdeaOS", "*:Quantum-L9/IdeaOS.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  seo-bot:
+    github: Quantum-L9/SEO-Bot
+    remote_patterns: ["*/Quantum-L9/SEO-Bot", "*/Quantum-L9/SEO-Bot.git", "*:Quantum-L9/SEO-Bot", "*:Quantum-L9/SEO-Bot.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  splitwisely-ai:
+    github: Quantum-L9/SplitWisely.ai
+    remote_patterns: ["*/Quantum-L9/SplitWisely.ai", "*/Quantum-L9/SplitWisely.ai.git", "*:Quantum-L9/SplitWisely.ai", "*:Quantum-L9/SplitWisely.ai.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  website-bot:
+    github: Quantum-L9/Website-Bot
+    remote_patterns: ["*/Quantum-L9/Website-Bot", "*/Quantum-L9/Website-Bot.git", "*:Quantum-L9/Website-Bot", "*:Quantum-L9/Website-Bot.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-assurance:
+    github: Quantum-L9/l9-assurance
+    remote_patterns: ["*/Quantum-L9/l9-assurance", "*/Quantum-L9/l9-assurance.git", "*:Quantum-L9/l9-assurance", "*:Quantum-L9/l9-assurance.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-campaign-execution:
+    github: Quantum-L9/l9-campaign-execution
+    remote_patterns: ["*/Quantum-L9/l9-campaign-execution", "*/Quantum-L9/l9-campaign-execution.git", "*:Quantum-L9/l9-campaign-execution", "*:Quantum-L9/l9-campaign-execution.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-ci-core:
+    github: Quantum-L9/l9-ci-core
+    remote_patterns: ["*/Quantum-L9/l9-ci-core", "*/Quantum-L9/l9-ci-core.git", "*:Quantum-L9/l9-ci-core", "*:Quantum-L9/l9-ci-core.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-ci-debt-intelligence:
+    github: Quantum-L9/l9-ci-debt-intelligence
+    remote_patterns: ["*/Quantum-L9/l9-ci-debt-intelligence", "*/Quantum-L9/l9-ci-debt-intelligence.git", "*:Quantum-L9/l9-ci-debt-intelligence", "*:Quantum-L9/l9-ci-debt-intelligence.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-ci-debt-lsp:
+    github: Quantum-L9/l9-ci-debt-lsp
+    remote_patterns: ["*/Quantum-L9/l9-ci-debt-lsp", "*/Quantum-L9/l9-ci-debt-lsp.git", "*:Quantum-L9/l9-ci-debt-lsp", "*:Quantum-L9/l9-ci-debt-lsp.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-ci-debt-resolver:
+    github: Quantum-L9/l9-ci-debt-resolver
+    remote_patterns: ["*/Quantum-L9/l9-ci-debt-resolver", "*/Quantum-L9/l9-ci-debt-resolver.git", "*:Quantum-L9/l9-ci-debt-resolver", "*:Quantum-L9/l9-ci-debt-resolver.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-ci-sdk:
+    github: Quantum-L9/l9-ci-sdk
+    remote_patterns: ["*/Quantum-L9/l9-ci-sdk", "*/Quantum-L9/l9-ci-sdk.git", "*:Quantum-L9/l9-ci-sdk", "*:Quantum-L9/l9-ci-sdk.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-cognitive-runtime:
+    github: Quantum-L9/l9-cognitive-runtime
+    remote_patterns: ["*/Quantum-L9/l9-cognitive-runtime", "*/Quantum-L9/l9-cognitive-runtime.git", "*:Quantum-L9/l9-cognitive-runtime", "*:Quantum-L9/l9-cognitive-runtime.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-constellation-topology:
+    github: Quantum-L9/l9-constellation-topology
+    remote_patterns: ["*/Quantum-L9/l9-constellation-topology", "*/Quantum-L9/l9-constellation-topology.git", "*:Quantum-L9/l9-constellation-topology", "*:Quantum-L9/l9-constellation-topology.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-harness:
+    github: Quantum-L9/l9-harness
+    remote_patterns: ["*/Quantum-L9/l9-harness", "*/Quantum-L9/l9-harness.git", "*:Quantum-L9/l9-harness", "*:Quantum-L9/l9-harness.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-learning-foundry:
+    github: Quantum-L9/l9-learning-foundry
+    remote_patterns: ["*/Quantum-L9/l9-learning-foundry", "*/Quantum-L9/l9-learning-foundry.git", "*:Quantum-L9/l9-learning-foundry", "*:Quantum-L9/l9-learning-foundry.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-meta-injector:
+    github: Quantum-L9/l9-meta-injector
+    remote_patterns: ["*/Quantum-L9/l9-meta-injector", "*/Quantum-L9/l9-meta-injector.git", "*:Quantum-L9/l9-meta-injector", "*:Quantum-L9/l9-meta-injector.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-observability-core:
+    github: Quantum-L9/l9-observability-core
+    remote_patterns: ["*/Quantum-L9/l9-observability-core", "*/Quantum-L9/l9-observability-core.git", "*:Quantum-L9/l9-observability-core", "*:Quantum-L9/l9-observability-core.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  pr-repair:
+    github: Quantum-L9/l9-pr-repair
+    remote_patterns: ["*/Quantum-L9/l9-pr-repair", "*/Quantum-L9/l9-pr-repair.git", "*:Quantum-L9/l9-pr-repair", "*:Quantum-L9/l9-pr-repair.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-repo-template:
+    github: Quantum-L9/l9-repo-template
+    remote_patterns: ["*/Quantum-L9/l9-repo-template", "*/Quantum-L9/l9-repo-template.git", "*:Quantum-L9/l9-repo-template", "*:Quantum-L9/l9-repo-template.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-revops:
+    github: Quantum-L9/l9-revops
+    remote_patterns: ["*/Quantum-L9/l9-revops", "*/Quantum-L9/l9-revops.git", "*:Quantum-L9/l9-revops", "*:Quantum-L9/l9-revops.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-semantic-compiler-engine:
+    github: Quantum-L9/l9-semantic-compiler-engine
+    remote_patterns: ["*/Quantum-L9/l9-semantic-compiler-engine", "*/Quantum-L9/l9-semantic-compiler-engine.git", "*:Quantum-L9/l9-semantic-compiler-engine", "*:Quantum-L9/l9-semantic-compiler-engine.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-state:
+    github: Quantum-L9/l9-state
+    remote_patterns: ["*/Quantum-L9/l9-state", "*/Quantum-L9/l9-state.git", "*:Quantum-L9/l9-state", "*:Quantum-L9/l9-state.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  l9-wip:
+    github: Quantum-L9/l9-wip
+    remote_patterns: ["*/Quantum-L9/l9-wip", "*/Quantum-L9/l9-wip.git", "*:Quantum-L9/l9-wip", "*:Quantum-L9/l9-wip.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]
+  ib-odoo-19:
+    github: cryptoxdog/IB-Odoo_19
+    remote_patterns: ["*/cryptoxdog/IB-Odoo_19", "*/cryptoxdog/IB-Odoo_19.git", "*:cryptoxdog/IB-Odoo_19", "*:cryptoxdog/IB-Odoo_19.git"]
+    path_hints: []
+    integrates_with: [cursor-governance]

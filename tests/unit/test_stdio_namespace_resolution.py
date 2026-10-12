@@ -371,3 +371,38 @@ def test_human_door_principal_is_static_across_requests(
     second = resolver.for_request(_tools_call(OTHER_REPO))
     assert first == second
     assert first.auth_method == "stdio-human-door"
+
+
+# ---------------------------------------------------------------------------
+# RECON-0 registrations (2026-10-12) are addresses, never grants
+# ---------------------------------------------------------------------------
+
+RECON_REGISTERED = ("quantum-l9-github", "l9-ci-core", "pr-repair", "ib-odoo-19", "l9-wip")
+
+
+@pytest.mark.parametrize("namespace", RECON_REGISTERED)
+def test_recon_registered_namespace_does_not_widen_tier3(namespace: str, home_cwd: Path) -> None:
+    principal = StdioPrincipalResolver(MemorySettings()).for_request(_tools_call(namespace))
+
+    assert principal.is_admin is False
+    assert _granted(principal, namespace) == {
+        "read": False,
+        "write": False,
+        "promote": False,
+        "maintain": False,
+    }
+    assert principal.write_namespaces == (HOME_REPO,)
+    assert _write_allowed(principal, namespace) is False
+
+
+@pytest.mark.parametrize("namespace", RECON_REGISTERED)
+def test_recon_registered_namespace_does_not_widen_signed_tier2(
+    namespace: str, signed_agent: None, unresolvable_cwd: Path
+) -> None:
+    principal = StdioPrincipalResolver(MemorySettings()).for_request(_tools_call(namespace))
+
+    assert principal.auth_method == "stdio-agent-assertion"
+    assert principal.write_namespaces == (HOME_REPO, OTHER_REPO)
+    assert namespace not in principal.promote_namespaces
+    assert namespace not in principal.maintain_namespaces
+    assert _write_allowed(principal, namespace) is False
