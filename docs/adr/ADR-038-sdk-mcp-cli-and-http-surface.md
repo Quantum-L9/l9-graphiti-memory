@@ -118,7 +118,7 @@ Verified against `src/l9_graphite_memory/server.py` and `version.py` at
 
 | Property | 2.6.0 behavior | Gap against the target |
 |---|---|---|
-| Routes | `POST /mcp`, `POST /mcp/`, `GET /healthz`, `GET /readyz` | no `GET`/`DELETE` handler on the MCP endpoint |
+| Routes | `POST /mcp`, `POST /mcp/`; unauthenticated `GET /healthz`, `GET /readyz`, and FastAPI's default `/docs`, `/redoc`, `/openapi.json` | no `GET`/`DELETE` handler on the MCP endpoint; the unauthenticated documentation and readiness routes need an explicit exposure decision |
 | Framing | one JSON-RPC object per POST, JSON response; batches rejected | no `text/event-stream` responses; `Accept` not read |
 | Notifications | `notifications/initialized` answered `200 {"status":"ok"}`; any other notification gets a `-32601` error body | Streamable HTTP answers an accepted notification `202` with no body |
 | Version | `initialize` always returns `2024-11-05`; the client's requested version is ignored | no negotiation; `MCP-Protocol-Version` header not read |
@@ -159,5 +159,6 @@ campaigns in their own repositories and are not proof of any item above.
 
 ### Rollback
 
-Unchanged: retain stdio MCP and the CLI while disabling HTTP. Rolling back the
-target itself means deleting this amendment; no code depends on it.
+Unchanged: retain stdio MCP and the CLI while disabling HTTP. Withdrawing the
+target itself is a later dated amendment that says so; this one is not
+deleted. No code depends on it.

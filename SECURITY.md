@@ -42,8 +42,8 @@ The system defends against:
 ## Remote HTTP: target boundary and current gaps
 
 The target agent transport is a centrally hosted HTTPS MCP service (ADR-038
-amendment, 2026-10-13). It is not implemented. Its required security
-properties (ADR-083 amendment, 2026-10-13) are:
+amendment, 2026-10-13). It is not implemented. The proposed boundary
+(ADR-083 amendment, 2026-10-13) requires of any implementation:
 
 - a per-request principal established server-side from an authenticated,
   per-agent credential with the same canonical identity proof the stdio agent
@@ -64,11 +64,16 @@ Known gaps in the 2.6.0 HTTP server, none of which this documentation
 changes:
 
 - static bearer token-to-principal authentication, not equivalent to the
-  signed agent door;
+  signed agent door; a token's principal may carry `is_admin` or
+  `is_global_admin`, so administrator authority is reachable over HTTP if the
+  token map grants it;
+- `/healthz`, `/readyz` and FastAPI's default `/docs`, `/redoc` and
+  `/openapi.json` are served without authentication;
 - no `Origin` validation, protocol negotiation or `WWW-Authenticate`
   challenge;
 - HMAC agent assertions are not nonce-tracked, so one is replayable until it
-  expires;
+  expires; keep assertion lifetimes short and use them only as the stdio
+  process credential they were designed as;
 - auth-disabled loopback HTTP serves the stdio principal, which is the
   administrator when `L9_MEMORY_HUMAN_DOOR_SECRET` is set.
 

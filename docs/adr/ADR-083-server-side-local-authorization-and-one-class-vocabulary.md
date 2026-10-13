@@ -301,6 +301,8 @@ Superseded by: none.
 ## Amendment — proposed remote per-request trust boundary (2026-10-13)
 
 **Decision date:** 2026-10-13 (operator decision, campaign MEM-HTTP-DOC-01).
+**Status:** proposed boundary. The guarantees below are required of any
+implementation; the mechanism that meets them is not chosen.
 **Implementation status:** not implemented. **Proof status:** not proven.
 
 ADR-038's 2026-10-13 amendment makes authenticated remote HTTPS the target
@@ -359,7 +361,9 @@ proves possession of a shared string and nothing else. It carries no agent
 signing key, no expiry, no canonical identity assertion and no actor-registry
 binding, and the token map itself is where the principal's grants live. It is
 therefore **not proved equivalent** to the Tier-2 signed agent door and is not
-the selected production agent identity contract.
+the selected production agent identity contract. A token principal may also
+carry `is_admin` and `is_global_admin`, which guarantee 4 forbids on the
+agent endpoint.
 
 Two further facts, recorded for the implementation campaign and not changed
 by this documentation amendment:

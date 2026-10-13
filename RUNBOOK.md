@@ -154,7 +154,7 @@ A missing locator, unavailable deletion tool, or provider error leaves the event
 l9-memory-server --transport stdio
 ```
 
-Stdio MCP is the supported agent transport of this release. Its principal is established once at startup, server-side (ADR-083): from a verified signed agent assertion and canonical identity assertion when the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET`) is configured, and otherwise from the server working directory, with no implicit administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
+Stdio MCP is the supported agent transport of this release. Its principal is established once at startup, server-side, in three tiers (ADR-083): the human door (`L9_MEMORY_HUMAN_DOOR_SECRET` set) yields an administrator principal; otherwise the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET` set) yields the principal of a verified signed agent assertion and canonical identity assertion; otherwise the principal comes from the server working directory, with no administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
 
 ```bash
 export L9_MEMORY_LOCAL_READ_NAMESPACES=l9-graphiti-memory,l9-workspace
@@ -177,16 +177,20 @@ agent deployment.
 
 What the 2.6.0 HTTP server is:
 
-- one JSON-RPC object per `POST /mcp`, answered with JSON; `GET /healthz` and
-  `GET /readyz`;
+- one JSON-RPC object per `POST /mcp`, answered with JSON. `GET /healthz`,
+  `GET /readyz` and FastAPI's default `/docs`, `/redoc` and `/openapi.json`
+  are also served, all without authentication;
 - `initialize` always answers protocol `2024-11-05`; no protocol negotiation,
-  no `MCP-Protocol-Version`, `Origin` or `Accept` handling, no event streams,
-  and notifications are acknowledged `200 {"status":"ok"}` rather than `202`;
+  no `MCP-Protocol-Version`, `Origin` or `Accept` handling, and no event
+  streams. `notifications/initialized` is acknowledged `200 {"status":"ok"}`
+  rather than `202`; any other notification gets a `-32601` error body;
 - no TLS in-process;
 - authentication by a static `Authorization: Bearer` token looked up in a
   token-to-principal map. That map proves possession of a shared string. It is
   **not** the signed per-agent identity the stdio agent door verifies, and it
-  is not the selected production agent identity contract.
+  is not the selected production agent identity contract. A token's
+  principal can also carry `is_admin` and `is_global_admin`, so administrator
+  authority is reachable over this endpoint if the token map grants it.
 
 For local development and tests only:
 

@@ -430,7 +430,7 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "a226a27f22e1aebadf44f53d27d3bc77fdfde376112d0b5d093cb346e84ad248",
+      "sha256": "b54737e5a50f9f1b5c843b34a31c15ea171689f34832f380593a44ab9da1ff1a",
       "size_bytes": 140335
     },
     {
@@ -478,8 +478,8 @@
         "version": "2.6.0"
       },
       "path": "README.md",
-      "sha256": "e3861f4d40538585fce6cb7fc761c8fd359e9594daae115e6f85910d60f76c51",
-      "size_bytes": 12854
+      "sha256": "432aae7ad34691c44204f478fe200c5e2fbdde3e90977e5a42f93ea5917c1c5b",
+      "size_bytes": 12905
     },
     {
       "category": "repository_root",
@@ -510,8 +510,8 @@
         "version": "2.6.0"
       },
       "path": "RUNBOOK.md",
-      "sha256": "e03f7592eacc3ac024dba8fe5bbaaf798822d9e3a0c3da53702d07dbde030298",
-      "size_bytes": 24890
+      "sha256": "a4d48d5bda37ef1edd777caef4d4fa0adf89b24b33f20f3d7c5f0c8c53acd917",
+      "size_bytes": 25342
     },
     {
       "category": "repository_root",
@@ -526,8 +526,8 @@
         "version": "2.6.0"
       },
       "path": "SECURITY.md",
-      "sha256": "0e7cfde2b4f46f46596e7fe6953232d87f9e74e12301bd3bb88ab3f60e4e594a",
-      "size_bytes": 3321
+      "sha256": "33bd9a65b9d4d715bb6a824721e4b59b761c5ebfc3dd5a09e08593a35501b061",
+      "size_bytes": 3709
     },
     {
       "category": "repository_root",
@@ -3598,8 +3598,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md",
-      "sha256": "86ca48f5b2e831e2113537bf20af3ed22519d2eef75339b3b5b15ea3f5391de3",
-      "size_bytes": 7518
+      "sha256": "8a53705e8c5b18da6eda0ec38c70b18858fde139110459c70861fa18717592fe",
+      "size_bytes": 7717
     },
     {
       "category": "architecture_decisions",
@@ -4318,8 +4318,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md",
-      "sha256": "5943966195c4cb41021c425e622f023111663b6b1667a873d74ac0fc12afaf99",
-      "size_bytes": 22291
+      "sha256": "9e921d57b0dbfb23d640a309035314eba160505476c40e7ca51c4cc763732eb0",
+      "size_bytes": 22540
     },
     {
       "category": "architecture_decisions",

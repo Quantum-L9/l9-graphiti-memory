@@ -148,7 +148,8 @@ open question recorded in ADR-094.
 The basic shared deployment the remote target needs is the canonical store and
 nothing else: `store_backend: postgres` against a **new, empty** database, and
 `projection_backend`, `graph_intelligence_backend` and
-`active_memory_backend` left at `none`. Redis, Graphiti and Neo4j are not
+`active_memory_backend` left at `none` (and `projection_runtime` at its
+`legacy` default). Redis, Graphiti and Neo4j are not
 prerequisites, and the five-family full-capability qualification below is not
 a prerequisite either. This greenfield path imports, restores or reuses no
 existing ledger, graph, cache or backup; moving an existing ledger is the

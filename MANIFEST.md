@@ -82,10 +82,10 @@ updated: 2026-07-22
 | `MANIFEST.in` | `repository_root` | `repository` | 624 | `0b09fe70fcf48900117c6dfd3a56a4037d93e3b1c50f2dad9cfa1e5286b54986` |
 | `MIGRATION.md` | `repository_root` | `repository` | 4254 | `328c85b8d4f7a11d30b1c5a5518e99f6764f1cf4f42140d6291bb3b810a6250d` |
 | `QUICKSTART.md` | `repository_root` | `repository` | 2546 | `f205c527c35355891feac719f63ab857aed0609cd7161ba09fcda3746a7d2fbc` |
-| `README.md` | `repository_root` | `repository` | 12854 | `e3861f4d40538585fce6cb7fc761c8fd359e9594daae115e6f85910d60f76c51` |
+| `README.md` | `repository_root` | `repository` | 12905 | `432aae7ad34691c44204f478fe200c5e2fbdde3e90977e5a42f93ea5917c1c5b` |
 | `ROADMAP.md` | `repository_root` | `repository` | 2353 | `c184c97f914bd12f626064f998de29db7bf6a26f135ad9db16328c6d7bd0532a` |
-| `RUNBOOK.md` | `repository_root` | `repository` | 24890 | `e03f7592eacc3ac024dba8fe5bbaaf798822d9e3a0c3da53702d07dbde030298` |
-| `SECURITY.md` | `repository_root` | `repository` | 3321 | `0e7cfde2b4f46f46596e7fe6953232d87f9e74e12301bd3bb88ab3f60e4e594a` |
+| `RUNBOOK.md` | `repository_root` | `repository` | 25342 | `a4d48d5bda37ef1edd777caef4d4fa0adf89b24b33f20f3d7c5f0c8c53acd917` |
+| `SECURITY.md` | `repository_root` | `repository` | 3709 | `33bd9a65b9d4d715bb6a824721e4b59b761c5ebfc3dd5a09e08593a35501b061` |
 | `VALIDATION.md` | `repository_root` | `repository` | 5961 | `cc080b66ea5dbffa54509f3fbe92264dd6b009da68767595d90c0ea96767e8a7` |
 | `campaigns/canonical-memory-lifecycle-convergence-v1/intent.yaml` | `repository_root` | `repository` | 24543 | `f7098ab1911640dcb23cd525b486e3eb7f24323adc58e585482a9f3de12c09a9` |
 | `campaigns/canonical-memory-lifecycle-convergence-v1/program-execution.intent.yaml` | `repository_root` | `repository` | 2661 | `ea0a5f70b05479f2edc92f868a716ec9166082104538291870dd5f6502d5903a` |
@@ -277,7 +277,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-035-schema-registry-and-upcasting.md` | `architecture_decisions` | `adr` | 2465 | `8160ce21e2ce5625040f6c20bc7cbd8f6c10a266c1f0d7d1517994ef82e3c9d2` |
 | `docs/adr/ADR-036-canonical-write-bypass-enforcement.md` | `architecture_decisions` | `adr` | 4768 | `430ecd623ef21188804785faf656459c31f0c08355ea085a405d134e832fb905` |
 | `docs/adr/ADR-037-configuration-authority-and-drift-prevention.md` | `architecture_decisions` | `adr` | 2450 | `5752b8e3ba24f7b72bd5f3061a24da2bdf2e44a18f014ddda155238082371131` |
-| `docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md` | `architecture_decisions` | `adr` | 7518 | `86ca48f5b2e831e2113537bf20af3ed22519d2eef75339b3b5b15ea3f5391de3` |
+| `docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md` | `architecture_decisions` | `adr` | 7717 | `8a53705e8c5b18da6eda0ec38c70b18858fde139110459c70861fa18717592fe` |
 | `docs/adr/ADR-039-retrieval-planning-and-tier-fusion.md` | `architecture_decisions` | `adr` | 2662 | `62892754f8b4c437a83d71596afe36412f62a43adca70757fde5afb1e4ecc6a3` |
 | `docs/adr/ADR-040-importance-ranking-and-decay-policy.md` | `architecture_decisions` | `adr` | 2509 | `df6457b8fa6bb65f3a8239a998c79e8926c18ee10f5cf5de448a14e585d81405` |
 | `docs/adr/ADR-041-llm-extraction-and-typed-failure-semantics.md` | `architecture_decisions` | `adr` | 2653 | `97764420b9fdebb25864920fb392b4a137fa3132b6293dcda662c39f5b2fd694` |
@@ -322,7 +322,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-080-automated-quarantine-review.md` | `architecture_decisions` | `adr` | 7562 | `2db001d279649a83e9908186759e3ba8e6c4710a3dea60272eb107371652ef53` |
 | `docs/adr/ADR-081-canonical-conflict-links.md` | `architecture_decisions` | `adr` | 5596 | `fc99f0a340d20d663c6e9c579c6361f1da96396db35e470ab2eb2a407ca1003e` |
 | `docs/adr/ADR-082-consumer-control-plane-transport-parity.md` | `architecture_decisions` | `adr` | 13797 | `0f3e7bc6f16573e32412e530bddaf555991086f919d27235923adc2a577e2fba` |
-| `docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md` | `architecture_decisions` | `adr` | 22291 | `5943966195c4cb41021c425e622f023111663b6b1667a873d74ac0fc12afaf99` |
+| `docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md` | `architecture_decisions` | `adr` | 22540 | `9e921d57b0dbfb23d640a309035314eba160505476c40e7ca51c4cc763732eb0` |
 | `docs/adr/ADR-084-projection-runtime-and-target-aware-lifecycle.md` | `architecture_decisions` | `adr` | 14023 | `134985b079f233041f1901c559640e36190b8812931f2903b7b6c6cdd258c6b2` |
 | `docs/adr/ADR-085-tenant-safe-graph-scope-key.md` | `architecture_decisions` | `adr` | 6657 | `366a20bb34a6d1d81b55cec362942317cc834b131be5fd55b8892d0773f91e24` |
 | `docs/adr/ADR-086-graph-intelligence-port-and-neo4j-substrate.md` | `architecture_decisions` | `adr` | 6965 | `6d497a14768b3ac2366a388a4694d552698c54d4c51b17fa14431ec1a37b86ab` |
