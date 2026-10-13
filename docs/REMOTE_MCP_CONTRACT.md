@@ -1,3 +1,14 @@
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/REMOTE_MCP_CONTRACT.md
+layer: documentation
+owner: memory-control-plane
+status: active
+version: 2.7.0
+updated: 2026-07-22
+/L9_META -->
+
 # Remote MCP Contract — `memory-remote-mcp/v1`
 
 Binding for `l9-graphite-memory` **2.7.0** and later until the contract version

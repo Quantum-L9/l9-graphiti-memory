@@ -1,5 +1,17 @@
 # ADR-098: Remote MCP Transport and Signed-Agent HTTP Identity
 
+<!-- L9_META
+l9_schema: 1
+repo: Quantum-L9/l9-graphiti-memory
+path: docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md
+layer: adr
+owner: memory-control-plane
+status: active
+version: 2.7.0
+updated: 2026-07-22
+/L9_META -->
+
+
 **Date:** 2026-10-13
 **Decision owner:** Quantum-L9 memory architecture
 **Applies to:** `Quantum-L9/l9-graphiti-memory` v2.7+ and remote MCP consumers, first `Quantum-L9/Cursor-Governance`
