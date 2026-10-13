@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.6.0
-updated: 2026-10-07
+updated: 2026-10-13
 /L9_META -->
 
 
@@ -297,3 +297,89 @@ explicitly operator-configured. Extends ADR-082 (consumer
 control-plane transport parity) with the two write tools the receipt omitted.
 Does not supersede ADR-006 (local ACL claims), which it explicitly preserves.
 Superseded by: none.
+
+## Amendment — proposed remote per-request trust boundary (2026-10-13)
+
+**Decision date:** 2026-10-13 (operator decision, campaign MEM-HTTP-DOC-01).
+**Implementation status:** not implemented. **Proof status:** not proven.
+
+ADR-038's 2026-10-13 amendment makes authenticated remote HTTPS the target
+transport for agents. This amendment extends the scope of this ADR to that
+remote boundary. It is a requirement on a future implementation. It does not
+change the stdio decision above, the Tier-2 identity rule, or any invariant
+already listed, all of which continue to hold for the transports that exist.
+
+### Required remote guarantees
+
+A remote request reaches `MemoryService` only under a `MemoryPrincipal` that
+the server established for **that request**, and only when all of the
+following hold:
+
+1. **Authenticated agent identity.** The request proves possession of a
+   credential bound to exactly one registered agent. A credential that is
+   missing, expired, malformed, tampered with, replayed outside its validity
+   window, or signed by an unknown key is refused with an authentication
+   error. There is no anonymous principal and no fallback to a Tier-3
+   local-operator principal on a remote bind.
+2. **Canonical identity equivalence.** The resulting principal is held to the
+   same proof the signed agent door requires today: the authenticated agent id
+   must equal the actor-registry fragment of a resolved
+   `l9.identity-assertion/v1` carrying the provenance and pinned coordinates
+   listed in the Tier-2 rule. A remote door that authenticates a caller
+   without that equivalence is not this boundary.
+3. **No client escalation.** Roles, tenant, organization, workspace and
+   read/write/promote/maintain grants come only from server-side
+   configuration bound to the authenticated agent (today:
+   `L9_MEMORY_AGENT_GRANTS_JSON`). No header, query parameter, request body
+   field, MCP `_meta` value or identity assertion field adds a grant, selects a
+   tenant or sets `is_admin`. `INV-AUTHZ-01`…`INV-AUTHZ-05` apply per request.
+4. **Human and administrator separation.** Human-door and administrator
+   authority is not reachable through the agent endpoint. A remote
+   administrator path, if one is ever added, is a separate, separately
+   authenticated door and is out of scope here.
+5. **Tenant and namespace isolation** are those of ADR-006, unchanged: a
+   requested namespace is an address intersected with claims, never a claim.
+6. **Denials stay legible.** The `auth_method` and granted patterns continue to
+   appear in a denial reason, as decision 5 requires.
+
+This amendment does **not** choose a wire format for the remote credential.
+The MCP 2026-07-28 authorization specification makes authorization optional
+for HTTP and, when used, defines an OAuth 2.1 resource-server profile with
+protected-resource metadata, audience validation and a ban on token
+passthrough. Whether the implementation adopts that profile, carries the
+existing HMAC assertion and identity assertion per request, or does both, is
+for the implementation campaign to decide and prove. Nothing here should be
+read as a promise of OAuth support.
+
+### Why the 2.6.0 HTTP door is not this boundary
+
+The 2.6.0 HTTP surface authenticates with a static bearer token compared
+against a configured token-to-principal map (`TokenAuthenticator`). That
+proves possession of a shared string and nothing else. It carries no agent
+signing key, no expiry, no canonical identity assertion and no actor-registry
+binding, and the token map itself is where the principal's grants live. It is
+therefore **not proved equivalent** to the Tier-2 signed agent door and is not
+the selected production agent identity contract.
+
+Two further facts, recorded for the implementation campaign and not changed
+by this documentation amendment:
+
+- `verify_assertion` checks signature and expiry but keeps no nonce record, so
+  an HMAC agent assertion is replayable until it expires. That is acceptable
+  for a process-environment credential on stdio; it is not sufficient for a
+  per-request remote credential.
+- With `http_auth_required=false`, loopback HTTP serves exactly the stdio
+  principal (`INV-AUTHZ-04`). When `L9_MEMORY_HUMAN_DOOR_SECRET` is set, that
+  principal is the Tier-1 administrator, so auth-disabled loopback HTTP must
+  never run where the human door is configured. The remote target forbids
+  auth-disabled serving; enforcing that combination in code is a finding for
+  the implementation campaign.
+
+### Proof owed
+
+A remote identity test suite covering, at minimum: missing, expired,
+malformed, tampered, replayed and unknown-key credentials; an identity
+assertion naming a different actor; grant, tenant and admin escalation through
+every request-side field; human-door unreachability; and cross-tenant and
+cross-namespace denial — each run against the installed wheel over the real
+HTTP endpoint.

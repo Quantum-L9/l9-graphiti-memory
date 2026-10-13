@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-10-13
 /L9_META -->
 
 # Architecture
@@ -14,6 +14,23 @@ updated: 2026-07-22
 ## System identity
 
 `l9-graphiti-memory` is a dependency package with embedded operator and protocol adapters. It owns governed memory contracts, canonical persistence, retrieval planning, curation controls, and projection integration. It does not own agent execution, a world model, reasoning orchestration, constellation routing, or full agent checkpoint persistence.
+
+## Agent transport
+
+Every surface in the diagram below is an adapter into the same
+`MemoryService`. In the 2.6.0 release agents reach it through local stdio MCP,
+launched on the agent's machine. The target, decided 2026-10-13 (ADR-038
+amendment), is one centrally hosted `MemoryService` behind authenticated
+HTTPS MCP, with a new, empty PostgreSQL canonical store and a per-request,
+server-established agent principal (ADR-083 amendment). That target adds no
+second store, control plane or provider path; it is a different deployment of
+the same adapter and service. It is not implemented, and the 2.6.0 HTTP
+adapter is not qualified for it.
+
+The accepted ProductKind is still `dependency` with `local_composition`
+consumption, and the topology forbids remote invocation as canonical
+consumption. How a hosted service relates to that classification is
+unresolved and recorded in ADR-094; nothing here reclassifies the product.
 
 ## Control flow
 

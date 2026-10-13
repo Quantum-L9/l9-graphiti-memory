@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-09-05
+updated: 2026-10-13
 /L9_META -->
 
 
@@ -222,3 +222,52 @@ continuation supersedes the prior record and is the only one tag-selected
 search returns; refused supersession rejects the refinement and keeps the
 prior ACTIVE; the CLI carries `supersedes`; close replay reports a matched
 payload and a drifted one.
+
+## Amendment — semantic parity is not protocol conformance (2026-10-13)
+
+**Decision date:** 2026-10-13 (campaign MEM-HTTP-DOC-01).
+**Implementation status:** the remote HTTP contract below is required and
+not implemented. **Proof status:** not proven.
+
+This ADR's parity is **semantic**: every lifecycle operation reaches the same
+`MemoryService` handler with the same receipts, whatever adapter carries it.
+Three other properties are separate and are not implied by it:
+
+| Property | Owner | What proves it |
+|---|---|---|
+| Semantic operation parity | this ADR | `tests/unit/test_control_plane_transport_parity.py`; the capability receipt built from the live parser and tool inventory |
+| MCP transport/protocol conformance | ADR-038 | conformance tests for each pinned protocol revision (none exist for the HTTP server today) |
+| Remote authentication and identity | ADR-083 | the remote identity negative suite (does not exist today) |
+
+A green parity suite says nothing about whether the 2.6.0 HTTP endpoint is a
+conforming Streamable HTTP server, or whether its principal is the right
+agent.
+
+### Remote HTTP consumer contract (required, unverified)
+
+When ADR-038's remote target is implemented, a remote consumer binds to the
+following, and each item needs its own evidence over the real HTTP endpoint
+of an installed wheel before anyone claims it:
+
+1. **Negotiation.** The protocol revision or revisions the server pins, how a
+   client learns them, and how a mismatch is refused.
+2. **Discovery.** `tools/list` returns the same inventory `mcp_tools.py`
+   defines for stdio.
+3. **Invocation.** `tools/call` for every operation in `LIFECYCLE_OPERATIONS`
+   (`health`, `capabilities`, `hydrate`, `search`, `get`, `ingest`,
+   `ingest_governed_candidate`, `close`, `conflicts`, `phase_lock`,
+   `verify_phase_lock`) and for both agent write tools, `memory.write_agent`
+   and `memory.write_governed`.
+4. **Receipts.** The receipt shapes this ADR and ADR-083 document, unchanged.
+5. **Version handshake.** `memory.capabilities` reports package version,
+   schema version, `CONTROL_PLANE_CONTRACT_VERSION` and the MCP protocol
+   revision actually served, and a consumer binds to that receipt, not to tool
+   presence.
+
+Whether a remote HTTP surface keeps `memory-control-plane/v1` or needs a
+contract bump is **undetermined**. It can keep `v1` only if the operation set
+and every receipt shape are unchanged and a consumer's binding proof still
+holds over the new transport. No document may claim `memory-control-plane/v1`
+compatibility for remote HTTP until that is validated. The capability receipt
+today reports `mcp_protocol_version` `2024-11-05`, which describes what the
+server advertises, not a conformance result.

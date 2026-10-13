@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-07-27
+updated: 2026-10-13
 /L9_META -->
 
 # L9 Graphiti Memory
@@ -34,7 +34,7 @@ The repository name uses **Graphiti** because the project integrates with Graphi
 - Explicit complete, partial, failed, duplicate, rejected, quarantined, archived, and deleted outcomes
 - No plaintext secret persistence in generated agent configuration
 - Installed-wheel operation without a source checkout
-- A machine-validated 69-ADR ledger and 44-decision harvest coverage map
+- A machine-validated 97-ADR ledger and 51-decision harvest coverage map
 
 ## L9 alignment boundary
 
@@ -125,6 +125,35 @@ Projection choices:
 
 The HTTP adapter discovers the live Graphiti tool inventory. It supports the current `add_memory`, `search_memory_facts`, `search_nodes`, and `delete_episode` dialect plus the older `add_episode` and `search_facts` compatibility dialect.
 
+## Agent transport: current release and remote target
+
+| | Status in 2.6.0 | Notes |
+|---|---|---|
+| Local stdio MCP (`l9-memory-server --transport stdio`) | **working, supported** | the transport the managed entry from `l9-memory client cursor install` launches (`python -m l9_graphite_memory.server --transport stdio`) and `client cursor verify` proves (ADR-064) |
+| CLI and Python SDK | **working, supported** | unchanged |
+| HTTP MCP (`l9-memory-server --transport http`) | **present, not qualified for remote agents** | single JSON `POST /mcp`; static bearer token-to-principal map; no Streamable HTTP conformance, protocol negotiation or `Origin` validation; not equivalent to the signed agent identity door |
+| Centrally hosted, authenticated HTTPS Streamable HTTP service for Cursor and Claude Code | **target, not implemented** | decided 2026-10-13; see the ADR-038, ADR-083, ADR-082 and ADR-094 amendments |
+
+The target is one hosted `MemoryService` reached over authenticated HTTPS,
+with a per-agent principal established server-side on every request, backed
+by a new, empty PostgreSQL canonical store. Nothing in this release implements
+that target, no consumer is bound to it, and no deployment of it is claimed.
+Remote client configuration is a later, consumer-owned campaign;
+`config/mcp.json.example` stays the generated stdio entry until code changes
+it. Whether a hosted service fits the accepted `dependency` topology is an
+open question recorded in ADR-094.
+
+### Basic shared canonical deployment (target)
+
+The basic shared deployment the remote target needs is the canonical store and
+nothing else: `store_backend: postgres` against a **new, empty** database, and
+`projection_backend`, `graph_intelligence_backend` and
+`active_memory_backend` left at `none`. Redis, Graphiti and Neo4j are not
+prerequisites, and the five-family full-capability qualification below is not
+a prerequisite either. This greenfield path imports, restores or reuses no
+existing ledger, graph, cache or backup; moving an existing ledger is the
+separate migration path governed by ADR-072 and ADR-077.
+
 ## Consumer-selected full-capability shared deployment
 
 The installable `l9-graphite-memory` product remains a locally composed L9
@@ -185,7 +214,7 @@ bash scripts/preflight.sh
 bash scripts/validate_release.sh
 ```
 
-`validate_release.sh` builds and installs the wheel, runs installed-package smoke checks, and writes evidence under `validation/`. Live provider, production migration, hosted CodeQL, branch-protection, and credential-rotation proofs remain external release gates.
+`validate_release.sh` builds and installs the wheel, runs installed-package smoke checks, and writes evidence to the untracked `build/release-validation/` workspace (override with `L9_RELEASE_EVIDENCE_DIR`); it never writes the tracked `validation/` tree. Live provider, production migration, hosted CodeQL, branch-protection, and credential-rotation proofs remain external release gates.
 
 ## Documentation
 

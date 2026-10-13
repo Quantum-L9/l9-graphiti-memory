@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-07-27
+updated: 2026-10-13
 /L9_META -->
 
 # Quick Start
@@ -50,6 +50,16 @@ l9-memory import legacy-episodes.jsonl --group-id l9-graphiti-memory --dry-run
 l9-memory-server --transport stdio
 ```
 
+This is the local stdio MCP mode of the 2.6.0 release: the server runs on the
+same machine as the agent and is launched by it. It is supported and is what
+the Cursor lifecycle below installs.
+
+The target agent transport is a centrally hosted, authenticated HTTPS MCP
+service (ADR-038 amendment, 2026-10-13). It is **not implemented** in this
+release, so there is no remote-client quickstart yet. Do not point agents at
+`l9-memory-server --transport http` as a substitute: that surface is not
+qualified for remote agents (see `RUNBOOK.md`, "Remote HTTP MCP").
+
 ## Cursor instantiation
 
 ```bash
@@ -59,6 +69,6 @@ l9-memory client cursor verify
 l9-memory client cursor status
 ```
 
-`install` atomically writes the managed `l9-graphite-memory` entry into `~/.cursor/mcp.json`, preserving unrelated servers and never persisting secrets. `verify` launches the generated command and proves the full MCP handshake, tool inventory, and `memory.health`. Restart Cursor after installing, then see `docs/CURSOR_INSTANTIATION.md` for the full lifecycle and recovery.
+`install` atomically writes the managed local stdio `l9-graphite-memory` entry into `~/.cursor/mcp.json`, preserving unrelated servers and never persisting secrets. `verify` launches that stdio command and proves the full MCP handshake, tool inventory, and `memory.health` for the local entry; it is not evidence about any remote HTTP service. Restart Cursor after installing, then see `docs/CURSOR_INSTANTIATION.md` for the full lifecycle and recovery.
 
 See `RUNBOOK.md` for consent-governed profile writes, deletion, provider projection, recovery, backups, and release validation.

@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-10-13
 /L9_META -->
 
 # Security
@@ -30,7 +30,7 @@ The system defends against:
 - server-side MemoryPrincipal
 - separate read, write, promote, archive, and admin claims
 - tenant predicates in every store operation
-- explicit authentication for remote HTTP
+- explicit authentication for HTTP; unauthenticated HTTP refused on a non-loopback bind
 - repository-scoped local/stdio claims with administrator authority disabled by default
 - deterministic normalization and digests
 - admission quarantine
@@ -38,6 +38,41 @@ The system defends against:
 - schema upcasting and validation
 - atomic receipts and outbox
 - CI bypass, config-drift, ADR, and wiring checks
+
+## Remote HTTP: target boundary and current gaps
+
+The target agent transport is a centrally hosted HTTPS MCP service (ADR-038
+amendment, 2026-10-13). It is not implemented. Its required security
+properties (ADR-083 amendment, 2026-10-13) are:
+
+- a per-request principal established server-side from an authenticated,
+  per-agent credential with the same canonical identity proof the stdio agent
+  door requires;
+- no anonymous or local-operator fallback, and no role, tenant, grant or
+  administrator escalation from any request field;
+- human-door and administrator authority unreachable through the agent
+  endpoint;
+- ADR-006 tenant and namespace isolation, unchanged;
+- `Origin` validation and protocol-version handling as the pinned MCP revision
+  requires;
+- TLS terminated at a trusted reverse proxy, with the service itself bound
+  where only that proxy can reach it;
+- credentials, signing keys and the PostgreSQL DSN held in the runtime secret
+  path, never in tracked files, generated client configuration or logs.
+
+Known gaps in the 2.6.0 HTTP server, none of which this documentation
+changes:
+
+- static bearer token-to-principal authentication, not equivalent to the
+  signed agent door;
+- no `Origin` validation, protocol negotiation or `WWW-Authenticate`
+  challenge;
+- HMAC agent assertions are not nonce-tracked, so one is replayable until it
+  expires;
+- auth-disabled loopback HTTP serves the stdio principal, which is the
+  administrator when `L9_MEMORY_HUMAN_DOOR_SECRET` is set.
+
+Do not expose the 2.6.0 HTTP server to remote agents.
 
 ## Secret handling
 

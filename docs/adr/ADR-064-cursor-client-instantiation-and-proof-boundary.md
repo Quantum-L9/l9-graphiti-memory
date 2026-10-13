@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-07-27
+updated: 2026-10-13
 /L9_META -->
 
 ## Status
@@ -150,3 +150,35 @@ because the managed entry shape is unchanged.
 
 Supersedes the unmanaged write path of `scripts/write_cursor_config.py`
 introduced with the packaging baseline. Not superseded.
+
+## Amendment — applicability to remote HTTP (2026-10-13)
+
+**Decision date:** 2026-10-13 (campaign MEM-HTTP-DOC-01). No behavior change.
+
+This ADR's scope is exactly what it says: a **local stdio** entry in
+`~/.cursor/mcp.json` that launches `python -m l9_graphite_memory.server
+--transport stdio` on the same machine, and a probe that spawns that argv and
+drives the handshake over its stdin and stdout.
+
+ADR-038's 2026-10-13 amendment makes a remote HTTPS service the target agent
+transport. For that target:
+
+- `l9-memory client cursor install` does **not** write a remote HTTP entry, and
+  `l9-memory client cursor verify` does **not** prove HTTPS reachability, TLS,
+  Streamable HTTP conformance, remote authentication, or that the remote
+  principal is the right agent. A `complete` `ProbeReceipt` is evidence for the
+  local stdio entry only.
+- Remote client configuration (a `url` entry, credential headers, their
+  secret handling) is a **separate, consumer-owned campaign**. Cursor and
+  Claude Code configuration for the remote service belongs to the consumer
+  that owns those clients, after this package ships and proves the remote
+  surface.
+- The CLI, `client-config/v1`, the managed entry shape and
+  `config/mcp.json.example` are unchanged until code changes them.
+  `tools/assurance/check_config_drift.py` keeps the example equal to the
+  generated stdio entry.
+
+The repository invariant "no instantiation claim without a passing
+`client cursor verify` probe receipt" (AGENTS.md) is read with this scope: it
+governs local stdio instantiation and, until a remote probe exists, means no
+remote instantiation claim can be made at all.

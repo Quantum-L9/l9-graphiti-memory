@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-07-27
+updated: 2026-10-13
 /L9_META -->
 
 # Runbook
@@ -154,7 +154,7 @@ A missing locator, unavailable deletion tool, or provider error leaves the event
 l9-memory-server --transport stdio
 ```
 
-The stdio principal is derived from the server working directory and receives no implicit administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
+Stdio MCP is the supported agent transport of this release. Its principal is established once at startup, server-side (ADR-083): from a verified signed agent assertion and canonical identity assertion when the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET`) is configured, and otherwise from the server working directory, with no implicit administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
 
 ```bash
 export L9_MEMORY_LOCAL_READ_NAMESPACES=l9-graphiti-memory,l9-workspace
@@ -163,20 +163,53 @@ export L9_MEMORY_LOCAL_PROMOTE_NAMESPACES=
 export L9_MEMORY_LOCAL_IS_ADMIN=false
 ```
 
-Use `l9-memory client cursor install` for Cursor (with `inspect`, `verify`, `status`, and `uninstall` completing the lifecycle) or `scripts/write_claude_config.py` for Claude. Both write command-only configuration and never copy credentials. `scripts/write_cursor_config.py` remains as a thin compatibility wrapper over the canonical `client_config` path. Installs are atomic, preserve unrelated servers, and leave digest-bound backups; `l9-memory client cursor verify` proves the full stdio handshake, tool inventory, and `memory.health` before any live-instantiation claim. See `docs/CURSOR_INSTANTIATION.md`.
+Use `l9-memory client cursor install` for Cursor (with `inspect`, `verify`, `status`, and `uninstall` completing the lifecycle) or `scripts/write_claude_config.py` for Claude. Both write command-only configuration and never copy credentials. `scripts/write_cursor_config.py` remains as a thin compatibility wrapper over the canonical `client_config` path. Installs are atomic, preserve unrelated servers, and leave digest-bound backups; `l9-memory client cursor verify` proves the full stdio handshake, tool inventory, and `memory.health` before any live-instantiation claim for the local stdio entry. It proves nothing about remote HTTP. See `docs/CURSOR_INSTANTIATION.md`.
 
 ## Remote HTTP MCP
 
-1. Create a JSON token-to-principal mapping outside the repository.
+**Status: incomplete. Not qualified for remote agents.** Local stdio MCP
+(above) is the supported agent transport of the 2.6.0 release. The target is a
+centrally hosted, authenticated HTTPS service using MCP Streamable HTTP with a
+server-established per-agent principal (ADR-038 and ADR-083 amendments,
+2026-10-13). That target is not implemented, no consumer is bound to it, and
+no deployment of it exists. Do not use the procedure below as a production
+agent deployment.
+
+What the 2.6.0 HTTP server is:
+
+- one JSON-RPC object per `POST /mcp`, answered with JSON; `GET /healthz` and
+  `GET /readyz`;
+- `initialize` always answers protocol `2024-11-05`; no protocol negotiation,
+  no `MCP-Protocol-Version`, `Origin` or `Accept` handling, no event streams,
+  and notifications are acknowledged `200 {"status":"ok"}` rather than `202`;
+- no TLS in-process;
+- authentication by a static `Authorization: Bearer` token looked up in a
+  token-to-principal map. That map proves possession of a shared string. It is
+  **not** the signed per-agent identity the stdio agent door verifies, and it
+  is not the selected production agent identity contract.
+
+For local development and tests only:
+
+1. Create a JSON token-to-principal mapping outside the repository
+   (`config/auth_tokens.json.example` shows the shape).
 2. Set `L9_MEMORY_AUTH_TOKENS_FILE` to that file.
 3. Keep `L9_MEMORY_HTTP_AUTH_REQUIRED=true`.
-4. Start:
+4. Start on loopback:
 
 ```bash
 l9-memory-server --transport http --host 127.0.0.1 --port 8200
 ```
 
-Binding to a non-loopback address without authentication is rejected.
+Binding to a non-loopback address without authentication is rejected. With
+authentication disabled, loopback HTTP serves exactly the stdio principal; if
+`L9_MEMORY_HUMAN_DOOR_SECRET` is set in that environment the principal is the
+administrator, so never disable authentication where the human door is
+configured.
+
+Proof owed before this section can describe a remote deployment: Streamable
+HTTP conformance for the pinned protocol revision, the remote identity
+negative suite, and installed-wheel lifecycle parity over HTTP (ADR-038,
+ADR-083, ADR-082 amendments).
 
 ## Graphiti projection
 
@@ -391,6 +424,11 @@ For the consumer-selected full-capability shared deployment (PostgreSQL
 canonical store, Graphiti projection plus Neo4j graph intelligence, Redis
 active store plus awareness bus) set every `*_REQUIRED` flag and require
 `full_capability: true` before declaring the deployment live.
+
+`full_capability` is a stricter, optional profile. It is not a prerequisite
+for basic shared canonical memory: a deployment selecting only the PostgreSQL
+canonical store, with projection, graph intelligence and active memory left at
+`none`, is judged on the `canonical` family alone.
 
 ## Constellation Gate health
 

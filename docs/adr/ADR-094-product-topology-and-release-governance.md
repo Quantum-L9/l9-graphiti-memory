@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.5.0
-updated: 2026-07-22
+updated: 2026-10-13
 /L9_META -->
 
 **Date:** 2026-10-02
@@ -221,3 +221,52 @@ if the global authority reclassifies the product kind or withdraws
 
 Supersedes no ADR. It is superseded only by a later product-owner decision
 bound to a new topology digest.
+
+## Amendment — unresolved: centrally hosted remote consumption (2026-10-13)
+
+**Decision date:** 2026-10-13 (campaign MEM-HTTP-DOC-01).
+**Status of the question:** open. This amendment records a discrepancy. It
+does not reclassify the product, edit `product-topology.yaml`, change the
+topology digest above, or claim any admission.
+
+ADR-038's 2026-10-13 amendment sets a target in which Cursor and Claude Code
+agents consume canonical memory from one centrally hosted HTTPS service. The
+accepted topology says something different:
+
+| Accepted topology (`product-topology.yaml`) | Remote target |
+|---|---|
+| `consumption.model: local_composition` | agents on other machines invoke one shared service over the network |
+| `forbidden_consumption_modes` includes `remote_invocation_as_canonical_consumption` | remote invocation is the intended canonical agent path |
+| `deployment.runtime_boundary: consuming product process` | the runtime is a hosted service, not the agent client's process |
+| RuntimeIdentity inherited from the consumer; no constellation identity | a long-lived service has health, readiness and a network identity of its own |
+| `mcp_http` listed as a public entry mode of a locally composed package | the same adapter serves remote callers |
+
+Global law (`Quantum-L9/.github` `semantics/product_kinds.yaml`) classifies by
+canonical consumption and deployment model, never by process presence alone.
+A `node` is `remote_invocation` plus `independent_runtime` and additionally
+requires independent runtime identity, independent health and readiness,
+canonical constellation communication, Gate-routed inter-product work and
+runtime admission. A `dependency` is `local_composition` plus
+`consumer_bound_artifact` and requires a consumer-owned process lifecycle.
+
+Two readings are possible. Neither is adopted here:
+
+1. **Dependency retained, consumer-owned hosting runtime (candidate).** The
+   hosted service is the runtime of a *consuming* product that composes this
+   package locally and owns process lifecycle, runtime identity, health and
+   deployment. This package stays a `dependency`. The owner must still decide
+   whether agents calling that host's MCP endpoint is
+   `remote_invocation_as_canonical_consumption` of *this* product, which the
+   topology forbids, and must name the consuming product that owns the host.
+2. **Node.** Requires the global Node gates above, which the MCP HTTP adapter
+   does not meet — in particular canonical constellation communication and
+   Gate-routed inter-product work — plus a new topology, a new digest and a
+   reissued decision.
+
+Until the product owner resolves this through the process this ADR defines:
+
+- the accepted topology and its digest stay exactly as recorded above;
+- no document may describe the hosted remote service as an admitted product
+  topology, a Node, or an approved remote canonical consumption mode;
+- the HTTP implementation campaign may build and qualify the transport, but
+  its outcome does not settle the classification.

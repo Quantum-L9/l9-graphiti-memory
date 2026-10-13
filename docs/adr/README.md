@@ -6,7 +6,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-10-13
 /L9_META -->
 
 # Architecture Decision Records
@@ -122,6 +122,20 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-095 | [Structured Source Invalidation Lifecycle](ADR-095-structured-source-invalidation-lifecycle.md) | Accepted |
 | ADR-096 | [Canonical Repository Corpus Authority Binding](ADR-096-canonical-repository-corpus-authority-binding.md) | Accepted |
 | ADR-097 | [Active-Memory Runtime Composition and Full-Capability Readiness](ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md) | Accepted |
+
+## Pending target amendments
+
+Dated amendments append to an ADR without rewriting its original decision.
+The following record a **target that is not implemented**; each ADR keeps its
+`Accepted` status for the decision it originally made.
+
+| Date | ADR | Amendment | Implementation |
+|---|---|---|---|
+| 2026-10-13 | ADR-038 | Remote agent transport target: one hosted `MemoryService` over authenticated HTTPS Streamable HTTP, fresh PostgreSQL | not implemented |
+| 2026-10-13 | ADR-083 | Proposed remote per-request trust boundary | not implemented |
+| 2026-10-13 | ADR-082 | Semantic parity is not protocol conformance; remote consumer contract | not implemented |
+| 2026-10-13 | ADR-064 | Local stdio probe is not remote HTTP proof | applicability note; no behavior change |
+| 2026-10-13 | ADR-094 | Hosted remote consumption versus accepted `dependency` topology | open question; topology unchanged |
 
 ## Validation
 
