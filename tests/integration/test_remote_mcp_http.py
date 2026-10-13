@@ -677,7 +677,8 @@ def test_capability_and_lifecycle_receipts_keep_their_control_plane_shapes(clien
         ).json()
     )
     assert close["status"] == "complete", close
-    assert close["record_id"] and close["write_receipt_id"]
+    assert close["record_id"]
+    assert close["write_receipt_id"]
 
 
 # --- startup configuration fails closed -----------------------------------------
@@ -686,8 +687,9 @@ def test_capability_and_lifecycle_receipts_keep_their_control_plane_shapes(clien
 def test_signed_agent_mode_refuses_to_start_without_a_registry(monkeypatch) -> None:
     monkeypatch.delenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", raising=False)
     monkeypatch.delenv("L9_MEMORY_AGENT_GRANTS_JSON", raising=False)
+    runtime = _runtime()
     with pytest.raises(ConfigurationError, match="L9_MEMORY_AGENT_SIGNING_KEYS_JSON"):
-        create_http_app(_runtime())
+        create_http_app(runtime)
 
 
 def test_signed_agent_mode_refuses_a_malformed_grant_at_startup(monkeypatch) -> None:
@@ -696,23 +698,26 @@ def test_signed_agent_mode_refuses_a_malformed_grant_at_startup(monkeypatch) -> 
     # malformed trusted configuration, not a silently dropped key.
     grants = {**AGENT_GRANTS, READER: {**AGENT_GRANTS[READER], "maintain_namespaces": ["*"]}}
     monkeypatch.setenv("L9_MEMORY_AGENT_GRANTS_JSON", json.dumps(grants))
+    runtime = _runtime()
     with pytest.raises(ConfigurationError, match="malformed signed-agent grant"):
-        create_http_app(_runtime())
+        create_http_app(runtime)
     monkeypatch.setenv("L9_MEMORY_AGENT_GRANTS_JSON", json.dumps({WRITER: AGENT_GRANTS[WRITER]}))
     with pytest.raises(ConfigurationError, match="no grants configured"):
-        create_http_app(_runtime())
+        create_http_app(runtime)
 
 
 def test_signed_agent_mode_refuses_to_register_the_human_door(monkeypatch) -> None:
     monkeypatch.setenv("L9_MEMORY_AGENT_SIGNING_KEYS_JSON", json.dumps({"human": "k" * 32}))
     monkeypatch.setenv("L9_MEMORY_AGENT_GRANTS_JSON", json.dumps({"human": {"is_admin": True}}))
+    runtime = _runtime()
     with pytest.raises(ConfigurationError, match="reserved agent id"):
-        create_http_app(_runtime())
+        create_http_app(runtime)
 
 
 def test_signed_agent_mode_requires_authentication(registry_env) -> None:
+    runtime = _runtime(_settings(http_auth_required=False))
     with pytest.raises(ConfigurationError, match="requires http_auth_required=true"):
-        create_http_app(_runtime(_settings(http_auth_required=False)))
+        create_http_app(runtime)
 
 
 def test_bearer_mode_is_unchanged_and_never_reads_the_agent_registry(registry_env) -> None:

@@ -34,7 +34,6 @@ supply a key, a role, a tenant, or a namespace.
 from __future__ import annotations
 
 import base64
-import binascii
 import json
 import os
 import time
@@ -87,7 +86,7 @@ def _decode_identity_assertion(encoded: str) -> dict[str, Any]:
     try:
         raw = base64.b64decode(padded, altchars=b"-_", validate=True)
         text = raw.decode("utf-8")
-    except (binascii.Error, ValueError) as exc:
+    except ValueError as exc:  # binascii.Error and UnicodeDecodeError are ValueErrors
         raise AuthenticationError(
             f"{IDENTITY_ASSERTION_HEADER} header is not base64url-encoded UTF-8 JSON"
         ) from exc
