@@ -62,6 +62,16 @@ interface JsonRpcErrorShape { code: number; message: string; data?: unknown }
 interface JsonRpcResponse { jsonrpc: '2.0'; id?: string | number | null; result?: unknown; error?: JsonRpcErrorShape }
 interface ToolCallResult { content?: Array<{ type: string; text?: string }>; isError?: boolean }
 
+// Streamable HTTP revisions the canonical server negotiates (ADR-098 in
+// l9-graphiti-memory). The server refuses any other MCP-Protocol-Version.
+export const SUPPORTED_PROTOCOL_VERSIONS = ['2025-11-25', '2025-06-18'] as const;
+export type ProtocolVersion = typeof SUPPORTED_PROTOCOL_VERSIONS[number];
+const CLIENT_VERSION = '2.1.0';
+
+function isSupportedProtocolVersion(value: unknown): value is ProtocolVersion {
+  return typeof value === 'string' && (SUPPORTED_PROTOCOL_VERSIONS as readonly string[]).includes(value);
+}
+
 export class MemoryRpcError extends Error {
   constructor(
     message: string,
@@ -86,7 +96,8 @@ export class GraphitiMemoryClient {
   private readonly timeoutMs: number;
   private readonly fetchImpl: typeof fetch;
   private readonly idFactory: () => string;
-  private readonly protocolVersion: string;
+  private readonly protocolVersion: ProtocolVersion;
+  private negotiatedVersion?: ProtocolVersion;
   private sessionId?: string;
   private initialized = false;
   private initializePromise?: Promise<void>;
@@ -107,7 +118,11 @@ export class GraphitiMemoryClient {
     }
     this.fetchImpl = config.fetchImpl ?? fetch;
     this.idFactory = config.idFactory ?? randomUUID;
-    this.protocolVersion = config.protocolVersion ?? '2025-03-26';
+    const requested = config.protocolVersion ?? SUPPORTED_PROTOCOL_VERSIONS[0];
+    if (!isSupportedProtocolVersion(requested)) {
+      throw new RangeError(`protocolVersion must be one of ${SUPPORTED_PROTOCOL_VERSIONS.join(', ')}`);
+    }
+    this.protocolVersion = requested;
   }
 
   async health(): Promise<Record<string, unknown>> { return this.callTool('memory.health', {}); }
@@ -161,9 +176,15 @@ export class GraphitiMemoryClient {
         const id = this.idFactory();
         const { payload, sessionId } = await this.post({
           jsonrpc: '2.0', id, method: 'initialize',
-          params: { protocolVersion: this.protocolVersion, capabilities: {}, clientInfo: { name: '@quantum-l9/graphiti-memory-client', version: '2.0.0' } },
+          params: { protocolVersion: this.protocolVersion, capabilities: {}, clientInfo: { name: '@quantum-l9/graphiti-memory-client', version: CLIENT_VERSION } },
         }, false);
         this.assertEnvelope(payload, id, 'initialize');
+        const negotiated = (payload.result as { protocolVersion?: unknown } | undefined)?.protocolVersion;
+        // MCP lifecycle: a client that cannot speak the server's answer must not continue.
+        if (!isSupportedProtocolVersion(negotiated)) {
+          throw new MemoryRpcError(`memory server negotiated unsupported MCP protocol version ${String(negotiated)}`);
+        }
+        this.negotiatedVersion = negotiated;
         // The canonical l9-graphiti-memory HTTP server at the pinned base is
         // stateless and does not issue Mcp-Session-Id. Newer/spec-compliant
         // deployments may issue one, so session propagation is opportunistic.
@@ -183,6 +204,7 @@ export class GraphitiMemoryClient {
       // session. Stateless canonical servers never enter this branch.
       if (!this.sessionId || !(error instanceof MemoryRpcError) || ![400, 404].includes(error.httpStatus ?? 0)) throw error;
       this.sessionId = undefined;
+      this.negotiatedVersion = undefined;
       this.initialized = false;
       await this.ensureSession();
       return this.callToolOnce<T>(name, args);
@@ -208,6 +230,9 @@ export class GraphitiMemoryClient {
       'Content-Type': 'application/json',
     };
     if (useSession && this.sessionId) headers['Mcp-Session-Id'] = this.sessionId;
+    // Every request after initialize names the negotiated revision; the
+    // server refuses a request without it.
+    if (useSession && this.negotiatedVersion) headers['MCP-Protocol-Version'] = this.negotiatedVersion;
     return headers;
   }
 
@@ -222,9 +247,8 @@ export class GraphitiMemoryClient {
       const text = await response.text();
       throw new MemoryRpcError(`memory notification HTTP ${response.status}${text ? `: ${text.slice(0, 500)}` : ''}`, undefined, undefined, response.status);
     }
-    // Notifications may legally return an empty 202/204 body. The pinned
-    // canonical server returns a small JSON acknowledgement. Neither is a
-    // JSON-RPC response and neither should be envelope-validated.
+    // Notifications return an empty 202 from the canonical server (a 204 from
+    // some others). Neither is a JSON-RPC response; neither is validated.
   }
 
   private async post(body: object, useSession: boolean): Promise<{ payload: JsonRpcResponse; sessionId?: string }> {

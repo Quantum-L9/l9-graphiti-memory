@@ -15,8 +15,8 @@ test('works against the pinned stateless canonical HTTP server', async () => {
   const fetchImpl: typeof fetch = async (url, init) => {
     const body = JSON.parse(String(init?.body));
     seen.push({ url: String(url), body, headers: new Headers(init?.headers) });
-    if (body.method === 'initialize') return jsonResponse({ jsonrpc:'2.0', id:body.id, result:{ protocolVersion:'2025-03-26' } });
-    if (body.method === 'notifications/initialized') return jsonResponse({ status:'ok' });
+    if (body.method === 'initialize') return jsonResponse({ jsonrpc:'2.0', id:body.id, result:{ protocolVersion:'2025-11-25' } });
+    if (body.method === 'notifications/initialized') return new Response(null, { status: 202 });
     return toolResponse(body.id, { status:'complete', sections:[] });
   };
   let n = 0;
@@ -27,6 +27,36 @@ test('works against the pinned stateless canonical HTTP server', async () => {
   assert.equal(seen[0]?.url, 'http://memory.local/mcp');
   assert.equal(seen[2]?.headers.get('mcp-session-id'), null);
   assert.equal(seen[2]?.body.params.name, 'memory.hydrate');
+  assert.equal(seen[0]?.body.params.protocolVersion, '2025-11-25');
+  assert.equal(seen[0]?.headers.get('mcp-protocol-version'), null);
+  for (const later of seen.slice(1)) assert.equal(later.headers.get('mcp-protocol-version'), '2025-11-25');
+});
+
+test('names the revision the server negotiated, not the one it asked for', async () => {
+  const seen: Array<{ body: any; headers: Headers }> = [];
+  const fetchImpl: typeof fetch = async (_url, init) => {
+    const body = JSON.parse(String(init?.body));
+    seen.push({ body, headers: new Headers(init?.headers) });
+    if (body.method === 'initialize') return jsonResponse({ jsonrpc:'2.0', id:body.id, result:{ protocolVersion:'2025-06-18' } });
+    if (body.method === 'notifications/initialized') return new Response(null, { status: 202 });
+    return toolResponse(body.id, { status:'complete' });
+  };
+  const client = new GraphitiMemoryClient({ baseUrl:'http://memory.local', bearerToken:'token', fetchImpl });
+  await client.health();
+  assert.equal(seen[2]?.headers.get('mcp-protocol-version'), '2025-06-18');
+});
+
+test('refuses a server that negotiates a revision the client cannot speak', async () => {
+  const fetchImpl: typeof fetch = async (_url, init) => {
+    const body = JSON.parse(String(init?.body));
+    return jsonResponse({ jsonrpc:'2.0', id:body.id, result:{ protocolVersion:'2024-11-05' } });
+  };
+  const client = new GraphitiMemoryClient({ baseUrl:'http://memory.local', bearerToken:'token', fetchImpl });
+  await assert.rejects(client.health(), /unsupported MCP protocol version 2024-11-05/);
+});
+
+test('rejects an unsupported configured protocol version', () => {
+  assert.throws(() => new GraphitiMemoryClient({ baseUrl:'http://memory.local', bearerToken:'token', protocolVersion:'2025-03-26' }), RangeError);
 });
 
 test('captures and propagates an optional MCP session', async () => {
@@ -34,7 +64,7 @@ test('captures and propagates an optional MCP session', async () => {
   const fetchImpl: typeof fetch = async (_url, init) => {
     const body = JSON.parse(String(init?.body));
     seen.push({ body, headers: new Headers(init?.headers) });
-    if (body.method === 'initialize') return jsonResponse({ jsonrpc:'2.0', id:body.id, result:{ protocolVersion:'2025-03-26' } }, { 'mcp-session-id':'session-1' });
+    if (body.method === 'initialize') return jsonResponse({ jsonrpc:'2.0', id:body.id, result:{ protocolVersion:'2025-11-25' } }, { 'mcp-session-id':'session-1' });
     if (body.method === 'notifications/initialized') return new Response(null, { status: 204 });
     return toolResponse(body.id, { status:'complete', sections:[] });
   };

@@ -21,3 +21,9 @@ It does not create a second memory authority. It calls the canonical tools alrea
 - `memory.health`
 
 Client isolation uses the canonical namespace `client:<clientId>` and server-derived bearer-token principals remain authoritative.
+
+Since 2.1.0 the client speaks Streamable HTTP `2025-11-25` (or `2025-06-18`):
+it refuses a server that negotiates any other revision and sends the negotiated
+`MCP-Protocol-Version` on every request after `initialize`, as
+`l9-graphite-memory` 2.7.0 requires (ADR-098). It authenticates as a bearer
+service principal; it does not carry a signed agent identity.
