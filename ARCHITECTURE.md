@@ -18,13 +18,13 @@ updated: 2026-10-13
 ## Agent transport
 
 Every surface in the diagram below is an adapter into the same
-`MemoryService`. In the 2.6.0 release agents reach it through local stdio MCP,
+`MemoryService`. On current `main` (package version 2.6.0) agents reach it through local stdio MCP,
 launched on the agent's machine. The target, decided 2026-10-13 (ADR-038
 amendment), is one centrally hosted `MemoryService` behind authenticated
 HTTPS MCP, with a new, empty PostgreSQL canonical store and a per-request,
 server-established agent principal (ADR-083 amendment). That target adds no
 second store, control plane or provider path; it is a different deployment of
-the same adapter and service. It is not implemented, and the 2.6.0 HTTP
+the same adapter and service. It is not implemented, and the current HTTP
 adapter is not qualified for it.
 
 The accepted ProductKind is still `dependency` with `local_composition`

@@ -84,6 +84,13 @@ This amendment records a target. It does not describe software that runs
 today, and it changes nothing in the 2026-07-21 decision above for the
 surfaces that exist.
 
+**Release status (operator statement, 2026-10-13):** 2.5 is the current
+release; 2.6 is the version to be released and deployed. "Current" in this
+document means the code on `main` at `441b741` (package version 2.6.0), not a
+released or deployed artifact. This document does not state what the 2.6
+release will contain: the remote target counts as shipped only when the proof
+listed below passes on the exact released bytes.
+
 ### Target
 
 Cursor and Claude Code agents consume canonical memory through **one centrally
@@ -111,12 +118,12 @@ Local stdio MCP, the CLI and the SDK stay supported. Stdio stops being the
 *target* agent configuration; it is not retired by this amendment, and its
 tests and installer proofs (ADR-064) remain valid for what they prove.
 
-### What the 2.6.0 HTTP surface is today
+### What the HTTP surface on current `main` is
 
 Verified against `src/l9_graphite_memory/server.py` and `version.py` at
 `441b741`:
 
-| Property | 2.6.0 behavior | Gap against the target |
+| Property | Behavior at `441b741` (package 2.6.0) | Gap against the target |
 |---|---|---|
 | Routes | `POST /mcp`, `POST /mcp/`; unauthenticated `GET /healthz`, `GET /readyz`, and FastAPI's default `/docs`, `/redoc`, `/openapi.json` | no `GET`/`DELETE` handler on the MCP endpoint; the unauthenticated documentation and readiness routes need an explicit exposure decision |
 | Framing | one JSON-RPC object per POST, JSON response; batches rejected | no `text/event-stream` responses; `Accept` not read |

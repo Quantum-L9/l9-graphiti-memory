@@ -350,8 +350,8 @@
         "version": "2.6.0"
       },
       "path": "ARCHITECTURE.md",
-      "sha256": "36980f70d86a234f18023027899501da34fc782c9675f0392b404737ed6c4ec6",
-      "size_bytes": 16945
+      "sha256": "39630b60519ab84bf8eedc77b089487a14cfc95abae6baf3586cc0920baaaabe",
+      "size_bytes": 16968
     },
     {
       "category": "repository_root",
@@ -430,7 +430,7 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "b54737e5a50f9f1b5c843b34a31c15ea171689f34832f380593a44ab9da1ff1a",
+      "sha256": "075244c5520f90393b35d69160739b7d1350e433cda574ee3080581696465857",
       "size_bytes": 140335
     },
     {
@@ -462,8 +462,8 @@
         "version": "2.6.0"
       },
       "path": "QUICKSTART.md",
-      "sha256": "f205c527c35355891feac719f63ab857aed0609cd7161ba09fcda3746a7d2fbc",
-      "size_bytes": 2546
+      "sha256": "52e4c4954c25880d009acf7104d84e82242c7faaf77d6423eea0a916abeac85b",
+      "size_bytes": 2569
     },
     {
       "category": "repository_root",
@@ -478,8 +478,8 @@
         "version": "2.6.0"
       },
       "path": "README.md",
-      "sha256": "432aae7ad34691c44204f478fe200c5e2fbdde3e90977e5a42f93ea5917c1c5b",
-      "size_bytes": 12905
+      "sha256": "0b82a50edf6725f1ef040a56a679dc0fcc8ead857cd67f7cad4d9d7ec9ce966f",
+      "size_bytes": 13254
     },
     {
       "category": "repository_root",
@@ -510,8 +510,8 @@
         "version": "2.6.0"
       },
       "path": "RUNBOOK.md",
-      "sha256": "a4d48d5bda37ef1edd777caef4d4fa0adf89b24b33f20f3d7c5f0c8c53acd917",
-      "size_bytes": 25342
+      "sha256": "4c03b72d42c1d78d3deb1fdd28275a452caa0911de48b505cf93f61a59246bfb",
+      "size_bytes": 25377
     },
     {
       "category": "repository_root",
@@ -526,8 +526,8 @@
         "version": "2.6.0"
       },
       "path": "SECURITY.md",
-      "sha256": "33bd9a65b9d4d715bb6a824721e4b59b761c5ebfc3dd5a09e08593a35501b061",
-      "size_bytes": 3709
+      "sha256": "ae6a3e510b4ab6ea4f0bcdd898aca02ca2a17f9a8e8aab30bcd9606d90add2be",
+      "size_bytes": 3747
     },
     {
       "category": "repository_root",
@@ -606,8 +606,8 @@
         "version": "2.6.0"
       },
       "path": "clients/typescript/README.md",
-      "sha256": "5805b0dd7fd641c20580cbc70f7b80ac7379bca8762227c2bab52c69a1b599fb",
-      "size_bytes": 1164
+      "sha256": "33029d81f2972e9b8f841965da15a3655b30365d66085aa37decea12c371470d",
+      "size_bytes": 1185
     },
     {
       "category": "repository_root",
@@ -750,8 +750,8 @@
         "version": "2.6.0"
       },
       "path": "config/memory.yaml.example",
-      "sha256": "6037bf533076b95ab46ba7587523794d633f0d591fe18ed4a13f3f9a4e1a667b",
-      "size_bytes": 2455
+      "sha256": "e8e9bb71eeb454b2fe34b1c52e44a8538f05a1448790a3874c821978de16efb9",
+      "size_bytes": 2457
     },
     {
       "category": "configuration",
@@ -1118,8 +1118,8 @@
         "version": "2.6.0"
       },
       "path": "docs/COMPATIBILITY_MATRIX.md",
-      "sha256": "be87bdd00f0ebaf2789ae0850b98b704a7d64c2ff57756a38aef76de7579c2a2",
-      "size_bytes": 4241
+      "sha256": "e18e4abd7825049c0e5bb187d78521310f48ce4af6c382d8aae092b46d41ddca",
+      "size_bytes": 4282
     },
     {
       "category": "documentation",
@@ -1150,8 +1150,8 @@
         "version": "2.6.0"
       },
       "path": "docs/CURSOR_INSTANTIATION.md",
-      "sha256": "bdd2660e76a3c11d93ae82366cc79df10e1971b88ed34b08d427043d55b7d382",
-      "size_bytes": 6406
+      "sha256": "30b9ae0a7d3977a9aabddea001bb8bb771e91e7c2df01689a05b035752d23c9c",
+      "size_bytes": 6427
     },
     {
       "category": "documentation",
@@ -3598,8 +3598,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md",
-      "sha256": "8a53705e8c5b18da6eda0ec38c70b18858fde139110459c70861fa18717592fe",
-      "size_bytes": 7717
+      "sha256": "4cfbd6631b894d4a4fa9a383bd40ad19750f64d8727f63191fe9593e4df16ac3",
+      "size_bytes": 8172
     },
     {
       "category": "architecture_decisions",
@@ -4302,8 +4302,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-082-consumer-control-plane-transport-parity.md",
-      "sha256": "0f3e7bc6f16573e32412e530bddaf555991086f919d27235923adc2a577e2fba",
-      "size_bytes": 13797
+      "sha256": "c83cf3e31a46def3739c9379325552cf6537e8835aa1fe693fef25a1dccf5375",
+      "size_bytes": 13799
     },
     {
       "category": "architecture_decisions",
@@ -4318,8 +4318,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md",
-      "sha256": "9e921d57b0dbfb23d640a309035314eba160505476c40e7ca51c4cc763732eb0",
-      "size_bytes": 22540
+      "sha256": "ca071f57821ea10b4db062e654b59077aebaeb6e14f8eb95ff8be10f27256b6f",
+      "size_bytes": 22570
     },
     {
       "category": "architecture_decisions",

@@ -353,9 +353,9 @@ existing HMAC assertion and identity assertion per request, or does both, is
 for the implementation campaign to decide and prove. Nothing here should be
 read as a promise of OAuth support.
 
-### Why the 2.6.0 HTTP door is not this boundary
+### Why the current HTTP door is not this boundary
 
-The 2.6.0 HTTP surface authenticates with a static bearer token compared
+The HTTP surface on current `main` (package 2.6.0) authenticates with a static bearer token compared
 against a configured token-to-principal map (`TokenAuthenticator`). That
 proves possession of a shared string and nothing else. It carries no agent
 signing key, no expiry, no canonical identity assertion and no actor-registry

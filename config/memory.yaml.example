@@ -44,7 +44,7 @@ active_lease_ttl_seconds: 30
 
 # HTTP is authenticated by default (static bearer token-to-principal map from
 # L9_MEMORY_AUTH_TOKENS_JSON or L9_MEMORY_AUTH_TOKENS_FILE; never put tokens in
-# this file). The 2.6.0 HTTP server is not qualified for remote agents; the
+# this file). The current HTTP server is not qualified for remote agents; the
 # centrally hosted HTTPS target (ADR-038 amendment, 2026-10-13) is not
 # implemented and has no settings yet. Local stdio is the supported agent mode.
 http_auth_required: true

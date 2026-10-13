@@ -239,7 +239,7 @@ Three other properties are separate and are not implied by it:
 | MCP transport/protocol conformance | ADR-038 | conformance tests for each pinned protocol revision (none exist for the HTTP server today) |
 | Remote authentication and identity | ADR-083 | the remote identity negative suite (does not exist today) |
 
-A green parity suite says nothing about whether the 2.6.0 HTTP endpoint is a
+A green parity suite says nothing about whether the current HTTP endpoint is a
 conforming Streamable HTTP server, or whether its principal is the right
 agent.
 

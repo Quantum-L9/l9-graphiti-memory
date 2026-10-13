@@ -60,7 +60,7 @@ amendment, 2026-10-13). It is not implemented. The proposed boundary
 - credentials, signing keys and the PostgreSQL DSN held in the runtime secret
   path, never in tracked files, generated client configuration or logs.
 
-Known gaps in the 2.6.0 HTTP server, none of which this documentation
+Known gaps in the HTTP server on current `main` (package version 2.6.0), none of which this documentation
 changes:
 
 - static bearer token-to-principal authentication, not equivalent to the
@@ -77,7 +77,7 @@ changes:
 - auth-disabled loopback HTTP serves the stdio principal, which is the
   administrator when `L9_MEMORY_HUMAN_DOOR_SECRET` is set.
 
-Do not expose the 2.6.0 HTTP server to remote agents.
+Do not expose the current HTTP server to remote agents.
 
 ## Secret handling
 

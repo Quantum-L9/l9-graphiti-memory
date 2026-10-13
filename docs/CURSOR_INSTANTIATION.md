@@ -15,7 +15,7 @@ This document describes how the memory control plane is instantiated inside Curs
 
 ## Scope
 
-Everything here concerns the local stdio entry of the 2.6.0 release: Cursor launches the server on the same machine and talks to it over stdin and stdout. The target agent transport is a centrally hosted, authenticated HTTPS MCP service (ADR-038 amendment, 2026-10-13); it is not implemented, and its client configuration is a separate, consumer-owned campaign. Nothing in this document installs, verifies or proves a remote HTTP connection, TLS, remote authentication or per-agent remote identity (ADR-064 amendment, 2026-10-13).
+Everything here concerns the local stdio entry of current `main` (package version 2.6.0): Cursor launches the server on the same machine and talks to it over stdin and stdout. The target agent transport is a centrally hosted, authenticated HTTPS MCP service (ADR-038 amendment, 2026-10-13); it is not implemented, and its client configuration is a separate, consumer-owned campaign. Nothing in this document installs, verifies or proves a remote HTTP connection, TLS, remote authentication or per-agent remote identity (ADR-064 amendment, 2026-10-13).
 
 ## Surface
 

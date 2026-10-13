@@ -154,7 +154,7 @@ A missing locator, unavailable deletion tool, or provider error leaves the event
 l9-memory-server --transport stdio
 ```
 
-Stdio MCP is the supported agent transport of this release. Its principal is established once at startup, server-side, in three tiers (ADR-083): the human door (`L9_MEMORY_HUMAN_DOOR_SECRET` set) yields an administrator principal; otherwise the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET` set) yields the principal of a verified signed agent assertion and canonical identity assertion; otherwise the principal comes from the server working directory, with no administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
+Stdio MCP is the supported agent transport of current `main`. Its principal is established once at startup, server-side, in three tiers (ADR-083): the human door (`L9_MEMORY_HUMAN_DOOR_SECRET` set) yields an administrator principal; otherwise the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET` set) yields the principal of a verified signed agent assertion and canonical identity assertion; otherwise the principal comes from the server working directory, with no administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
 
 ```bash
 export L9_MEMORY_LOCAL_READ_NAMESPACES=l9-graphiti-memory,l9-workspace
@@ -168,14 +168,14 @@ Use `l9-memory client cursor install` for Cursor (with `inspect`, `verify`, `sta
 ## Remote HTTP MCP
 
 **Status: incomplete. Not qualified for remote agents.** Local stdio MCP
-(above) is the supported agent transport of the 2.6.0 release. The target is a
+(above) is the supported agent transport of current `main` (package version 2.6.0). The target is a
 centrally hosted, authenticated HTTPS service using MCP Streamable HTTP with a
 server-established per-agent principal (ADR-038 and ADR-083 amendments,
 2026-10-13). That target is not implemented, no consumer is bound to it, and
 no deployment of it exists. Do not use the procedure below as a production
 agent deployment.
 
-What the 2.6.0 HTTP server is:
+What the HTTP server on current `main` is:
 
 - one JSON-RPC object per `POST /mcp`, answered with JSON. `GET /healthz`,
   `GET /readyz` and FastAPI's default `/docs`, `/redoc` and `/openapi.json`

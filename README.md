@@ -125,18 +125,23 @@ Projection choices:
 
 The HTTP adapter discovers the live Graphiti tool inventory. It supports the current `add_memory`, `search_memory_facts`, `search_nodes`, and `delete_episode` dialect plus the older `add_episode` and `search_facts` compatibility dialect.
 
-## Agent transport: current release and remote target
+## Agent transport: current code and remote target
 
-| | Status in 2.6.0 | Notes |
+| | Status on `main` (package 2.6.0) | Notes |
 |---|---|---|
 | Local stdio MCP (`l9-memory-server --transport stdio`) | **working, supported** | the transport the managed entry from `l9-memory client cursor install` launches (`python -m l9_graphite_memory.server --transport stdio`) and `client cursor verify` proves (ADR-064) |
 | CLI and Python SDK | **working, supported** | unchanged |
 | HTTP MCP (`l9-memory-server --transport http`) | **present, not qualified for remote agents** | single JSON `POST /mcp`; static bearer token-to-principal map; no Streamable HTTP conformance, protocol negotiation or `Origin` validation; not equivalent to the signed agent identity door |
 | Centrally hosted, authenticated HTTPS Streamable HTTP service for Cursor and Claude Code | **target, not implemented** | decided 2026-10-13; see the ADR-038, ADR-083, ADR-082 and ADR-094 amendments |
 
+Release status (operator statement, 2026-10-13): 2.5 is the current release
+and 2.6 is the version to be released and deployed. The table describes the
+code on `main`, not a released artifact, and does not say what the 2.6 release
+will contain.
+
 The target is one hosted `MemoryService` reached over authenticated HTTPS,
 with a per-agent principal established server-side on every request, backed
-by a new, empty PostgreSQL canonical store. Nothing in this release implements
+by a new, empty PostgreSQL canonical store. Nothing on current `main` implements
 that target, no consumer is bound to it, and no deployment of it is claimed.
 Remote client configuration is a later, consumer-owned campaign;
 `config/mcp.json.example` stays the generated stdio entry until code changes
@@ -192,9 +197,10 @@ A consumer choosing the full-capability shared-agent deployment MUST:
    200 from `/healthz` or `/readyz` alone is not full-capability proof:
    `/readyz` answers the aggregate `ready` verdict over required families,
    which is weaker than `full_capability`. The five-family readiness report
-   is implemented by PR #90 (ADR-097, proposed until merged) and must be
-   proven in the final combined candidate; the published 2.6.0 release does
-   not include it.
+   is on `main` (ADR-097, merged through PR #91) and must be proven in the
+   final combined candidate. The `v2.6.0` tag and the 2.6.0 artifact on PyPI
+   (`846f283`) predate it; 2.5 is the current release and 2.6 is still to be
+   released and deployed.
 6. Prove recovery and backend outage behavior, including canonical write safety
    if projection or active-memory infrastructure is unavailable.
 

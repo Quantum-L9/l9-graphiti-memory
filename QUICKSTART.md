@@ -50,13 +50,13 @@ l9-memory import legacy-episodes.jsonl --group-id l9-graphiti-memory --dry-run
 l9-memory-server --transport stdio
 ```
 
-This is the local stdio MCP mode of the 2.6.0 release: the server runs on the
+This is the local stdio MCP mode of current `main` (package version 2.6.0): the server runs on the
 same machine as the agent and is launched by it. It is supported and is what
 the Cursor lifecycle below installs.
 
 The target agent transport is a centrally hosted, authenticated HTTPS MCP
-service (ADR-038 amendment, 2026-10-13). It is **not implemented** in this
-release, so there is no remote-client quickstart yet. Do not point agents at
+service (ADR-038 amendment, 2026-10-13). It is **not implemented** on current
+`main`, so there is no remote-client quickstart yet. Do not point agents at
 `l9-memory-server --transport http` as a substitute: that surface is not
 qualified for remote agents (see `RUNBOOK.md`, "Remote HTTP MCP").
 
