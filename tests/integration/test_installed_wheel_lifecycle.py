@@ -216,3 +216,129 @@ def test_installed_wheel_cursor_client_lifecycle_proves_installed_entry(
     assert verified["config_path"] == str(config)
     assert list(verified["command_argv"]) == [entry["command"], *entry["args"]]
     assert verified["health_status"] in {"complete", "partial"}
+
+
+def test_installed_wheel_serves_remote_mcp_to_signed_agents(
+    installed_site: Path, tmp_path: Path
+) -> None:
+    """ADR-098 against the artifact: the console server entry point, real TCP, signed agents.
+
+    The server process imports only the installed wheel; the credentials are
+    minted client-side exactly as a remote agent mints them.
+    """
+
+    pytest.importorskip("fastapi", reason="HTTP transport requires the [server] extra")
+    pytest.importorskip("uvicorn", reason="HTTP transport requires the [server] extra")
+    httpx2 = pytest.importorskip("httpx2", reason="the HTTP proof needs an HTTP client")
+    from l9_graphite_memory.mcp_tools import tool_definitions
+    from l9_graphite_memory.version import HTTP_MCP_PROTOCOL_VERSIONS, PACKAGE_VERSION
+    from tests.integration.remote_mcp_harness import (
+        ALLOWED_ORIGIN,
+        FORBIDDEN_ORIGIN,
+        FOREIGN_NAMESPACE,
+        HOME_NAMESPACE,
+        READER,
+        WRITER,
+        credentials,
+        free_port,
+        mcp_headers,
+        rpc,
+        server_environment,
+        tool,
+        tool_payload,
+        wait_for,
+    )
+
+    env = _env(installed_site, tmp_path)
+    env.update(server_environment())
+    env.update(
+        {
+            "L9_MEMORY_HTTP_AUTH_MODE": "signed-agent",
+            "L9_MEMORY_HTTP_ALLOWED_ORIGINS": ALLOWED_ORIGIN,
+            "L9_MEMORY_LOCAL_TENANT_ID": "l9",
+            "L9_MEMORY_HUMAN_DOOR_SECRET": "local-human-door-secret",
+        }
+    )
+    port = free_port()
+    url = f"http://127.0.0.1:{port}"
+    log = tmp_path / "server.log"
+    with log.open("w") as stderr:
+        server = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "l9_graphite_memory.server",
+                "--transport",
+                "http",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                str(port),
+            ],
+            cwd=tmp_path,
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=stderr,
+        )
+    try:
+        wait_for(url)
+
+        def post(message, *, agent=WRITER, headers=None, protocol="2025-11-25"):
+            sent = mcp_headers(protocol=protocol)
+            if agent is not None:
+                sent.update(credentials(agent))
+            sent.update(headers or {})
+            return httpx2.post(f"{url}/mcp", content=json.dumps(message), headers=sent, timeout=10)
+
+        initialize = post(rpc("initialize", {"protocolVersion": "2025-11-25"}), protocol=None)
+        assert initialize.status_code == 200, initialize.text
+        assert initialize.json()["result"]["protocolVersion"] == "2025-11-25"
+        assert initialize.json()["result"]["serverInfo"]["version"] == PACKAGE_VERSION
+        notified = post({"jsonrpc": "2.0", "method": "notifications/initialized"})
+        assert (notified.status_code, notified.content) == (202, b"")
+        assert post(rpc("tools/list")).json()["result"]["tools"] == tool_definitions()
+
+        capabilities = tool_payload(post(tool("memory.capabilities", {})).json())
+        assert capabilities["package_version"] == PACKAGE_VERSION
+        assert capabilities["http_mcp_protocol_versions"] == list(HTTP_MCP_PROTOCOL_VERSIONS)
+
+        written = tool_payload(
+            post(
+                tool(
+                    "memory.write_agent",
+                    {"namespace": HOME_NAMESPACE, "content": "heron wades in the mill pond"},
+                )
+            ).json()
+        )
+        assert written["status"] == "admitted", written
+        found = tool_payload(
+            post(
+                tool("memory.search", {"query": "heron", "namespaces": [HOME_NAMESPACE]}),
+                agent=READER,
+            ).json()
+        )
+        assert written["record_id"] in {hit["record"]["record_id"] for hit in found["hits"]}
+
+        denied = tool_payload(
+            post(
+                tool("memory.write_agent", {"namespace": FOREIGN_NAMESPACE, "content": "no grant"})
+            ).json()
+        )
+        assert (denied["status"], denied["record_id"]) == ("rejected", None)
+
+        assert post(rpc("tools/list"), agent=None).status_code == 401
+        tampered = credentials(WRITER)
+        tampered["L9-Identity-Assertion-HMAC"] = "0" * 64
+        assert post(rpc("tools/list"), agent=None, headers=tampered).status_code == 401
+        assert post(rpc("tools/list"), headers={"Origin": FORBIDDEN_ORIGIN}).status_code == 403
+        assert post(rpc("tools/list"), protocol="2024-11-05").status_code == 400
+        assert post(rpc("tools/list"), protocol=None).status_code == 400
+        assert httpx2.get(f"{url}/mcp", timeout=10).status_code == 405
+        assert server.poll() is None, log.read_text()[-2000:]
+    finally:
+        server.terminate()
+        try:
+            server.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            server.kill()
+            server.wait(timeout=15)

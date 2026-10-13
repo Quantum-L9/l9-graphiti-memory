@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tests/integration/test_remote_mcp_http.py
+#   layer: test
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.7.0
+#   updated: 2026-07-22
+
 """Remote MCP over Streamable HTTP with signed agent identity (ADR-098).
 
 Every case drives the real FastAPI application under uvicorn on a loopback

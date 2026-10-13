@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tests/integration/remote_mcp_harness.py
+#   layer: test
+#   owner: memory-control-plane
+#   status: active
+#   version: 2.7.0
+#   updated: 2026-07-22
+
 """Shared harness for the remote (Streamable HTTP) MCP proof (ADR-098).
 
 Everything here is client-side: it mints credentials the way a remote agent
