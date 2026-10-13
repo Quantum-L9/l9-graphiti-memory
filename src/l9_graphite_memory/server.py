@@ -304,6 +304,16 @@ def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
     return local.model_copy(update={"auth_method": "stdio-local"})
 
 
+def _http_local_principal(settings: MemorySettings) -> MemoryPrincipal:
+    """The auth-disabled HTTP principal: the signed agent door, else Tier 3."""
+
+    principal = _agent_door_principal(settings)
+    if principal is not None:
+        return principal
+    _, local = resolve_local_context(settings)
+    return local
+
+
 class StdioPrincipalResolver:
     """Resolve the principal a local transport serves every request under.
 
@@ -510,12 +520,14 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         else None
     )
     server = MCPServer(runtime, protocol_versions=HTTP_MCP_PROTOCOL_VERSIONS)
-    # Auth-disabled HTTP is the local trust model: exactly the stdio principal,
-    # established server-side before any body is read. Never wider than stdio.
+    # Auth-disabled HTTP is the local trust model, established server-side
+    # before any body is read and never wider than stdio. It is never the
+    # human door: that tier belongs to the process holding the secret, not to
+    # every local process able to reach a loopback port (ADR-098).
     local_principal = (
         None
         if settings.http_auth_required
-        else StdioPrincipalResolver(settings).principal.model_copy(
+        else _http_local_principal(settings).model_copy(
             update={"auth_method": "http-auth-disabled"}
         )
     )
@@ -592,13 +604,19 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         declared_length = request.headers.get("Content-Length", "")
         if declared_length.isdigit() and int(declared_length) > HTTP_MAX_BODY_BYTES:
             return _transport_error(413, -32600, "request body is too large")
-        raw = await request.body()
-        if len(raw) > HTTP_MAX_BODY_BYTES:
-            return _transport_error(413, -32600, "request body is too large")
+        # Read incrementally so a chunked body is refused at the limit
+        # instead of being buffered whole first.
+        chunks: list[bytes] = []
+        received = 0
+        async for chunk in request.stream():
+            received += len(chunk)
+            if received > HTTP_MAX_BODY_BYTES:
+                return _transport_error(413, -32600, "request body is too large")
+            chunks.append(chunk)
         try:
-            body = json.loads(raw)
-        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-            return _transport_error(400, -32700, f"parse error: {exc}")
+            body = json.loads(b"".join(chunks))
+        except (ValueError, RecursionError) as exc:  # JSONDecodeError, UnicodeDecodeError
+            return _transport_error(400, -32700, f"parse error: {type(exc).__name__}")
         if not isinstance(body, dict):
             return _transport_error(400, -32600, "the body must be one JSON-RPC message")
         try:

@@ -327,7 +327,7 @@ def test_a_tampered_assertion_signature_is_refused(client) -> None:
         401,
         secrets=(flipped, AGENT_KEYS[WRITER]),
     )
-    assert "invalid assertion signature" in body["error"]["message"]
+    assert "not valid for a registered agent" in body["error"]["message"]
     assert (
         _post(client, rpc("tools/list"), agent=None, headers=headers).headers["www-authenticate"]
         == 'Bearer realm="l9-graphite-memory", error="invalid_token"'
@@ -341,7 +341,7 @@ def test_a_reexpiry_by_editing_the_token_is_refused(client) -> None:
     agent_id, exp, nonce, signature = headers["Authorization"].split(" ", 1)[1].split(".")
     headers["Authorization"] = f"Bearer {agent_id}.{int(exp) + 600}.{nonce}.{signature}"
     body = _assert_refused(_post(client, rpc("tools/list"), agent=None, headers=headers), 401)
-    assert "invalid assertion signature" in body["error"]["message"]
+    assert "not valid for a registered agent" in body["error"]["message"]
 
 
 def test_a_tampered_identity_assertion_is_refused(client) -> None:
@@ -396,7 +396,7 @@ def test_another_agents_genuine_identity_evidence_is_refused(client) -> None:
 def test_an_agent_the_server_never_registered_is_refused(client) -> None:
     headers = credentials(OUTSIDER, key=OUTSIDER_KEY)
     body = _assert_refused(_post(client, rpc("tools/list"), agent=None, headers=headers), 401)
-    assert "unknown agent_id" in body["error"]["message"]
+    assert "not valid for a registered agent" in body["error"]["message"]
 
 
 def test_a_static_bearer_token_is_not_an_agent_identity(client) -> None:
@@ -487,6 +487,9 @@ def test_claims_in_request_headers_are_ignored(client) -> None:
 
 
 def test_a_forbidden_origin_is_refused_before_authentication(client) -> None:
+    # No credentials: a 403 rather than a 401 proves Origin is decided first.
+    response = _post(client, rpc("tools/list"), agent=None, headers={"Origin": FORBIDDEN_ORIGIN})
+    _assert_refused(response, 403)
     response = _post(client, rpc("tools/list"), headers={"Origin": FORBIDDEN_ORIGIN})
     _assert_refused(response, 403)
     get = client.get("/mcp", headers={"Origin": FORBIDDEN_ORIGIN})
@@ -821,3 +824,195 @@ def test_the_stdio_agent_door_and_the_http_door_build_the_same_principal(
     assert remote.auth_method == "http-agent-assertion"
     assert local.auth_method == "stdio-agent-assertion"
     assert remote.model_copy(update={"auth_method": local.auth_method}) == local
+
+
+# --- review regressions: hostile inputs are 4xx, never 500 ----------------------
+
+
+def _future_exp() -> int:
+    import time
+
+    return int(time.time()) + 300
+
+
+def test_registered_and_unregistered_agents_are_refused_identically(client) -> None:
+    """No agent-id enumeration: a bad signature on a registered id and any
+    signature on an unregistered id produce the same refusal."""
+
+    exp = _future_exp()
+    registered = f"Bearer {WRITER}.{exp}.{'ab' * 16}.{'0' * 64}"
+    unregistered = f"Bearer nobody.{exp}.{'ab' * 16}.{'0' * 64}"
+    bodies = []
+    for authorization in (registered, unregistered):
+        headers = {**credentials(WRITER), "Authorization": authorization}
+        bodies.append(
+            _assert_refused(_post(client, rpc("tools/list"), agent=None, headers=headers), 401)
+        )
+    assert bodies[0] == bodies[1]
+
+
+@pytest.mark.parametrize(
+    "signature",
+    [
+        "\u00e9" * 64,  # non-ASCII: hmac.compare_digest would raise TypeError
+        "0" * 63,
+        "G" * 64,
+        "0" * 65,
+    ],
+    ids=["non-ascii", "short", "non-hex", "long"],
+)
+def test_a_malformed_signature_is_refused_without_a_key(client, signature: str) -> None:
+    exp = _future_exp()
+    headers = {"Authorization": f"Bearer {WRITER}.{exp}.{'ab' * 16}.{signature}"}
+    raw_headers = {**mcp_headers(), **headers}
+    response = client.post(
+        "/mcp",
+        content=json.dumps(rpc("tools/list")),
+        headers={key: value.encode("latin-1") for key, value in raw_headers.items()},
+    )
+    _assert_refused(response, 401)
+
+
+@pytest.mark.parametrize(
+    "exp",
+    ["1" + "0" * 400, "-5", "+300", "1_700", "", "12345678901234"],
+    ids=["huge", "negative", "signed", "underscored", "empty", "13-digits"],
+)
+def test_an_out_of_shape_expiry_is_refused(client, exp: str) -> None:
+    from l9_graphite_memory.authz.signed_assertion import mint_assertion as _mint
+
+    token = _mint(WRITER, AGENT_KEYS[WRITER])
+    agent_id, _exp, nonce, signature = token.split(".")
+    headers = {
+        **credentials(WRITER),
+        "Authorization": f"Bearer {agent_id}.{exp}.{nonce}.{signature}",
+    }
+    body = _assert_refused(_post(client, rpc("tools/list"), agent=None, headers=headers), 401)
+    assert "malformed" in body["error"]["message"]
+
+
+def test_a_correctly_signed_absurd_expiry_is_refused_not_overflowed(client) -> None:
+    """A key holder signs exp=10**400: the shape check refuses it before arithmetic."""
+
+    import hashlib
+    import hmac
+
+    exp, nonce = "1" + "0" * 400, "ab" * 16
+    payload = f"{WRITER}|{exp}|{nonce}".encode()
+    signature = hmac.new(AGENT_KEYS[WRITER].encode(), payload, hashlib.sha256).hexdigest()
+    headers = {**credentials(WRITER), "Authorization": f"Bearer {WRITER}.{exp}.{nonce}.{signature}"}
+    _assert_refused(_post(client, rpc("tools/list"), agent=None, headers=headers), 401)
+
+
+@pytest.mark.parametrize(
+    "mac", ["\u00e9" * 64, "\u00e9" + "0" * 63], ids=["non-ascii", "non-ascii-prefix"]
+)
+def test_a_non_ascii_identity_hmac_is_refused(client, mac: str) -> None:
+    headers = {**mcp_headers(), **credentials(WRITER), "L9-Identity-Assertion-HMAC": mac}
+    response = client.post(
+        "/mcp",
+        content=json.dumps(rpc("tools/list")),
+        headers={key: value.encode("latin-1") for key, value in headers.items()},
+    )
+    _assert_refused(response, 401)
+
+
+def test_a_non_ascii_assertion_digest_is_refused(client) -> None:
+    sealed, mac = seal(identity_body(WRITER), AGENT_KEYS[WRITER])
+    sealed["assertion_digest"] = "\u00e9" * len(sealed["assertion_digest"])
+    headers = {**credentials(WRITER), "L9-Identity-Assertion": encode_identity(sealed)}
+    headers["L9-Identity-Assertion-HMAC"] = mac
+    _assert_refused(_post(client, rpc("tools/list"), agent=None, headers=headers), 401)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "[" * 12_000,  # RecursionError in json.loads
+        '{"n": ' + "9" * 5_000 + "}",  # int digit limit -> ValueError
+    ],
+    ids=["deep-nesting", "huge-integer"],
+)
+def test_an_undecodable_identity_assertion_is_refused(client, payload: str) -> None:
+    import base64
+
+    encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip("=")
+    headers = {**credentials(WRITER), "L9-Identity-Assertion": encoded}
+    _assert_refused(_post(client, rpc("tools/list"), agent=None, headers=headers), 401)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b"[" * 200_000,
+        b'{"jsonrpc": "2.0", "id": ' + b"9" * 5_000 + b', "method": "ping"}',
+    ],
+    ids=["deep-nesting", "huge-integer"],
+)
+def test_an_undecodable_body_is_a_parse_error(client, payload: bytes) -> None:
+    body = _assert_refused(_post(client, payload), 400)
+    assert body["error"]["code"] == -32700
+
+
+def test_a_chunked_oversized_body_is_refused_at_the_limit(client) -> None:
+    from l9_graphite_memory.server import HTTP_MAX_BODY_BYTES
+
+    def chunks():
+        block = b"x" * 65_536
+        sent = 0
+        while sent <= HTTP_MAX_BODY_BYTES:
+            sent += len(block)
+            yield block
+
+    headers = {**mcp_headers(), **credentials(WRITER)}
+    response = client.post("/mcp", content=chunks(), headers=headers)
+    assert "content-length" not in {key.lower() for key in response.request.headers}
+    _assert_refused(response, 413)
+
+
+def test_auth_disabled_http_never_serves_the_human_door(monkeypatch) -> None:
+    """Pre-existing gap closed with ADR-098: any local process reaching a
+    loopback port is not the human administrator."""
+
+    monkeypatch.setenv("L9_MEMORY_HUMAN_DOOR_SECRET", "local-human-door-secret")
+    for name in ("L9_MEMORY_AGENTS_DOOR_SECRET",):
+        monkeypatch.delenv(name, raising=False)
+    runtime = _runtime(_settings(http_auth_required=False, http_auth_mode="bearer"))
+    try:
+        with serve(create_http_app(runtime)) as url, httpx2.Client(base_url=url) as http:
+            response = http.post(
+                "/mcp",
+                content=json.dumps(
+                    tool("memory.write_agent", {"namespace": FOREIGN_NAMESPACE, "content": "x y z"})
+                ),
+                headers=mcp_headers(),
+            )
+            receipt = tool_payload(response.json())
+            assert receipt["status"] == "rejected"
+            assert receipt["authorization"]["principal_id"] != "human"
+            assert "stdio-human-door" not in json.dumps(receipt)
+    finally:
+        runtime.close()
+
+
+def test_bearer_mode_refuses_a_non_ascii_token(registry_env) -> None:
+    from l9_graphite_memory.config import TokenPrincipalConfig
+
+    settings = _settings(
+        http_auth_mode="bearer",
+        auth_tokens={"service-token": TokenPrincipalConfig(principal_id="svc", tenant_id="l9")},
+    )
+    runtime = _runtime(settings)
+    try:
+        with serve(create_http_app(runtime)) as url, httpx2.Client(base_url=url) as http:
+            response = http.post(
+                "/mcp",
+                content=json.dumps(rpc("tools/list")),
+                headers={
+                    **{key: value.encode() for key, value in mcp_headers().items()},
+                    "Authorization": "Bearer \u00e9\u00e9\u00e9".encode("latin-1"),
+                },
+            )
+            _assert_refused(response, 401)
+    finally:
+        runtime.close()

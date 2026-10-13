@@ -50,6 +50,8 @@ if TYPE_CHECKING:
 
 _SEP = "."
 _PAYLOAD_SEP = "|"
+_EXP_RE = re.compile(r"\A[0-9]{1,12}\Z")
+_SIGNATURE_RE = re.compile(r"\A[0-9a-f]{64}\Z")
 
 
 class AgentDoorGrant(BaseModel):
@@ -136,8 +138,8 @@ def decode_json_object(raw: str, name: str) -> dict[str, Any]:
 
     try:
         decoded = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        raise AuthenticationError(f"{name} is not valid JSON: {exc}") from exc
+    except (ValueError, RecursionError) as exc:  # JSONDecodeError is a ValueError
+        raise AuthenticationError(f"{name} is not valid JSON: {type(exc).__name__}") from exc
     if not isinstance(decoded, dict):
         raise AuthenticationError(f"{name} must be a JSON object")
     return decoded
@@ -209,10 +211,14 @@ def verify_assertion(
         raise AuthenticationError("malformed agent assertion: expected 4 dot-separated parts")
     agent_id, raw_exp, nonce, supplied_sig = parts
 
-    try:
-        exp = int(raw_exp)
-    except ValueError:
+    # Shape before arithmetic or comparison: an unbounded exp overflows float
+    # arithmetic downstream, and hmac.compare_digest raises TypeError on a
+    # non-ASCII str, so neither may reach those operations.
+    if _EXP_RE.fullmatch(raw_exp) is None:
         raise AuthenticationError("malformed agent assertion: exp is not an integer")
+    if _SIGNATURE_RE.fullmatch(supplied_sig) is None:
+        raise AuthenticationError(f"invalid assertion signature for agent_id={agent_id!r}")
+    exp = int(raw_exp)
 
     if time.time() > exp:
         raise AuthenticationError(f"agent assertion expired for agent_id={agent_id!r}")
@@ -263,7 +269,7 @@ def _same_secret(expected: str, supplied: object) -> bool:
     if not isinstance(supplied, str):
         return False
     candidate = supplied.strip().lower()
-    if len(candidate) != len(expected):
+    if not candidate.isascii() or len(candidate) != len(expected):
         return False
     return hmac.compare_digest(expected, candidate)
 

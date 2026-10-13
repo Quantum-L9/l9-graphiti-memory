@@ -69,6 +69,9 @@ CLOCK_SKEW_SECONDS = 60
 # Upper bound on the encoded identity assertion. The sealed object is about
 # 1.5 KiB; anything this large is not one.
 MAX_IDENTITY_ASSERTION_HEADER_BYTES = 16_384
+# verify_assertion refusals whose wording differs between a registered and an
+# unregistered agent id.
+_REGISTRATION_REVEALING_REFUSALS = ("unknown agent_id", "invalid assertion signature")
 
 
 def _required_env(name: str) -> str:
@@ -165,7 +168,18 @@ class SignedAgentAuthenticator:
         """
 
         token = _bearer(authorization)
-        agent_id = verify_assertion(token, self._keys)
+        try:
+            agent_id = verify_assertion(token, self._keys)
+        except AuthenticationError as exc:
+            # One answer for an unregistered agent and a bad signature, so a
+            # remote caller cannot enumerate the registered agent ids. Expiry
+            # and shape refusals are decided before any key lookup, name
+            # nothing registered, and stay specific so a client can re-mint.
+            if str(exc).startswith(_REGISTRATION_REVEALING_REFUSALS):
+                raise AuthenticationError(
+                    "agent assertion is not valid for a registered agent"
+                ) from exc
+            raise
         expires_at = int(token.split(".", 3)[1])
         if expires_at - time.time() > self._max_ttl + CLOCK_SKEW_SECONDS:
             raise AuthenticationError(
