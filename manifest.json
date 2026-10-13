@@ -350,8 +350,8 @@
         "version": "2.6.0"
       },
       "path": "ARCHITECTURE.md",
-      "sha256": "973b87f5f5fc912cbb93639f500eee0c1842c386c2a8510b7043af49672fc463",
-      "size_bytes": 16017
+      "sha256": "36980f70d86a234f18023027899501da34fc782c9675f0392b404737ed6c4ec6",
+      "size_bytes": 16945
     },
     {
       "category": "repository_root",
@@ -430,8 +430,8 @@
         "version": "2.6.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "74dde2b1e4d0b1affc18b568fc8c24670ea8afb30b739563a9cb51a4cffccd90",
-      "size_bytes": 140334
+      "sha256": "a226a27f22e1aebadf44f53d27d3bc77fdfde376112d0b5d093cb346e84ad248",
+      "size_bytes": 140335
     },
     {
       "category": "repository_root",
@@ -462,8 +462,8 @@
         "version": "2.6.0"
       },
       "path": "QUICKSTART.md",
-      "sha256": "a406510d18ce914d4fa9f848cc6735370245782b889f66ef12fb91f72b03de0c",
-      "size_bytes": 1907
+      "sha256": "f205c527c35355891feac719f63ab857aed0609cd7161ba09fcda3746a7d2fbc",
+      "size_bytes": 2546
     },
     {
       "category": "repository_root",
@@ -478,8 +478,8 @@
         "version": "2.6.0"
       },
       "path": "README.md",
-      "sha256": "16c6cbb99e33ed642f2b8d29acb70999490ce8bfe7d3479c61f074b6389252fe",
-      "size_bytes": 10630
+      "sha256": "e3861f4d40538585fce6cb7fc761c8fd359e9594daae115e6f85910d60f76c51",
+      "size_bytes": 12854
     },
     {
       "category": "repository_root",
@@ -510,8 +510,8 @@
         "version": "2.6.0"
       },
       "path": "RUNBOOK.md",
-      "sha256": "dbfa08839539bb7951626e071d46c125db5869b5ce290a8423bbbce2330b0344",
-      "size_bytes": 22550
+      "sha256": "e03f7592eacc3ac024dba8fe5bbaaf798822d9e3a0c3da53702d07dbde030298",
+      "size_bytes": 24890
     },
     {
       "category": "repository_root",
@@ -526,8 +526,8 @@
         "version": "2.6.0"
       },
       "path": "SECURITY.md",
-      "sha256": "8eb44c129daf83b389343dcf462662b6c6282a63cac6048cf084e10d2b964980",
-      "size_bytes": 1718
+      "sha256": "0e7cfde2b4f46f46596e7fe6953232d87f9e74e12301bd3bb88ab3f60e4e594a",
+      "size_bytes": 3321
     },
     {
       "category": "repository_root",
@@ -606,8 +606,8 @@
         "version": "2.6.0"
       },
       "path": "clients/typescript/README.md",
-      "sha256": "7fb37e6c6db609e6d88e095eab949b7f4849a1db1bbd9a6e02bea31d9d01e642",
-      "size_bytes": 664
+      "sha256": "5805b0dd7fd641c20580cbc70f7b80ac7379bca8762227c2bab52c69a1b599fb",
+      "size_bytes": 1164
     },
     {
       "category": "repository_root",
@@ -750,8 +750,8 @@
         "version": "2.6.0"
       },
       "path": "config/memory.yaml.example",
-      "sha256": "6e527da3b55c506979a28e6af69e289f564b98b71b4d0bf7bca14b6cf53b3ec7",
-      "size_bytes": 2113
+      "sha256": "6037bf533076b95ab46ba7587523794d633f0d591fe18ed4a13f3f9a4e1a667b",
+      "size_bytes": 2455
     },
     {
       "category": "configuration",
@@ -782,8 +782,8 @@
         "version": "2.6.0"
       },
       "path": "deployment/generated-data/activation-runbook.md",
-      "sha256": "ab8cbc1353273c8520213b801c23093010646982444f575ff32996938d2d47f5",
-      "size_bytes": 4836
+      "sha256": "207b0a2e15d0b217283352aade38b5089859d84e19b099fa214dcaab9c8d3b66",
+      "size_bytes": 5172
     },
     {
       "category": "repository_root",
@@ -1118,8 +1118,8 @@
         "version": "2.6.0"
       },
       "path": "docs/COMPATIBILITY_MATRIX.md",
-      "sha256": "8a807ad0fc0d2a97c721c9ee68c40ba57dd26a8b3a622bbd8277a19eef7a70bf",
-      "size_bytes": 3726
+      "sha256": "be87bdd00f0ebaf2789ae0850b98b704a7d64c2ff57756a38aef76de7579c2a2",
+      "size_bytes": 4241
     },
     {
       "category": "documentation",
@@ -1150,8 +1150,8 @@
         "version": "2.6.0"
       },
       "path": "docs/CURSOR_INSTANTIATION.md",
-      "sha256": "a57c91a5a4551c2221b920a518c01e23bd93924b9e0545112d6f9e3b4c7303aa",
-      "size_bytes": 5810
+      "sha256": "bdd2660e76a3c11d93ae82366cc79df10e1971b88ed34b08d427043d55b7d382",
+      "size_bytes": 6406
     },
     {
       "category": "documentation",
@@ -2974,8 +2974,8 @@
         "version": "2.6.0"
       },
       "path": "docs/activation/CURSOR_FULL_ACTIVATION_PLAYBOOK.md",
-      "sha256": "bb7ea00299502a8e2559376929262e2b91c6e24e0b26f7c6823569f4a5a8ba43",
-      "size_bytes": 10737
+      "sha256": "2d72f31dabd65c1e9e7788974715f00262af836ce47c22f3ace2477507ef3532",
+      "size_bytes": 11171
     },
     {
       "category": "documentation",
@@ -3598,8 +3598,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md",
-      "sha256": "d84fc7da7d0bdca5ab8f0cdb872072fae7fdff0796a72ba9cc85d098b87c877f",
-      "size_bytes": 2668
+      "sha256": "86ca48f5b2e831e2113537bf20af3ed22519d2eef75339b3b5b15ea3f5391de3",
+      "size_bytes": 7518
     },
     {
       "category": "architecture_decisions",
@@ -4014,8 +4014,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-064-cursor-client-instantiation-and-proof-boundary.md",
-      "sha256": "2991172a3c0dd450716294d3edee895016290f4f2a63b8a1820c917dce76f635",
-      "size_bytes": 7184
+      "sha256": "ee595a6ba60574ee957e61d399daa9ed01b773ce38d7c9b81faea9b9ce782312",
+      "size_bytes": 8836
     },
     {
       "category": "architecture_decisions",
@@ -4302,8 +4302,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-082-consumer-control-plane-transport-parity.md",
-      "sha256": "bc051d5679ebfad9c8fc41fdebc5a4c144684bc74829312410301e600dff6f6b",
-      "size_bytes": 11067
+      "sha256": "0f3e7bc6f16573e32412e530bddaf555991086f919d27235923adc2a577e2fba",
+      "size_bytes": 13797
     },
     {
       "category": "architecture_decisions",
@@ -4318,8 +4318,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md",
-      "sha256": "e4e8c77e9af8f6277f82eb7eac5b1cb25c715ec548b03b29401a7d0d0bbfdcc6",
-      "size_bytes": 17385
+      "sha256": "5943966195c4cb41021c425e622f023111663b6b1667a873d74ac0fc12afaf99",
+      "size_bytes": 22291
     },
     {
       "category": "architecture_decisions",
@@ -4494,8 +4494,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/ADR-094-product-topology-and-release-governance.md",
-      "sha256": "edee79e881b63809827370563575282ff69bdf822e5b348be01068429bab7169",
-      "size_bytes": 10424
+      "sha256": "373c17f7ffcecd579231ff32193293006fcc4e8f3450614c329ecae1f49bd8eb",
+      "size_bytes": 13449
     },
     {
       "category": "architecture_decisions",
@@ -4558,8 +4558,8 @@
         "version": "2.6.0"
       },
       "path": "docs/adr/README.md",
-      "sha256": "0d1647238cbaa4149329abc6abff26c7d2d0e2b552385e6b9112275f90b5d6da",
-      "size_bytes": 12142
+      "sha256": "9658b0e813e9b7df0d44138245320e4bf8285b01b32a8a8ddbcb7732b9110f59",
+      "size_bytes": 13047
     },
     {
       "category": "documentation",
