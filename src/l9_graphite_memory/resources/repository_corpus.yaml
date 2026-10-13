@@ -18,11 +18,11 @@ authority:
 projection:
   view_ref: l9.repository-view/memory-namespace-l9@1
   source_repository: Quantum-L9/.github
-  source_revision: 9b27869dd893fcd28f76f99c9184a90435542c76
+  source_revision: 1f42b33249310d59a270c05f30cbc75d663185e6
   sources:
     repository_registry:
       artifact_ref: l9.repository-registry/global@1
-      digest: sha256:d940346433309a0b51dcc921a290bd19b57ddb4b9c4d17cbb3a8bfc7be90a686
+      digest: sha256:0b8d3df4da548e0f5f511bbc19c233d19bce478515217cbfe507014674295cb2
     repository_classes:
       artifact_ref: l9.repository-classes/global@1
       digest: sha256:1ba62a3e03423a35a55fd08dcc53bd8ce377d5c2406da32cc741ee7a385b7cdd
@@ -105,6 +105,13 @@ repositories:
     provider: github
     organization: Quantum-L9
     repository: l9-cognitive-runtime
+  lifecycle: current
+  class_ref: l9.repository-class/l9@1
+- id: l9-conformance
+  coordinate:
+    provider: github
+    organization: Quantum-L9
+    repository: l9-conformance
   lifecycle: current
   class_ref: l9.repository-class/l9@1
 - id: l9-constellation-ingest
