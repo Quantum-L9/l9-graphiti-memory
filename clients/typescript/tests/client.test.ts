@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { GraphitiMemoryClient, parseMcpBody, renderHydration } from '../src/index.js';
+import { GraphitiMemoryClient, parseMcpBody, renderHydration, type ProtocolVersion } from '../src/index.js';
 
 function jsonResponse(body: object, headers: Record<string,string> = {}, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...headers } });
@@ -56,7 +56,7 @@ test('refuses a server that negotiates a revision the client cannot speak', asyn
 });
 
 test('rejects an unsupported configured protocol version', () => {
-  assert.throws(() => new GraphitiMemoryClient({ baseUrl:'http://memory.local', bearerToken:'token', protocolVersion:'2025-03-26' }), RangeError);
+  assert.throws(() => new GraphitiMemoryClient({ baseUrl:'http://memory.local', bearerToken:'token', protocolVersion:'2025-03-26' as unknown as ProtocolVersion }), RangeError);
 });
 
 test('captures and propagates an optional MCP session', async () => {

@@ -10,7 +10,7 @@ export interface MemoryClientConfig {
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
   idFactory?: () => string;
-  protocolVersion?: string;
+  protocolVersion?: ProtocolVersion;
 }
 
 export interface ContextSection {
@@ -66,7 +66,7 @@ interface ToolCallResult { content?: Array<{ type: string; text?: string }>; isE
 // l9-graphiti-memory). The server refuses any other MCP-Protocol-Version.
 export const SUPPORTED_PROTOCOL_VERSIONS = ['2025-11-25', '2025-06-18'] as const;
 export type ProtocolVersion = typeof SUPPORTED_PROTOCOL_VERSIONS[number];
-const CLIENT_VERSION = '2.1.0';
+const CLIENT_VERSION = '3.0.0';
 
 function isSupportedProtocolVersion(value: unknown): value is ProtocolVersion {
   return typeof value === 'string' && (SUPPORTED_PROTOCOL_VERSIONS as readonly string[]).includes(value);
@@ -212,6 +212,9 @@ export class GraphitiMemoryClient {
   }
 
   private async callToolOnce<T>(name: string, args: Record<string, unknown>): Promise<T> {
+    // A concurrent call may have reset the session after this one passed
+    // ensureSession(); re-await so headers are built from a live negotiation.
+    await this.ensureSession();
     const id = this.idFactory();
     const { payload } = await this.post({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } }, true);
     this.assertEnvelope(payload, id, name);
