@@ -442,7 +442,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/authz/__init__.py` | `production_source` | `package` | 590 | `8a10afe8eab4a50ce17a97d2dc58427fb21b558d1865831c289583711ec89e4d` |
 | `src/l9_graphite_memory/authz/authenticator.py` | `production_source` | `package` | 3188 | `8313b51625eb2f1c7226ffb34ea7eb780194366bff3aa9c79e788337b9b3b619` |
 | `src/l9_graphite_memory/authz/policy.py` | `production_source` | `package` | 3389 | `9c4fb8ee42d99d43c6d7b6bc963d4c8e04c067e599f8dbcb61e6d629fd7f1046` |
-| `src/l9_graphite_memory/authz/remote_agent.py` | `production_source` | `package` | 8149 | `ab1df0232a805a08076021cf2b2fef219907e7731361ad2088a786a258ce7cef` |
+| `src/l9_graphite_memory/authz/remote_agent.py` | `production_source` | `package` | 8172 | `2984111fbba4d8a5aed061f81b4608467aa0ce036487686500aebbc93a901105` |
 | `src/l9_graphite_memory/authz/signed_assertion.py` | `production_source` | `package` | 15365 | `31c965328726bd80c3bee291ef63781e513033621e458a48e9295d97cd8724aa` |
 | `src/l9_graphite_memory/circuit_breaker.py` | `production_source` | `package` | 2784 | `48348de22f97e017768d47ac47930ed19167e290eeb614d79f474c4bdc7d7499` |
 | `src/l9_graphite_memory/cli.py` | `production_source` | `package` | 53596 | `e816c1596a2b37c00e5fc7a52b88a6e32e9fa45d062cc530929f773deded081b` |
@@ -684,7 +684,7 @@ updated: 2026-07-22
 | `tests/integration/test_projection_seams_live.py` | `tests` | `test` | 31682 | `eb1588b12569680bfde08fe9b4d6c441485db0fcd4d3d603157dcdf98990070b` |
 | `tests/integration/test_projection_targets.py` | `tests` | `test` | 36328 | `315e7eb881e1c93f4f9a65bfc4789f7b5d53e47604feb7cedc58483e78e5b7e6` |
 | `tests/integration/test_quarantine_review_maintenance.py` | `tests` | `test` | 13532 | `a7c16264d263e4c96cd1bdfa00fa5f688064865d0a1d5d8a2720803c4598d27a` |
-| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 32187 | `e85ca14620c9ceb5a21390fcb1ed65e553e0108a9b4c1659d413740b1e0b56ef` |
+| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 32279 | `4999acfcd72fe0fa70b5e41d025a31239b3a562d53eeba0fb2680e5e39859f1c` |
 | `tests/integration/test_repository_corpus_ingestion.py` | `tests` | `test` | 3218 | `1becf822cb37f129fc127e2a585d0da307423770eaa6e672974f233524a7f568` |
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `test` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `test` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |

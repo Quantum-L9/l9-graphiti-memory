@@ -430,7 +430,7 @@
         "version": "2.7.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "04368e547bb42dc71d1734fa7467942f4eeb004a7a8d49a9617d62a8610650af",
+      "sha256": "596c891f2e6380f4d36296fd0762b9510dc48e9129084653872b2c23f7f1f113",
       "size_bytes": 141118
     },
     {
@@ -6238,8 +6238,8 @@
         "version": "2.7.0"
       },
       "path": "src/l9_graphite_memory/authz/remote_agent.py",
-      "sha256": "ab1df0232a805a08076021cf2b2fef219907e7731361ad2088a786a258ce7cef",
-      "size_bytes": 8149
+      "sha256": "2984111fbba4d8a5aed061f81b4608467aa0ce036487686500aebbc93a901105",
+      "size_bytes": 8172
     },
     {
       "category": "production_source",
@@ -10110,8 +10110,8 @@
         "version": "2.7.0"
       },
       "path": "tests/integration/test_remote_mcp_http.py",
-      "sha256": "e85ca14620c9ceb5a21390fcb1ed65e553e0108a9b4c1659d413740b1e0b56ef",
-      "size_bytes": 32187
+      "sha256": "4999acfcd72fe0fa70b5e41d025a31239b3a562d53eeba0fb2680e5e39859f1c",
+      "size_bytes": 32279
     },
     {
       "category": "tests",
