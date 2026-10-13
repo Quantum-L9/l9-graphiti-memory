@@ -654,7 +654,7 @@ updated: 2026-07-22
 | `tests/fixtures/topology_publication_v2/topology-bundle/receipts/validation-receipt.json` | `tests` | `test` | 11892 | `b70c9e83a1c649f8b4a6361bf3cb4bd4592759266e1f667f4a87b937414ff1a3` |
 | `tests/graph_fakes.py` | `tests` | `test` | 8223 | `234520c6bcd728d74d782c94b01dd779a171457fe1b0b760b566af950341419d` |
 | `tests/integration/neo4j_graph_fixture.py` | `tests` | `test` | 7661 | `9157b2c2924b73eb7c9fd8272726899a6e2f5847ccf71cbd9e3650ffeff357b8` |
-| `tests/integration/remote_mcp_harness.py` | `tests` | `test` | 8121 | `4a1200960b308fe7d7736151299e1e850e338842aecc9336373c43664f038422` |
+| `tests/integration/remote_mcp_harness.py` | `tests` | `test` | 8476 | `77f149fa45d8d4b2ac1623def91f02ecfd0b915e2bf5b2dcb9490da3984a84d3` |
 | `tests/integration/test_active_memory_redis_live.py` | `tests` | `test` | 10497 | `05aa9da02abee359552eed2692e882dc6abd4f432eb7c3f4b891f1db0119b5e8` |
 | `tests/integration/test_conflict_links.py` | `tests` | `test` | 8834 | `b156c2d9c6c857aced5ecfd244c54ecdd9eb5983cc76b1d61e3619b1dbc35439` |
 | `tests/integration/test_cursor_mcp_instantiation.py` | `tests` | `test` | 6466 | `16e70c0a31088cedad5a48658d6e40f273f966f1e6101f951c10254361037c58` |
@@ -684,7 +684,7 @@ updated: 2026-07-22
 | `tests/integration/test_projection_seams_live.py` | `tests` | `test` | 31682 | `eb1588b12569680bfde08fe9b4d6c441485db0fcd4d3d603157dcdf98990070b` |
 | `tests/integration/test_projection_targets.py` | `tests` | `test` | 36328 | `315e7eb881e1c93f4f9a65bfc4789f7b5d53e47604feb7cedc58483e78e5b7e6` |
 | `tests/integration/test_quarantine_review_maintenance.py` | `tests` | `test` | 13532 | `a7c16264d263e4c96cd1bdfa00fa5f688064865d0a1d5d8a2720803c4598d27a` |
-| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 39760 | `ebac8270fa8f8d38dcecb1d3203aa04e34562042688f9f33118eb9ed03d32ae6` |
+| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 44790 | `c7869da686b9308ead4a19dd956ab3d8b5c5fe4c27f5e9fa2d28e0bc4851c00a` |
 | `tests/integration/test_repository_corpus_ingestion.py` | `tests` | `test` | 3218 | `1becf822cb37f129fc127e2a585d0da307423770eaa6e672974f233524a7f568` |
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `test` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `test` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |
@@ -799,7 +799,7 @@ updated: 2026-07-22
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `d626c7315c9c7c54713bb8207a5a8510344b4320558e81462a5e73961faaeb3b` |
 | `tools/assurance/generate_product_manifest.py` | `assurance` | `assurance` | 20534 | `0c1461e2440a8ae0c5da4e5326e90931962f021f5bea37abf2ddb45310d8aa59` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 36596 | `38d56451b2f329521309d5736726704edca0da31bf36d35e0d7acc561f20d819` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 36820 | `eb4f2e44df0c1eaa62aa90f53e0d3e61a9d4547fe5036e4e924a98c105fa59cb` |
 | `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 16799 | `53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `d2b35d654c2e344bddc0d58f94d814248c4127a5dba6b92650fcb87ee4683f1a` |

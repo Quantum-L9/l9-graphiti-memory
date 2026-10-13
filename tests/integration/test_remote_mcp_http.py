@@ -46,6 +46,7 @@ from tests.integration.remote_mcp_harness import (
     AGENT_GRANTS,
     AGENT_KEYS,
     ALLOWED_ORIGIN,
+    CO_WRITER,
     FORBIDDEN_ORIGIN,
     FOREIGN_NAMESPACE,
     HOME_NAMESPACE,
@@ -1016,3 +1017,122 @@ def test_bearer_mode_refuses_a_non_ascii_token(registry_env) -> None:
             _assert_refused(response, 401)
     finally:
         runtime.close()
+
+
+# --- tenant isolation and idempotency over HTTP ----------------------------------
+
+
+def _call(http: Any, agent: str, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    response = http.post(
+        "/mcp",
+        content=json.dumps(tool(name, arguments)),
+        headers={**mcp_headers(), **credentials(agent)},
+    )
+    assert response.status_code == 200, response.text
+    return dict(response.json())
+
+
+def test_tenant_isolation_holds_between_two_deployments_of_one_service(registry_env) -> None:
+    """The tenant is a deployment coordinate (server settings), never an agent claim.
+
+    Two HTTP deployments share one MemoryService and one agent registry but
+    run as different tenants. The same agents, with the same grants, cannot
+    see or touch the other tenant's records.
+    """
+
+    service = MemoryService(InMemoryRecordStore(), NullProjection())
+    service.initialize()
+    tenant_a = MemoryRuntime(settings=_settings(local_tenant_id="tenant-a"), service=service)
+    tenant_b = MemoryRuntime(settings=_settings(local_tenant_id="tenant-b"), service=service)
+    content = "a falcon nests on the tenant-a tower"
+    with (
+        serve(create_http_app(tenant_a)) as url_a,
+        serve(create_http_app(tenant_b)) as url_b,
+        httpx2.Client(base_url=url_a, timeout=10) as http_a,
+        httpx2.Client(base_url=url_b, timeout=10) as http_b,
+    ):
+        written = tool_payload(
+            _call(
+                http_a,
+                WRITER,
+                "memory.write_agent",
+                {"namespace": HOME_NAMESPACE, "content": content, "idempotency_key": "tenant-key"},
+            )
+        )
+        assert written["status"] == "admitted"
+        record_id = written["record_id"]
+
+        # Known good: the tenant-a reader sees it.
+        own = tool_payload(_call(http_a, READER, "memory.get", {"record_id": record_id}))
+        assert own["found"] is True
+        assert own["record"]["tenant_id"] == "tenant-a"
+
+        # Denied: the same reader, through the tenant-b deployment, cannot read it.
+        foreign_get = _call(http_b, READER, "memory.get", {"record_id": record_id})
+        assert foreign_get["error"]["code"] == -32010
+        assert foreign_get["error"]["data"] == {"type": "AuthorizationError"}
+        foreign_search = tool_payload(
+            _call(
+                http_b, READER, "memory.search", {"query": "falcon", "namespaces": [HOME_NAMESPACE]}
+            )
+        )
+        assert foreign_search["hits"] == []
+
+        # A tenant-b write under the same namespace and key is its own record;
+        # it neither replays nor overwrites the tenant-a record.
+        other = tool_payload(
+            _call(
+                http_b,
+                WRITER,
+                "memory.write_agent",
+                {"namespace": HOME_NAMESPACE, "content": content, "idempotency_key": "tenant-key"},
+            )
+        )
+        assert other["status"] == "admitted"
+        assert other["record_id"] != record_id
+        back = _call(http_a, READER, "memory.get", {"record_id": other["record_id"]})
+        assert back["error"]["data"] == {"type": "AuthorizationError"}
+        unchanged = tool_payload(_call(http_a, READER, "memory.get", {"record_id": record_id}))
+        assert unchanged["record"]["content"] == own["record"]["content"]
+    tenant_a.close()
+    tenant_b.close()
+
+
+def test_repeated_writes_keep_the_existing_idempotency_guarantees(client) -> None:
+    """Over HTTP, a replayed key yields the original record; a second agent
+    reusing the key cannot overwrite it or take its attribution (ADR-008)."""
+
+    arguments = {
+        "namespace": HOME_NAMESPACE,
+        "content": "a kite circles the quarry at dusk",
+        "idempotency_key": "remote-idempotency-1",
+    }
+    first = tool_payload(_post(client, tool("memory.write_agent", arguments)).json())
+    replay = tool_payload(_post(client, tool("memory.write_agent", arguments)).json())
+    assert first["status"] == "admitted"
+    assert replay["status"] == "duplicate"
+    assert replay["record_id"] == first["record_id"]
+
+    hijack = tool_payload(
+        _post(
+            client,
+            tool("memory.write_agent", {**arguments, "content": "the kite was never there"}),
+            agent=CO_WRITER,
+        ).json()
+    )
+    assert hijack["status"] == "duplicate"
+    assert hijack["record_id"] == first["record_id"]
+    assert any("original record remains authoritative" in w for w in hijack["warnings"])
+
+    stored = tool_payload(
+        _post(client, tool("memory.get", {"record_id": first["record_id"]})).json()
+    )
+    assert stored["record"]["content"] == arguments["content"]
+    assert stored["record"]["provenance"]["source_agent_id"] == WRITER
+    found = tool_payload(
+        _post(
+            client, tool("memory.search", {"query": "kite", "namespaces": [HOME_NAMESPACE]})
+        ).json()
+    )
+    assert [hit["record"]["record_id"] for hit in found["hits"]].count(first["record_id"]) == 1
+    assert len(found["hits"]) == 1

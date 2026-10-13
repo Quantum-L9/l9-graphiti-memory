@@ -49,10 +49,12 @@ FORBIDDEN_ORIGIN = "https://attacker.example"
 # exist only in this process; production keys never appear in a repository.
 WRITER = "claude-code"
 READER = "cursor"
+CO_WRITER = "codex"  # a second agent with the same write grant as WRITER
 OUTSIDER = "manus"  # holds a key the server never registered
 AGENT_KEYS = {
     WRITER: "writer-signing-key-0123456789abcdef",
     READER: "reader-signing-key-0123456789abcdef",
+    CO_WRITER: "cowriter-signing-key-0123456789abcd",
 }
 OUTSIDER_KEY = "outsider-signing-key-0123456789abcd"
 HOME_NAMESPACE = "repo-a"
@@ -69,6 +71,13 @@ AGENT_GRANTS = {
         "roles": ["reviewer", "memory-client"],
         "read_namespaces": [HOME_NAMESPACE],
         "write_namespaces": [],
+        "promote_namespaces": [],
+        "is_admin": False,
+    },
+    CO_WRITER: {
+        "roles": ["implementer", "memory-client"],
+        "read_namespaces": [HOME_NAMESPACE],
+        "write_namespaces": [HOME_NAMESPACE],
         "promote_namespaces": [],
         "is_admin": False,
     },

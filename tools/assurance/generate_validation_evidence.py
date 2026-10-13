@@ -341,8 +341,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # bearer token). None are CI-skipped. 1768 + 22 = 1790; CI skips 52.
         # Re-pinned 1790 -> 1791: 1 case in test_signed_assertion.py (non-ASCII
         # digits in exp are malformed). Not CI-skipped. 1790 + 1 = 1791.
-        "1791 tests pass",
-        r"1791 passed",
+        # Re-pinned 1791 -> 1793: 2 cases in test_remote_mcp_http.py (tenant
+        # isolation between two HTTP deployments of one service; idempotent
+        # replay and cross-agent key reuse over HTTP). Not CI-skipped.
+        "1793 tests pass",
+        r"1793 passed",
     ),
     CheckSpec(
         "V-002",
