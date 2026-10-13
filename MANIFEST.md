@@ -90,11 +90,11 @@ updated: 2026-07-22
 | `campaigns/canonical-memory-lifecycle-convergence-v1/intent.yaml` | `repository_root` | `repository` | 24543 | `f7098ab1911640dcb23cd525b486e3eb7f24323adc58e585482a9f3de12c09a9` |
 | `campaigns/canonical-memory-lifecycle-convergence-v1/program-execution.intent.yaml` | `repository_root` | `repository` | 2661 | `ea0a5f70b05479f2edc92f868a716ec9166082104538291870dd5f6502d5903a` |
 | `clients/typescript/.gitignore` | `repository_root` | `repository` | 238 | `f623aba69c9b5741543279b74980c42e7872915e20545e1e4eaa68e269e8ef3d` |
-| `clients/typescript/README.md` | `repository_root` | `repository` | 1024 | `f13c9cc73f3300411679c342c398eb52ada9feabc67a2148e923731e5a9b524a` |
-| `clients/typescript/package-lock.json` | `repository_root` | `repository` | 1568 | `d04775be1a17532901bfcaeaa42d6e668dab0a080c8e93d4cb0fd48c721d5b00` |
-| `clients/typescript/package.json` | `repository_root` | `repository` | 856 | `bcb454ba545a6cf5e3e1126a62752615ee45321fd8c0ade8bb7c93aecad47042` |
-| `clients/typescript/src/index.ts` | `repository_root` | `repository` | 15382 | `686d3a9962a5afa13ac540fedc997e70bbb3f2e3679f1e1ddd696a16c038a1ca` |
-| `clients/typescript/tests/client.test.ts` | `repository_root` | `repository` | 5815 | `76b26eb73d18abaaac66bf6d06d25745c319f4d72126a8636efb5fc49b5b0bdf` |
+| `clients/typescript/README.md` | `repository_root` | `repository` | 1290 | `6478a4ad3f29be3ab6b65a4e653df5573d11633fb46a05bed58f268b9691325b` |
+| `clients/typescript/package-lock.json` | `repository_root` | `repository` | 1568 | `0d120b941915f2b1acac07598bd6fe20dc0b279a55ff36255b5caaaa8ca71139` |
+| `clients/typescript/package.json` | `repository_root` | `repository` | 856 | `dcb450264532c697e3a324eb2cf32409af9fd668f4bc1b0ca1493a077090ad4a` |
+| `clients/typescript/src/index.ts` | `repository_root` | `repository` | 15576 | `241c94da7879cf3663823590d518fb2ce6b649c3f64f25662114e66ac6f1c811` |
+| `clients/typescript/tests/client.test.ts` | `repository_root` | `repository` | 5867 | `6dfda3a82c53bc2de2f12ebc3678e9dae6645bbb163e1f5eaa0884074fd476f9` |
 | `clients/typescript/tsconfig.json` | `repository_root` | `repository` | 344 | `a5823ee2983312fb94e7148e3d01aa2d9dafb19d3a49f018f7b4621b7d9a1910` |
 | `config/auth_tokens.json.example` | `configuration` | `configuration` | 405 | `7e2e9993115d39c1c1df3d45ce781fa157646a09c40de6cd737910bc5864d357` |
 | `config/group_registry.yaml` | `configuration` | `configuration` | 9208 | `940fca0072365ccf3bd648389792dd387f2fcaa7b7da175b2e02f6f2d952b937` |
@@ -132,7 +132,7 @@ updated: 2026-07-22
 | `docs/RECURSIVE_HARVEST_AUDIT.md` | `documentation` | `documentation` | 4921 | `370cb913d5117345bd2355672c86115d1d4f6b875539e3cdd0e30aa55de1b393` |
 | `docs/REMAINING_PRODUCTION_PROOF.md` | `documentation` | `documentation` | 2091 | `d1d007c4b2fa9fec4b50d7b5ca4bf45986003e3e8edae46d0438c0da21ba4bef` |
 | `docs/REMEDIATION_AND_INTEGRATION_PLAN.md` | `documentation` | `documentation` | 6077 | `b5f0314090e0c3f19d10e5c27690eb7f1bcd9bfb27407f3e32b65833c9bb66b3` |
-| `docs/REMOTE_MCP_CONTRACT.md` | `documentation` | `documentation` | 9391 | `9c96d0a53fec085774cd8ba32719c847df3d0c022522f52e05766dd9079d6c5a` |
+| `docs/REMOTE_MCP_CONTRACT.md` | `documentation` | `documentation` | 9550 | `fe67ef89f26a173a20005287c420812b7a9fd9ff8371c50a31f3d69373f797d7` |
 | `docs/TOPOLOGY_PUBLICATION_ADMISSION.md` | `documentation` | `documentation` | 5662 | `3f26f7fce0186faba0817a1769b18e0f7b02c095ac37bb3ddaa6418d28eff6ec` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/.npmrc.example` | `documentation` | `documentation` | 100 | `df60d9366deaba0c0b5c5574b6312f2cfb31cce6db343137e6fb50fde90cded5` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/AUTHORITY.md` | `documentation` | `documentation` | 4735 | `c1e82c3877941f535d05cc68c91bf57c9036a52c1405da1195ae5f8f15f3f8f1` |
@@ -338,7 +338,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-095-structured-source-invalidation-lifecycle.md` | `architecture_decisions` | `adr` | 11071 | `26fac16d2db03c6bcfab08f443a67dc0737f66eb0d898fd1246db42491800fab` |
 | `docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md` | `architecture_decisions` | `adr` | 10847 | `256e3af3967e08ca164de66fcad22c9b8f5fbd8f32f171a5957ea96afc063a14` |
 | `docs/adr/ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md` | `architecture_decisions` | `adr` | 13048 | `eaf77b5b39d7b09364bedcd054239349843f367c70c9bb22221f978780896c81` |
-| `docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md` | `architecture_decisions` | `adr` | 10688 | `e7101fbe12c45d3e86dc7fb7ffc4ac0c274e5c78cd13ee3dad91213e2a0eeb24` |
+| `docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md` | `architecture_decisions` | `adr` | 11335 | `3d1dc2019d8d48f4633a26d17df9be830a61c1f6149fd292b67289b094b1ed0e` |
 | `docs/adr/README.md` | `architecture_decisions` | `adr` | 12285 | `81aa636b730a816e9fd0ae98663b189f618899e9105a287453197dbea5b919ef` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
@@ -440,10 +440,10 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/admission/normalization.py` | `production_source` | `package` | 3600 | `268829633af97e60faeb20e6b25440a49b20ee1c0167326efc32398af8c9f8c2` |
 | `src/l9_graphite_memory/admission/policy.py` | `production_source` | `package` | 1062 | `e8113e40824d4cbd5b5e072c177e328dc1a8f1d85d92c8e944795537b1e05cae` |
 | `src/l9_graphite_memory/authz/__init__.py` | `production_source` | `package` | 590 | `8a10afe8eab4a50ce17a97d2dc58427fb21b558d1865831c289583711ec89e4d` |
-| `src/l9_graphite_memory/authz/authenticator.py` | `production_source` | `package` | 3188 | `8313b51625eb2f1c7226ffb34ea7eb780194366bff3aa9c79e788337b9b3b619` |
+| `src/l9_graphite_memory/authz/authenticator.py` | `production_source` | `package` | 3340 | `90eb11792898cf3fc0d851030b009dedd918f58fec3806eb25d6b5296b2400d5` |
 | `src/l9_graphite_memory/authz/policy.py` | `production_source` | `package` | 3389 | `9c4fb8ee42d99d43c6d7b6bc963d4c8e04c067e599f8dbcb61e6d629fd7f1046` |
-| `src/l9_graphite_memory/authz/remote_agent.py` | `production_source` | `package` | 8172 | `2984111fbba4d8a5aed061f81b4608467aa0ce036487686500aebbc93a901105` |
-| `src/l9_graphite_memory/authz/signed_assertion.py` | `production_source` | `package` | 15365 | `31c965328726bd80c3bee291ef63781e513033621e458a48e9295d97cd8724aa` |
+| `src/l9_graphite_memory/authz/remote_agent.py` | `production_source` | `package` | 8959 | `433be4f882a7e4bb71e6dea6ddabbdfc09fea38c96cd5d2e0224528e723d2552` |
+| `src/l9_graphite_memory/authz/signed_assertion.py` | `production_source` | `package` | 15905 | `9549bd43b7e825008d3894f1febfea070e509c43871174f7fb494dbf901e911d` |
 | `src/l9_graphite_memory/circuit_breaker.py` | `production_source` | `package` | 2784 | `48348de22f97e017768d47ac47930ed19167e290eeb614d79f474c4bdc7d7499` |
 | `src/l9_graphite_memory/cli.py` | `production_source` | `package` | 53596 | `e816c1596a2b37c00e5fc7a52b88a6e32e9fa45d062cc530929f773deded081b` |
 | `src/l9_graphite_memory/client_config/__init__.py` | `production_source` | `package` | 1560 | `7e715da42d482fe303ca8a7b2a44bcfb28f3de24ae10e41c5719822b7ee2312a` |
@@ -554,7 +554,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/schema/upcasters.py` | `production_source` | `package` | 6878 | `8b0cee8037099ae5f8597850c2f9c46573a53d9036522fa7bce6caf73a9d8119` |
 | `src/l9_graphite_memory/sdk.py` | `production_source` | `package` | 4228 | `e1e712dae804f8b3a6812696a79534fa49e7639677ddaf565d3b4101a8375e39` |
 | `src/l9_graphite_memory/secrets.py` | `production_source` | `package` | 6628 | `6004b2554719ec20254f07ca6b55c6cab25fa9786d7187c5e7aed608076f36fc` |
-| `src/l9_graphite_memory/server.py` | `production_source` | `package` | 28570 | `8d2074999fd67035ba12e0db3ed2f73923a213746f41e95eb951e7bb3236d95b` |
+| `src/l9_graphite_memory/server.py` | `production_source` | `package` | 29329 | `f406be88c62658b74fd6281b9d0a40503e0cf5bad7dac391a4a38b4957d522dd` |
 | `src/l9_graphite_memory/services/__init__.py` | `production_source` | `service` | 474 | `1c5499701993253acd4a359a336fd654ef53a28ac02953b1ccc4a0033ff42158` |
 | `src/l9_graphite_memory/services/generated_data.py` | `production_source` | `service` | 13197 | `f61f66d7001904db06e1819b27d9a47bb4a5faa9f0b2ac6ab348e9257b0c104e` |
 | `src/l9_graphite_memory/services/memory_service.py` | `production_source` | `service` | 85535 | `8f6092580978f3b8e7be079658ef6ba5dafc694cdaed41f75daa9f677854760a` |
@@ -684,7 +684,7 @@ updated: 2026-07-22
 | `tests/integration/test_projection_seams_live.py` | `tests` | `test` | 31682 | `eb1588b12569680bfde08fe9b4d6c441485db0fcd4d3d603157dcdf98990070b` |
 | `tests/integration/test_projection_targets.py` | `tests` | `test` | 36328 | `315e7eb881e1c93f4f9a65bfc4789f7b5d53e47604feb7cedc58483e78e5b7e6` |
 | `tests/integration/test_quarantine_review_maintenance.py` | `tests` | `test` | 13532 | `a7c16264d263e4c96cd1bdfa00fa5f688064865d0a1d5d8a2720803c4598d27a` |
-| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 32279 | `4999acfcd72fe0fa70b5e41d025a31239b3a562d53eeba0fb2680e5e39859f1c` |
+| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 39760 | `ebac8270fa8f8d38dcecb1d3203aa04e34562042688f9f33118eb9ed03d32ae6` |
 | `tests/integration/test_repository_corpus_ingestion.py` | `tests` | `test` | 3218 | `1becf822cb37f129fc127e2a585d0da307423770eaa6e672974f233524a7f568` |
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `test` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `test` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |
@@ -799,7 +799,7 @@ updated: 2026-07-22
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `d626c7315c9c7c54713bb8207a5a8510344b4320558e81462a5e73961faaeb3b` |
 | `tools/assurance/generate_product_manifest.py` | `assurance` | `assurance` | 20534 | `0c1461e2440a8ae0c5da4e5326e90931962f021f5bea37abf2ddb45310d8aa59` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 36067 | `ab55ef68668f0fffbd9967867e254a3236261a6f19622623f6c18252bd03a956` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 36443 | `c0cbaaf826529ec9a786b9a367aadf1e7ab87dfe3258b6fbd677ef517ac5b875` |
 | `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 16799 | `53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `d2b35d654c2e344bddc0d58f94d814248c4127a5dba6b92650fcb87ee4683f1a` |

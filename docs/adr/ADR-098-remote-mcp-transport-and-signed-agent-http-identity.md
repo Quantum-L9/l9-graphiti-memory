@@ -73,7 +73,9 @@ specification directs, and refused with `400`.
 (`error="invalid_token"` when a credential was presented); `Content-Type`
 other than `application/json` → `415`; an `Accept` that does not admit both
 `application/json` and `text/event-stream` → `406`; a body over 4 MiB →
-`413`; unparseable JSON → `400`/`-32700`; a batch or an invalid envelope →
+`413`, enforced while the body streams in; JSON that cannot be decoded
+(including excessive nesting or oversized integers) → `400`/`-32700`; a
+batch or an invalid envelope →
 `400`/`-32600`; an unsupported or absent `MCP-Protocol-Version` → `400` with
 `data.supported` and `data.requested`. Every refusal body is a JSON-RPC error
 response with no `id`.
@@ -169,7 +171,8 @@ Code with static `headers` or a refreshing `headersHelper` — can reach the one
 Negative: the 2.6.0 HTTP behaviour changes for HTTP callers: a request without
 `MCP-Protocol-Version`, without a conforming `Accept`, or as a batch is now
 refused, and notifications return `202` without a body. The in-repository
-TypeScript client is updated to 2.1.0 in the same change. The signed-agent
+TypeScript client is updated to 3.0.0 (a major version: it requires a 2.7.0+
+server) in the same change. The signed-agent
 token is bearer-equivalent until it expires and is not audience-bound to one
 deployment; per-deployment signing keys and the lifetime ceiling bound that.
 Cursor, unlike Claude Code, has no header-refresh hook, so short-lived
@@ -178,8 +181,14 @@ credentials there need a refresh outside the IDE or a later OAuth decision.
 ## Security Impact
 
 The HTTP door accepts exactly the evidence the stdio door accepts, re-verified
-per request, with an added lifetime ceiling. Human and agent tiers stay
-separate. Origin validation closes DNS rebinding for browser-reachable
+per request, with an added lifetime ceiling. Credential shape is validated
+before any comparison or arithmetic (decimal `exp` of at most 12 digits,
+64 lowercase hex signature, ASCII-only HMAC comparison), so a hostile header is
+a `401`, never a server error. An unregistered agent and a bad signature on a
+registered one receive the same `401`, so agent ids cannot be enumerated.
+Human and agent tiers stay separate, including on auth-disabled loopback HTTP,
+which serves the signed agent door or the Tier 3 local principal and never the
+human door (closing a gap present at 2.6.0). Origin validation closes DNS rebinding for browser-reachable
 deployments. TLS is required for remote deployment and is terminated in front
 of the server; the server warns on a non-loopback bind. `/healthz` and
 `/readyz` stay unauthenticated probes, as before.

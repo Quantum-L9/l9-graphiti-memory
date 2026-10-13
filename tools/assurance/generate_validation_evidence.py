@@ -334,8 +334,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # (the installed wheel's server entry point). None are backend-
         # parameterized or CI-skipped: CI installs the server and dev extras.
         # 1705 + 62 + 1 = 1768; CI skips 52.
-        "1768 tests pass",
-        r"1768 passed",
+        # Re-pinned 1768 -> 1790 for the #94 review regressions: 22 cases in
+        # test_remote_mcp_http.py (non-ASCII and out-of-shape credentials,
+        # undecodable identity and body JSON, chunked oversize, agent-id
+        # non-enumeration, no human door on auth-disabled HTTP, non-ASCII
+        # bearer token). None are CI-skipped. 1768 + 22 = 1790; CI skips 52.
+        "1790 tests pass",
+        r"1790 passed",
     ),
     CheckSpec(
         "V-002",

@@ -430,7 +430,7 @@
         "version": "2.7.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "596c891f2e6380f4d36296fd0762b9510dc48e9129084653872b2c23f7f1f113",
+      "sha256": "3331963a7a42676becf7dd532ef144d945bb5418bb9e07d822a1ca682549dfa1",
       "size_bytes": 141118
     },
     {
@@ -606,8 +606,8 @@
         "version": "2.7.0"
       },
       "path": "clients/typescript/README.md",
-      "sha256": "f13c9cc73f3300411679c342c398eb52ada9feabc67a2148e923731e5a9b524a",
-      "size_bytes": 1024
+      "sha256": "6478a4ad3f29be3ab6b65a4e653df5573d11633fb46a05bed58f268b9691325b",
+      "size_bytes": 1290
     },
     {
       "category": "repository_root",
@@ -622,7 +622,7 @@
         "version": "2.7.0"
       },
       "path": "clients/typescript/package-lock.json",
-      "sha256": "d04775be1a17532901bfcaeaa42d6e668dab0a080c8e93d4cb0fd48c721d5b00",
+      "sha256": "0d120b941915f2b1acac07598bd6fe20dc0b279a55ff36255b5caaaa8ca71139",
       "size_bytes": 1568
     },
     {
@@ -638,7 +638,7 @@
         "version": "2.7.0"
       },
       "path": "clients/typescript/package.json",
-      "sha256": "bcb454ba545a6cf5e3e1126a62752615ee45321fd8c0ade8bb7c93aecad47042",
+      "sha256": "dcb450264532c697e3a324eb2cf32409af9fd668f4bc1b0ca1493a077090ad4a",
       "size_bytes": 856
     },
     {
@@ -654,8 +654,8 @@
         "version": "2.7.0"
       },
       "path": "clients/typescript/src/index.ts",
-      "sha256": "686d3a9962a5afa13ac540fedc997e70bbb3f2e3679f1e1ddd696a16c038a1ca",
-      "size_bytes": 15382
+      "sha256": "241c94da7879cf3663823590d518fb2ce6b649c3f64f25662114e66ac6f1c811",
+      "size_bytes": 15576
     },
     {
       "category": "repository_root",
@@ -670,8 +670,8 @@
         "version": "2.7.0"
       },
       "path": "clients/typescript/tests/client.test.ts",
-      "sha256": "76b26eb73d18abaaac66bf6d06d25745c319f4d72126a8636efb5fc49b5b0bdf",
-      "size_bytes": 5815
+      "sha256": "6dfda3a82c53bc2de2f12ebc3678e9dae6645bbb163e1f5eaa0884074fd476f9",
+      "size_bytes": 5867
     },
     {
       "category": "repository_root",
@@ -1278,8 +1278,8 @@
         "version": "2.7.0"
       },
       "path": "docs/REMOTE_MCP_CONTRACT.md",
-      "sha256": "9c96d0a53fec085774cd8ba32719c847df3d0c022522f52e05766dd9079d6c5a",
-      "size_bytes": 9391
+      "sha256": "fe67ef89f26a173a20005287c420812b7a9fd9ff8371c50a31f3d69373f797d7",
+      "size_bytes": 9550
     },
     {
       "category": "documentation",
@@ -4574,8 +4574,8 @@
         "version": "2.7.0"
       },
       "path": "docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md",
-      "sha256": "e7101fbe12c45d3e86dc7fb7ffc4ac0c274e5c78cd13ee3dad91213e2a0eeb24",
-      "size_bytes": 10688
+      "sha256": "3d1dc2019d8d48f4633a26d17df9be830a61c1f6149fd292b67289b094b1ed0e",
+      "size_bytes": 11335
     },
     {
       "category": "architecture_decisions",
@@ -6206,8 +6206,8 @@
         "version": "2.7.0"
       },
       "path": "src/l9_graphite_memory/authz/authenticator.py",
-      "sha256": "8313b51625eb2f1c7226ffb34ea7eb780194366bff3aa9c79e788337b9b3b619",
-      "size_bytes": 3188
+      "sha256": "90eb11792898cf3fc0d851030b009dedd918f58fec3806eb25d6b5296b2400d5",
+      "size_bytes": 3340
     },
     {
       "category": "production_source",
@@ -6238,8 +6238,8 @@
         "version": "2.7.0"
       },
       "path": "src/l9_graphite_memory/authz/remote_agent.py",
-      "sha256": "2984111fbba4d8a5aed061f81b4608467aa0ce036487686500aebbc93a901105",
-      "size_bytes": 8172
+      "sha256": "433be4f882a7e4bb71e6dea6ddabbdfc09fea38c96cd5d2e0224528e723d2552",
+      "size_bytes": 8959
     },
     {
       "category": "production_source",
@@ -6254,8 +6254,8 @@
         "version": "2.7.0"
       },
       "path": "src/l9_graphite_memory/authz/signed_assertion.py",
-      "sha256": "31c965328726bd80c3bee291ef63781e513033621e458a48e9295d97cd8724aa",
-      "size_bytes": 15365
+      "sha256": "9549bd43b7e825008d3894f1febfea070e509c43871174f7fb494dbf901e911d",
+      "size_bytes": 15905
     },
     {
       "category": "production_source",
@@ -8030,8 +8030,8 @@
         "version": "2.7.0"
       },
       "path": "src/l9_graphite_memory/server.py",
-      "sha256": "8d2074999fd67035ba12e0db3ed2f73923a213746f41e95eb951e7bb3236d95b",
-      "size_bytes": 28570
+      "sha256": "f406be88c62658b74fd6281b9d0a40503e0cf5bad7dac391a4a38b4957d522dd",
+      "size_bytes": 29329
     },
     {
       "category": "production_source",
@@ -10110,8 +10110,8 @@
         "version": "2.7.0"
       },
       "path": "tests/integration/test_remote_mcp_http.py",
-      "sha256": "4999acfcd72fe0fa70b5e41d025a31239b3a562d53eeba0fb2680e5e39859f1c",
-      "size_bytes": 32279
+      "sha256": "ebac8270fa8f8d38dcecb1d3203aa04e34562042688f9f33118eb9ed03d32ae6",
+      "size_bytes": 39760
     },
     {
       "category": "tests",
@@ -11950,8 +11950,8 @@
         "version": "2.7.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "ab55ef68668f0fffbd9967867e254a3236261a6f19622623f6c18252bd03a956",
-      "size_bytes": 36067
+      "sha256": "c0cbaaf826529ec9a786b9a367aadf1e7ab87dfe3258b6fbd677ef517ac5b875",
+      "size_bytes": 36443
     },
     {
       "category": "assurance",

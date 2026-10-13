@@ -88,11 +88,11 @@ with **no** `id`. Credentials are never echoed.
 |---|---|---|
 | `Origin` present and not allowed | 403 | -32600 |
 | credential-shaped URL query parameter | 400 | -32600 |
-| missing / malformed / expired / over-ceiling / tampered / unknown-agent / other-actor credential | 401 + `WWW-Authenticate: Bearer realm="l9-graphite-memory"[, error="invalid_token"]` | -32001 |
+| missing / malformed / expired / over-ceiling / tampered / unknown-agent / other-actor credential (an unknown agent and a bad signature share one message) | 401 + `WWW-Authenticate: Bearer realm="l9-graphite-memory"[, error="invalid_token"]` | -32001 |
 | `Content-Type` not `application/json` | 415 | -32600 |
 | `Accept` lacks either media type | 406 | -32600 |
-| body over 4 MiB | 413 | -32600 |
-| unparseable JSON | 400 | -32700 |
+| body over 4 MiB (checked while streaming, chunked included) | 413 | -32600 |
+| undecodable JSON (syntax, encoding, excessive nesting, oversized integers) | 400 | -32700 |
 | batch, missing/invalid `jsonrpc`, `id`, or `method` | 400 | -32600 |
 | unsupported or absent `MCP-Protocol-Version` | 400, `data: {supported, requested}` | -32600 |
 
