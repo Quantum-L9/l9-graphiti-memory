@@ -164,9 +164,13 @@ identity and is not equivalent to the signed-agent contract.
 
 ## Consequences
 
-Positive: a conventional remote MCP client — the official MCP SDK, or Claude
-Code with static `headers` or a refreshing `headersHelper` — can reach the one
-`MemoryService` over HTTPS as a cryptographically identified agent.
+Positive: a client that implements the Streamable HTTP wire contract and can
+send the three credential headers on every request can reach the one
+`MemoryService` over HTTPS as a cryptographically identified agent. The
+repository proves that contract with an HTTP client over TCP; interoperability
+with the official MCP SDK was observed out of tree (MEM-HTTP-01 evidence) and
+with Claude Code `headersHelper` is taken from its documentation — neither is a
+release claim of this repository.
 
 Negative: the 2.6.0 HTTP behaviour changes for HTTP callers: a request without
 `MCP-Protocol-Version`, without a conforming `Accept`, or as a batch is now

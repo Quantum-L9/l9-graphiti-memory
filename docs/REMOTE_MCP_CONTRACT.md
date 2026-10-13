@@ -71,7 +71,10 @@ before then:
   `401`/`403`, so a helper that mints the three headers keeps them fresh.
   Static `headers` with `${VAR}` expansion also work but do not refresh.
 - Official MCP SDKs: static headers through `requestInit`, or per-request
-  minting through a custom `fetch` (both proven in the 2.7.0 evidence).
+  minting through a custom `fetch`. Observed in an out-of-tree interoperability
+  run (MCP TypeScript SDK 1.20.2 and 1.32.1) recorded in the MEM-HTTP-01
+  evidence bundle; it is **not** part of this repository's executable release
+  validation, which proves the wire contract with an HTTP client over TCP.
 - Cursor: static `headers` with `${env:VAR}` expansion; there is no refresh
   hook, so the variable must be refreshed outside the IDE. Not proven here.
 

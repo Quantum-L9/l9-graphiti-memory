@@ -132,7 +132,7 @@ updated: 2026-07-22
 | `docs/RECURSIVE_HARVEST_AUDIT.md` | `documentation` | `documentation` | 4921 | `370cb913d5117345bd2355672c86115d1d4f6b875539e3cdd0e30aa55de1b393` |
 | `docs/REMAINING_PRODUCTION_PROOF.md` | `documentation` | `documentation` | 2091 | `d1d007c4b2fa9fec4b50d7b5ca4bf45986003e3e8edae46d0438c0da21ba4bef` |
 | `docs/REMEDIATION_AND_INTEGRATION_PLAN.md` | `documentation` | `documentation` | 6077 | `b5f0314090e0c3f19d10e5c27690eb7f1bcd9bfb27407f3e32b65833c9bb66b3` |
-| `docs/REMOTE_MCP_CONTRACT.md` | `documentation` | `documentation` | 9550 | `fe67ef89f26a173a20005287c420812b7a9fd9ff8371c50a31f3d69373f797d7` |
+| `docs/REMOTE_MCP_CONTRACT.md` | `documentation` | `documentation` | 9784 | `8ce8d7067b31dd8e718c9c47671f99a6ad29bbff4d74bb7738774009957991a0` |
 | `docs/TOPOLOGY_PUBLICATION_ADMISSION.md` | `documentation` | `documentation` | 5662 | `3f26f7fce0186faba0817a1769b18e0f7b02c095ac37bb3ddaa6418d28eff6ec` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/.npmrc.example` | `documentation` | `documentation` | 100 | `df60d9366deaba0c0b5c5574b6312f2cfb31cce6db343137e6fb50fde90cded5` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/AUTHORITY.md` | `documentation` | `documentation` | 4735 | `c1e82c3877941f535d05cc68c91bf57c9036a52c1405da1195ae5f8f15f3f8f1` |
@@ -338,7 +338,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-095-structured-source-invalidation-lifecycle.md` | `architecture_decisions` | `adr` | 11071 | `26fac16d2db03c6bcfab08f443a67dc0737f66eb0d898fd1246db42491800fab` |
 | `docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md` | `architecture_decisions` | `adr` | 10847 | `256e3af3967e08ca164de66fcad22c9b8f5fbd8f32f171a5957ea96afc063a14` |
 | `docs/adr/ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md` | `architecture_decisions` | `adr` | 13048 | `eaf77b5b39d7b09364bedcd054239349843f367c70c9bb22221f978780896c81` |
-| `docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md` | `architecture_decisions` | `adr` | 11335 | `3d1dc2019d8d48f4633a26d17df9be830a61c1f6149fd292b67289b094b1ed0e` |
+| `docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md` | `architecture_decisions` | `adr` | 11598 | `364f308c4c3b7c278cf75b63f6433fccfa2038ce15de13fe2e82f475df9965c1` |
 | `docs/adr/README.md` | `architecture_decisions` | `adr` | 12285 | `81aa636b730a816e9fd0ae98663b189f618899e9105a287453197dbea5b919ef` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
@@ -443,7 +443,7 @@ updated: 2026-07-22
 | `src/l9_graphite_memory/authz/authenticator.py` | `production_source` | `package` | 3340 | `90eb11792898cf3fc0d851030b009dedd918f58fec3806eb25d6b5296b2400d5` |
 | `src/l9_graphite_memory/authz/policy.py` | `production_source` | `package` | 3389 | `9c4fb8ee42d99d43c6d7b6bc963d4c8e04c067e599f8dbcb61e6d629fd7f1046` |
 | `src/l9_graphite_memory/authz/remote_agent.py` | `production_source` | `package` | 8959 | `433be4f882a7e4bb71e6dea6ddabbdfc09fea38c96cd5d2e0224528e723d2552` |
-| `src/l9_graphite_memory/authz/signed_assertion.py` | `production_source` | `package` | 15905 | `9549bd43b7e825008d3894f1febfea070e509c43871174f7fb494dbf901e911d` |
+| `src/l9_graphite_memory/authz/signed_assertion.py` | `production_source` | `package` | 15988 | `0710f091366ba8aeab0483b4069b61d4bc003b5eab52f7e04050b7528f3121e3` |
 | `src/l9_graphite_memory/circuit_breaker.py` | `production_source` | `package` | 2784 | `48348de22f97e017768d47ac47930ed19167e290eeb614d79f474c4bdc7d7499` |
 | `src/l9_graphite_memory/cli.py` | `production_source` | `package` | 53596 | `e816c1596a2b37c00e5fc7a52b88a6e32e9fa45d062cc530929f773deded081b` |
 | `src/l9_graphite_memory/client_config/__init__.py` | `production_source` | `package` | 1560 | `7e715da42d482fe303ca8a7b2a44bcfb28f3de24ae10e41c5719822b7ee2312a` |
@@ -768,7 +768,7 @@ updated: 2026-07-22
 | `tests/unit/test_schema_registry.py` | `tests` | `test` | 964 | `008703c05aeabf16c0f6c03eb16d96cdeea72e7ed24958ffb51bd58a66e775ee` |
 | `tests/unit/test_search_request_identity.py` | `tests` | `test` | 12163 | `404b53b970e22673e799d3aba4b1deccef211f284094f766e74c8ae42e71559b` |
 | `tests/unit/test_server_principal.py` | `tests` | `test` | 6689 | `dc593908677d28918386db3e81247564030b02f91c82da17a6f5ecd08dc6f1ec` |
-| `tests/unit/test_signed_assertion.py` | `tests` | `test` | 22529 | `1603bce77662213099cf28be1bedc60c7b535ae62da54e6587517cdc6ed10740` |
+| `tests/unit/test_signed_assertion.py` | `tests` | `test` | 22930 | `d9eeaaf3196af9a5fc52309a0d4b53e2c5a2d5473f705ae1e38f2251c147de39` |
 | `tests/unit/test_source_invalidation_contract.py` | `tests` | `test` | 11719 | `aca7c84df1c9fb281a1019ce83aa3758c10f658b66d1601a461ec5dd218cb460` |
 | `tests/unit/test_source_locator_contract.py` | `tests` | `test` | 7831 | `e7d88d9f95d4406cd4b33e1785ff7a9c748a1089100eab8cab368424bd03623b` |
 | `tests/unit/test_stdio_namespace_resolution.py` | `tests` | `test` | 15462 | `4a653f943a2e79ed21430205d5f7ae74959f752f3115c75a264ed1bb13b08e38` |
@@ -799,7 +799,7 @@ updated: 2026-07-22
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `d626c7315c9c7c54713bb8207a5a8510344b4320558e81462a5e73961faaeb3b` |
 | `tools/assurance/generate_product_manifest.py` | `assurance` | `assurance` | 20534 | `0c1461e2440a8ae0c5da4e5326e90931962f021f5bea37abf2ddb45310d8aa59` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 36443 | `c0cbaaf826529ec9a786b9a367aadf1e7ab87dfe3258b6fbd677ef517ac5b875` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 36596 | `38d56451b2f329521309d5736726704edca0da31bf36d35e0d7acc561f20d819` |
 | `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 16799 | `53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `d2b35d654c2e344bddc0d58f94d814248c4127a5dba6b92650fcb87ee4683f1a` |

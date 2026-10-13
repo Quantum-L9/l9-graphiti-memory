@@ -339,8 +339,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # undecodable identity and body JSON, chunked oversize, agent-id
         # non-enumeration, no human door on auth-disabled HTTP, non-ASCII
         # bearer token). None are CI-skipped. 1768 + 22 = 1790; CI skips 52.
-        "1790 tests pass",
-        r"1790 passed",
+        # Re-pinned 1790 -> 1791: 1 case in test_signed_assertion.py (non-ASCII
+        # digits in exp are malformed). Not CI-skipped. 1790 + 1 = 1791.
+        "1791 tests pass",
+        r"1791 passed",
     ),
     CheckSpec(
         "V-002",

@@ -50,7 +50,8 @@ if TYPE_CHECKING:
 
 _SEP = "."
 _PAYLOAD_SEP = "|"
-_EXP_RE = re.compile(r"\A[0-9]{1,12}\Z")
+# ASCII: a bare \d also matches non-ASCII digits, which int() would accept.
+_EXP_RE = re.compile(r"\A\d{1,12}\Z", re.ASCII)
 _SIGNATURE_RE = re.compile(r"\A[0-9a-f]{64}\Z")
 
 
