@@ -6,7 +6,7 @@ layer: documentation
 owner: memory-control-plane
 status: active
 version: 2.7.0
-updated: 2026-07-22
+updated: 2026-10-14
 /L9_META -->
 
 # Remote MCP Contract — `memory-remote-mcp/v1`
@@ -20,6 +20,12 @@ Constants: `l9_graphite_memory.version.REMOTE_MCP_CONTRACT_VERSION` and
 This document describes what the Memory server guarantees. It does not install
 or authorize any consumer; a consumer's configuration is unverified until that
 consumer proves it in its own campaign.
+
+**Status (2026-10-14).** "2.7.0" is the source version identifier of the
+ADR-098 candidate (PR #94), which is not an accepted release. The contract is
+intended to carry into Memory 3.0.0, the first live release of the hosted
+remote architecture (ADR-038, 2026-10-14); it binds a release only once that
+release is validated on its exact bytes. No deployment of it exists.
 
 ## 1. Transport
 
@@ -61,11 +67,14 @@ Server-side only — never sent by a client:
 | `L9_MEMORY_HTTP_ALLOWED_ORIGINS` | comma list of browser origins; a request with any other `Origin` gets `403` |
 
 Every registered agent must have a valid grant, and `human` cannot be
-registered; otherwise the server refuses to start. Tenant, organization, and
+registered; otherwise the server refuses to start. A grant's `is_admin` is
+honored: `is_admin: true` yields an administrator principal over HTTP. The
+3.0.0 deployment policy is that no remote agent grant sets it; the server does
+not yet refuse one (ADR-083, 2026-10-14). Tenant, organization, and
 workspace come from `L9_MEMORY_LOCAL_*_ID` on the server.
 
-**Refresh.** The assertion is reusable until it expires. Clients mint a new one
-before then:
+**Refresh.** The assertion is reusable until it expires: it is not single-use,
+and there is no replay ledger. Clients mint a new one before then:
 
 - Claude Code: `headersHelper` runs at session start, on reconnect, and after a
   `401`/`403`, so a helper that mints the three headers keeps them fresh.
@@ -136,5 +145,7 @@ Cursor-Governance.
 - Audience binding of the agent assertion to one deployment. Use
   per-deployment keys.
 - The product topology's `kind: dependency` declares no independent runtime
-  identity; an independently hosted server is a topology decision for the
-  deployment campaign (see the 2.7.0 evidence).
+  identity; how an independently hosted server is classified is open and
+  owned as recorded in ADR-094 (2026-10-14).
+- Refusal of administrator grants and in-window replay prevention; see
+  ADR-083 (2026-10-14).

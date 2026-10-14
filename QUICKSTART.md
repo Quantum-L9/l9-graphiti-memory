@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 # Quick Start
@@ -50,15 +50,17 @@ l9-memory import legacy-episodes.jsonl --group-id l9-graphiti-memory --dry-run
 l9-memory-server --transport stdio
 ```
 
-This is the local stdio MCP mode of current `main` (package version 2.6.0): the server runs on the
-same machine as the agent and is launched by it. It is supported and is what
-the Cursor lifecycle below installs.
+This is the local stdio MCP mode: the server runs on the same machine as the
+agent and is launched by it. It is supported in the 2.5.0 operational release,
+on `main`, and in the ADR-098 candidate, and it is what the Cursor lifecycle
+below installs.
 
-The target agent transport is a centrally hosted, authenticated HTTPS MCP
-service (ADR-038 amendment, 2026-10-13). It is **not implemented** on current
-`main`, so there is no remote-client quickstart yet. Do not point agents at
-`l9-memory-server --transport http` as a substitute: that surface is not
-qualified for remote agents (see `RUNBOOK.md`, "Remote HTTP MCP").
+The target agent transport is Memory 3.0.0: one centrally hosted
+`MemoryService` on the operator's C1 environment, reached over authenticated
+HTTPS MCP (ADR-038). It is not deployed, so there is no remote-client
+quickstart. The released `l9-memory-server --transport http` is not qualified
+for remote agents, and the candidate's signed-agent HTTP mode is not a release;
+see `RUNBOOK.md`, "Remote HTTP MCP", for both and for the C1 prerequisites.
 
 ## Cursor instantiation
 

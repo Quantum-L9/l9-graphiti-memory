@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 # L9 Graphiti Memory
@@ -34,7 +34,7 @@ The repository name uses **Graphiti** because the project integrates with Graphi
 - Explicit complete, partial, failed, duplicate, rejected, quarantined, archived, and deleted outcomes
 - No plaintext secret persistence in generated agent configuration
 - Installed-wheel operation without a source checkout
-- A machine-validated 97-ADR ledger and 51-decision harvest coverage map
+- A machine-validated 98-ADR ledger and 51-decision harvest coverage map
 
 ## L9 alignment boundary
 
@@ -125,28 +125,65 @@ Projection choices:
 
 The HTTP adapter discovers the live Graphiti tool inventory. It supports the current `add_memory`, `search_memory_facts`, `search_nodes`, and `delete_episode` dialect plus the older `add_episode` and `search_facts` compatibility dialect.
 
-## Agent transport: current code and remote target
+## Release and transport status
 
-| | Status on `main` (package 2.6.0) | Notes |
+Five states are kept apart throughout this repository. "Implemented",
+"supported", "verified", "released" and "deployed" are not interchangeable.
+
+| State | Identity (2026-10-14) | Agent transport |
 |---|---|---|
-| Local stdio MCP (`l9-memory-server --transport stdio`) | **working, supported** | the transport the managed entry from `l9-memory client cursor install` launches (`python -m l9_graphite_memory.server --transport stdio`) and `client cursor verify` proves (ADR-064) |
-| CLI and Python SDK | **working, supported** | unchanged |
-| HTTP MCP (`l9-memory-server --transport http`) | **present, not qualified for remote agents** | single JSON `POST /mcp`; static bearer token-to-principal map; no Streamable HTTP conformance, protocol negotiation or `Origin` validation; not equivalent to the signed agent identity door |
-| Centrally hosted, authenticated HTTPS Streamable HTTP service for Cursor and Claude Code | **target, not implemented** | decided 2026-10-13; see the ADR-038, ADR-083, ADR-082 and ADR-094 amendments |
+| Current operational release | **2.5.0** (operator-designated) | local stdio MCP |
+| Package release line | **2.6.0**: `v2.6.0` tag and a published 2.6.0 artifact (`846f283`) exist; not designated the operational release | local stdio MCP; HTTP present but not a conforming Streamable HTTP server and authenticated only by static bearer tokens |
+| `main` | `441b741`, source version 2.6.0 | as 2.6.0 |
+| Candidate | ADR-098, PR #94, source version **2.7.0**; unmerged; not an accepted release | adds stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) and per-request signed-agent identity; stdio unchanged (`2024-11-05`) |
+| Target | **Memory 3.0.0**: first live release of the consolidated remote architecture | one hosted `MemoryService` over authenticated HTTPS MCP |
+| Qualified deployment | **none** | no C1 deployment exists or is claimed |
 
-Release status (operator statement, 2026-10-13): 2.5 is the current release
-and 2.6 is the version to be released and deployed. The table describes the
-code on `main`, not a released artifact, and does not say what the 2.6 release
-will contain.
+Memory 3.0.0 is bound to exact source and built-artifact identities only after
+the candidate is integrated and validated. A Git tag, a published package, a
+deployment and operator acceptance are separate facts. The TypeScript client's
+package version 3.0.0 is an npm version, not Memory 3.0.0.
 
-The target is one hosted `MemoryService` reached over authenticated HTTPS,
-with a per-agent principal established server-side on every request, backed
-by a new, empty PostgreSQL canonical store. Nothing on current `main` implements
-that target, no consumer is bound to it, and no deployment of it is claimed.
-Remote client configuration is a later, consumer-owned campaign;
-`config/mcp.json.example` stays the generated stdio entry until code changes
-it. Whether a hosted service fits the accepted `dependency` topology is an
-open question recorded in ADR-094.
+### Memory 3.0.0 target architecture
+
+```text
+Cursor agent(s) ──────┐
+                      │
+Claude Code agent(s) ─┼── authenticated HTTPS MCP (Streamable HTTP)
+                      │              │
+Other authorized ─────┘              ▼
+agents                     Hetzner C1 hosting boundary (TLS reverse proxy)
+                                         │
+                                  Memory HTTP adapter
+                                         │
+                                 one MemoryService
+                                         │
+                              new, empty PostgreSQL store
+```
+
+- One logical `MemoryService`, centrally hosted on the operator-controlled
+  Hetzner C1 environment. Agents on different machines consume it; they are
+  consumers, not canonical memory servers. The runtime does not depend on the
+  operator's Mac.
+- Each agent carries its own identity evidence, verified on every request
+  (ADR-098, ADR-083). Shared storage does not imply shared authorization: a
+  namespace may be shared by explicitly authorized agents, tenant and
+  namespace authorization are enforced independently, and every write keeps
+  its source-agent attribution.
+- HTTP is an adapter. No second memory API, gateway, identity service or
+  `MemoryService` is introduced. Stdio, the CLI and the SDK stay supported;
+  stdio is not the multi-machine deployment.
+- Hostname, address, certificate, process supervisor and operating-system
+  configuration are unverified until deployment evidence exists.
+
+What stands between the candidate and a live 3.0.0: integration and release
+validation on exact bytes; PostgreSQL-backed HTTP proof; the administrator
+grant guard (ADR-083, 2026-10-14); durable per-agent keys and a server-side
+grant map; the product classification (ADR-094, 2026-10-14, open); C1
+deployment evidence; and consumer adoption, which each consumer owns.
+Cursor-Governance currently seals the agent HTTP path, so Cursor adoption
+needs its own authorized campaign. `config/mcp.json.example` stays the
+generated stdio entry.
 
 ### Basic shared canonical deployment (target)
 
@@ -156,9 +193,11 @@ nothing else: `store_backend: postgres` against a **new, empty** database, and
 `active_memory_backend` left at `none` (and `projection_runtime` at its
 `legacy` default). Redis, Graphiti and Neo4j are not
 prerequisites, and the five-family full-capability qualification below is not
-a prerequisite either. This greenfield path imports, restores or reuses no
-existing ledger, graph, cache or backup; moving an existing ledger is the
-separate migration path governed by ADR-072 and ADR-077.
+a prerequisite either; a healthy PostgreSQL `canonical` family is not evidence
+that any optional family is healthy. This greenfield path imports, restores or
+reuses no existing ledger, graph, cache or backup; moving an existing ledger
+is the separate migration path governed by ADR-072 and ADR-077, and none is
+initiated.
 
 ## Consumer-selected full-capability shared deployment
 
@@ -199,8 +238,8 @@ A consumer choosing the full-capability shared-agent deployment MUST:
    which is weaker than `full_capability`. The five-family readiness report
    is on `main` (ADR-097, merged through PR #91) and must be proven in the
    final combined candidate. The `v2.6.0` tag and the 2.6.0 artifact on PyPI
-   (`846f283`) predate it; 2.5 is the current release and 2.6 is still to be
-   released and deployed.
+   (`846f283`) predate it. For release identities see "Release and transport
+   status" above.
 6. Prove recovery and backend outage behavior, including canonical write safety
    if projection or active-memory infrastructure is unavailable.
 

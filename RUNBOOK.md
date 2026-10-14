@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 # Runbook
@@ -154,7 +154,7 @@ A missing locator, unavailable deletion tool, or provider error leaves the event
 l9-memory-server --transport stdio
 ```
 
-Stdio MCP is the supported agent transport of current `main`. Its principal is established once at startup, server-side, in three tiers (ADR-083): the human door (`L9_MEMORY_HUMAN_DOOR_SECRET` set) yields an administrator principal; otherwise the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET` set) yields the principal of a verified signed agent assertion and canonical identity assertion; otherwise the principal comes from the server working directory, with no administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
+Stdio MCP is the supported agent transport of the 2.5.0 operational release and of `main`, and stays supported for local use in the ADR-098 candidate and the 3.0.0 target; it is not the multi-machine deployment. Its principal is established once at startup, server-side, in three tiers (ADR-083): the human door (`L9_MEMORY_HUMAN_DOOR_SECRET` set) yields an administrator principal; otherwise the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET` set) yields the principal of a verified signed agent assertion and canonical identity assertion; otherwise the principal comes from the server working directory, with no administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
 
 ```bash
 export L9_MEMORY_LOCAL_READ_NAMESPACES=l9-graphiti-memory,l9-workspace
@@ -167,32 +167,22 @@ Use `l9-memory client cursor install` for Cursor (with `inspect`, `verify`, `sta
 
 ## Remote HTTP MCP
 
-**Status: incomplete. Not qualified for remote agents.** Local stdio MCP
-(above) is the supported agent transport of current `main` (package version 2.6.0). The target is a
-centrally hosted, authenticated HTTPS service using MCP Streamable HTTP with a
-server-established per-agent principal (ADR-038 and ADR-083 amendments,
-2026-10-13). That target is not implemented, no consumer is bound to it, and
-no deployment of it exists. Do not use the procedure below as a production
-agent deployment.
+**Status (2026-10-14).** The target is Memory 3.0.0: one `MemoryService`
+hosted on the operator's Hetzner C1 environment, reached by authorized agents
+over authenticated HTTPS MCP, backed by a new, empty PostgreSQL database
+(ADR-038). It is **not deployed**, and no consumer is bound to it. What exists
+depends on the code you run:
 
-What the HTTP server on current `main` is:
+| Code | HTTP server |
+|---|---|
+| 2.5.0, 2.6.0, `main@441b741` | not qualified for remote agents: one JSON object per `POST /mcp`; `initialize` always answers `2024-11-05`; no negotiation, `MCP-Protocol-Version`, `Origin` or `Accept` handling; `notifications/initialized` gets `200 {"status":"ok"}` instead of `202`; static bearer tokens only. With authentication disabled, loopback HTTP serves the stdio principal, which is the administrator when `L9_MEMORY_HUMAN_DOOR_SECRET` is set, so never disable authentication there. |
+| ADR-098 candidate (PR #94, source 2.7.0) | stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) with `bearer` (default) or `signed-agent` authentication; contract in `docs/REMOTE_MCP_CONTRACT.md`; not an accepted release |
 
-- one JSON-RPC object per `POST /mcp`, answered with JSON. `GET /healthz`,
-  `GET /readyz` and FastAPI's default `/docs`, `/redoc` and `/openapi.json`
-  are also served, all without authentication;
-- `initialize` always answers protocol `2024-11-05`; no protocol negotiation,
-  no `MCP-Protocol-Version`, `Origin` or `Accept` handling, and no event
-  streams. `notifications/initialized` is acknowledged `200 {"status":"ok"}`
-  rather than `202`; any other notification gets a `-32601` error body;
-- no TLS in-process;
-- authentication by a static `Authorization: Bearer` token looked up in a
-  token-to-principal map. That map proves possession of a shared string. It is
-  **not** the signed per-agent identity the stdio agent door verifies, and it
-  is not the selected production agent identity contract. A token's
-  principal can also carry `is_admin` and `is_global_admin`, so administrator
-  authority is reachable over this endpoint if the token map grants it.
+On every version, `GET /healthz`, `GET /readyz` and FastAPI's default `/docs`,
+`/redoc` and `/openapi.json` are served without authentication, and there is no
+TLS in process.
 
-For local development and tests only:
+### Bearer mode (local development and service principals)
 
 1. Create a JSON token-to-principal mapping outside the repository
    (`config/auth_tokens.json.example` shows the shape).
@@ -204,18 +194,12 @@ For local development and tests only:
 l9-memory-server --transport http --host 127.0.0.1 --port 8200
 ```
 
-Binding to a non-loopback address without authentication is rejected. With
-authentication disabled, loopback HTTP serves exactly the stdio principal; if
-`L9_MEMORY_HUMAN_DOOR_SECRET` is set in that environment the principal is the
-administrator, so never disable authentication where the human door is
-configured.
+Binding to a non-loopback address without authentication is rejected. A
+bearer token is a shared string mapped to configured claims; it is **not** an
+agent identity, and a token's principal can carry `is_admin` and
+`is_global_admin`. Do not use bearer mode for remote agents.
 
-Proof owed before this section can describe a remote deployment: Streamable
-HTTP conformance for the pinned protocol revision, the remote identity
-negative suite, and installed-wheel lifecycle parity over HTTP (ADR-038,
-ADR-083, ADR-082 amendments).
-
-### Remote agents (signed-agent mode)
+### Signed-agent mode (ADR-098 candidate only)
 
 Remote agents authenticate with the same signed evidence the stdio agent door
 verifies, re-verified on every request (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`):
@@ -223,7 +207,8 @@ verifies, re-verified on every request (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`):
 1. Provision the server-side registry outside the repository:
    `L9_MEMORY_AGENT_SIGNING_KEYS_JSON` (`{agent_id: key}`) and
    `L9_MEMORY_AGENT_GRANTS_JSON` (`{agent_id: grant}`). Every registered agent
-   needs a grant; the server refuses to start otherwise.
+   needs a grant; the server refuses to start otherwise. Set no grant's
+   `is_admin` to `true`: the server does not refuse it (ADR-083, 2026-10-14).
 2. `export L9_MEMORY_HTTP_AUTH_MODE=signed-agent`; optionally
    `L9_MEMORY_HTTP_ALLOWED_ORIGINS` and
    `L9_MEMORY_HTTP_AGENT_ASSERTION_MAX_TTL_SECONDS` (default 3600).
@@ -231,8 +216,76 @@ verifies, re-verified on every request (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`):
 
 Clients send `Authorization: Bearer <agent assertion>`, `L9-Identity-Assertion`
 (base64url sealed JSON), `L9-Identity-Assertion-HMAC`, and
-`MCP-Protocol-Version` on every request. Roll back with
-`L9_MEMORY_HTTP_AUTH_MODE=bearer`.
+`MCP-Protocol-Version` on every request. A credential is reusable until it
+expires; it is not single-use. One server runs one mode: a `signed-agent`
+server does not accept bearer tokens, so bearer clients such as the
+TypeScript client cannot use it. Roll back with
+`L9_MEMORY_HTTP_AUTH_MODE=bearer`, or stop the HTTP transport.
+
+### C1 deployment prerequisites (3.0.0 target)
+
+This is the checklist the deployment campaign owns. It is not an installation
+procedure, and nothing here has been run on C1.
+
+1. **Release.** A validated 3.0.0 artifact bound to exact source and
+   wheel/sdist digests; not the unmerged candidate.
+2. **Classification.** ADR-094's open question resolved by its owner, or the
+   deployment explicitly recorded as canonically unclassified.
+3. **Canonical store.** `store_backend: postgres` against a new, empty
+   database; projection, graph intelligence and active memory at `none` unless
+   separately qualified. No ledger, graph, Redis state or backup is imported,
+   and no migration runs.
+4. **Identity.** `http_auth_mode=signed-agent`; one durable, deployment-specific
+   signing key per agent, never shared between agents and never reused by a
+   local stdio door or another deployment; a grant map rendered for the server
+   from the authorized agent registry, with no `is_admin` grants; tenant,
+   organization and workspace set by `L9_MEMORY_LOCAL_*_ID` on the server.
+5. **Secrets.** The signing-key map, grant map and PostgreSQL connection
+   string (`L9_MEMORY_POSTGRES_DSN`) are runtime secrets from the operator's existing secret path. None
+   is tracked, written into generated client configuration, or logged.
+6. **Network.** TLS terminated at a trusted reverse proxy; the service bound
+   where only that proxy reaches it; `L9_MEMORY_HTTP_ALLOWED_ORIGINS` set if
+   any browser can reach the host; an explicit decision on whether `/docs`,
+   `/redoc`, `/openapi.json`, `/healthz` and `/readyz` are reachable from
+   outside the host.
+7. **Lifecycle.** A process supervisor that restarts the service, readiness
+   gated on `/readyz` and the `canonical` family, and PostgreSQL backup and
+   restore proven. "Backup and restore" below is written for the SQLite
+   ledger; the PostgreSQL procedure for the shared store is owed by the
+   deployment campaign.
+8. **Credential lifetime.** The shortest
+   `L9_MEMORY_HTTP_AGENT_ASSERTION_MAX_TTL_SECONDS` the clients can refresh.
+
+**Recovery.** A failed MemoryService or proxy affects every connected agent;
+agents can fall back to their local stdio entry, which writes to its own local
+store, not the shared one, so those records are not in the shared memory.
+Restoring the shared store uses the deployment's proven PostgreSQL procedure
+(owed; see item 7). Rotating a compromised agent key means removing it from the
+key map and restarting; credentials minted under it then fail with `401`.
+
+### Client adoption
+
+Server availability is not consumer adoption. Each consumer proves its own
+configuration in its own repository:
+
+- **Cursor-Governance** seals the agent HTTP path today (its ADR-0031 and
+  `CANONICAL_LAW.md` §8.5). Cursor and Claude Code agents governed there need
+  an authorized consumer campaign before using the remote service.
+- **Claude Code** documents `headersHelper`, which can mint fresh headers at
+  session start, on reconnect and after `401`/`403`. That is documented client
+  functionality, not demonstrated acceptance.
+- **Cursor** documents static `headers` with environment expansion and no
+  refresh hook; a short-lived credential must be refreshed outside the IDE.
+  Not qualified.
+
+### Proof boundaries
+
+Proven by the candidate's tests: the Streamable HTTP wire contract over real
+TCP, the signed-agent negative suite, receipt shapes, and the installed
+wheel's HTTP entry point, all against an in-memory or SQLite store. Not
+proven: HTTP against PostgreSQL, the four lifecycle operations ADR-082
+(2026-10-14) lists, refusal of an administrator grant, any C1 deployment, and
+any consumer's remote configuration.
 
 ## Graphiti projection
 

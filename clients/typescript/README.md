@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 # @quantum-l9/graphiti-memory-client

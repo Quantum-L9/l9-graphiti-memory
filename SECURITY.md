@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 # Security
@@ -39,49 +39,92 @@ The system defends against:
 - atomic receipts and outbox
 - CI bypass, config-drift, ADR, and wiring checks
 
-## Remote HTTP: target boundary and current gaps
+## Remote HTTP: Memory 3.0.0 trust boundary
 
-The target agent transport is a centrally hosted HTTPS MCP service (ADR-038
-amendment, 2026-10-13). It is not implemented. The proposed boundary
-(ADR-083 amendment, 2026-10-13) requires of any implementation:
+The target is one `MemoryService` hosted on the operator's C1 environment and
+reached by multiple agents over authenticated HTTPS MCP (ADR-038). It is not
+deployed. Its transport and identity exist as the ADR-098 candidate (PR #94,
+source 2.7.0, unmerged); the released 2.5.0/2.6.0 HTTP server does not meet
+this boundary and must not be exposed to remote agents.
 
-- a per-request principal established server-side from an authenticated,
-  per-agent credential with the same canonical identity proof the stdio agent
-  door requires;
-- no anonymous or local-operator fallback, and no role, tenant, grant or
-  administrator escalation from any request field;
-- human-door and administrator authority unreachable through the agent
-  endpoint;
-- ADR-006 tenant and namespace isolation, unchanged;
-- `Origin` validation and protocol-version handling as the pinned MCP revision
-  requires;
-- TLS terminated at a trusted reverse proxy, with the service itself bound
-  where only that proxy can reach it;
-- credentials, signing keys and the PostgreSQL DSN held in the runtime secret
-  path, never in tracked files, generated client configuration or logs.
+### Identity trust chain
 
-Known gaps in the HTTP server on current `main` (package version 2.6.0), none of which this documentation
-changes:
+1. Each agent holds its own securely provisioned signing key.
+2. On every request it sends a short-lived signed agent assertion
+   (`Authorization: Bearer`) and the sealed `l9.identity-assertion/v1` object
+   with its HMAC under the same key.
+3. The server verifies signature, expiry, lifetime ceiling, identity digest,
+   HMAC, `resolved` result, product, actor equal to the agent, and pinned
+   provenance, on that request alone; there is no session or cached
+   principal.
+4. The server takes the principal's roles, namespaces and flags only from its
+   own grant map, and tenant, organization and workspace from its own
+   settings. No header, query, body, MCP `_meta` or assertion field adds a
+   claim.
+5. `MemoryService` enforces tenant and namespace authorization on the
+   operation itself (ADR-006); a requested namespace is an address, never a
+   claim.
+6. Receipts and records carry the authenticated agent and record provenance.
 
-- static bearer token-to-principal authentication, not equivalent to the
-  signed agent door; a token's principal may carry `is_admin` or
-  `is_global_admin`, so administrator authority is reachable over HTTP if the
-  token map grants it;
+### Key separation
+
+One key per agent, never shared between independently authorized agents.
+Credentials are not audience-bound, so each deployment needs its own keys: a
+key shared with another deployment or with a local stdio door makes its
+credentials valid there too. Keys are not provisioned by this repository;
+durable per-agent keys and a server-side grant map rendered from the
+authorized agent registry are prerequisites of the 3.0.0 deployment.
+
+### Credential replay
+
+A signed agent credential is reusable until it expires. There is no nonce or
+`jti` ledger, so it is **not** single-use, and replay within the validity
+window is **not** prevented. Exposure is bounded by expiry checked on every
+request, the lifetime ceiling (`http_agent_assertion_max_ttl_seconds`,
+default 3600, plus 60 s skew), deployment-specific keys, and TLS on every hop
+that carries the credential (ADR-083 and ADR-098, 2026-10-14).
+
+### Administrator authority
+
+Policy for 3.0.0: ordinary remote agent grants do not set `is_admin`, the
+agent endpoint runs `signed-agent` mode only, and administrative operations
+are separately governed. The candidate code does **not** enforce this: a grant
+with `is_admin: true` yields an administrator principal over HTTP, and in
+bearer mode a token's principal can carry `is_admin` and `is_global_admin`.
+Until the implementation adds a startup refusal and a negative test, the rule
+is a deployment-configuration control verified by reading the grant map
+(ADR-083, 2026-10-14). The human door is unreachable over HTTP in the
+candidate, including on auth-disabled loopback.
+
+### Transport and default-deny
+
+- TLS terminates at a trusted reverse proxy; the service listens where only
+  that proxy reaches it. The server has no in-process TLS.
+- A request without valid credentials gets `401`; an unknown agent and a bad
+  signature get the same answer, so agent ids cannot be enumerated. There is
+  no anonymous or local-operator fallback on an authenticated server, and
+  `signed-agent` mode with authentication disabled refuses to start.
+- A present `Origin` outside `http_allowed_origins` gets `403`; credentials in
+  a URL get `400` and are never echoed.
 - `/healthz`, `/readyz` and FastAPI's default `/docs`, `/redoc` and
-  `/openapi.json` are served without authentication;
-- no `Origin` validation, protocol negotiation or `WWW-Authenticate`
-  challenge;
-- HMAC agent assertions are not nonce-tracked, so one is replayable until it
-  expires; keep assertion lifetimes short and use them only as the stdio
-  process credential they were designed as;
-- auth-disabled loopback HTTP serves the stdio principal, which is the
-  administrator when `L9_MEMORY_HUMAN_DOOR_SECRET` is set.
+  `/openapi.json` are unauthenticated in every version, including the
+  candidate. Their exposure beyond the host is a deployment decision that has
+  not been made.
 
-Do not expose the current HTTP server to remote agents.
+### Gaps on 2.5.0, 2.6.0 and `main@441b741`
+
+The HTTP server there authenticates only by static bearer tokens (not an
+agent identity, and able to carry administrator flags), has no `Origin`
+validation, protocol negotiation or `WWW-Authenticate` challenge, and with
+authentication disabled serves the stdio principal on loopback, which is the
+administrator when `L9_MEMORY_HUMAN_DOOR_SECRET` is set. Use it on loopback
+for development only.
 
 ## Secret handling
 
 Generated MCP config files contain only executable and argument data. Tokens, Zep keys, Graphiti credentials, and Infisical machine identity values remain in the runtime environment or external secret manager.
+
+For the 3.0.0 remote deployment the runtime secrets are the agent signing-key map (`L9_MEMORY_AGENT_SIGNING_KEYS_JSON`), the grant map (`L9_MEMORY_AGENT_GRANTS_JSON`, not secret in content but integrity-critical) and the PostgreSQL connection string (`L9_MEMORY_POSTGRES_DSN`). They are delivered through the operator's existing secret path, owned by the deployment campaign; this repository defines the inputs and holds none of the values.
 
 ## Reporting
 

@@ -44,9 +44,13 @@ active_lease_ttl_seconds: 30
 
 # HTTP is authenticated by default (static bearer token-to-principal map from
 # L9_MEMORY_AUTH_TOKENS_JSON or L9_MEMORY_AUTH_TOKENS_FILE; never put tokens in
-# this file). The current HTTP server is not qualified for remote agents; the
-# centrally hosted HTTPS target (ADR-038 amendment, 2026-10-13) is not
-# implemented and has no settings yet. Local stdio is the supported agent mode.
+# this file). Bearer principals are not agent identities; local stdio is the
+# supported agent mode. The ADR-098 candidate (PR #94; not a release as of
+# 2026-10-14) adds
+# signed-agent HTTP (L9_MEMORY_HTTP_AUTH_MODE=signed-agent, with the agent key
+# and grant maps supplied only through the runtime environment); it is not a
+# released setting and this example does not enable it. The Memory 3.0.0 C1
+# target is not deployed; see RUNBOOK.md "Remote HTTP MCP".
 http_auth_required: true
 
 # Local CLI/stdio identity. CLI commands derive the active repository namespace.

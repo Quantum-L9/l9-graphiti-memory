@@ -276,8 +276,10 @@ server advertises, not a conformance result.
 
 **Decision date:** 2026-10-14 (campaign MEM-DOC-3.0, documentation only).
 **Effect:** records what the ADR-098 candidate (PR #94) proves against the
-2026-10-13 list. The five properties below are separate proof obligations; a
-pass on one is never evidence for another.
+2026-10-13 list, whose "not implemented" status line described `441b741` and
+is superseded for the candidate by the evidence column below. The five
+properties are separate proof obligations; a pass on one is never evidence
+for another.
 
 | Obligation | Owner | Candidate evidence (PR #94) | Owed for 3.0.0 |
 |---|---|---|---|
