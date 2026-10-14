@@ -430,8 +430,8 @@
         "version": "2.7.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "0a48808debcc2174deb9ba24f79a044074b46e0fae1780212908a5a1366f43af",
-      "size_bytes": 141118
+      "sha256": "ed4d010750f8b93370e8831b9faa905b5e55ee28e358db385c9e490aa5c9d1a6",
+      "size_bytes": 141119
     },
     {
       "category": "repository_root",
@@ -1278,8 +1278,8 @@
         "version": "2.7.0"
       },
       "path": "docs/REMOTE_MCP_CONTRACT.md",
-      "sha256": "b31df164891271492a1fb1136b1152b0bd795a9b114d3b7a925d7023b8b28fa1",
-      "size_bytes": 9994
+      "sha256": "e0415178cd6ea3d25532ba753cb324a2648ca097eac26d4e7f6c7ba647335f0c",
+      "size_bytes": 10134
     },
     {
       "category": "documentation",
@@ -4574,8 +4574,8 @@
         "version": "2.7.0"
       },
       "path": "docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md",
-      "sha256": "7a6fded629fe39c89d352d8d2401bbda909a301a83291393d0e264346c090d59",
-      "size_bytes": 12370
+      "sha256": "3b2577067ec5f72bb5cf401cf518e934b7f55d1a24797896fd5f7c89f44ea374",
+      "size_bytes": 12382
     },
     {
       "category": "architecture_decisions",
@@ -9774,8 +9774,8 @@
         "version": "2.7.0"
       },
       "path": "tests/integration/test_installed_wheel_lifecycle.py",
-      "sha256": "45ad6fe86b625bd120f17a7ef9edbef00ddf997f727ac33e615c27ee3cb7c230",
-      "size_bytes": 14666
+      "sha256": "fadb4501eef812600983759f6901bdb48c454783622908f2d6fd9a6b6fc9484e",
+      "size_bytes": 14764
     },
     {
       "category": "tests",
@@ -10110,8 +10110,8 @@
         "version": "2.7.0"
       },
       "path": "tests/integration/test_remote_mcp_http.py",
-      "sha256": "a6ddd8e26c38e0d6212e130b5aaf7859f83e18e6b8fee455d4e0c07699cefc72",
-      "size_bytes": 47559
+      "sha256": "b9a2ffbba293f4e66a1875131600f08b46c5480cdfd1badb80e6e85371b76ab6",
+      "size_bytes": 47591
     },
     {
       "category": "tests",

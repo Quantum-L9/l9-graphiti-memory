@@ -768,7 +768,7 @@ def test_auth_disabled_http_refuses_an_administrator_agent_door(registry_env, mo
         runtime.close()
     stdio_agent = _agent_door_principal(settings)
     assert stdio_agent is not None
-    assert stdio_agent.auth_method == "stdio-agent-assertion"
+    assert (stdio_agent.auth_method, stdio_agent.is_admin) == ("stdio-agent-assertion", True)
     human = _stdio_principal(settings)  # the fixture also sets the human door secret
     assert (human.principal_id, human.is_admin, human.auth_method) == (
         "human",

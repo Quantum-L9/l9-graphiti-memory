@@ -132,7 +132,7 @@ updated: 2026-07-22
 | `docs/RECURSIVE_HARVEST_AUDIT.md` | `documentation` | `documentation` | 4921 | `370cb913d5117345bd2355672c86115d1d4f6b875539e3cdd0e30aa55de1b393` |
 | `docs/REMAINING_PRODUCTION_PROOF.md` | `documentation` | `documentation` | 2091 | `d1d007c4b2fa9fec4b50d7b5ca4bf45986003e3e8edae46d0438c0da21ba4bef` |
 | `docs/REMEDIATION_AND_INTEGRATION_PLAN.md` | `documentation` | `documentation` | 6077 | `b5f0314090e0c3f19d10e5c27690eb7f1bcd9bfb27407f3e32b65833c9bb66b3` |
-| `docs/REMOTE_MCP_CONTRACT.md` | `documentation` | `documentation` | 9994 | `b31df164891271492a1fb1136b1152b0bd795a9b114d3b7a925d7023b8b28fa1` |
+| `docs/REMOTE_MCP_CONTRACT.md` | `documentation` | `documentation` | 10134 | `e0415178cd6ea3d25532ba753cb324a2648ca097eac26d4e7f6c7ba647335f0c` |
 | `docs/TOPOLOGY_PUBLICATION_ADMISSION.md` | `documentation` | `documentation` | 5662 | `3f26f7fce0186faba0817a1769b18e0f7b02c095ac37bb3ddaa6418d28eff6ec` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/.npmrc.example` | `documentation` | `documentation` | 100 | `df60d9366deaba0c0b5c5574b6312f2cfb31cce6db343137e6fb50fde90cded5` |
 | `docs/WIP/l9-bot-memory-integration-pr-pack/AUTHORITY.md` | `documentation` | `documentation` | 4735 | `c1e82c3877941f535d05cc68c91bf57c9036a52c1405da1195ae5f8f15f3f8f1` |
@@ -338,7 +338,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-095-structured-source-invalidation-lifecycle.md` | `architecture_decisions` | `adr` | 11071 | `26fac16d2db03c6bcfab08f443a67dc0737f66eb0d898fd1246db42491800fab` |
 | `docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md` | `architecture_decisions` | `adr` | 10847 | `256e3af3967e08ca164de66fcad22c9b8f5fbd8f32f171a5957ea96afc063a14` |
 | `docs/adr/ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md` | `architecture_decisions` | `adr` | 13048 | `eaf77b5b39d7b09364bedcd054239349843f367c70c9bb22221f978780896c81` |
-| `docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md` | `architecture_decisions` | `adr` | 12370 | `7a6fded629fe39c89d352d8d2401bbda909a301a83291393d0e264346c090d59` |
+| `docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md` | `architecture_decisions` | `adr` | 12382 | `3b2577067ec5f72bb5cf401cf518e934b7f55d1a24797896fd5f7c89f44ea374` |
 | `docs/adr/README.md` | `architecture_decisions` | `adr` | 12285 | `81aa636b730a816e9fd0ae98663b189f618899e9105a287453197dbea5b919ef` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
@@ -663,7 +663,7 @@ updated: 2026-07-22
 | `tests/integration/test_graphiti_http_projection_loop.py` | `tests` | `test` | 18142 | `65502630e6d6843b09cf39a4c506adbf695bc5df525d0f9ead7cfbc5bd33c7b2` |
 | `tests/integration/test_idempotency_race_and_drift.py` | `tests` | `test` | 5119 | `de5a7fc61b9d2f93501d1f333b016b8c148108460a949fd573c9d1d53905a960` |
 | `tests/integration/test_immediate_canonical_ingestion.py` | `tests` | `test` | 4877 | `4c72a3298792fe7b1f4eee90c8a1a3289ef834e7b6fa420a2f45eb5a17b6a5b8` |
-| `tests/integration/test_installed_wheel_lifecycle.py` | `tests` | `test` | 14666 | `45ad6fe86b625bd120f17a7ef9edbef00ddf997f727ac33e615c27ee3cb7c230` |
+| `tests/integration/test_installed_wheel_lifecycle.py` | `tests` | `test` | 14764 | `fadb4501eef812600983759f6901bdb48c454783622908f2d6fd9a6b6fc9484e` |
 | `tests/integration/test_lifecycle_projection_consistency.py` | `tests` | `test` | 17467 | `ba39406d36b67b22e3d3c2e9ef1623fdbdbc1c9f839eb343f6c14dc1b0da9224` |
 | `tests/integration/test_maintenance_engine.py` | `tests` | `test` | 17401 | `8cc8b7ca523e39de6ab0dee56ee918c86db98c00e03876d4960356b437076736` |
 | `tests/integration/test_mcp.py` | `tests` | `test` | 1109 | `eaadb1a2432f746f9405cb2253381c177e4b340f642208f2bc5093088c8388dd` |
@@ -684,7 +684,7 @@ updated: 2026-07-22
 | `tests/integration/test_projection_seams_live.py` | `tests` | `test` | 31682 | `eb1588b12569680bfde08fe9b4d6c441485db0fcd4d3d603157dcdf98990070b` |
 | `tests/integration/test_projection_targets.py` | `tests` | `test` | 36328 | `315e7eb881e1c93f4f9a65bfc4789f7b5d53e47604feb7cedc58483e78e5b7e6` |
 | `tests/integration/test_quarantine_review_maintenance.py` | `tests` | `test` | 13532 | `a7c16264d263e4c96cd1bdfa00fa5f688064865d0a1d5d8a2720803c4598d27a` |
-| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 47559 | `a6ddd8e26c38e0d6212e130b5aaf7859f83e18e6b8fee455d4e0c07699cefc72` |
+| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 47591 | `b9a2ffbba293f4e66a1875131600f08b46c5480cdfd1badb80e6e85371b76ab6` |
 | `tests/integration/test_repository_corpus_ingestion.py` | `tests` | `test` | 3218 | `1becf822cb37f129fc127e2a585d0da307423770eaa6e672974f233524a7f568` |
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `test` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
 | `tests/integration/test_runtime_enforcement_audit.py` | `tests` | `test` | 8892 | `90e590f5a2b4da70310a4212827e38e68556b017698a78f91de6555cff143e20` |

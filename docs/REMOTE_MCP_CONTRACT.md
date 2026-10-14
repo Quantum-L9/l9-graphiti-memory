@@ -62,8 +62,10 @@ Server-side only — never sent by a client:
 
 Every registered agent must have a valid grant, no grant may set `is_admin`,
 and `human` cannot be registered; otherwise the server refuses to start.
-Administrator authority is the local human door's alone and is never reachable
-over HTTP, including on auth-disabled loopback HTTP serving the agent door. Tenant, organization, and
+No signed-agent principal is ever an administrator, in signed-agent mode or on
+auth-disabled loopback HTTP serving the agent door. (Bearer-mode token
+principals and the auth-disabled Tier 3 local principal keep their configured
+`is_admin` / `is_global_admin`; this refusal does not cover them.) Tenant, organization, and
 workspace come from `L9_MEMORY_LOCAL_*_ID` on the server.
 
 **Refresh.** The assertion is reusable until it expires. Clients mint a new one

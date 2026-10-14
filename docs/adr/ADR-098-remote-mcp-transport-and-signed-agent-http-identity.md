@@ -98,9 +98,9 @@ response with no `id`.
 
 The principal is built by `agent_principal`, the one function the stdio door
 also uses, so a remote agent holds exactly the claims the same agent holds
-locally. No signed-agent grant may carry `is_admin`: administrator authority
-belongs to the human door alone, so an administrator grant is malformed
-trusted configuration and the server refuses to start rather than serve it —
+locally. No signed-agent grant may carry `is_admin`: a signed agent is never
+an administrator over HTTP, so an administrator grant is malformed trusted
+configuration and the server refuses to start rather than serve it —
 in signed-agent mode and on auth-disabled loopback HTTP serving the agent
 door alike. Nothing in a request becomes a claim: unknown identity-assertion
 members are ignored, request headers are not read for claims, and the
@@ -222,8 +222,8 @@ consumer-owned campaign.
   and startup refusal of an administrator agent grant in signed-agent and
   auth-disabled modes
 - `tests/integration/test_installed_wheel_lifecycle.py`: the same contract
-  served by the installed wheel's server entry point, which exits before
-  binding its port when an agent grant carries `is_admin`
+  served by the installed wheel's server entry point, which exits with the
+  refusal before starting uvicorn when an agent grant carries `is_admin`
 - stdio subprocess non-regression in the same suite
 - `clients/typescript` `npm run verify:all`
 
