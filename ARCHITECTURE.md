@@ -37,7 +37,7 @@ optional, separately qualified capabilities (ADR-097).
 | | Agent transport |
 |---|---|
 | 2.5.0 (operational) and 2.6.0 / `main@441b741` | local stdio MCP launched on the agent's machine; the HTTP adapter is not a conforming Streamable HTTP server and has only static bearer principals |
-| ADR-098 candidate (PR #94, source 2.7.0, unmerged) | adds the stateless Streamable HTTP server and signed-agent HTTP identity; stdio unchanged |
+| ADR-098, in the 3.0.0 release candidate (source 3.0.0; PR #94 integrated; unmerged, untagged) | adds the stateless Streamable HTTP server and signed-agent HTTP identity; stdio unchanged |
 | Memory 3.0.0 | not released, not deployed |
 
 Open before 3.0.0 is live: PostgreSQL-backed HTTP proof (ADR-082), key and grant provisioning, C1

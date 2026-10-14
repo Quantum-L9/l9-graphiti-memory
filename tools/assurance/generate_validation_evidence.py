@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.7.0"
+RELEASE: Final = "3.0.0"
 DEFAULT_EVIDENCE_DIR: Final = Path("build") / "release-validation"
 
 
@@ -349,8 +349,15 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # refusals, 1 auth-disabled agent-door refusal) and 1 in
         # test_installed_wheel_lifecycle.py (the installed wheel exits before
         # binding). Not CI-skipped. 1793 + 5 = 1798.
-        "1798 tests pass",
-        r"1798 passed",
+        # Re-pinned 1798 -> 1805 for the 3.0.0 shared-memory proof: 5 cases in
+        # test_remote_mcp_postgres_multiprocess.py (cross-process signed-agent
+        # sharing, foreign tenant, concurrent cold start, 2 unusable DSNs), 1
+        # in test_shared_canonical_store.py (concurrent schema initialization)
+        # and 1 in test_remote_mcp_http.py (URL credential absent from the
+        # access log). All run in CI, which sets the PostgreSQL test DSN.
+        # 1798 + 7 = 1805.
+        "1805 tests pass",
+        r"1805 passed",
     ),
     CheckSpec(
         "V-002",
@@ -536,8 +543,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # recorded by digest, and the release wheel must be in it.
         "sha256sum over the validated release artifact directory",
         "logs/release_artifacts.txt",
-        "v2.7.0 wheel present in the validated artifact set",
-        r"l9_graphite_memory-2\.7\.0-py3-none-any\.whl",
+        "v3.0.0 wheel present in the validated artifact set",
+        r"l9_graphite_memory-3\.0\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -546,7 +553,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.7\.0",
+        r"l9-graphite-memory==3\.0\.0",
     ),
     CheckSpec(
         "V-018",

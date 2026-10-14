@@ -43,8 +43,8 @@ The system defends against:
 
 The target is one `MemoryService` hosted on the operator's C1 environment and
 reached by multiple agents over authenticated HTTPS MCP (ADR-038). It is not
-deployed. Its transport and identity exist as the ADR-098 candidate (PR #94,
-source 2.7.0, unmerged); the released 2.5.0/2.6.0 HTTP server does not meet
+deployed. Its transport and identity exist in the 3.0.0 release candidate
+(ADR-098; source 3.0.0, unmerged and untagged); the released 2.5.0/2.6.0 HTTP server does not meet
 this boundary and must not be exposed to remote agents.
 
 ### Identity trust chain

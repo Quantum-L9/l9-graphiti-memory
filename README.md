@@ -135,7 +135,7 @@ Five states are kept apart throughout this repository. "Implemented",
 | Current operational release | **2.5.0** (operator-designated) | local stdio MCP |
 | Package release line | **2.6.0**: `v2.6.0` tag and a published 2.6.0 artifact (`846f283`) exist; not designated the operational release | local stdio MCP; HTTP present but not a conforming Streamable HTTP server and authenticated only by static bearer tokens |
 | `main` | `441b741`, source version 2.6.0 | as 2.6.0 |
-| Candidate | ADR-098, PR #94, source version **2.7.0**; unmerged; not an accepted release | adds stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) and per-request signed-agent identity; stdio unchanged (`2024-11-05`) |
+| Candidate | ADR-098 in the 3.0.0 release candidate (PRs #93-#95 integrated), source version **3.0.0**; unmerged and untagged; not an accepted release | adds stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) and per-request signed-agent identity; stdio unchanged (`2024-11-05`) |
 | Target | **Memory 3.0.0**: first live release of the consolidated remote architecture | one hosted `MemoryService` over authenticated HTTPS MCP |
 | Qualified deployment | **none** | no C1 deployment exists or is claimed |
 

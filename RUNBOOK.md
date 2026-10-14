@@ -176,7 +176,7 @@ depends on the code you run:
 | Code | HTTP server |
 |---|---|
 | 2.5.0, 2.6.0, `main@441b741` | not qualified for remote agents: one JSON object per `POST /mcp`; `initialize` always answers `2024-11-05`; no negotiation, `MCP-Protocol-Version`, `Origin` or `Accept` handling; `notifications/initialized` gets `200 {"status":"ok"}` instead of `202`; static bearer tokens only. With authentication disabled, loopback HTTP serves the stdio principal, which is the administrator when `L9_MEMORY_HUMAN_DOOR_SECRET` is set, so never disable authentication there. |
-| ADR-098 candidate (PR #94, source 2.7.0) | stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) with `bearer` (default) or `signed-agent` authentication; contract in `docs/REMOTE_MCP_CONTRACT.md`; not an accepted release |
+| ADR-098 in the 3.0.0 release candidate (source 3.0.0; unmerged, untagged) | stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) with `bearer` (default) or `signed-agent` authentication; contract in `docs/REMOTE_MCP_CONTRACT.md`; not an accepted release |
 
 On every version, `GET /healthz`, `GET /readyz` and FastAPI's default `/docs`,
 `/redoc` and `/openapi.json` are served without authentication, and there is no

@@ -1,3 +1,13 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: tests/integration/test_remote_mcp_postgres_multiprocess.py
+#   layer: test
+#   owner: memory-control-plane
+#   status: active
+#   version: 3.0.0
+#   updated: 2026-07-22
+
 """Shared memory across processes: signed agents over HTTP on one PostgreSQL store.
 
 The 3.0.0 claim is that separately authenticated agents, reaching separately

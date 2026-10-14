@@ -13,7 +13,7 @@ updated: 2026-10-14
 
 Typed Node.js client for the authenticated Streamable HTTP MCP surface of the `l9-graphiti-memory` ADR-098 candidate.
 
-This README describes client package **3.0.0** (an npm package version; it is not Memory 3.0.0). The client speaks the `memory-remote-mcp/v1` HTTP contract introduced by the ADR-098 candidate (PR #94, server source version 2.7.0, unmerged at 2026-10-14). It works only against a server that implements that contract in **bearer** mode, and it is not bound to, or evidence of, any deployment, including the Memory 3.0.0 C1 target. Released servers (2.5.0, 2.6.0) answer `2024-11-05` and are refused.
+This README describes client package **3.0.0** (an npm package version; it is not Memory 3.0.0). The client speaks the `memory-remote-mcp/v1` HTTP contract introduced by the ADR-098 candidate (PR #94, server source version 2.7.0) and carried by the Memory 3.0.0 release candidate (server source version 3.0.0, unmerged and untagged at 2026-10-14). It works only against a server that implements that contract in **bearer** mode, and it is not bound to, or evidence of, any deployment, including the Memory 3.0.0 C1 target. Released servers (2.5.0, 2.6.0) answer `2024-11-05` and are refused.
 
 It does not create a second memory authority. It calls the canonical tools already owned by `MemoryService`:
 
@@ -30,7 +30,8 @@ the negotiated `MCP-Protocol-Version` on every request after `initialize`, as
 the ADR-098 server requires. Consequences:
 
 - it requires a server implementing `memory-remote-mcp/v1` (the ADR-098
-  candidate, source version 2.7.0, or a later release that carries it);
+  candidate at server source 2.7.0, the 3.0.0 release candidate, or a later
+  release that carries it; no published release carries it yet);
   earlier servers answer `2024-11-05` and are refused;
 - `protocolVersion` accepts only `'2025-11-25'` or `'2025-06-18'` (the old
   `'2025-03-26'` default is rejected at construction).

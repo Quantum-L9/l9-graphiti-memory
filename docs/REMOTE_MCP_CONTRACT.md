@@ -11,8 +11,9 @@ updated: 2026-10-14
 
 # Remote MCP Contract — `memory-remote-mcp/v1`
 
-Describes the HTTP contract of the ADR-098 candidate (`l9-graphite-memory`
-source version **2.7.0**). It binds a release only once that release is
+Describes the HTTP contract of ADR-098 as carried by the `l9-graphite-memory`
+3.0.0 release candidate (source version **3.0.0**; first introduced at
+source 2.7.0 in PR #94). It binds a release only once that release is
 validated on its exact bytes, and stays in force until the contract version
 changes. Decision record: [ADR-098](adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md).
 Constants: `l9_graphite_memory.version.REMOTE_MCP_CONTRACT_VERSION` and
@@ -23,11 +24,11 @@ This document describes what the Memory server guarantees. It does not install
 or authorize any consumer; a consumer's configuration is unverified until that
 consumer proves it in its own campaign.
 
-**Status (2026-10-14).** "2.7.0" is the source version identifier of the
-ADR-098 candidate (PR #94), which is not an accepted release. The contract is
-intended to carry into Memory 3.0.0, the first live release of the hosted
-remote architecture (ADR-038, 2026-10-14); it binds a release only once that
-release is validated on its exact bytes. No deployment of it exists.
+**Status (2026-10-14).** "2.7.0" was the source version identifier of the
+ADR-098 candidate (PR #94). That candidate is integrated into the Memory
+3.0.0 release candidate (source version 3.0.0), which is unmerged, untagged
+and not an accepted release; the contract binds a release only once that
+release is admitted on its exact bytes (ADR-094). No deployment of it exists.
 
 ## 1. Transport
 
