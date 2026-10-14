@@ -623,7 +623,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
                 return _transport_error(413, -32600, "request body is too large")
             chunks.append(chunk)
         try:
-            body = json.loads(b"".join(chunks))
+            body = json.loads(b"".join(chunks), parse_constant=_reject_json_constant)
         except (ValueError, RecursionError) as exc:  # JSONDecodeError, UnicodeDecodeError
             return _transport_error(400, -32700, f"parse error: {type(exc).__name__}")
         if not isinstance(body, dict):
@@ -690,6 +690,12 @@ def run_http(runtime: MemoryRuntime, *, host: str, port: int) -> int:
         )
     http_server(runtime, host=host, port=port).run()
     return 0
+
+
+def _reject_json_constant(name: str) -> Any:
+    """``NaN`` and ``Infinity`` are not JSON (RFC 8259); refuse them as a parse error."""
+
+    raise ValueError(f"non-JSON constant {name}")
 
 
 class QueryRedactingAccessFilter(logging.Filter):

@@ -1053,8 +1053,11 @@ def test_an_undecodable_identity_assertion_is_refused(client, payload: str) -> N
     [
         b"[" * 200_000,
         b'{"jsonrpc": "2.0", "id": ' + b"9" * 5_000 + b', "method": "ping"}',
+        b'{"jsonrpc": "2.0", "id": 1, "method": "ping", "x": NaN}',
+        b'{"jsonrpc": "2.0", "id": 1, "method": "ping", "x": Infinity}',
+        b'{"jsonrpc": "2.0", "id": 1, "method": "ping", "x": -Infinity}',
     ],
-    ids=["deep-nesting", "huge-integer"],
+    ids=["deep-nesting", "huge-integer", "nan", "infinity", "negative-infinity"],
 )
 def test_an_undecodable_body_is_a_parse_error(client, payload: bytes) -> None:
     body = _assert_refused(_post(client, payload), 400)

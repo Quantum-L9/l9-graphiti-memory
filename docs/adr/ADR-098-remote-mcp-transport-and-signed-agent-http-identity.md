@@ -272,7 +272,9 @@ administrator flags; see ADR-083, 2026-10-14.
 **Other limits carried to 3.0.0.** FastAPI's default `/docs`, `/redoc` and
 `/openapi.json` are served without authentication and need an exposure
 decision before a remote deployment. The HTTP suite runs on an in-memory
-store and the installed-wheel HTTP proof on SQLite; PostgreSQL-backed HTTP
-proof is owed. Key and grant provisioning,
+store and the installed-wheel HTTP proof on SQLite; cross-process
+signed-agent sharing on PostgreSQL is proven by
+`tests/integration/test_remote_mcp_postgres_multiprocess.py`, the full protocol suite on
+PostgreSQL is not. Key and grant provisioning,
 consumer adoption (including the Cursor-Governance policy that seals agent
 HTTP), C1 deployment and the ADR-094 classification are outside this ADR.

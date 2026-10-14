@@ -177,7 +177,9 @@ agents                     Hetzner C1 hosting boundary (TLS reverse proxy)
   configuration are unverified until deployment evidence exists.
 
 What stands between the candidate and a live 3.0.0: integration and release
-validation on exact bytes; PostgreSQL-backed HTTP proof; durable per-agent
+validation on exact bytes; the protocol suite and receipt shapes on PostgreSQL
+(cross-process sharing on PostgreSQL is proven by
+`tests/integration/test_remote_mcp_postgres_multiprocess.py`); durable per-agent
 keys and a server-side grant map; the product classification (ADR-094, 2026-10-14, open); C1
 deployment evidence; and consumer adoption, which each consumer owns.
 Cursor-Governance currently seals the agent HTTP path, so the Cursor and

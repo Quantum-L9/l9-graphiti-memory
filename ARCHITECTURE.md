@@ -40,7 +40,8 @@ optional, separately qualified capabilities (ADR-097).
 | ADR-098, in the 3.0.0 release candidate (source 3.0.0; PR #94 integrated; unmerged, untagged) | adds the stateless Streamable HTTP server and signed-agent HTTP identity; stdio unchanged |
 | Memory 3.0.0 | not released, not deployed |
 
-Open before 3.0.0 is live: PostgreSQL-backed HTTP proof (ADR-082), key and grant provisioning, C1
+Open before 3.0.0 is live: the protocol suite and receipt shapes on PostgreSQL (ADR-082;
+cross-process sharing on PostgreSQL is proven by `tests/integration/test_remote_mcp_postgres_multiprocess.py`), key and grant provisioning, C1
 deployment evidence, consumer adoption, and the product classification below.
 
 The accepted ProductKind is still `dependency` with `local_composition`

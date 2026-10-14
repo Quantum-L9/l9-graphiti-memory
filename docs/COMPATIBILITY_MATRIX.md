@@ -55,5 +55,5 @@ operator release acceptance are separate facts.
 | Remote agent identity | none | none (bearer is not an agent identity) | per-request signed agent; credential reusable until expiry; admin agent grant refused at startup | same; bearer mode not used for agents |
 | Control-plane contract | per release | `memory-control-plane/v1` | `memory-control-plane/v1` plus `memory-remote-mcp/v1` | same, re-proven on 3.0.0 bytes |
 | TypeScript client | client 2.x | client 2.x | client 3.0.0 (bearer only; refuses `2024-11-05`) | client 3.0.0 cannot use a signed-agent server |
-| Canonical store for shared use | — | — | HTTP proven on in-memory (suite) and SQLite (wheel proof) stores only | new, empty PostgreSQL; nothing imported |
+| Canonical store for shared use | — | — | protocol suite on in-memory, wheel proof on SQLite; cross-process signed-agent sharing proven on PostgreSQL (`tests/integration/test_remote_mcp_postgres_multiprocess.py`) | new, empty PostgreSQL; nothing imported |
 | Consumer binding | consumer-owned | Cursor-Governance seals agent HTTP | unchanged | each consumer's own campaign |

@@ -356,8 +356,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # and 1 in test_remote_mcp_http.py (URL credential absent from the
         # access log). All run in CI, which sets the PostgreSQL test DSN.
         # 1798 + 7 = 1805.
-        "1805 tests pass",
-        r"1805 passed",
+        # Re-pinned 1805 -> 1808: 3 cases in test_remote_mcp_http.py (NaN,
+        # Infinity and -Infinity bodies are -32700 parse errors; #96 review).
+        # Not CI-skipped. 1805 + 3 = 1808.
+        "1808 tests pass",
+        r"1808 passed",
     ),
     CheckSpec(
         "V-002",

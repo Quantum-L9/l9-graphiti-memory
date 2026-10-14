@@ -225,7 +225,7 @@ exists. C1 is not deployed.
 
 1. The candidate integrated, versioned 3.0.0, and validated on the exact
    release bytes (`scripts/validate_release.sh` in publication mode).
-2. The HTTP suite run against a PostgreSQL canonical store; the candidate's HTTP suite uses an in-memory store and its installed-wheel HTTP proof the default SQLite store.
+2. The protocol and authentication suite run against a PostgreSQL canonical store. Cross-process signed-agent sharing on PostgreSQL is proven by `tests/integration/test_remote_mcp_postgres_multiprocess.py` (write, read and search across server processes, grant and tenant refusals, idempotent replay, restart durability, concurrent cold start, no SQLite fallback); the protocol suite itself still uses an in-memory store and the installed-wheel HTTP proof the default SQLite store.
 3. The administrator-grant refusal (implemented in the candidate at
    `5507d38`) re-proven on the 3.0.0 bytes.
 4. ADR-094's classification resolved by its owner.

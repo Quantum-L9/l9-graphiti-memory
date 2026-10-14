@@ -350,8 +350,8 @@
         "version": "3.0.0"
       },
       "path": "ARCHITECTURE.md",
-      "sha256": "69fbd433e5bb37bddfad1a3b80df97d84e57ba0d2239c9dfe89fc1846ca48bdf",
-      "size_bytes": 17946
+      "sha256": "f2089bc67aa6177fc7870da89ac87fe008afb134544cc09c6737599e2b2620b6",
+      "size_bytes": 18080
     },
     {
       "category": "repository_root",
@@ -430,7 +430,7 @@
         "version": "3.0.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "d860621ef3132697583d30437d6b79cbb233e9cb426ebb4a12fe3e08736c8443",
+      "sha256": "8a094f22536a58817151a68d7c1a5536845b202863d392fc50984eab4480258a",
       "size_bytes": 141282
     },
     {
@@ -478,8 +478,8 @@
         "version": "3.0.0"
       },
       "path": "README.md",
-      "sha256": "e40528a2a0cd23d773be605297e589de58e82d79eb2b1f3ee550c58af62f1767",
-      "size_bytes": 15283
+      "sha256": "f3d127968b042dde0c5b2898fdd980132db9bb20c2e93bf5939095e50e03bc88",
+      "size_bytes": 15418
     },
     {
       "category": "repository_root",
@@ -1118,8 +1118,8 @@
         "version": "3.0.0"
       },
       "path": "docs/COMPATIBILITY_MATRIX.md",
-      "sha256": "941977a50013de64567414601a8722d04e304722ea529f61b2e99aeca8e4accc",
-      "size_bytes": 6282
+      "sha256": "697be3d6f3aa2f08fc3de0efdc9e7a6e7e5bda11ceca2a102694fbe85e596b83",
+      "size_bytes": 6383
     },
     {
       "category": "documentation",
@@ -3614,8 +3614,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md",
-      "sha256": "5c3e0612b90187103dd33a02329cae57824e10d0503d8ccbde896820594ef7a7",
-      "size_bytes": 13016
+      "sha256": "985372415dc9a52439fa08260ec46b165342392a1fc3086a8cacdc0bd2c67c8a",
+      "size_bytes": 13326
     },
     {
       "category": "architecture_decisions",
@@ -4318,8 +4318,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/ADR-082-consumer-control-plane-transport-parity.md",
-      "sha256": "9d81dc3f9c502257b81234158102b8fa85ac8266fea7cb37eb6a9ad7ca79566e",
-      "size_bytes": 16738
+      "sha256": "a3cb3f9459db6cbd304fccfd3ee7d29d93d5b43ba8c6eae9a054a1d2e3421b74",
+      "size_bytes": 16925
     },
     {
       "category": "architecture_decisions",
@@ -4574,8 +4574,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md",
-      "sha256": "222379f2f2afdf843a19e42c11cb422c9838b03cbcdace80a735299aa8b4ff60",
-      "size_bytes": 14498
+      "sha256": "6bdf07ea80ffd139300abdb0befe045c94513058319f98f3380d00693fac3798",
+      "size_bytes": 14630
     },
     {
       "category": "architecture_decisions",
@@ -4590,8 +4590,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/README.md",
-      "sha256": "1cd192257647585fce7b3bcc6e12ec7d1155836b39799c9d1202cfde1989f9c5",
-      "size_bytes": 14668
+      "sha256": "dc705351382bda6691d6dc1cb748a831015928570642a42343638d88071cfaa5",
+      "size_bytes": 14716
     },
     {
       "category": "documentation",
@@ -8030,8 +8030,8 @@
         "version": "3.0.0"
       },
       "path": "src/l9_graphite_memory/server.py",
-      "sha256": "9b6b916bae9b8920913b6f22a85c3631b420e7fc665f2d923666ab6d42cb0305",
-      "size_bytes": 30938
+      "sha256": "8acd571fff00ebc799de00f53be1cad935e7eddd7231d36c888816d69bc31655",
+      "size_bytes": 31164
     },
     {
       "category": "production_source",
@@ -10110,8 +10110,8 @@
         "version": "3.0.0"
       },
       "path": "tests/integration/test_remote_mcp_http.py",
-      "sha256": "f0d8c818756dcc882adb88d146d133ab50b96a23e5197c041170981c1346010f",
-      "size_bytes": 49688
+      "sha256": "e3be6cffb046ec7e134849d447fc4f4d6105e6733002ce434a7228e175902a61",
+      "size_bytes": 49943
     },
     {
       "category": "tests",
@@ -11966,8 +11966,8 @@
         "version": "3.0.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "3c276d92adcb66f555be431a7f92ce36e0b1d26598b73e67957cdca598a5dfcb",
-      "size_bytes": 37659
+      "sha256": "7149e524e9e4a882eb4ca44fe470bfb8a08b99e8b00547acd966080eecbb7502",
+      "size_bytes": 37855
     },
     {
       "category": "assurance",
