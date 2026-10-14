@@ -6,12 +6,14 @@ layer: documentation
 owner: memory-control-plane
 status: active
 version: 2.7.0
-updated: 2026-07-22
+updated: 2026-10-14
 /L9_META -->
 
 # Remote MCP Contract — `memory-remote-mcp/v1`
 
-Binding for `l9-graphite-memory` **2.7.0** and later until the contract version
+Describes the HTTP contract of the ADR-098 candidate (`l9-graphite-memory`
+source version **2.7.0**). It binds a release only once that release is
+validated on its exact bytes, and stays in force until the contract version
 changes. Decision record: [ADR-098](adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md).
 Constants: `l9_graphite_memory.version.REMOTE_MCP_CONTRACT_VERSION` and
 `HTTP_MCP_PROTOCOL_VERSIONS`, also reported by `memory.capabilities` as
@@ -20,6 +22,12 @@ Constants: `l9_graphite_memory.version.REMOTE_MCP_CONTRACT_VERSION` and
 This document describes what the Memory server guarantees. It does not install
 or authorize any consumer; a consumer's configuration is unverified until that
 consumer proves it in its own campaign.
+
+**Status (2026-10-14).** "2.7.0" is the source version identifier of the
+ADR-098 candidate (PR #94), which is not an accepted release. The contract is
+intended to carry into Memory 3.0.0, the first live release of the hosted
+remote architecture (ADR-038, 2026-10-14); it binds a release only once that
+release is validated on its exact bytes. No deployment of it exists.
 
 ## 1. Transport
 
@@ -35,7 +43,7 @@ consumer proves it in its own campaign.
 | Notification / client response | `202`, empty body. |
 | `GET`, `DELETE` | `405`, `Allow: POST`. No standalone stream, no session. |
 | Session | None. No `MCP-Session-Id` is issued or read. |
-| Probes | `GET /healthz`, `GET /readyz` (unauthenticated, as in 2.6.0). |
+| Probes | `GET /healthz`, `GET /readyz` (unauthenticated, as in 2.6.0). FastAPI's default `/docs`, `/redoc` and `/openapi.json` are also served unauthenticated; their exposure is a deployment decision. |
 
 ## 2. Signed-agent authentication (`L9_MEMORY_HTTP_AUTH_MODE=signed-agent`)
 
@@ -68,12 +76,14 @@ principals and the auth-disabled Tier 3 local principal keep their configured
 `is_admin` / `is_global_admin`; this refusal does not cover them.) Tenant, organization, and
 workspace come from `L9_MEMORY_LOCAL_*_ID` on the server.
 
-**Refresh.** The assertion is reusable until it expires. Clients mint a new one
-before then:
+**Refresh.** The assertion is reusable until it expires: it is not single-use,
+and there is no replay ledger. Clients mint a new one before then:
 
-- Claude Code: `headersHelper` runs at session start, on reconnect, and after a
-  `401`/`403`, so a helper that mints the three headers keeps them fresh.
-  Static `headers` with `${VAR}` expansion also work but do not refresh.
+- Claude Code: its documentation describes a `headersHelper` that runs at
+  session start, on reconnect, and after a `401`/`403`, so a helper that mints
+  the three headers would keep them fresh; static `headers` with `${VAR}`
+  expansion do not refresh. Documented client functionality, not demonstrated
+  here or accepted by any consumer.
 - Official MCP SDKs: static headers through `requestInit`, or per-request
   minting through a custom `fetch`. Observed in an out-of-tree interoperability
   run (MCP TypeScript SDK 1.20.2 and 1.32.1) recorded in the MEM-HTTP-01
@@ -124,11 +134,11 @@ Cursor-Governance.
 | `memory.write_agent`, `memory.write_governed` | Arguments built by `ops/memory/agent_write.py`; result read from `content[0].text` | Same tools, schemas, receipts | Yes | None |
 | `memory.search`, `memory.hydrate`, `memory.close` | Same tools via stdio; hook lane uses the CLI | Same tools and receipts over HTTP | Yes | None for MCP; the CLI hook lane is not affected |
 | Phase locks and receipts | `phase_lock` → `write_governed`; receipt fields per `memory-receipt-contract.json` | Same `lock_id`, `granted`, `expires_at`; write `receipt_id`, `status`, `namespace`, `record_id` | Yes | None |
-| Health and capabilities | Binds `memory-control-plane/v1` and package version from `l9-memory capabilities` | Same receipt plus additive `http_mcp_protocol_versions`, `remote_mcp_contract_version` | Yes, additive | Pin `2.7.0` and, for HTTP, `memory-remote-mcp/v1` |
+| Health and capabilities | Binds `memory-control-plane/v1` and package version from `l9-memory capabilities` | Same receipt plus additive `http_mcp_protocol_versions`, `remote_mcp_contract_version` | Yes, additive | Pin the validated release that carries `memory-remote-mcp/v1` (the Memory 3.0.0 target), not the candidate |
 | MCP initialize | Stdio test sends `2024-11-05` and checks only that a version is returned | stdio unchanged (`2024-11-05`); HTTP answers `2025-11-25` or `2025-06-18` | Yes | An HTTP client must speak one of the HTTP revisions |
 | `tools/list`, `tools/call` | Dotted names; Claude maps `.` to `_` | Identical definitions on both transports | Yes | None |
 | Error semantics | Ungranted write: `-32001`/`-32010` or a `rejected` receipt | Same JSON-RPC codes; transport refusals add HTTP statuses | Yes | Handle `401` (re-mint) and `400`/`406`/`415` (client defect) |
-| Transport policy | CANONICAL_LAW §8.5.4 and ADR-0031 seal agent HTTP; launcher is stdio only | Remote transport available | **No — consumer law** | A Cursor-Governance ADR is required before any adapter may select HTTP |
+| Transport policy | CANONICAL_LAW §8.5.4 and ADR-0031 seal agent HTTP; launcher is stdio only | Remote transport implemented in the candidate; not released or deployed | **No — consumer law** | A Cursor-Governance ADR is required before any adapter may select HTTP |
 
 ## 5. Not covered by this contract
 
@@ -140,5 +150,11 @@ Cursor-Governance.
 - Audience binding of the agent assertion to one deployment. Use
   per-deployment keys.
 - The product topology's `kind: dependency` declares no independent runtime
-  identity; an independently hosted server is a topology decision for the
-  deployment campaign (see the 2.7.0 evidence).
+  identity; how an independently hosted server is classified is open and
+  owned as recorded in ADR-094 (2026-10-14).
+- Refusal of administrator grants and in-window replay prevention; see
+  ADR-083 (2026-10-14).
+- MCP revision `2026-07-28`, which drops `initialize`: a client that speaks
+  only that revision is refused with `400`. The served revisions were chosen
+  from the specification, not from probes of installed Cursor or Claude Code
+  builds; such probes are consumer proof.

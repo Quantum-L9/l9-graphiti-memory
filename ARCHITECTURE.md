@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-10-14
 /L9_META -->
 
 # Architecture
@@ -14,6 +14,41 @@ updated: 2026-07-22
 ## System identity
 
 `l9-graphiti-memory` is a dependency package with embedded operator and protocol adapters. It owns governed memory contracts, canonical persistence, retrieval planning, curation controls, and projection integration. It does not own agent execution, a world model, reasoning orchestration, constellation routing, or full agent checkpoint persistence.
+
+## Agent transport
+
+Every surface in the diagram below is an adapter into the same
+`MemoryService`.
+
+**Target (Memory 3.0.0).** One `MemoryService`, centrally hosted on the
+operator-controlled Hetzner C1 environment behind a trusted TLS reverse proxy,
+reached by Cursor, Claude Code and other authorized agents on different
+machines through authenticated MCP Streamable HTTP, and backed by one new,
+empty PostgreSQL canonical store. Each request carries the calling agent's own
+signed evidence; the server derives the principal and its grants from
+server-side configuration, and `MemoryService` enforces tenant and namespace
+authorization (ADR-038, ADR-083, ADR-098). The target adds no second store,
+control plane, identity authority or provider path; it is a deployment of the
+same adapter and service. Redis, Graphiti, Neo4j and vector projections remain
+optional, separately qualified capabilities (ADR-097).
+
+**Current boundaries.**
+
+| | Agent transport |
+|---|---|
+| 2.5.0 (operational) and 2.6.0 / `main@441b741` | local stdio MCP launched on the agent's machine; the HTTP adapter is not a conforming Streamable HTTP server and has only static bearer principals |
+| ADR-098 candidate (PR #94, source 2.7.0, unmerged) | adds the stateless Streamable HTTP server and signed-agent HTTP identity; stdio unchanged |
+| Memory 3.0.0 | not released, not deployed |
+
+Open before 3.0.0 is live: the administrator-grant guard (ADR-083),
+PostgreSQL-backed HTTP proof (ADR-082), key and grant provisioning, C1
+deployment evidence, consumer adoption, and the product classification below.
+
+The accepted ProductKind is still `dependency` with `local_composition`
+consumption, and the topology forbids remote invocation as canonical
+consumption. A centrally hosted service is canonically unclassified: ADR-094
+(2026-10-14) records the discrepancy, the two candidate resolutions and their
+owners. Nothing here reclassifies the product.
 
 ## Control flow
 

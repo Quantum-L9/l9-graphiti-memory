@@ -6,7 +6,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-10-14
 /L9_META -->
 
 # Architecture Decision Records
@@ -71,7 +71,6 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-045 | [Procedural Synthesis Approval Boundary](ADR-045-procedural-synthesis-approval-boundary.md) | Accepted |
 | ADR-046 | [Core Commit versus Asynchronous Enrichment](ADR-046-core-commit-versus-asynchronous-enrichment.md) | Accepted |
 | ADR-047 | [Schema Migration and Legacy Record Compatibility](ADR-047-schema-migration-and-legacy-record-compatibility.md) | Accepted |
-
 | ADR-048 | [Atomic Extraction and Evidence Binding](ADR-048-atomic-extraction-and-evidence-binding.md) | Accepted |
 | ADR-049 | [Sensitive Profiles and Purpose-Bound Consent](ADR-049-sensitive-profiles-and-purpose-bound-consent.md) | Accepted |
 | ADR-050 | [Phase-Lock Snapshot Verification](ADR-050-phase-lock-snapshot-verification.md) | Accepted |
@@ -122,7 +121,32 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-095 | [Structured Source Invalidation Lifecycle](ADR-095-structured-source-invalidation-lifecycle.md) | Accepted |
 | ADR-096 | [Canonical Repository Corpus Authority Binding](ADR-096-canonical-repository-corpus-authority-binding.md) | Accepted |
 | ADR-097 | [Active-Memory Runtime Composition and Full-Capability Readiness](ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md) | Accepted |
-| ADR-098 | [Remote MCP Transport and Signed-Agent HTTP Identity](ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md) | Accepted |
+| ADR-098 | [Remote MCP Transport and Signed-Agent HTTP Identity](ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md) | Accepted (decision); implementation is an unmerged candidate |
+
+## Pending target amendments (Memory 3.0.0)
+
+Dated amendments append to an ADR without rewriting its original decision;
+a later amendment that changes an earlier one says which statement it
+supersedes. Each ADR keeps its `Accepted` status for the decision it
+originally made. The amendments below describe the Memory 3.0.0 target: one
+`MemoryService` hosted on the operator's Hetzner C1 environment, reached by
+authorized agents over authenticated HTTPS MCP, backed by a new, empty
+PostgreSQL database. The target is not deployed. Its transport exists as the
+ADR-098 candidate (PR #94, source version 2.7.0, unmerged at 2026-10-14).
+
+| Date | ADR | Amendment | Status |
+|---|---|---|---|
+| 2026-10-13 | ADR-038 | Remote agent transport target | target; release statement superseded 2026-10-14 |
+| 2026-10-14 | ADR-038 | 3.0.0 release identity; disposition of the 2026-10-13 open items; proof owed | target; transport candidate exists |
+| 2026-10-13 | ADR-083 | Proposed remote per-request trust boundary | requirement |
+| 2026-10-14 | ADR-083 | Mechanism selected by ADR-098; bounded credential replay; admin-grant requirement not enforced in code; key and grant provisioning owed | requirement partly met by the candidate; admin guard owed |
+| 2026-10-13 | ADR-082 | Semantic parity is not protocol conformance | requirement |
+| 2026-10-14 | ADR-082 | Five separate proof obligations and the candidate's evidence | partial; four lifecycle operations and PostgreSQL-backed receipts unproven over HTTP |
+| 2026-10-13 | ADR-064 | Local stdio probe is not remote HTTP proof | applicability note |
+| 2026-10-14 | ADR-064 | Remote consumer adoption is consumer-owned (policy, refresh, keys) | applicability note |
+| 2026-10-13 | ADR-094 | Hosted remote consumption versus the accepted `dependency` topology | open |
+| 2026-10-14 | ADR-094 | Discrepancy at `.github@976eedb`, candidates A and B, owners, the operator decision needed | open; topology unchanged |
+| 2026-10-14 | ADR-098 | Candidate status, release identity, replay and admin limits | candidate |
 
 ## Validation
 

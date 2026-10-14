@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.7.0
-updated: 2026-07-22
+updated: 2026-10-14
 /L9_META -->
 
 
@@ -240,3 +240,39 @@ Extends ADR-038 (HTTP surface) and reuses the stdio door of ADR-083 and the
 identity consumption it carries.
 
 No later ADR supersedes this decision as of 2026-10-13.
+
+## Amendment — candidate status, release identity and security limits (2026-10-14)
+
+**Decision date:** 2026-10-14 (campaign MEM-DOC-3.0, documentation only).
+**Effect:** states this decision's standing against the Memory 3.0.0 target.
+The transport and identity decision above is unchanged.
+
+**Candidate, not release.** "Accepted" is the status of the decision. This
+ADR's implementation is PR #94, unmerged at
+2026-10-14. Its source version identifier is 2.7.0. "Package 2.6.0 is
+immutable; this ships as 2.7.0" (Migration Impact) is read as: the candidate
+is identified in source as 2.7.0 and is not 2.6.0. It is not an accepted live
+release. The consolidated remote architecture's first live release is
+targeted as Memory 3.0.0 (ADR-038, 2026-10-14), bound to exact source and
+artifact identities after integration. The TypeScript client's own package
+version, 3.0.0, is an npm package version and is not Memory 3.0.0.
+
+**Replay, stated exactly.** A signed agent credential is reusable until it
+expires; there is no nonce or `jti` ledger, so it is not single-use and
+in-window replay is not prevented. Exposure is bounded by the lifetime
+ceiling, deployment-specific keys and TLS. ADR-083's 2026-10-14 amendment
+reconciles its earlier stronger wording with this property.
+
+**Administrator grants.** "Administrator flags come only from server
+configuration" is the guarantee this ADR makes; it does not forbid a grant
+with `is_admin: true`, which yields an administrator principal over HTTP.
+The 3.0.0 deployment policy and the code guard owed if a categorical rule is
+required are in ADR-083, 2026-10-14.
+
+**Other limits carried to 3.0.0.** FastAPI's default `/docs`, `/redoc` and
+`/openapi.json` are served without authentication and need an exposure
+decision before a remote deployment. The HTTP suite runs on an in-memory
+store and the installed-wheel HTTP proof on SQLite; PostgreSQL-backed HTTP
+proof is owed. Key and grant provisioning,
+consumer adoption (including the Cursor-Governance policy that seals agent
+HTTP), C1 deployment and the ADR-094 classification are outside this ADR.

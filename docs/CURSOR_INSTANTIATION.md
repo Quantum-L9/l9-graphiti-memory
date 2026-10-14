@@ -6,12 +6,16 @@ layer: documentation
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-09-06
+updated: 2026-10-14
 /L9_META -->
 
 # Cursor Instantiation
 
-This document describes how the memory control plane is instantiated inside Cursor and how each step is proven. The canonical implementation lives in `src/l9_graphite_memory/client_config/` and is governed by [ADR-064](adr/ADR-064-cursor-client-instantiation-and-proof-boundary.md). Ad hoc edits to `~/.cursor/mcp.json` bypass the control plane and are prohibited by repository law; every mutation must flow through the CLI surface described here.
+This document describes how the memory control plane is instantiated inside Cursor as a **local stdio** MCP server and how each step is proven. The canonical implementation lives in `src/l9_graphite_memory/client_config/` and is governed by [ADR-064](adr/ADR-064-cursor-client-instantiation-and-proof-boundary.md). Ad hoc edits to `~/.cursor/mcp.json` bypass the control plane and are prohibited by repository law; every mutation must flow through the CLI surface described here.
+
+## Scope
+
+Everything here concerns the local stdio entry: Cursor launches the server on the same machine and talks to it over stdin and stdout. That behavior is the same in the 2.5.0 operational release, on `main`, and in the ADR-098 candidate (PR #94), and it is preserved. The target agent transport is Memory 3.0.0, one centrally hosted `MemoryService` reached over authenticated HTTPS MCP (ADR-038); it is not deployed. A Cursor client entry for it is future, consumer-owned work: Cursor-Governance currently seals the agent HTTP path, and Cursor has no header-refresh hook for short-lived credentials (ADR-064, 2026-10-14). Nothing in this document installs, verifies or proves a remote HTTP connection, TLS, remote authentication or per-agent remote identity.
 
 ## Surface
 
@@ -36,7 +40,7 @@ The managed entry is secret-free by construction. It contains only a `command` (
 
 ## Proof of instantiation
 
-`l9-memory client cursor verify` is the only accepted proof that memory is actually on. With `--path` it reads the managed entry back from that file and launches exactly what the file names (`ProbeReceipt.argv_source = "installed"`, `config_path` set); without `--path` it does the same against the default config when that file already carries the entry, and only a machine with no config at all falls back to the entry the configurator would generate (`argv_source = "generated"`). A file naming a missing, drifted, or symlinked entry therefore yields a `failed` receipt whose reasons say so, never a probe of a hypothetical command. Either way the probe spawns that argv and drives the real line-delimited JSON-RPC handshake — `initialize`, `notifications/initialized`, `tools/list`, and `tools/call memory.health` — over the same stdio channel Cursor uses. The probe succeeds only when the protocol version and server identity are confirmed, all fifteen canonical tools are present, and `memory.health` reports a non-failed status. The resulting `ProbeReceipt` records each step, the tool count, the health status, redacted stderr evidence, and the exit code of the reaped process. A receipt with `"status": "complete"` is the closing evidence of the instantiation loop.
+`l9-memory client cursor verify` is the only accepted proof that the local stdio memory entry is actually on. With `--path` it reads the managed entry back from that file and launches exactly what the file names (`ProbeReceipt.argv_source = "installed"`, `config_path` set); without `--path` it does the same against the default config when that file already carries the entry, and only a machine with no config at all falls back to the entry the configurator would generate (`argv_source = "generated"`). A file naming a missing, drifted, or symlinked entry therefore yields a `failed` receipt whose reasons say so, never a probe of a hypothetical command. Either way the probe spawns that argv and drives the real line-delimited JSON-RPC handshake — `initialize`, `notifications/initialized`, `tools/list`, and `tools/call memory.health` — over the same stdio channel Cursor uses. The probe succeeds only when the protocol version and server identity are confirmed, all fifteen canonical tools are present, and `memory.health` reports a non-failed status. The resulting `ProbeReceipt` records each step, the tool count, the health status, redacted stderr evidence, and the exit code of the reaped process. A receipt with `"status": "complete"` is the closing evidence of the instantiation loop.
 
 ## Typical sequence
 

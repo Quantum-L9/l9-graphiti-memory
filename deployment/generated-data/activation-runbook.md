@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-10-14
 /L9_META -->
 
 
@@ -123,6 +123,12 @@ l9-memory client cursor status
 
 Verification must prove initialize, tools/list, health, candidate ingress,
 reuse, invalidation, search, and hydration.
+
+The Cursor lifecycle above installs and probes a **local stdio** entry, and its
+probe covers initialize, tools/list and health only; the remaining operations
+need the live proof commands above. It is not evidence for a remote HTTP
+memory service. The Memory 3.0.0 remote target is not deployed, and remote
+consumer adoption is consumer-owned (ADR-038 and ADR-064, 2026-10-14).
 
 ## Invalidation lifecycle
 

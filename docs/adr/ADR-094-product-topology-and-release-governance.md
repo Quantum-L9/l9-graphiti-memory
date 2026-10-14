@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.5.0
-updated: 2026-07-22
+updated: 2026-10-14
 /L9_META -->
 
 **Date:** 2026-10-02
@@ -221,3 +221,126 @@ if the global authority reclassifies the product kind or withdraws
 
 Supersedes no ADR. It is superseded only by a later product-owner decision
 bound to a new topology digest.
+
+## Amendment — unresolved: centrally hosted remote consumption (2026-10-13)
+
+**Decision date:** 2026-10-13 (campaign MEM-HTTP-DOC-01).
+**Status of the question:** open. This amendment records a discrepancy. It
+does not reclassify the product, edit `product-topology.yaml`, change the
+topology digest above, or claim any admission.
+
+ADR-038's 2026-10-13 amendment sets a target in which Cursor and Claude Code
+agents consume canonical memory from one centrally hosted HTTPS service. The
+accepted topology says something different:
+
+| Accepted topology (`product-topology.yaml`) | Remote target |
+|---|---|
+| `consumption.model: local_composition` | agents on other machines invoke one shared service over the network |
+| `forbidden_consumption_modes` includes `remote_invocation_as_canonical_consumption` | remote invocation is the intended canonical agent path |
+| `deployment.runtime_boundary: consuming product process` | the runtime is a hosted service, not the agent client's process |
+| RuntimeIdentity inherited from the consumer; no constellation identity | a long-lived service has health, readiness and a network identity of its own |
+| `mcp_http` listed as a public entry mode of a locally composed package | the same adapter serves remote callers |
+
+Global law (`Quantum-L9/.github` `semantics/product_kinds.yaml`) classifies by
+canonical consumption and deployment model, never by process presence alone.
+A `node` is `remote_invocation` plus `independent_runtime` and additionally
+requires independent runtime identity, independent health and readiness,
+canonical constellation communication, Gate-routed inter-product work and
+runtime admission. A `dependency` is `local_composition` plus
+`consumer_bound_artifact` and requires a consumer-owned process lifecycle.
+
+Two readings are possible. Neither is adopted here:
+
+1. **Dependency retained, consumer-owned hosting runtime (candidate).** The
+   hosted service is the runtime of a *consuming* product that composes this
+   package locally and owns process lifecycle, runtime identity, health and
+   deployment. This package stays a `dependency`. The owner must still decide
+   whether agents calling that host's MCP endpoint is
+   `remote_invocation_as_canonical_consumption` of *this* product, which the
+   topology forbids, and must name the consuming product that owns the host.
+2. **Node.** Requires the global Node gates above, which the MCP HTTP adapter
+   does not meet — in particular canonical constellation communication and
+   Gate-routed inter-product work — plus a new topology, a new digest and a
+   reissued decision.
+
+Until the product owner resolves this through the process this ADR defines:
+
+- the accepted topology and its digest stay exactly as recorded above;
+- no document may describe the hosted remote service as an admitted product
+  topology, a Node, or an approved remote canonical consumption mode;
+- the HTTP implementation campaign may build and qualify the transport, but
+  its outcome does not settle the classification.
+
+## Amendment — 3.0.0 hosting and the unresolved classification (2026-10-14)
+
+**Decision date:** 2026-10-14 (campaign MEM-DOC-3.0, documentation only).
+**Status of the question:** still open. This amendment sharpens the
+2026-10-13 record against the global law at one pinned revision. It does not
+edit `product-topology.yaml`, its digest, its provenance pins, the release
+bindings or any global semantic file, and it admits nothing.
+
+### The desired deployment
+
+Memory 3.0.0 is intended to run as one centrally hosted service on the
+operator-controlled Hetzner C1 environment, serving canonical memory to
+authorized agents on other machines over authenticated HTTPS MCP (ADR-038,
+2026-10-14). That is the deployment the operator wants. Its canonical
+classification is a separate question, and this ADR keeps them separate.
+
+### The discrepancy, at the pinned revision
+
+Global law read at `Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102`,
+the revision this topology's `provenance.authority_ref` and CI pin. At
+`.github` `main@f9993ed` (2026-10-14) `semantics/product_kinds.yaml` and
+`semantics/dependency_archetypes.yaml` are unchanged, and the changes to
+`vocabulary.yaml`, `authority_model.yaml` and `architecture_patterns.yaml`
+concern strategic planning and projection patterns, not the consumption and
+deployment modes cited here. `validate_product_topology.py` against that newer
+revision fails on the topology's pins, not on this question.
+
+| Global rule (`.github@976eedb`) | Hosted 3.0.0 deployment |
+|---|---|
+| `product_kinds.yaml`: only `node` and `dependency` are admitted kinds | no hosted-service or hosted-dependency kind exists |
+| `dependency` forbids `remote_invocation_as_canonical_consumption` and `independent_constellation_identity_as_dependency` | agents on other machines invoke the service as their canonical memory path |
+| `dependency`: `RuntimeIdentity(dependency_instance) = RuntimeIdentity(consumer)` | the hosted process has its own health, readiness and network identity |
+| `architecture_patterns.yaml` `l9.pattern/dependency-package@1`: `Lifecycle(package_instance) ⊆ Lifecycle(consumer)`; forbids `separate_runtime_identity_without_explicit_node_binding` | the service's lifecycle is the host's, not an agent client's |
+| `node` requires `independent_runtime_identity`, `independent_health_and_readiness`, `canonical_constellation_communication`, `gate_routed_inter_product_work` and `runtime_admission`, through `runnable-node@1` and `semantic-core-gate-adapter@1` | the MCP HTTP adapter speaks MCP to agents, not TransportPacket through Gate, and no runtime admission exists |
+
+### Candidates, unchanged in substance
+
+- **Candidate A — consumer-owned hosting runtime.** An already authorized
+  consuming product composes this package locally and owns the C1 process,
+  its runtime identity, health, readiness and deployment; this package stays
+  a `dependency`. It holds only if (a) that consuming product is named and its
+  canonical ownership of the runtime is resolved, and (b) the authority over
+  `remote_invocation_as_canonical_consumption` rules that agents calling the
+  host's MCP endpoint is not that forbidden mode, or changes the rule. The
+  sources read for this amendment name no such consuming product, and the
+  pinned global law has no hosted-dependency concept, so (a) and (b) are both
+  unmet today.
+- **Candidate B — independent Memory Node.** Memory becomes a separately
+  admitted `node`. That needs every Node requirement in the table, including
+  Gate-routed TransportPacket communication and runtime admission, plus a new
+  topology revision, digest and product-owner decision. An HTTPS server alone
+  does not satisfy it.
+
+GAR's stated preference is to reuse an existing authorized hosting boundary
+if one lawfully satisfies the requirements, rather than to create a Node only
+because the process is remotely reachable. This amendment records that
+preference and does not select either candidate.
+
+### Owners and the narrowest decision needed
+
+| Question | Owner |
+|---|---|
+| This product's topology and ProductKind | `product_semantic_owner` (`authority_model.yaml` `product_topology_authority`); for this product `l9-graphiti-memory:authority/memory-architecture` |
+| Admission of a changed topology | `l9.authority/product-admission`, decided by the applicable target-class authority; `product_kind_change_is_material` (`lifecycle.yaml`) |
+| Meaning of ProductKind, consumption and deployment modes, and whether a consumer-hosted runtime serving remote agents is `remote_invocation_as_canonical_consumption` | `Quantum-L9/.github` global semantics |
+| C1 hosting runtime, if Candidate A | the consuming product that owns it |
+
+The operator decision needed is: **choose Candidate A and name the consuming
+product that owns the C1 runtime (and obtain the `.github` ruling in (b)), or
+choose Candidate B and open Node admission.** Until then the accepted topology
+and digest stand, no document may call the hosted service an admitted
+topology, a Node, or an approved remote canonical consumption mode, and the
+3.0.0 deployment is architecturally intended but canonically unclassified.

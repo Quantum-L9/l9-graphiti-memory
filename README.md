@@ -6,14 +6,14 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-07-27
+updated: 2026-10-14
 /L9_META -->
 
 # L9 Graphiti Memory
 
 Contract-governed, bi-temporal memory for autonomous agents.
 
-Version 2.1 is the recursive convergence release for `Quantum-L9/l9-graphiti-memory`. It preserves valid package, CLI, MCP, and hook surfaces while replacing the old provider-centered internals with one authorized `MemoryService`, one canonical record store, typed evidence receipts, explicit temporal coordinates, and rebuildable graph or semantic projections.
+Version 2.1 was the recursive convergence release for `Quantum-L9/l9-graphiti-memory`. It preserves valid package, CLI, MCP, and hook surfaces while replacing the old provider-centered internals with one authorized `MemoryService`, one canonical record store, typed evidence receipts, explicit temporal coordinates, and rebuildable graph or semantic projections.
 
 The repository name uses **Graphiti** because the project integrates with Graphiti-style graph memory. The published distribution and Python import remain `l9-graphite-memory` and `l9_graphite_memory` for compatibility. See ADR-058.
 
@@ -34,7 +34,7 @@ The repository name uses **Graphiti** because the project integrates with Graphi
 - Explicit complete, partial, failed, duplicate, rejected, quarantined, archived, and deleted outcomes
 - No plaintext secret persistence in generated agent configuration
 - Installed-wheel operation without a source checkout
-- A machine-validated 69-ADR ledger and 44-decision harvest coverage map
+- A machine-validated 98-ADR ledger and 51-decision harvest coverage map
 
 ## L9 alignment boundary
 
@@ -125,6 +125,80 @@ Projection choices:
 
 The HTTP adapter discovers the live Graphiti tool inventory. It supports the current `add_memory`, `search_memory_facts`, `search_nodes`, and `delete_episode` dialect plus the older `add_episode` and `search_facts` compatibility dialect.
 
+## Release and transport status
+
+Five states are kept apart throughout this repository. "Implemented",
+"supported", "verified", "released" and "deployed" are not interchangeable.
+
+| State | Identity (2026-10-14) | Agent transport |
+|---|---|---|
+| Current operational release | **2.5.0** (operator-designated) | local stdio MCP |
+| Package release line | **2.6.0**: `v2.6.0` tag and a published 2.6.0 artifact (`846f283`) exist; not designated the operational release | local stdio MCP; HTTP present but not a conforming Streamable HTTP server and authenticated only by static bearer tokens |
+| `main` | `441b741`, source version 2.6.0 | as 2.6.0 |
+| Candidate | ADR-098, PR #94, source version **2.7.0**; unmerged; not an accepted release | adds stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) and per-request signed-agent identity; stdio unchanged (`2024-11-05`) |
+| Target | **Memory 3.0.0**: first live release of the consolidated remote architecture | one hosted `MemoryService` over authenticated HTTPS MCP |
+| Qualified deployment | **none** | no C1 deployment exists or is claimed |
+
+Memory 3.0.0 is bound to exact source and built-artifact identities only after
+the candidate is integrated and validated. A Git tag, a published package, a
+deployment and operator acceptance are separate facts. The TypeScript client's
+package version 3.0.0 is an npm version, not Memory 3.0.0.
+
+### Memory 3.0.0 target architecture
+
+```text
+Cursor agent(s) ──────┐
+                      │
+Claude Code agent(s) ─┼── authenticated HTTPS MCP (Streamable HTTP)
+                      │              │
+Other authorized ─────┘              ▼
+agents                     Hetzner C1 hosting boundary (TLS reverse proxy)
+                                         │
+                                  Memory HTTP adapter
+                                         │
+                                 one MemoryService
+                                         │
+                              new, empty PostgreSQL store
+```
+
+- One logical `MemoryService`, centrally hosted on the operator-controlled
+  Hetzner C1 environment. Agents on different machines consume it; they are
+  consumers, not canonical memory servers. The runtime does not depend on the
+  operator's Mac.
+- Each agent carries its own identity evidence, verified on every request
+  (ADR-098, ADR-083). Shared storage does not imply shared authorization: a
+  namespace may be shared by explicitly authorized agents, tenant and
+  namespace authorization are enforced independently, and every write keeps
+  its source-agent attribution.
+- HTTP is an adapter. No second memory API, gateway, identity service or
+  `MemoryService` is introduced. Stdio, the CLI and the SDK stay supported;
+  stdio is not the multi-machine deployment.
+- Hostname, address, certificate, process supervisor and operating-system
+  configuration are unverified until deployment evidence exists.
+
+What stands between the candidate and a live 3.0.0: integration and release
+validation on exact bytes; PostgreSQL-backed HTTP proof; the administrator
+grant guard (ADR-083, 2026-10-14); durable per-agent keys and a server-side
+grant map; the product classification (ADR-094, 2026-10-14, open); C1
+deployment evidence; and consumer adoption, which each consumer owns.
+Cursor-Governance currently seals the agent HTTP path, so the Cursor and
+Claude Code agents it governs need an authorized consumer campaign first. `config/mcp.json.example` stays the
+generated stdio entry.
+
+### Basic shared canonical deployment (target)
+
+The basic shared deployment the remote target needs is the canonical store and
+nothing else: `store_backend: postgres` against a **new, empty** database, and
+`projection_backend`, `graph_intelligence_backend` and
+`active_memory_backend` left at `none` (and `projection_runtime` at its
+`legacy` default). Redis, Graphiti and Neo4j are not
+prerequisites, and the five-family full-capability qualification below is not
+a prerequisite either; a healthy PostgreSQL `canonical` family is not evidence
+that any optional family is healthy. This greenfield path imports, restores or
+reuses no existing ledger, graph, cache or backup; moving an existing ledger
+is the separate migration path governed by ADR-072 and ADR-077, and none is
+initiated.
+
 ## Consumer-selected full-capability shared deployment
 
 The installable `l9-graphite-memory` product remains a locally composed L9
@@ -162,9 +236,10 @@ A consumer choosing the full-capability shared-agent deployment MUST:
    200 from `/healthz` or `/readyz` alone is not full-capability proof:
    `/readyz` answers the aggregate `ready` verdict over required families,
    which is weaker than `full_capability`. The five-family readiness report
-   is implemented by PR #90 (ADR-097, proposed until merged) and must be
-   proven in the final combined candidate; the published 2.6.0 release does
-   not include it.
+   is on `main` (ADR-097, merged through PR #91) and must be proven in the
+   final combined candidate. The `v2.6.0` tag and the 2.6.0 artifact on PyPI
+   (`846f283`) predate it. For release identities see "Release and transport
+   status" above.
 6. Prove recovery and backend outage behavior, including canonical write safety
    if projection or active-memory infrastructure is unavailable.
 
@@ -185,7 +260,7 @@ bash scripts/preflight.sh
 bash scripts/validate_release.sh
 ```
 
-`validate_release.sh` builds and installs the wheel, runs installed-package smoke checks, and writes evidence under `validation/`. Live provider, production migration, hosted CodeQL, branch-protection, and credential-rotation proofs remain external release gates.
+`validate_release.sh` builds and installs the wheel, runs installed-package smoke checks, and writes evidence to the untracked `build/release-validation/` workspace (override with `L9_RELEASE_EVIDENCE_DIR`); it never writes the tracked `validation/` tree. Live provider, production migration, hosted CodeQL, branch-protection, and credential-rotation proofs remain external release gates.
 
 ## Documentation
 
