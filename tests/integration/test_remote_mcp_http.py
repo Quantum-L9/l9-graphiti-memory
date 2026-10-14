@@ -19,9 +19,12 @@ mints them, and each negative case names the boundary it proves.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import subprocess
 import sys
+import threading
+import time
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -34,7 +37,7 @@ from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.errors import ConfigurationError
 from l9_graphite_memory.mcp_tools import tool_definitions
 from l9_graphite_memory.runtime import MemoryRuntime
-from l9_graphite_memory.server import create_http_app
+from l9_graphite_memory.server import create_http_app, http_server
 from l9_graphite_memory.services import MemoryService
 from l9_graphite_memory.version import (
     CONTROL_PLANE_CONTRACT_VERSION,
@@ -56,6 +59,7 @@ from tests.integration.remote_mcp_harness import (
     READER,
     WRITER,
     credentials,
+    free_port,
     identity_body,
     mcp_headers,
     rpc,
@@ -421,6 +425,48 @@ def test_credentials_in_the_url_are_refused_and_not_echoed(client) -> None:
         headers={**mcp_headers(), **credentials(WRITER)},
     )
     _assert_refused(response, 400, secrets=(token,))
+
+
+def test_a_credential_in_the_url_never_reaches_the_access_log(registry_env: None) -> None:
+    """The refused URL credential is not written to uvicorn's access log either.
+
+    Runs the production ``http_server`` builder, so the filter under test is
+    the one ``run_http`` installs, on a real loopback socket.
+    """
+
+    token = credentials(WRITER)["Authorization"].split(" ", 1)[1]
+    runtime = _runtime()
+    server = http_server(runtime, host="127.0.0.1", port=free_port())
+    thread = threading.Thread(target=server.run, name="access-log-server", daemon=True)
+    # uvicorn's access logger does not propagate, so capture on it directly;
+    # logger filters run before any handler sees the record.
+    access_logger = logging.getLogger("uvicorn.access")
+    captured: list[logging.LogRecord] = []
+    capture = logging.Handler(level=logging.INFO)
+    capture.emit = captured.append  # type: ignore[method-assign]
+    access_logger.addHandler(capture)
+    thread.start()
+    try:
+        deadline = time.monotonic() + 15
+        while not server.started:
+            assert thread.is_alive() and time.monotonic() < deadline, "uvicorn did not start"
+            time.sleep(0.02)
+        with httpx2.Client(base_url=f"http://127.0.0.1:{server.config.port}", timeout=10) as http:
+            response = http.post(
+                "/mcp",
+                params={"access_token": token},
+                content=json.dumps(rpc("tools/list")),
+                headers={**mcp_headers(), **credentials(WRITER)},
+            )
+        _assert_refused(response, 400, secrets=(token,))
+    finally:
+        server.should_exit = True
+        thread.join(timeout=15)
+        access_logger.removeHandler(capture)
+        runtime.close()
+    access = [record.getMessage() for record in captured]
+    assert any('"POST /mcp HTTP/' in line and " 400" in line for line in access), access
+    assert not any(token in line or "access_token" in line for line in access), access
 
 
 def test_the_human_door_is_unreachable_over_http(client) -> None:

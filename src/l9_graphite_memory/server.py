@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import sys
 from typing import Any
@@ -687,17 +688,47 @@ def run_http(runtime: MemoryRuntime, *, host: str, port: int) -> int:
             "serving MCP on a non-loopback address: terminate TLS in front of it; "
             "the remote credentials are bearer-equivalent until they expire"
         )
+    http_server(runtime, host=host, port=port).run()
+    return 0
+
+
+class QueryRedactingAccessFilter(logging.Filter):
+    """Drop the query string from uvicorn access-log request lines.
+
+    A request carrying a credential in its query string is refused, but the
+    access log would still record the full URL, credential included. Logging
+    the path alone keeps the request visible without the secret.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        if isinstance(args, tuple) and len(args) >= 3 and isinstance(args[2], str):
+            path = args[2].split("?", 1)[0]
+            record.args = (*args[:2], path, *args[3:])
+        return True
+
+
+def http_server(runtime: MemoryRuntime, *, host: str, port: int) -> Any:
+    """Build the uvicorn server for the HTTP transport.
+
+    ``uvicorn.Config`` configures logging when constructed, so the access-log
+    filter is attached after it and survives into ``Server.run``.
+    """
+
     try:
         import uvicorn
     except ImportError as exc:
         raise RuntimeError("uvicorn is missing; install l9-graphite-memory[server]") from exc
-    uvicorn.run(
+    config = uvicorn.Config(
         create_http_app(runtime),
         host=host,
         port=port,
-        log_level=settings.log_level.lower(),
+        log_level=runtime.settings.log_level.lower(),
     )
-    return 0
+    access = logging.getLogger("uvicorn.access")
+    if not any(isinstance(f, QueryRedactingAccessFilter) for f in access.filters):
+        access.addFilter(QueryRedactingAccessFilter())
+    return uvicorn.Server(config)
 
 
 def main(argv: list[str] | None = None) -> int:
