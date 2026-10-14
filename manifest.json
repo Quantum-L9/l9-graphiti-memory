@@ -430,7 +430,7 @@
         "version": "2.7.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "4a461eb1080a0060319ccb4540710370b7c7bfd6afc7943a7d0b759ec390d6f6",
+      "sha256": "0a48808debcc2174deb9ba24f79a044074b46e0fae1780212908a5a1366f43af",
       "size_bytes": 141118
     },
     {
@@ -11950,8 +11950,8 @@
         "version": "2.7.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "eb4f2e44df0c1eaa62aa90f53e0d3e61a9d4547fe5036e4e924a98c105fa59cb",
-      "size_bytes": 36820
+      "sha256": "51c234a1e41e4123e8f0a2fe181880dd617872e7b32c71ce3fb7a62257354aee",
+      "size_bytes": 37168
     },
     {
       "category": "assurance",
