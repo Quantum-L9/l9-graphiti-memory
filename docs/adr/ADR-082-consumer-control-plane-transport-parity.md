@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 
@@ -271,3 +271,33 @@ holds over the new transport. No document may claim `memory-control-plane/v1`
 compatibility for remote HTTP until that is validated. The capability receipt
 today reports `mcp_protocol_version` `2024-11-05`, which describes what the
 server advertises, not a conformance result.
+
+## Amendment — proof obligations over the ADR-098 candidate (2026-10-14)
+
+**Decision date:** 2026-10-14 (campaign MEM-DOC-3.0, documentation only).
+**Effect:** records what the ADR-098 candidate (PR #94) proves against the
+2026-10-13 list. The five properties below are separate proof obligations; a
+pass on one is never evidence for another.
+
+| Obligation | Owner | Candidate evidence (PR #94) | Owed for 3.0.0 |
+|---|---|---|---|
+| MCP protocol conformance | ADR-038, ADR-098 | `tests/integration/test_remote_mcp_http.py` over real TCP: negotiation of `2025-11-25`/`2025-06-18`, `MCP-Protocol-Version`, framing, `202`, `405`, `Origin`, `Accept`, `Content-Type`, size and envelope refusals | the same suite on the 3.0.0 bytes |
+| Authentication and identity | ADR-083, ADR-098 | same suite: missing, expired, over-ceiling, tampered, unknown-agent and other-actor credentials; smuggled claims; human door unreachable | admin-grant refusal (ADR-083, 2026-10-14) |
+| Lifecycle | this ADR | over HTTP the suite calls `health`, `capabilities`, `hydrate`, `search`, `get`, `close`, `phase_lock`, `write_agent` and `write_governed`; the installed wheel's HTTP proof calls `initialize`, `tools/list`, `capabilities`, `write_agent` and `search` | `ingest`, `ingest_governed_candidate`, `conflicts` and `verify_phase_lock` are not exercised over HTTP; installed-wheel coverage of the full set |
+| Receipts | this ADR, ADR-083 | `test_capability_and_lifecycle_receipts_keep_their_control_plane_shapes` | receipts from a PostgreSQL-backed service; the HTTP suite uses an in-memory store |
+| Semantic parity | this ADR | unchanged: `tests/unit/test_control_plane_transport_parity.py`; both transports dispatch the same tool definitions to the same `MemoryService` | — |
+
+**Contract version.** The 2026-10-13 amendment left open whether remote HTTP
+keeps `memory-control-plane/v1`. ADR-098 decides it for the candidate: the
+operation set, tool definitions and receipt shapes are unchanged, so
+`contract_version` stays `memory-control-plane/v1`, and the transport is
+versioned separately as `memory-remote-mcp/v1` (`docs/REMOTE_MCP_CONTRACT.md`),
+reported additively by `memory.capabilities` as `remote_mcp_contract_version`
+and `http_mcp_protocol_versions`. A remote consumer may claim
+`memory-control-plane/v1` compatibility over HTTP only for the operations it
+has proven over HTTP; the lifecycle row above lists the gaps.
+`mcp_protocol_version` in the receipt remains the stdio revision.
+
+The capability receipt reports which HTTP revisions the package supports. It
+does not report whether an HTTP server is running or which `http_auth_mode`
+it uses; a consumer learns those from its own deployment evidence.

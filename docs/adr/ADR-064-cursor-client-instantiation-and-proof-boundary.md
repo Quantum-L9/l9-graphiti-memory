@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 ## Status
@@ -182,3 +182,31 @@ The repository invariant "no instantiation claim without a passing
 `client cursor verify` probe receipt" (AGENTS.md) is read with this scope: it
 governs local stdio instantiation and, until a remote probe exists, means no
 remote instantiation claim can be made at all.
+
+## Amendment — remote consumer adoption stays separate (2026-10-14)
+
+**Decision date:** 2026-10-14 (campaign MEM-DOC-3.0). No behavior change.
+
+The 2026-10-13 applicability note above still holds after ADR-098: the
+candidate (PR #94) adds a Streamable HTTP server and signed-agent HTTP
+identity, but `l9-memory client cursor install` still writes only the local
+stdio entry, and `client cursor verify` still proves only that entry. Existing
+stdio behavior, its tests and its installer proofs are unchanged.
+
+Remote adoption by Cursor or Claude Code agents is consumer-owned and is not
+evidenced by anything in this repository:
+
+- **Consumer law.** Cursor-Governance currently seals the agent HTTP path
+  (its ADR-0031 and `CANONICAL_LAW.md` §8.5). That policy changes only
+  through an authorized Cursor-Governance campaign; nothing here changes it.
+- **Credential refresh.** ADR-098 credentials expire. Claude Code documents a
+  `headersHelper` that runs at session start, on reconnect and after `401` or
+  `403`; that is documented client functionality, not demonstrated consumer
+  acceptance. Cursor documents static `headers` with environment expansion and
+  no refresh hook, so its credential must be refreshed outside the IDE; that
+  path is not qualified.
+- **Keys.** A remote consumer needs a durable, deployment-specific signing
+  key shared with the server (ADR-083, 2026-10-14).
+
+Until a remote probe and consumer proof exist, no remote instantiation claim
+can be made.

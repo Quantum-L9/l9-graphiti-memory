@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 
@@ -169,3 +169,69 @@ campaigns in their own repositories and are not proof of any item above.
 Unchanged: retain stdio MCP and the CLI while disabling HTTP. Withdrawing the
 target itself is a later dated amendment that says so; this one is not
 deleted. No code depends on it.
+
+## Amendment — Memory 3.0.0 target convergence (2026-10-14)
+
+**Decision date:** 2026-10-14 (campaign MEM-DOC-3.0, documentation only).
+**Effect:** reconciles the 2026-10-13 amendment above with ADR-098 and the
+operator's release identity. No code, configuration, topology or release
+changes with it.
+
+### Release identity (supersedes the 2026-10-13 release statement)
+
+The 2026-10-13 amendment recorded "2.6 is the version to be released and
+deployed". That statement is superseded by the following separate facts; the
+2026-10-13 text stays as the record of what was said that day.
+
+| State | Identity | Meaning |
+|---|---|---|
+| Current operational release | 2.5.0 | operator-designated |
+| Package release line | 2.6.0 | a `v2.6.0` Git tag and a published 2.6.0 artifact exist; neither is operator acceptance or a deployment |
+| Candidate | ADR-098 implementation, PR #94, source version identifier 2.7.0 | unmerged at 2026-10-14; not an accepted or live release |
+| Target | Memory **3.0.0** | first live release of the consolidated remote architecture; not built, not released, not deployed |
+
+Tag existence, published package identity, active deployment and operator
+release acceptance are distinct facts and are never inferred from one another.
+3.0.0 is bound to exact source and built-artifact identities only after the
+candidate is integrated and validated; renumbering the candidate's version
+identifier is a release-preparation step this amendment does not take.
+
+### Target, restated for 3.0.0
+
+The target of the 2026-10-13 amendment is unchanged and is now the 3.0.0
+target: one logical `MemoryService`, hosted on the operator-controlled Hetzner
+C1 environment, reached by Cursor, Claude Code and other authorized agents on
+different machines through MCP Streamable HTTP behind a trusted TLS reverse
+proxy, backed by one new, empty PostgreSQL database. HTTP stays an adapter.
+Process lifecycle, recovery, availability, health and readiness belong to the
+hosting/deployment boundary, and the runtime does not depend on the operator's
+Mac being online. Exact hostname, address, certificate, process supervisor and
+operating-system configuration are unverified until deployment evidence
+exists. C1 is not deployed.
+
+### What the 2026-10-13 "open" items became
+
+| 2026-10-13 statement | Disposition (2026-10-14) |
+|---|---|
+| Implementation status: not implemented | Superseded for the transport: ADR-098 is a candidate implementation (PR #94). The 3.0.0 deployment remains unimplemented and unproven. |
+| Protocol revision selected by the implementation campaign | Settled by ADR-098: HTTP serves `2025-11-25` and `2025-06-18` (`HTTP_MCP_PROTOCOL_VERSIONS`); stdio keeps `2024-11-05` (`MCP_PROTOCOL_VERSION`). |
+| HTTP gap table at `441b741` | Remains a correct description of `441b741`. In the candidate, framing, `202` notifications, `GET`/`DELETE` `405`, negotiation, `MCP-Protocol-Version`, `Origin` and the `WWW-Authenticate` challenge are closed by ADR-098. Still open: FastAPI's default `/docs`, `/redoc` and `/openapi.json` are served unauthenticated (no exposure decision is recorded), and TLS is out of process by design. |
+| Proof item 1, Streamable HTTP conformance | Candidate evidence: `tests/integration/test_remote_mcp_http.py` and the installed-wheel HTTP proof in `tests/integration/test_installed_wheel_lifecycle.py`, run on the candidate; not yet run on 3.0.0 bytes. |
+| Proof item 2, ADR-083 remote identity suite | Candidate evidence in the same suite; the administrator-grant case is not covered (ADR-083, 2026-10-14). |
+| Proof item 3, ADR-082 lifecycle parity over HTTP | Partial; see ADR-082, 2026-10-14. |
+| Proof item 4, product topology | Open; see ADR-094, 2026-10-14. |
+
+### Proof still owed before 3.0.0 is called deployed
+
+1. The candidate integrated, versioned 3.0.0, and validated on the exact
+   release bytes (`scripts/validate_release.sh` in publication mode).
+2. The HTTP suite run against a PostgreSQL canonical store; the candidate's
+   HTTP tests use an in-memory store.
+3. The ADR-083 administrator-grant decision implemented or recorded as a
+   deployment-only control, with its negative test.
+4. ADR-094's classification resolved by its owner.
+5. C1 deployment evidence: TLS, process supervision, readiness, backup and
+   restore, owned by the deployment campaign.
+6. Consumer acceptance by each consumer in its own repository.
+
+Rollback is unchanged.

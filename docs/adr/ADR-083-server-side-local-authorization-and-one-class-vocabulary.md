@@ -8,7 +8,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.6.0
-updated: 2026-10-13
+updated: 2026-10-14
 /L9_META -->
 
 
@@ -387,3 +387,87 @@ assertion naming a different actor; grant, tenant and admin escalation through
 every request-side field; human-door unreachability; and cross-tenant and
 cross-namespace denial — each run against the installed wheel over the real
 HTTP endpoint.
+
+## Amendment — remote boundary reconciled with ADR-098 (2026-10-14)
+
+**Decision date:** 2026-10-14 (campaign MEM-DOC-3.0, documentation only).
+**Effect:** reconciles the proposed 2026-10-13 boundary above with the ADR-098
+candidate (PR #94). No code changes with it.
+
+### Mechanism
+
+The 2026-10-13 amendment left the wire format open. ADR-098 selects it: the
+existing HMAC agent assertion in `Authorization: Bearer`, plus the sealed
+`l9.identity-assertion/v1` object and its HMAC in `L9-Identity-Assertion` and
+`L9-Identity-Assertion-HMAC`, re-verified on every request against
+`L9_MEMORY_AGENT_SIGNING_KEYS_JSON`, with grants from
+`L9_MEMORY_AGENT_GRANTS_JSON` and the principal built by `agent_principal`, the
+function the stdio door uses. No OAuth profile is adopted. Guarantees 1, 2, 3,
+5 and 6 above are met by that mechanism in the candidate and exercised by
+`tests/integration/test_remote_mcp_http.py`. The human door is unreachable
+over HTTP, including on auth-disabled loopback HTTP; the 2026-10-13 finding
+about auth-disabled loopback serving the administrator describes `441b741`
+and is closed in the candidate.
+
+### Replay: one disposition
+
+The 2026-10-13 amendment says, in guarantee 1, that a credential "replayed
+outside its validity window" is refused, and, later, that a credential
+replayable until expiry "is not sufficient for a per-request remote
+credential". ADR-098 accepts bounded reuse. These are reconciled as follows,
+and the second sentence is superseded:
+
+- **The property.** A signed agent credential is reusable any number of times
+  until it expires. There is no nonce or `jti` ledger. The credential is
+  **not** single-use, and nothing in this repository prevents replay inside
+  the validity window.
+- **The bound.** Expiry is checked on every request; lifetime is capped at
+  `http_agent_assertion_max_ttl_seconds` (default 3600, allowed 60–86400) plus
+  60 s clock skew; a longer-lived credential is refused.
+- **The 3.0.0 policy.** For the stateless design, replay exposure is bounded
+  by short credential lifetimes, deployment-specific signing keys (the
+  credential is not audience-bound, so a key shared with another deployment
+  or with a local stdio door makes its credentials valid there too) and TLS
+  on every hop that carries the credential. A deployment chooses the shortest
+  lifetime its clients can refresh.
+- **Not adopted.** In-window replay prevention would need a shared,
+  persistent consumption ledger, which the stateless design deliberately does
+  not have. Adopting it is a new decision with its own implementation and
+  tests. It is not implied by any document.
+
+### Administrator authority: the requirement and the code differ
+
+Guarantee 4 says administrator authority is not reachable through the agent
+endpoint. The candidate does not enforce that categorically: `AgentDoorGrant`
+carries `is_admin`, and `agent_principal` copies it into the principal, so a
+server-side grant with `is_admin: true` yields an administrator principal over
+HTTP. Only the agent id `human` is refused at startup. No test asserts that an
+admin grant is refused. In bearer mode, a token's configured principal can
+likewise carry `is_admin` and `is_global_admin`.
+
+The disposition:
+
+- **3.0.0 deployment policy (recommended).** Ordinary remote agent grants do
+  not set `is_admin`. The C1 deployment runs `http_auth_mode=signed-agent`,
+  never bearer mode for agents. Administrative operations are separately
+  governed and are not performed through the agent endpoint.
+- **What that is today.** A deployment-configuration control, verified by
+  reading the deployed grant map. It is not a code guarantee, and no document
+  may describe it as one.
+- **If guarantee 4 stays a required invariant** (this amendment keeps it as
+  the requirement), the implementation campaign owes a guard that refuses, at
+  startup, any signed-agent HTTP grant with `is_admin: true`, and a negative
+  test that proves the refusal. Until both exist, guarantee 4 is unmet in code.
+
+### Provisioning still owed
+
+The candidate reads the key and grant registry from two environment
+variables. It provisions neither. The 3.0.0 deployment needs durable,
+per-agent, deployment-specific signing keys held by both the agent and the
+server, and a server-side grant map rendered from the existing authorized
+agent registry (Cursor-Governance `environment/agents/agent_registry.yaml`)
+for the server deployment. Ephemeral keys minted inside hosted agent
+containers cannot authenticate to a remote server. Keys, grants and the
+PostgreSQL connection string are runtime secrets delivered through the
+operator's existing secret path; none is tracked repository content. No new
+identity framework is introduced.
