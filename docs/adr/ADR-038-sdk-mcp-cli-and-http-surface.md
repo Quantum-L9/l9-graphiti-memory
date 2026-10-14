@@ -74,7 +74,7 @@ Retain stdio MCP and CLI while disabling HTTP; core service remains unchanged.
 
 Adapts SDK-first lessons from L9_Original_Repo.
 
-No later ADR supersedes this decision as of 2026-07-21.
+No later ADR supersedes this decision as of 2026-07-21. ADR-098 extends the HTTP surface with Streamable HTTP conformance and signed-agent HTTP identity without changing this decision.
 
 ## Amendment — remote agent transport target (2026-10-13)
 

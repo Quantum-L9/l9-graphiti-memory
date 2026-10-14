@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Final
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
-RELEASE: Final = "2.6.0"
+RELEASE: Final = "2.7.0"
 DEFAULT_EVIDENCE_DIR: Final = Path("build") / "release-validation"
 
 
@@ -327,8 +327,25 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1704 -> 1705 for the remote-over-path-hint precedence fix:
         # 1 case in test_group_resolver.py (nested checkout under a directory
         # carrying another repository's hint). Not CI-skipped. 1704 + 1 = 1705.
-        "1705 tests pass",
-        r"1705 passed",
+        # Re-pinned 1705 -> 1768 for ADR-098 (remote MCP transport and
+        # signed-agent HTTP identity): 62 cases in test_remote_mcp_http.py
+        # (real uvicorn over TCP; protocol, Origin, credential, grant and
+        # stdio non-regression cases) and 1 in test_installed_wheel_lifecycle.py
+        # (the installed wheel's server entry point). None are backend-
+        # parameterized or CI-skipped: CI installs the server and dev extras.
+        # 1705 + 62 + 1 = 1768; CI skips 52.
+        # Re-pinned 1768 -> 1790 for the #94 review regressions: 22 cases in
+        # test_remote_mcp_http.py (non-ASCII and out-of-shape credentials,
+        # undecodable identity and body JSON, chunked oversize, agent-id
+        # non-enumeration, no human door on auth-disabled HTTP, non-ASCII
+        # bearer token). None are CI-skipped. 1768 + 22 = 1790; CI skips 52.
+        # Re-pinned 1790 -> 1791: 1 case in test_signed_assertion.py (non-ASCII
+        # digits in exp are malformed). Not CI-skipped. 1790 + 1 = 1791.
+        # Re-pinned 1791 -> 1793: 2 cases in test_remote_mcp_http.py (tenant
+        # isolation between two HTTP deployments of one service; idempotent
+        # replay and cross-agent key reuse over HTTP). Not CI-skipped.
+        "1793 tests pass",
+        r"1793 passed",
     ),
     CheckSpec(
         "V-002",
@@ -364,8 +381,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # invalidation lifecycle). Re-pinned 95 -> 96 for ADR-096 (canonical
         # repository corpus authority binding). Re-pinned 96 -> 97 for ADR-097
         # (active-memory runtime composition and full-capability readiness).
-        "97 ADRs complete and indexed",
-        r"PASS: 97 ADRs",
+        # Re-pinned 97 -> 98 for ADR-098 (remote MCP transport and
+        # signed-agent HTTP identity).
+        "98 ADRs complete and indexed",
+        r"PASS: 98 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -463,8 +482,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # plus the campaign's 13 graph-intelligence files.
         # Re-pinned 141 -> 142 for ADR-096: src/l9_graphite_memory/
         # repository_corpus.py joins the production surface.
-        "142 production files pass",
-        r"PASS: 142 production Python files",
+        # Re-pinned 142 -> 143 for ADR-098: authz/remote_agent.py.
+        "143 production files pass",
+        r"PASS: 143 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -511,8 +531,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # recorded by digest, and the release wheel must be in it.
         "sha256sum over the validated release artifact directory",
         "logs/release_artifacts.txt",
-        "v2.6.0 wheel present in the validated artifact set",
-        r"l9_graphite_memory-2\.6\.0-py3-none-any\.whl",
+        "v2.7.0 wheel present in the validated artifact set",
+        r"l9_graphite_memory-2\.7\.0-py3-none-any\.whl",
     ),
     CheckSpec(
         "V-017",
@@ -521,7 +541,7 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "uv pip install --target (or pip --target)",
         "logs/wheel_install.txt",
         "isolated wheel installs",
-        r"l9-graphite-memory==2\.6\.0",
+        r"l9-graphite-memory==2\.7\.0",
     ),
     CheckSpec(
         "V-018",

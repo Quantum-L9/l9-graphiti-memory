@@ -27,17 +27,27 @@ from typing import Any
 # hard dependency of FastAPI, so it is present whenever the [server] extra is.
 try:
     from starlette.requests import Request
-    from starlette.responses import JSONResponse
+    from starlette.responses import JSONResponse, Response
 except ModuleNotFoundError:  # [server] extra not installed; create_http_app() will error
     Request = None  # type: ignore[assignment,misc]
     JSONResponse = None  # type: ignore[assignment,misc]
+    Response = None  # type: ignore[assignment,misc]
 
 from l9_graphite_memory.authz import TokenAuthenticator
+from l9_graphite_memory.authz.remote_agent import (
+    IDENTITY_ASSERTION_HEADER,
+    IDENTITY_ASSERTION_HMAC_HEADER,
+    SignedAgentAuthenticator,
+)
 from l9_graphite_memory.authz.signed_assertion import (
     agent_grant_from_config,
+    agent_principal,
     signing_keys_from_config,
     verify_assertion,
     verify_canonical_identity_assertion,
+)
+from l9_graphite_memory.authz.signed_assertion import (
+    decode_json_object as _json_object,
 )
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
@@ -54,7 +64,11 @@ from l9_graphite_memory.runtime import (
     resolve_local_context,
 )
 from l9_graphite_memory.secrets import load_secrets_sync
-from l9_graphite_memory.version import MCP_PROTOCOL_VERSION, PACKAGE_VERSION
+from l9_graphite_memory.version import (
+    HTTP_MCP_PROTOCOL_VERSIONS,
+    MCP_PROTOCOL_VERSION,
+    PACKAGE_VERSION,
+)
 
 log = get_logger("l9.memory.mcp")
 JSONRPC_VERSION = "2.0"
@@ -67,9 +81,32 @@ CAPABILITIES = {"tools": {"listChanged": False}}
 
 
 class MCPServer:
-    def __init__(self, runtime: MemoryRuntime) -> None:
+    """JSON-RPC dispatch shared by every MCP transport.
+
+    ``protocol_versions`` is the transport's supported set, newest first.
+    ``initialize`` echoes a requested version the set contains and otherwise
+    answers with the newest. The stdio default is the single
+    :data:`MCP_PROTOCOL_VERSION`, so stdio keeps answering exactly as it did.
+    """
+
+    def __init__(
+        self,
+        runtime: MemoryRuntime,
+        *,
+        protocol_versions: tuple[str, ...] = (MCP_PROTOCOL_VERSION,),
+    ) -> None:
+        if not protocol_versions:
+            raise ValueError("an MCP transport must support at least one protocol version")
         self.runtime = runtime
+        self.protocol_versions = protocol_versions
         self.tools = MCPToolApplication(runtime.service, runtime.graph_service)
+
+    def negotiate(self, requested: Any) -> str:
+        """The revision answered for a requested one (MCP lifecycle negotiation)."""
+
+        if isinstance(requested, str) and requested in self.protocol_versions:
+            return requested
+        return self.protocol_versions[0]
 
     @staticmethod
     def response(request_id: Any, result: Any) -> dict[str, Any]:
@@ -96,7 +133,7 @@ class MCPServer:
             return self.response(
                 request_id,
                 {
-                    "protocolVersion": MCP_PROTOCOL_VERSION,
+                    "protocolVersion": self.negotiate(params.get("protocolVersion")),
                     "capabilities": CAPABILITIES,
                     "serverInfo": SERVER_INFO,
                 },
@@ -159,18 +196,6 @@ def _agents_door_env(name: str) -> str:
     if not value:
         raise AuthenticationError(f"L9_MEMORY_AGENTS_DOOR_SECRET is set but {name} is missing")
     return value
-
-
-def _json_object(raw: str, name: str) -> dict[str, Any]:
-    """Decode a JSON object from an environment variable, or refuse."""
-
-    try:
-        decoded = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        raise AuthenticationError(f"{name} is not valid JSON: {exc}") from exc
-    if not isinstance(decoded, dict):
-        raise AuthenticationError(f"{name} must be a JSON object")
-    return decoded
 
 
 def _human_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
@@ -244,20 +269,7 @@ def _agent_door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
     # instead of a silently empty grant.
     grant = agent_grant_from_config(agent_id, grants_map.get(agent_id))
 
-    return MemoryPrincipal(
-        principal_id=grant.principal_id or agent_id,
-        tenant_id=settings.local_tenant_id,
-        organization_id=settings.local_organization_id,
-        workspace_id=settings.local_workspace_id,
-        user_id=grant.user_id or None,
-        agent_id=agent_id,
-        roles=grant.roles,
-        read_namespaces=grant.read_namespaces,
-        write_namespaces=grant.write_namespaces,
-        promote_namespaces=grant.promote_namespaces,
-        is_admin=grant.is_admin,
-        auth_method="stdio-agent-assertion",
-    )
+    return agent_principal(settings, agent_id, grant, auth_method="stdio-agent-assertion")
 
 
 def _door_principal(settings: MemorySettings) -> MemoryPrincipal | None:
@@ -290,6 +302,16 @@ def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
         return principal
     _, local = resolve_local_context(settings)
     return local.model_copy(update={"auth_method": "stdio-local"})
+
+
+def _http_local_principal(settings: MemorySettings) -> MemoryPrincipal:
+    """The auth-disabled HTTP principal: the signed agent door, else Tier 3."""
+
+    principal = _agent_door_principal(settings)
+    if principal is not None:
+        return principal
+    _, local = resolve_local_context(settings)
+    return local
 
 
 class StdioPrincipalResolver:
@@ -362,6 +384,119 @@ def run_stdio(runtime: MemoryRuntime) -> int:
     return 0
 
 
+# --- Streamable HTTP (ADR-098) ---------------------------------------------
+# A stateless Streamable HTTP endpoint: one JSON-RPC message per POST, a JSON
+# body for each request, 202 for each notification or client response, no
+# server-initiated SSE stream and no MCP-Session-Id.
+
+MCP_ENDPOINT_PATHS = ("/mcp", "/mcp/")
+# What a server must assume when MCP-Protocol-Version is absent and nothing
+# else identifies the revision. It is not in HTTP_MCP_PROTOCOL_VERSIONS, so
+# such a request is refused with 400 instead of being served unversioned.
+HTTP_ASSUMED_PROTOCOL_VERSION = "2025-03-26"
+HTTP_MAX_BODY_BYTES = 4 * 1024 * 1024
+WWW_AUTHENTICATE_REALM = 'Bearer realm="l9-graphite-memory"'
+# Query parameters that look like credentials. The spec forbids tokens in the
+# URI, so a request carrying one is refused before it is authenticated and is
+# never echoed back.
+CREDENTIAL_QUERY_PARAMETERS = frozenset(
+    {
+        "access_token",
+        "token",
+        "authorization",
+        "assertion",
+        "api_key",
+        "apikey",
+        "identity_assertion",
+        "identity_assertion_hmac",
+    }
+)
+_LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
+
+
+class _InvalidMessage(ValueError):
+    """The POST body is JSON but not a valid single MCP JSON-RPC message."""
+
+
+def _transport_error(
+    status: int,
+    code: int,
+    message: str,
+    *,
+    data: Any | None = None,
+    headers: dict[str, str] | None = None,
+) -> Any:
+    """An HTTP error whose body is a JSON-RPC error response without an ``id``."""
+
+    error: dict[str, Any] = {"code": code, "message": message}
+    if data is not None:
+        error["data"] = data
+    return JSONResponse(
+        status_code=status,
+        content={"jsonrpc": JSONRPC_VERSION, "error": error},
+        headers=headers,
+    )
+
+
+def _accepted_media_types(header: str | None) -> set[str]:
+    """Media ranges an Accept header admits; a range with ``q=0`` is refused."""
+
+    admitted: set[str] = set()
+    for item in (header or "").split(","):
+        media, *parameters = item.split(";")
+        media = media.strip().lower()
+        if not media:
+            continue
+        refused = False
+        for parameter in parameters:
+            name, _, value = parameter.partition("=")
+            if name.strip().lower() == "q":
+                try:
+                    refused = float(value.strip()) <= 0
+                except ValueError:
+                    refused = True
+        if not refused:
+            admitted.add(media)
+    return admitted
+
+
+def _admits(admitted: set[str], media_type: str) -> bool:
+    family = media_type.split("/", 1)[0]
+    return bool(admitted & {media_type, f"{family}/*", "*/*"})
+
+
+def _classify_message(message: dict[str, Any]) -> str:
+    """``request``, ``notification`` or ``response``; raise for anything else."""
+
+    if message.get("jsonrpc") != JSONRPC_VERSION:
+        raise _InvalidMessage('jsonrpc must be "2.0"')
+    has_id = "id" in message
+    if has_id:
+        message_id = message["id"]
+        if isinstance(message_id, bool) or not isinstance(message_id, (str, int)):
+            raise _InvalidMessage("id must be a string or an integer")
+    if "method" in message:
+        method = message["method"]
+        if not isinstance(method, str) or not method:
+            raise _InvalidMessage("method must be a non-empty string")
+        if not has_id:
+            return "notification"
+        if method.startswith("notifications/"):
+            raise _InvalidMessage("a notification must not carry an id")
+        return "request"
+    if has_id and (("result" in message) != ("error" in message)):
+        return "response"
+    raise _InvalidMessage("message is neither a request, a notification, nor a response")
+
+
+def _origin_allowed(origin: str | None, allowed: tuple[str, ...]) -> bool:
+    if origin is None:
+        return True
+    return origin.strip().rstrip("/").lower() in {
+        item.strip().rstrip("/").lower() for item in allowed
+    }
+
+
 def create_http_app(runtime: MemoryRuntime) -> Any:
     try:
         from fastapi import FastAPI
@@ -371,45 +506,135 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         ) from exc
 
     settings = runtime.settings
+    if settings.http_auth_mode == "signed-agent" and not settings.http_auth_required:
+        raise ConfigurationError(
+            "http_auth_mode=signed-agent requires http_auth_required=true; "
+            "an unauthenticated transport cannot establish an agent identity"
+        )
     authenticator = TokenAuthenticator(settings.auth_tokens)
-    server = MCPServer(runtime)
-    # Auth-disabled HTTP is the local trust model: exactly the stdio principal,
-    # established server-side before any body is read. Never wider than stdio.
+    # Signed-agent mode loads the agent key and grant registry once, so a
+    # missing or malformed registry stops the server before it serves.
+    agent_authenticator = (
+        SignedAgentAuthenticator.from_environment(settings)
+        if settings.http_auth_required and settings.http_auth_mode == "signed-agent"
+        else None
+    )
+    server = MCPServer(runtime, protocol_versions=HTTP_MCP_PROTOCOL_VERSIONS)
+    # Auth-disabled HTTP is the local trust model, established server-side
+    # before any body is read and never wider than stdio. It is never the
+    # human door: that tier belongs to the process holding the secret, not to
+    # every local process able to reach a loopback port (ADR-098).
     local_principal = (
         None
         if settings.http_auth_required
-        else StdioPrincipalResolver(settings).principal.model_copy(
+        else _http_local_principal(settings).model_copy(
             update={"auth_method": "http-auth-disabled"}
         )
     )
     app = FastAPI(title="L9 Graphite Memory", version=PACKAGE_VERSION)
 
     def principal_for(request: Request) -> MemoryPrincipal:
-        if local_principal is None:
-            return authenticator.authenticate(request.headers.get("Authorization"))
-        return local_principal
+        """Authenticate this request on its own evidence; nothing carries over."""
 
-    @app.post("/mcp")
-    @app.post("/mcp/")
-    async def mcp_endpoint(request: Request) -> JSONResponse:
+        if local_principal is not None:
+            return local_principal
+        if agent_authenticator is not None:
+            return agent_authenticator.authenticate(
+                authorization=request.headers.get("Authorization"),
+                identity_assertion=request.headers.get(IDENTITY_ASSERTION_HEADER),
+                identity_assertion_hmac=request.headers.get(IDENTITY_ASSERTION_HMAC_HEADER),
+            )
+        return authenticator.authenticate(request.headers.get("Authorization"))
+
+    def refuse_origin(request: Request) -> Any | None:
+        if _origin_allowed(request.headers.get("Origin"), settings.http_allowed_origins):
+            return None
+        return _transport_error(403, -32600, "forbidden Origin")
+
+    def protocol_refusal(request: Request, message: dict[str, Any], kind: str) -> Any | None:
+        header = request.headers.get("MCP-Protocol-Version")
+        if header is None and kind == "request" and message["method"] == "initialize":
+            return None  # initialize negotiates the revision in its body
+        requested = HTTP_ASSUMED_PROTOCOL_VERSION if header is None else header.strip()
+        if requested in HTTP_MCP_PROTOCOL_VERSIONS:
+            return None
+        reason = (
+            "MCP-Protocol-Version header is missing; assumed "
+            f"{HTTP_ASSUMED_PROTOCOL_VERSION}, which this server does not support"
+            if header is None
+            else "unsupported MCP-Protocol-Version"
+        )
+        return _transport_error(
+            400,
+            -32600,
+            reason,
+            data={"supported": list(HTTP_MCP_PROTOCOL_VERSIONS), "requested": requested},
+        )
+
+    def method_not_allowed(request: Request) -> Any:
+        refused = refuse_origin(request)
+        if refused is not None:
+            return refused
+        # No standalone server-to-client SSE stream and no session to delete.
+        return _transport_error(
+            405, -32600, "method not allowed; use POST", headers={"Allow": "POST"}
+        )
+
+    async def mcp_endpoint(request: Request) -> Any:
+        refused = refuse_origin(request)
+        if refused is not None:
+            return refused
+        if CREDENTIAL_QUERY_PARAMETERS & {key.lower() for key in request.query_params}:
+            return _transport_error(400, -32600, "credentials must not be sent in the URL")
         try:
             principal = principal_for(request)
         except AuthenticationError as exc:
-            return JSONResponse(status_code=401, content=server.error(None, -32001, str(exc)))
+            challenge = WWW_AUTHENTICATE_REALM
+            if request.headers.get("Authorization"):
+                challenge += ', error="invalid_token"'
+            return _transport_error(401, -32001, str(exc), headers={"WWW-Authenticate": challenge})
+        content_type = request.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+        if content_type != "application/json":
+            return _transport_error(415, -32600, "Content-Type must be application/json")
+        admitted = _accepted_media_types(request.headers.get("Accept"))
+        if not (_admits(admitted, "application/json") and _admits(admitted, "text/event-stream")):
+            return _transport_error(
+                406, -32600, "Accept must list both application/json and text/event-stream"
+            )
+        declared_length = request.headers.get("Content-Length", "")
+        if declared_length.isdigit() and int(declared_length) > HTTP_MAX_BODY_BYTES:
+            return _transport_error(413, -32600, "request body is too large")
+        # Read incrementally so a chunked body is refused at the limit
+        # instead of being buffered whole first.
+        chunks: list[bytes] = []
+        received = 0
+        async for chunk in request.stream():
+            received += len(chunk)
+            if received > HTTP_MAX_BODY_BYTES:
+                return _transport_error(413, -32600, "request body is too large")
+            chunks.append(chunk)
         try:
-            body = await request.json()
-        except Exception as exc:  # noqa: BLE001
-            return JSONResponse(
-                status_code=400,
-                content=server.error(None, -32700, f"invalid JSON: {exc}"),
-            )
+            body = json.loads(b"".join(chunks))
+        except (ValueError, RecursionError) as exc:  # JSONDecodeError, UnicodeDecodeError
+            return _transport_error(400, -32700, f"parse error: {type(exc).__name__}")
         if not isinstance(body, dict):
-            return JSONResponse(
-                status_code=400,
-                content=server.error(None, -32600, "batch requests are not supported"),
-            )
-        response = server.handle(body, principal)
-        return JSONResponse(content=response or {"status": "ok"})
+            return _transport_error(400, -32600, "the body must be one JSON-RPC message")
+        try:
+            kind = _classify_message(body)
+        except _InvalidMessage as exc:
+            return _transport_error(400, -32600, f"invalid request: {exc}")
+        refused = protocol_refusal(request, body, kind)
+        if refused is not None:
+            return refused
+        if kind != "request":
+            # A stateless server has nothing to update for a notification or
+            # a client response; accepting it is the whole contract.
+            return Response(status_code=202)
+        return JSONResponse(content=server.handle(body, principal))
+
+    for path in MCP_ENDPOINT_PATHS:
+        app.add_api_route(path, mcp_endpoint, methods=["POST"])
+        app.add_api_route(path, method_not_allowed, methods=["GET", "DELETE"])
 
     @app.get("/healthz")
     async def healthz() -> JSONResponse:
@@ -437,16 +662,23 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
 
 
 def run_http(runtime: MemoryRuntime, *, host: str, port: int) -> int:
-    if runtime.settings.http_auth_required and not runtime.settings.auth_tokens:
-        raise ConfigurationError(
-            "HTTP authentication is required but no L9_MEMORY_AUTH_TOKENS_JSON or file is configured"
+    settings = runtime.settings
+    if settings.http_auth_required and settings.http_auth_mode == "bearer":
+        if not settings.auth_tokens:
+            raise ConfigurationError(
+                "HTTP authentication is required but no L9_MEMORY_AUTH_TOKENS_JSON or file is configured"
+            )
+        log.info(
+            "HTTP bearer mode serves configured service principals; remote agent "
+            "identity requires L9_MEMORY_HTTP_AUTH_MODE=signed-agent (ADR-098)"
         )
-    if not runtime.settings.http_auth_required and host not in {
-        "127.0.0.1",
-        "localhost",
-        "::1",
-    }:
+    if not settings.http_auth_required and host not in _LOOPBACK_HOSTS:
         raise ConfigurationError("authentication may only be disabled on a loopback bind address")
+    if host not in _LOOPBACK_HOSTS:
+        log.warning(
+            "serving MCP on a non-loopback address: terminate TLS in front of it; "
+            "the remote credentials are bearer-equivalent until they expire"
+        )
     try:
         import uvicorn
     except ImportError as exc:
@@ -455,7 +687,7 @@ def run_http(runtime: MemoryRuntime, *, host: str, port: int) -> int:
         create_http_app(runtime),
         host=host,
         port=port,
-        log_level=runtime.settings.log_level.lower(),
+        log_level=settings.log_level.lower(),
     )
     return 0
 

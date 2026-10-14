@@ -256,7 +256,13 @@ def _post_mcp(app: Any, body: dict[str, Any]) -> dict[str, Any]:
         "type": "http",
         "method": "POST",
         "path": "/mcp",
-        "headers": [(b"content-type", b"application/json")],
+        # A conforming Streamable HTTP client (ADR-098): JSON body, both
+        # response media types accepted, the negotiated revision named.
+        "headers": [
+            (b"content-type", b"application/json"),
+            (b"accept", b"application/json, text/event-stream"),
+            (b"mcp-protocol-version", b"2025-11-25"),
+        ],
         "query_string": b"",
     }
     response = asyncio.run(endpoint(Request(scope, receive)))

@@ -135,6 +135,20 @@ class MemorySettings(BaseModel):
     active_heartbeat_failure_threshold: int = Field(default=3, ge=1, le=100)
 
     http_auth_required: bool = True
+    # Which credential the HTTP transport verifies (ADR-098). "bearer" maps a
+    # static server-side token to configured principal claims (service
+    # principals). "signed-agent" verifies, on every request, the same signed
+    # agent assertion and canonical identity assertion the stdio agent door
+    # verifies, then loads that agent's server-side grant. Only "signed-agent"
+    # establishes a remote agent identity.
+    http_auth_mode: Literal["bearer", "signed-agent"] = "bearer"
+    # Browser origins allowed to reach /mcp. A request carrying any other
+    # Origin header is refused with 403 (DNS-rebinding defence); a request
+    # without one (a non-browser MCP client) is unaffected.
+    http_allowed_origins: tuple[str, ...] = ()
+    # Ceiling on a signed agent assertion's remaining lifetime over HTTP. The
+    # token is reusable until it expires, so its lifetime bounds replay.
+    http_agent_assertion_max_ttl_seconds: int = Field(default=3600, ge=60, le=86_400)
     auth_tokens: dict[str, TokenPrincipalConfig] = Field(default_factory=dict)
     local_principal_id: str = "local-operator"
     local_tenant_id: str = "local"

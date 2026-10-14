@@ -26,9 +26,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from l9_graphite_memory.contracts.generated_data import SUPPORTED_CLASSES, VISIBILITY_TEMPLATES
 from l9_graphite_memory.version import (
     CONTROL_PLANE_CONTRACT_VERSION,
+    HTTP_MCP_PROTOCOL_VERSIONS,
     MCP_PROTOCOL_VERSION,
     MEMORY_SCHEMA_VERSION,
     PACKAGE_VERSION,
+    REMOTE_MCP_CONTRACT_VERSION,
 )
 
 #: Lifecycle operations every transport must expose. The CLI subcommand and the
@@ -132,7 +134,13 @@ class ControlPlaneCapabilities(BaseModel):
     package_version: str = PACKAGE_VERSION
     schema_version: str = MEMORY_SCHEMA_VERSION
     contract_version: str = CONTROL_PLANE_CONTRACT_VERSION
+    # The stdio MCP revision. The HTTP transport negotiates from its own set,
+    # reported below with the remote contract it implements (ADR-098); both
+    # fields are additive, so a consumer bound to the earlier receipt is
+    # unaffected.
     mcp_protocol_version: str = MCP_PROTOCOL_VERSION
+    http_mcp_protocol_versions: tuple[str, ...] = HTTP_MCP_PROTOCOL_VERSIONS
+    remote_mcp_contract_version: str = REMOTE_MCP_CONTRACT_VERSION
     lifecycle_operations: tuple[str, ...] = LIFECYCLE_OPERATIONS
     transports: tuple[TransportSurface, ...] = ()
     exit_codes: dict[str, int] = Field(default_factory=lambda: dict(CLI_EXIT_CODES))

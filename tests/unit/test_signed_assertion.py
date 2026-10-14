@@ -99,6 +99,15 @@ def test_malformed_token_non_integer_exp() -> None:
         verify_assertion(f"{_AGENT}.notanumber.nonce.sig", {_AGENT: _KEY})
 
 
+def test_non_ascii_digits_in_exp_are_malformed() -> None:
+    """int() accepts Arabic-Indic digits; the token's exp must be ASCII decimal."""
+
+    token = mint_assertion(_AGENT, _KEY)
+    agent_id, _exp, nonce, signature = token.split(".")
+    with pytest.raises(AuthenticationError, match="malformed"):
+        verify_assertion(f"{agent_id}.\u0661\u0662\u0663.{nonce}.{signature}", {_AGENT: _KEY})
+
+
 def test_agent_id_with_dot_raises_on_mint() -> None:
     with pytest.raises(ValueError, match="must not contain"):
         mint_assertion("bad.agent", _KEY)

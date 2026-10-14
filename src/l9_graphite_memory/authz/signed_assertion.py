@@ -24,7 +24,7 @@ import os
 import re
 import time
 from collections.abc import Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -41,11 +41,18 @@ from l9_graphite_memory.contracts.identity import (
     SEMANTIC_DIGEST_COORDINATES,
     SURFACE_REGISTRY_PREFIX,
     IdentityAssertion,
+    MemoryPrincipal,
 )
 from l9_graphite_memory.errors import AuthenticationError
 
+if TYPE_CHECKING:
+    from l9_graphite_memory.config import MemorySettings
+
 _SEP = "."
 _PAYLOAD_SEP = "|"
+# ASCII: a bare \d also matches non-ASCII digits, which int() would accept.
+_EXP_RE = re.compile(r"\A\d{1,12}\Z", re.ASCII)
+_SIGNATURE_RE = re.compile(r"\A[0-9a-f]{64}\Z")
 
 
 class AgentDoorGrant(BaseModel):
@@ -127,6 +134,49 @@ def agent_grant_from_config(agent_id: str, raw: Any) -> AgentDoorGrant:
         ) from exc
 
 
+def decode_json_object(raw: str, name: str) -> dict[str, Any]:
+    """Decode a JSON object from trusted configuration or a credential carrier, or refuse."""
+
+    try:
+        decoded = json.loads(raw)
+    except (ValueError, RecursionError) as exc:  # JSONDecodeError is a ValueError
+        raise AuthenticationError(f"{name} is not valid JSON: {type(exc).__name__}") from exc
+    if not isinstance(decoded, dict):
+        raise AuthenticationError(f"{name} must be a JSON object")
+    return decoded
+
+
+def agent_principal(
+    settings: MemorySettings,
+    agent_id: str,
+    grant: AgentDoorGrant,
+    *,
+    auth_method: str,
+) -> MemoryPrincipal:
+    """The principal a verified signed agent is served under, on any transport.
+
+    Every claim comes from the server: the tenant coordinates from settings and
+    the roles and namespaces from the agent's validated grant. The stdio door
+    and the HTTP door both build their principal here, so a remote agent can
+    never hold a claim the same agent would not hold locally.
+    """
+
+    return MemoryPrincipal(
+        principal_id=grant.principal_id or agent_id,
+        tenant_id=settings.local_tenant_id,
+        organization_id=settings.local_organization_id,
+        workspace_id=settings.local_workspace_id,
+        user_id=grant.user_id or None,
+        agent_id=agent_id,
+        roles=grant.roles,
+        read_namespaces=grant.read_namespaces,
+        write_namespaces=grant.write_namespaces,
+        promote_namespaces=grant.promote_namespaces,
+        is_admin=grant.is_admin,
+        auth_method=auth_method,
+    )
+
+
 def mint_assertion(
     agent_id: str,
     signing_key: str | bytes,
@@ -162,10 +212,14 @@ def verify_assertion(
         raise AuthenticationError("malformed agent assertion: expected 4 dot-separated parts")
     agent_id, raw_exp, nonce, supplied_sig = parts
 
-    try:
-        exp = int(raw_exp)
-    except ValueError:
+    # Shape before arithmetic or comparison: an unbounded exp overflows float
+    # arithmetic downstream, and hmac.compare_digest raises TypeError on a
+    # non-ASCII str, so neither may reach those operations.
+    if _EXP_RE.fullmatch(raw_exp) is None:
         raise AuthenticationError("malformed agent assertion: exp is not an integer")
+    if _SIGNATURE_RE.fullmatch(supplied_sig) is None:
+        raise AuthenticationError(f"invalid assertion signature for agent_id={agent_id!r}")
+    exp = int(raw_exp)
 
     if time.time() > exp:
         raise AuthenticationError(f"agent assertion expired for agent_id={agent_id!r}")
@@ -216,7 +270,7 @@ def _same_secret(expected: str, supplied: object) -> bool:
     if not isinstance(supplied, str):
         return False
     candidate = supplied.strip().lower()
-    if len(candidate) != len(expected):
+    if not candidate.isascii() or len(candidate) != len(expected):
         return False
     return hmac.compare_digest(expected, candidate)
 
