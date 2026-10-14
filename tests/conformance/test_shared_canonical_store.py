@@ -27,7 +27,7 @@ from l9_graphite_memory.contracts import (
     MemoryWriteRequest,
     Provenance,
 )
-from l9_graphite_memory.errors import ConfigurationError
+from l9_graphite_memory.errors import ConfigurationError, StoreError
 from l9_graphite_memory.services import MemoryService
 from tests.conftest import make_postgres_store
 
@@ -153,13 +153,13 @@ def test_concurrent_first_initialization_of_one_shared_schema_succeeds() -> None
     schema = f"l9_coldstart_{uuid.uuid4().hex}"
     stores = [make_postgres_store(schema) for _ in range(4)]
     barrier = threading.Barrier(len(stores))
-    failures: list[BaseException] = []
+    failures: list[StoreError] = []
 
     def start(store) -> None:
         barrier.wait()
         try:
             store.initialize()
-        except BaseException as exc:  # recorded and asserted below
+        except StoreError as exc:  # recorded and asserted below
             failures.append(exc)
 
     threads = [threading.Thread(target=start, args=(store,)) for store in stores]
