@@ -263,11 +263,11 @@ in-window replay is not prevented. Exposure is bounded by the lifetime
 ceiling, deployment-specific keys and TLS. ADR-083's 2026-10-14 amendment
 reconciles its earlier stronger wording with this property.
 
-**Administrator grants.** "Administrator flags come only from server
-configuration" is the guarantee this ADR makes; it does not forbid a grant
-with `is_admin: true`, which yields an administrator principal over HTTP.
-The 3.0.0 deployment policy and the code guard owed if a categorical rule is
-required are in ADR-083, 2026-10-14.
+**Administrator grants.** A signed-agent grant carrying `is_admin` is refused
+at startup (Decision and Invariants above; `5507d38`), in signed-agent mode
+and on auth-disabled loopback serving the agent door. Bearer-mode token
+principals and the auth-disabled Tier-3 local principal keep their configured
+administrator flags; see ADR-083, 2026-10-14.
 
 **Other limits carried to 3.0.0.** FastAPI's default `/docs`, `/redoc` and
 `/openapi.json` are served without authentication and need an exposure

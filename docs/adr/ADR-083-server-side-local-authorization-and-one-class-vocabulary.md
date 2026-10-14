@@ -487,3 +487,42 @@ containers cannot authenticate to a remote server. Keys, grants and the
 PostgreSQL connection string are runtime secrets delivered through the
 operator's existing secret path; none is tracked repository content. No new
 identity framework is introduced.
+
+## Amendment — administrator-grant guard implemented in the candidate (2026-10-14, integration)
+
+**Decision date:** 2026-10-14 (3.0.0 integration, documentation only).
+**Effect:** records that the guard the preceding amendment required exists in
+the candidate. The preceding amendment's text is kept unchanged as provenance.
+
+PR #94 at `5507d38` (commit `3530d0f`) adds the guard the preceding amendment
+required. `SignedAgentAuthenticator` refuses at startup any grant with
+`is_admin` (`src/l9_graphite_memory/authz/remote_agent.py`), and
+`_http_local_principal` refuses an administrator agent-door principal on
+auth-disabled loopback HTTP (`src/l9_graphite_memory/server.py`). Negative
+tests:
+
+- `tests/integration/test_remote_mcp_http.py`:
+  `test_signed_agent_mode_refuses_an_administrator_grant_at_startup` and
+  `test_auth_disabled_http_refuses_an_administrator_agent_door`;
+- `tests/integration/test_installed_wheel_lifecycle.py`:
+  `test_installed_wheel_refuses_an_administrator_agent_grant_before_serving`.
+
+Guarantee 4 is met in code for the signed-agent HTTP door. It does not cover
+bearer-mode token principals, the auth-disabled Tier-3 local principal, or the
+stdio agent door, which still honors `is_admin`.
+
+Superseded for `5507d38` and later, in the preceding amendment:
+
+- "Only the agent id `human` is refused at startup" and "No test asserts that
+  an admin grant is refused": an administrator agent grant is now refused at
+  startup, and the tests above assert it.
+- The installed-wheel HTTP proof coverage list: it now also includes startup
+  refusal of an administrator agent grant.
+- "What that is today" (a deployment-configuration control, not a code
+  guarantee) and "guarantee 4 is unmet in code": for the signed-agent HTTP
+  door the refusal is now a code guarantee with its negative tests. For
+  bearer-mode token principals and the auth-disabled Tier-3 local principal it
+  remains a deployment-configuration control.
+- "Auth-disabled loopback HTTP still serves the Tier-3 local principal": it
+  now serves the signed agent door when that door is configured, refusing an
+  administrator grant, and otherwise the Tier-3 local principal.

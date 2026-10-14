@@ -88,14 +88,15 @@ that carries the credential (ADR-083 and ADR-098, 2026-10-14).
 
 Policy for 3.0.0: ordinary remote agent grants do not set `is_admin`, the
 agent endpoint runs `signed-agent` mode only, and administrative operations
-are separately governed. The candidate code does **not** enforce this: a grant
-with `is_admin: true` yields an administrator principal over HTTP, and in
-bearer mode a token's principal can carry `is_admin` and `is_global_admin`.
-Until the implementation adds a startup refusal and a negative test, the rule
-is a deployment-configuration control verified by reading the grant map
-(ADR-083, 2026-10-14). The human door is unreachable over HTTP in the
-candidate, including on auth-disabled loopback; auth-disabled loopback still
-serves the Tier-3 local principal, which is an administrator when
+are separately governed. The candidate enforces it for signed agents: a grant
+with `is_admin` stops the server at startup in `signed-agent` mode and on
+auth-disabled loopback HTTP serving the agent door (ADR-098;
+`test_remote_mcp_http.py`, `test_installed_wheel_lifecycle.py`). Bearer-mode
+token principals can still carry `is_admin` and `is_global_admin`, so bearer
+mode is not for agents. The human door is unreachable over HTTP.
+Auth-disabled loopback serves the signed agent door when
+`L9_MEMORY_AGENTS_DOOR_SECRET` is set (never as administrator), otherwise the
+Tier-3 local principal, which is an administrator when
 `L9_MEMORY_LOCAL_IS_ADMIN` or `L9_MEMORY_LOCAL_IS_GLOBAL_ADMIN` is true.
 
 ### Transport and default-deny

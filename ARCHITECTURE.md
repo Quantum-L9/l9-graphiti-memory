@@ -40,8 +40,7 @@ optional, separately qualified capabilities (ADR-097).
 | ADR-098 candidate (PR #94, source 2.7.0, unmerged) | adds the stateless Streamable HTTP server and signed-agent HTTP identity; stdio unchanged |
 | Memory 3.0.0 | not released, not deployed |
 
-Open before 3.0.0 is live: the administrator-grant guard (ADR-083),
-PostgreSQL-backed HTTP proof (ADR-082), key and grant provisioning, C1
+Open before 3.0.0 is live: PostgreSQL-backed HTTP proof (ADR-082), key and grant provisioning, C1
 deployment evidence, consumer adoption, and the product classification below.
 
 The accepted ProductKind is still `dependency` with `local_composition`

@@ -285,7 +285,7 @@ for another.
 | Obligation | Owner | Candidate evidence (PR #94) | Owed for 3.0.0 |
 |---|---|---|---|
 | MCP protocol conformance | ADR-038, ADR-098 | `tests/integration/test_remote_mcp_http.py` over real TCP: negotiation of `2025-11-25`/`2025-06-18`, `MCP-Protocol-Version`, framing, `202`, `405`, `Origin`, `Accept`, `Content-Type`, size and envelope refusals | the same suite on the 3.0.0 bytes |
-| Authentication and identity | ADR-083, ADR-098 | same suite: missing, expired, over-ceiling, tampered, unknown-agent and other-actor credentials; smuggled claims; human door unreachable | admin-grant refusal (ADR-083, 2026-10-14) |
+| Authentication and identity | ADR-083, ADR-098 | same suite: missing, expired, over-ceiling, tampered, unknown-agent and other-actor credentials; smuggled claims; human door unreachable; startup refusal of an administrator agent grant | the same suite on 3.0.0 bytes |
 | Lifecycle | this ADR | over HTTP the suite calls `health`, `capabilities`, `hydrate`, `search`, `get`, `close`, `phase_lock`, `write_agent` and `write_governed`; the installed wheel's HTTP proof calls `initialize`, `tools/list`, `capabilities`, `write_agent` and `search` | `ingest`, `ingest_governed_candidate`, `conflicts` and `verify_phase_lock` are not exercised over HTTP; installed-wheel coverage of the full set |
 | Receipts | this ADR, ADR-083 | `test_capability_and_lifecycle_receipts_keep_their_control_plane_shapes` | receipts from a PostgreSQL-backed service; the HTTP suite uses an in-memory store and the wheel proof SQLite |
 | Semantic parity | this ADR | unchanged: `tests/unit/test_control_plane_transport_parity.py`; both transports dispatch the same tool definitions to the same `MemoryService` | — |

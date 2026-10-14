@@ -217,7 +217,7 @@ exists. C1 is not deployed.
 | Protocol revision selected by the implementation campaign | Settled by ADR-098: HTTP serves `2025-11-25` and `2025-06-18` (`HTTP_MCP_PROTOCOL_VERSIONS`); stdio keeps `2024-11-05` (`MCP_PROTOCOL_VERSION`). `2026-07-28`, which drops `initialize`, is not served: a client speaking only it is refused. The 2026-10-13 requirement to pin from probes of installed clients is not met in this repository; those probes are consumer proof. |
 | HTTP gap table at `441b741` | Remains a correct description of `441b741`. In the candidate, framing, `202` notifications, `GET`/`DELETE` `405`, negotiation, `MCP-Protocol-Version`, `Origin` and the `WWW-Authenticate` challenge are closed by ADR-098. Still open: FastAPI's default `/docs`, `/redoc` and `/openapi.json` are served unauthenticated (no exposure decision is recorded), and TLS is out of process by design. |
 | Proof item 1, Streamable HTTP conformance | Candidate evidence: `tests/integration/test_remote_mcp_http.py` and the installed-wheel HTTP proof in `tests/integration/test_installed_wheel_lifecycle.py`, run on the candidate; not yet run on 3.0.0 bytes. |
-| Proof item 2, ADR-083 remote identity suite | Candidate evidence in the same suite; the administrator-grant case is not covered (ADR-083, 2026-10-14). |
+| Proof item 2, ADR-083 remote identity suite | Candidate evidence in the same suite; the administrator-grant refusal is covered at `5507d38` (signed-agent, auth-disabled, installed wheel). |
 | Proof item 3, ADR-082 lifecycle parity over HTTP | Partial; see ADR-082, 2026-10-14. |
 | Proof item 4, product topology | Open; see ADR-094, 2026-10-14. |
 
@@ -226,8 +226,8 @@ exists. C1 is not deployed.
 1. The candidate integrated, versioned 3.0.0, and validated on the exact
    release bytes (`scripts/validate_release.sh` in publication mode).
 2. The HTTP suite run against a PostgreSQL canonical store; the candidate's HTTP suite uses an in-memory store and its installed-wheel HTTP proof the default SQLite store.
-3. The ADR-083 administrator-grant decision implemented or recorded as a
-   deployment-only control, with its negative test.
+3. The administrator-grant refusal (implemented in the candidate at
+   `5507d38`) re-proven on the 3.0.0 bytes.
 4. ADR-094's classification resolved by its owner.
 5. C1 deployment evidence: TLS, process supervision, readiness, backup and
    restore, owned by the deployment campaign.

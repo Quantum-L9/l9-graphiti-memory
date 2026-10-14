@@ -161,10 +161,10 @@ agents                     Hetzner C1 hosting boundary (TLS reverse proxy)
                               new, empty PostgreSQL store
 ```
 
-- One logical `MemoryService`, centrally hosted on the operator-controlled
-  Hetzner C1 environment. Agents on different machines consume it; they are
-  consumers, not canonical memory servers. The runtime does not depend on the
-  operator's Mac.
+- One logical `MemoryService`, intended to be centrally hosted on the
+  operator-controlled Hetzner C1 environment. Agents on different machines
+  will consume it; they are consumers, not canonical memory servers. The
+  runtime will not depend on the operator's Mac.
 - Each agent carries its own identity evidence, verified on every request
   (ADR-098, ADR-083). Shared storage does not imply shared authorization: a
   namespace may be shared by explicitly authorized agents, tenant and
@@ -177,9 +177,8 @@ agents                     Hetzner C1 hosting boundary (TLS reverse proxy)
   configuration are unverified until deployment evidence exists.
 
 What stands between the candidate and a live 3.0.0: integration and release
-validation on exact bytes; PostgreSQL-backed HTTP proof; the administrator
-grant guard (ADR-083, 2026-10-14); durable per-agent keys and a server-side
-grant map; the product classification (ADR-094, 2026-10-14, open); C1
+validation on exact bytes; PostgreSQL-backed HTTP proof; durable per-agent
+keys and a server-side grant map; the product classification (ADR-094, 2026-10-14, open); C1
 deployment evidence; and consumer adoption, which each consumer owns.
 Cursor-Governance currently seals the agent HTTP path, so the Cursor and
 Claude Code agents it governs need an authorized consumer campaign first. `config/mcp.json.example` stays the
@@ -191,7 +190,8 @@ The basic shared deployment the remote target needs is the canonical store and
 nothing else: `store_backend: postgres` against a **new, empty** database, and
 `projection_backend`, `graph_intelligence_backend` and
 `active_memory_backend` left at `none` (and `projection_runtime` at its
-`legacy` default). Redis, Graphiti and Neo4j are not
+`legacy` default). The server must be installed with the `postgres` extra
+(`l9-graphite-memory[server,postgres]`). Redis, Graphiti and Neo4j are not
 prerequisites, and the five-family full-capability qualification below is not
 a prerequisite either; a healthy PostgreSQL `canonical` family is not evidence
 that any optional family is healthy. This greenfield path imports, restores or

@@ -152,8 +152,10 @@ Cursor-Governance.
 - The product topology's `kind: dependency` declares no independent runtime
   identity; how an independently hosted server is classified is open and
   owned as recorded in ADR-094 (2026-10-14).
-- Refusal of administrator grants and in-window replay prevention; see
-  ADR-083 (2026-10-14).
+- In-window replay prevention (ADR-083, 2026-10-14).
+- Administrator authority for bearer-mode token principals and the
+  auth-disabled Tier-3 local principal; signed-agent grants carrying
+  `is_admin` are refused at startup.
 - MCP revision `2026-07-28`, which drops `initialize`: a client that speaks
   only that revision is refused with `400`. The served revisions were chosen
   from the specification, not from probes of installed Cursor or Claude Code

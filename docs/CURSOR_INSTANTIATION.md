@@ -15,7 +15,7 @@ This document describes how the memory control plane is instantiated inside Curs
 
 ## Scope
 
-Everything here concerns the local stdio entry: Cursor launches the server on the same machine and talks to it over stdin and stdout. That behavior is the same in the 2.5.0 operational release, on `main`, and in the ADR-098 candidate (PR #94), and it is preserved. The target agent transport is Memory 3.0.0, one centrally hosted `MemoryService` reached over authenticated HTTPS MCP (ADR-038); it is not deployed. A Cursor client entry for it is future, consumer-owned work: Cursor-Governance currently seals the agent HTTP path, and Cursor has no header-refresh hook for short-lived credentials (ADR-064, 2026-10-14). Nothing in this document installs, verifies or proves a remote HTTP connection, TLS, remote authentication or per-agent remote identity.
+Everything here concerns the local stdio entry: Cursor launches the server on the same machine and talks to it over stdin and stdout. That behavior is the same in the 2.5.0 operational release, on `main`, and in the ADR-098 candidate (PR #94), and it is preserved. The target agent transport is Memory 3.0.0, one centrally hosted `MemoryService` reached over authenticated HTTPS MCP (ADR-038); it is not deployed. A Cursor client entry for it is future, consumer-owned work: Cursor-Governance currently seals the agent HTTP path, and Cursor's documentation describes static `headers` and no refresh hook (not verified here) for short-lived credentials (ADR-064, 2026-10-14). Nothing in this document installs, verifies or proves a remote HTTP connection, TLS, remote authentication or per-agent remote identity.
 
 ## Surface
 

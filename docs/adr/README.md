@@ -139,7 +139,8 @@ ADR-098 candidate (PR #94, source version 2.7.0, unmerged at 2026-10-14).
 | 2026-10-13 | ADR-038 | Remote agent transport target | target; release statement superseded 2026-10-14 |
 | 2026-10-14 | ADR-038 | 3.0.0 release identity; disposition of the 2026-10-13 open items; proof owed | target; transport candidate exists |
 | 2026-10-13 | ADR-083 | Proposed remote per-request trust boundary | requirement |
-| 2026-10-14 | ADR-083 | Mechanism selected by ADR-098; bounded credential replay; admin-grant requirement not enforced in code; key and grant provisioning owed | requirement partly met by the candidate; admin guard owed |
+| 2026-10-14 | ADR-083 | Mechanism selected by ADR-098; bounded credential replay; admin-grant requirement not enforced in code; key and grant provisioning owed | requirement partly met; admin guard implemented in candidate |
+| 2026-10-14 | ADR-083 | Administrator-grant guard implemented in the candidate (`5507d38`): signed-agent grants with `is_admin` refused at startup; bearer-mode, Tier-3 local and stdio agent door not covered | guard implemented in candidate; re-proof on 3.0.0 bytes owed |
 | 2026-10-13 | ADR-082 | Semantic parity is not protocol conformance | requirement |
 | 2026-10-14 | ADR-082 | Five separate proof obligations and the candidate's evidence | partial; four lifecycle operations and PostgreSQL-backed receipts unproven over HTTP |
 | 2026-10-13 | ADR-064 | Local stdio probe is not remote HTTP proof | applicability note |

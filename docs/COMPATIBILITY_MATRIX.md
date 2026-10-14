@@ -52,7 +52,7 @@ operator release acceptance are separate facts.
 | Status | operator-designated current release | `v2.6.0` tag and published artifact exist; not the operational release | unmerged; source version 2.7.0; not a release | first live release of the remote architecture; not built or deployed |
 | stdio MCP | `2024-11-05` | `2024-11-05` | `2024-11-05`, unchanged | supported for local use |
 | HTTP MCP | not conforming Streamable HTTP | not conforming Streamable HTTP; static bearer | Streamable HTTP `2025-11-25`, `2025-06-18`; `bearer` or `signed-agent` | signed-agent HTTPS behind TLS on C1 |
-| Remote agent identity | none | none (bearer is not an agent identity) | per-request signed agent; credential reusable until expiry; admin grant not refused | same; admin grant refused or excluded by policy (ADR-083) |
+| Remote agent identity | none | none (bearer is not an agent identity) | per-request signed agent; credential reusable until expiry; admin agent grant refused at startup | same; bearer mode not used for agents |
 | Control-plane contract | per release | `memory-control-plane/v1` | `memory-control-plane/v1` plus `memory-remote-mcp/v1` | same, re-proven on 3.0.0 bytes |
 | TypeScript client | client 2.x | client 2.x | client 3.0.0 (bearer only; refuses `2024-11-05`) | client 3.0.0 cannot use a signed-agent server |
 | Canonical store for shared use | — | — | HTTP proven on in-memory (suite) and SQLite (wheel proof) stores only | new, empty PostgreSQL; nothing imported |

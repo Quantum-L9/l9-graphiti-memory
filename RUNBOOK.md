@@ -232,7 +232,8 @@ procedure, and nothing here has been run on C1.
 2. **Classification.** ADR-094's open question resolved by its owner, or the
    deployment explicitly recorded as canonically unclassified.
 3. **Canonical store.** `store_backend: postgres` against a new, empty
-   database; projection, graph intelligence and active memory at `none` unless
+   database, with the server installed with the `postgres` extra
+   (`l9-graphite-memory[server,postgres]`); projection, graph intelligence and active memory at `none` unless
    separately qualified. No ledger, graph, Redis state or backup is imported,
    and no migration runs.
 4. **Identity.** `http_auth_mode=signed-agent`; one durable, deployment-specific
@@ -281,11 +282,13 @@ configuration in its own repository:
 ### Proof boundaries
 
 Proven by the candidate's tests: the Streamable HTTP wire contract over real
-TCP, the signed-agent negative suite, receipt shapes, and the installed
-wheel's HTTP entry point, against an in-memory store (suite) and SQLite (installed-wheel proof). Not
+TCP, the signed-agent negative suite, receipt shapes, the installed wheel's
+HTTP entry point, and startup refusal of an administrator agent grant in
+signed-agent and auth-disabled modes, including by the installed wheel,
+against an in-memory store (suite) and SQLite (installed-wheel proof). Not
 proven: HTTP against PostgreSQL, the four lifecycle operations ADR-082
-(2026-10-14) lists, refusal of an administrator grant, any C1 deployment, and
-any consumer's remote configuration.
+(2026-10-14) lists, any C1 deployment, and any consumer's remote
+configuration.
 
 ## Graphiti projection
 
