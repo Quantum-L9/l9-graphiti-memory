@@ -449,7 +449,8 @@ def test_a_credential_in_the_url_never_reaches_the_access_log(registry_env: None
     try:
         deadline = time.monotonic() + 15
         while not server.started:
-            assert thread.is_alive() and time.monotonic() < deadline, "uvicorn did not start"
+            assert thread.is_alive(), "uvicorn exited before starting"
+            assert time.monotonic() < deadline, "uvicorn did not start in time"
             time.sleep(0.02)
         with httpx2.Client(base_url=f"http://127.0.0.1:{server.config.port}", timeout=10) as http:
             response = http.post(

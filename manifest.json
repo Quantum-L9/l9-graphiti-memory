@@ -430,7 +430,7 @@
         "version": "3.0.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "96865c565d339a7c6c2abcec6b16993d2429f7262061de9129fae30faced8e13",
+      "sha256": "d860621ef3132697583d30437d6b79cbb233e9cb426ebb4a12fe3e08736c8443",
       "size_bytes": 141282
     },
     {
@@ -10110,8 +10110,8 @@
         "version": "3.0.0"
       },
       "path": "tests/integration/test_remote_mcp_http.py",
-      "sha256": "20a5ea8d12b87300cdcf78cc3922cfffcb5acf57ddf3551b8b4864ee099fecd8",
-      "size_bytes": 49631
+      "sha256": "f0d8c818756dcc882adb88d146d133ab50b96a23e5197c041170981c1346010f",
+      "size_bytes": 49688
     },
     {
       "category": "tests",

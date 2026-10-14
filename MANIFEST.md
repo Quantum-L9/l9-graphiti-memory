@@ -684,7 +684,7 @@ updated: 2026-07-22
 | `tests/integration/test_projection_seams_live.py` | `tests` | `test` | 31682 | `eb1588b12569680bfde08fe9b4d6c441485db0fcd4d3d603157dcdf98990070b` |
 | `tests/integration/test_projection_targets.py` | `tests` | `test` | 36328 | `315e7eb881e1c93f4f9a65bfc4789f7b5d53e47604feb7cedc58483e78e5b7e6` |
 | `tests/integration/test_quarantine_review_maintenance.py` | `tests` | `test` | 13532 | `a7c16264d263e4c96cd1bdfa00fa5f688064865d0a1d5d8a2720803c4598d27a` |
-| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 49631 | `20a5ea8d12b87300cdcf78cc3922cfffcb5acf57ddf3551b8b4864ee099fecd8` |
+| `tests/integration/test_remote_mcp_http.py` | `tests` | `test` | 49688 | `f0d8c818756dcc882adb88d146d133ab50b96a23e5197c041170981c1346010f` |
 | `tests/integration/test_remote_mcp_postgres_multiprocess.py` | `tests` | `test` | 12007 | `9468d7d1d7c66bb6a72dca7db9c797c1114c981b3e2d67f99564e0068a33b4ba` |
 | `tests/integration/test_repository_corpus_ingestion.py` | `tests` | `test` | 3218 | `1becf822cb37f129fc127e2a585d0da307423770eaa6e672974f233524a7f568` |
 | `tests/integration/test_retention_lineage_phase_lock.py` | `tests` | `test` | 2804 | `8ec3c0f9afc1b7a5fe5a174efdbcee153a443f5d37eff648b16703e2ef1716cd` |
