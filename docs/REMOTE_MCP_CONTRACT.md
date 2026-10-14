@@ -56,12 +56,14 @@ Server-side only — never sent by a client:
 | Variable | Content |
 |---|---|
 | `L9_MEMORY_AGENT_SIGNING_KEYS_JSON` | `{agent_id: key}` for every agent this deployment admits |
-| `L9_MEMORY_AGENT_GRANTS_JSON` | `{agent_id: AgentDoorGrant}` — `principal_id`, `user_id`, `roles`, `read_namespaces`, `write_namespaces`, `promote_namespaces`, `is_admin` |
+| `L9_MEMORY_AGENT_GRANTS_JSON` | `{agent_id: AgentDoorGrant}` — `principal_id`, `user_id`, `roles`, `read_namespaces`, `write_namespaces`, `promote_namespaces`; `is_admin` must be absent or `false` |
 | `L9_MEMORY_HTTP_AGENT_ASSERTION_MAX_TTL_SECONDS` | lifetime ceiling, default `3600` (plus 60 s clock skew) |
 | `L9_MEMORY_HTTP_ALLOWED_ORIGINS` | comma list of browser origins; a request with any other `Origin` gets `403` |
 
-Every registered agent must have a valid grant, and `human` cannot be
-registered; otherwise the server refuses to start. Tenant, organization, and
+Every registered agent must have a valid grant, no grant may set `is_admin`,
+and `human` cannot be registered; otherwise the server refuses to start.
+Administrator authority is the local human door's alone and is never reachable
+over HTTP, including on auth-disabled loopback HTTP serving the agent door. Tenant, organization, and
 workspace come from `L9_MEMORY_LOCAL_*_ID` on the server.
 
 **Refresh.** The assertion is reusable until it expires. Clients mint a new one

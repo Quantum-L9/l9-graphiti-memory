@@ -718,6 +718,65 @@ def test_signed_agent_mode_refuses_to_register_the_human_door(monkeypatch) -> No
         create_http_app(runtime)
 
 
+@pytest.mark.parametrize("is_admin", [True, "true", 1])
+def test_signed_agent_mode_refuses_an_administrator_grant_at_startup(
+    registry_env, monkeypatch, is_admin: object
+) -> None:
+    """A server-side agent grant is never a route to tenant administrator over HTTP.
+
+    Every value Pydantic parses as ``True`` is refused, and the otherwise
+    identical non-administrator registry still starts and serves its agents.
+    """
+
+    grants = {**AGENT_GRANTS, READER: {**AGENT_GRANTS[READER], "is_admin": is_admin}}
+    monkeypatch.setenv("L9_MEMORY_AGENT_GRANTS_JSON", json.dumps(grants))
+    runtime = _runtime()
+    try:
+        with pytest.raises(ConfigurationError, match=rf"is_admin to agent_id='{READER}'"):
+            create_http_app(runtime)
+        monkeypatch.setenv("L9_MEMORY_AGENT_GRANTS_JSON", json.dumps(AGENT_GRANTS))
+        with serve(create_http_app(runtime)) as url, httpx2.Client(base_url=url) as http:
+            receipt = _write(http, WRITER, HOME_NAMESPACE, "a non-admin grant still writes")
+            assert receipt["status"] == "admitted", receipt
+            assert receipt["authorization"]["principal_id"] == WRITER
+    finally:
+        runtime.close()
+
+
+def test_auth_disabled_http_refuses_an_administrator_agent_door(registry_env, monkeypatch) -> None:
+    """Loopback HTTP serves the signed agent door, so it refuses the same grant.
+
+    The stdio agent door for the same configuration is unchanged, and the
+    human door stays the local administrator tier.
+    """
+
+    from l9_graphite_memory.server import _agent_door_principal, _stdio_principal
+
+    grants = {**AGENT_GRANTS, WRITER: {**AGENT_GRANTS[WRITER], "is_admin": True}}
+    monkeypatch.setenv("L9_MEMORY_AGENT_GRANTS_JSON", json.dumps(grants))
+    sealed, mac = seal(identity_body(WRITER), AGENT_KEYS[WRITER])
+    monkeypatch.setenv("L9_MEMORY_AGENTS_DOOR_SECRET", "door")
+    monkeypatch.setenv("L9_MEMORY_AGENT_ASSERTION", mint_assertion(WRITER, AGENT_KEYS[WRITER]))
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_JSON", json.dumps(sealed))
+    monkeypatch.setenv("L9_MEMORY_IDENTITY_ASSERTION_HMAC", mac)
+    settings = _settings(http_auth_required=False, http_auth_mode="bearer")
+    runtime = _runtime(settings)
+    try:
+        with pytest.raises(ConfigurationError, match=rf"is_admin to agent_id='{WRITER}'"):
+            create_http_app(runtime)
+    finally:
+        runtime.close()
+    stdio_agent = _agent_door_principal(settings)
+    assert stdio_agent is not None
+    assert stdio_agent.auth_method == "stdio-agent-assertion"
+    human = _stdio_principal(settings)  # the fixture also sets the human door secret
+    assert (human.principal_id, human.is_admin, human.auth_method) == (
+        "human",
+        True,
+        "stdio-human-door",
+    )
+
+
 def test_signed_agent_mode_requires_authentication(registry_env) -> None:
     runtime = _runtime(_settings(http_auth_required=False))
     with pytest.raises(ConfigurationError, match="requires http_auth_required=true"):

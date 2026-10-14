@@ -186,7 +186,8 @@ verifies, re-verified on every request (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`):
 1. Provision the server-side registry outside the repository:
    `L9_MEMORY_AGENT_SIGNING_KEYS_JSON` (`{agent_id: key}`) and
    `L9_MEMORY_AGENT_GRANTS_JSON` (`{agent_id: grant}`). Every registered agent
-   needs a grant; the server refuses to start otherwise.
+   needs a grant, and no grant may set `is_admin`; the server refuses to start
+   otherwise. Administrator work stays on the local human door.
 2. `export L9_MEMORY_HTTP_AUTH_MODE=signed-agent`; optionally
    `L9_MEMORY_HTTP_ALLOWED_ORIGINS` and
    `L9_MEMORY_HTTP_AGENT_ASSERTION_MAX_TTL_SECONDS` (default 3600).

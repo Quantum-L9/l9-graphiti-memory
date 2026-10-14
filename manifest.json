@@ -430,7 +430,7 @@
         "version": "2.7.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "45d7d176583f64cf8968bc9c17629c0350e171afbd4420899b586f55a17d9296",
+      "sha256": "4a461eb1080a0060319ccb4540710370b7c7bfd6afc7943a7d0b759ec390d6f6",
       "size_bytes": 141118
     },
     {
@@ -510,8 +510,8 @@
         "version": "2.7.0"
       },
       "path": "RUNBOOK.md",
-      "sha256": "e08c479fa01d550b58fff9af6a868ff5a4ea0f70d1a3fcedcf65e8b6f326782f",
-      "size_bytes": 23481
+      "sha256": "60629e141930cd20b56dcedf9f8afb2a7cad6b5e2672d364c88ab529cd8e6a0a",
+      "size_bytes": 23567
     },
     {
       "category": "repository_root",
@@ -1278,8 +1278,8 @@
         "version": "2.7.0"
       },
       "path": "docs/REMOTE_MCP_CONTRACT.md",
-      "sha256": "8ce8d7067b31dd8e718c9c47671f99a6ad29bbff4d74bb7738774009957991a0",
-      "size_bytes": 9784
+      "sha256": "b31df164891271492a1fb1136b1152b0bd795a9b114d3b7a925d7023b8b28fa1",
+      "size_bytes": 9994
     },
     {
       "category": "documentation",
@@ -4574,8 +4574,8 @@
         "version": "2.7.0"
       },
       "path": "docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md",
-      "sha256": "364f308c4c3b7c278cf75b63f6433fccfa2038ce15de13fe2e82f475df9965c1",
-      "size_bytes": 11598
+      "sha256": "7a6fded629fe39c89d352d8d2401bbda909a301a83291393d0e264346c090d59",
+      "size_bytes": 12370
     },
     {
       "category": "architecture_decisions",
@@ -6238,8 +6238,8 @@
         "version": "2.7.0"
       },
       "path": "src/l9_graphite_memory/authz/remote_agent.py",
-      "sha256": "433be4f882a7e4bb71e6dea6ddabbdfc09fea38c96cd5d2e0224528e723d2552",
-      "size_bytes": 8959
+      "sha256": "92665a408fcd5204a34a4f12a60249ecf14a33a403c32360dcd5ccd68a8a8a72",
+      "size_bytes": 9924
     },
     {
       "category": "production_source",
@@ -8030,8 +8030,8 @@
         "version": "2.7.0"
       },
       "path": "src/l9_graphite_memory/server.py",
-      "sha256": "f406be88c62658b74fd6281b9d0a40503e0cf5bad7dac391a4a38b4957d522dd",
-      "size_bytes": 29329
+      "sha256": "ff2ed842cefbc351c37d0d23cbb25af3d7cd318c0798fc3ca4d4ddae80011254",
+      "size_bytes": 29709
     },
     {
       "category": "production_source",
@@ -9774,8 +9774,8 @@
         "version": "2.7.0"
       },
       "path": "tests/integration/test_installed_wheel_lifecycle.py",
-      "sha256": "ca0ac904fb064dced795b600787ce63621920d2356448bd20c67a68b81d098fa",
-      "size_bytes": 12712
+      "sha256": "45ad6fe86b625bd120f17a7ef9edbef00ddf997f727ac33e615c27ee3cb7c230",
+      "size_bytes": 14666
     },
     {
       "category": "tests",
@@ -10110,8 +10110,8 @@
         "version": "2.7.0"
       },
       "path": "tests/integration/test_remote_mcp_http.py",
-      "sha256": "c7869da686b9308ead4a19dd956ab3d8b5c5fe4c27f5e9fa2d28e0bc4851c00a",
-      "size_bytes": 44790
+      "sha256": "a6ddd8e26c38e0d6212e130b5aaf7859f83e18e6b8fee455d4e0c07699cefc72",
+      "size_bytes": 47559
     },
     {
       "category": "tests",

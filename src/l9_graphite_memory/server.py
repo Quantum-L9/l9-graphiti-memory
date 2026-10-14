@@ -38,6 +38,7 @@ from l9_graphite_memory.authz.remote_agent import (
     IDENTITY_ASSERTION_HEADER,
     IDENTITY_ASSERTION_HMAC_HEADER,
     SignedAgentAuthenticator,
+    administrator_grant_refusal,
 )
 from l9_graphite_memory.authz.signed_assertion import (
     agent_grant_from_config,
@@ -305,10 +306,17 @@ def _stdio_principal(settings: MemorySettings) -> MemoryPrincipal:
 
 
 def _http_local_principal(settings: MemorySettings) -> MemoryPrincipal:
-    """The auth-disabled HTTP principal: the signed agent door, else Tier 3."""
+    """The auth-disabled HTTP principal: the signed agent door, else Tier 3.
+
+    The signed agent is served over HTTP here, so an administrator grant is
+    refused at startup exactly as signed-agent mode refuses it: reaching a
+    loopback port does not make a process the human administrator.
+    """
 
     principal = _agent_door_principal(settings)
     if principal is not None:
+        if principal.is_admin:
+            raise administrator_grant_refusal(principal.agent_id or principal.principal_id)
         return principal
     _, local = resolve_local_context(settings)
     return local
