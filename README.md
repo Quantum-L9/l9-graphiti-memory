@@ -13,7 +13,7 @@ updated: 2026-10-14
 
 Contract-governed, bi-temporal memory for autonomous agents.
 
-Version 2.1 is the recursive convergence release for `Quantum-L9/l9-graphiti-memory`. It preserves valid package, CLI, MCP, and hook surfaces while replacing the old provider-centered internals with one authorized `MemoryService`, one canonical record store, typed evidence receipts, explicit temporal coordinates, and rebuildable graph or semantic projections.
+Version 2.1 was the recursive convergence release for `Quantum-L9/l9-graphiti-memory`. It preserves valid package, CLI, MCP, and hook surfaces while replacing the old provider-centered internals with one authorized `MemoryService`, one canonical record store, typed evidence receipts, explicit temporal coordinates, and rebuildable graph or semantic projections.
 
 The repository name uses **Graphiti** because the project integrates with Graphiti-style graph memory. The published distribution and Python import remain `l9-graphite-memory` and `l9_graphite_memory` for compatibility. See ADR-058.
 
@@ -181,8 +181,8 @@ validation on exact bytes; PostgreSQL-backed HTTP proof; the administrator
 grant guard (ADR-083, 2026-10-14); durable per-agent keys and a server-side
 grant map; the product classification (ADR-094, 2026-10-14, open); C1
 deployment evidence; and consumer adoption, which each consumer owns.
-Cursor-Governance currently seals the agent HTTP path, so Cursor adoption
-needs its own authorized campaign. `config/mcp.json.example` stays the
+Cursor-Governance currently seals the agent HTTP path, so the Cursor and
+Claude Code agents it governs need an authorized consumer campaign first. `config/mcp.json.example` stays the
 generated stdio entry.
 
 ### Basic shared canonical deployment (target)

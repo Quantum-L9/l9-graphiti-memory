@@ -154,7 +154,7 @@ A missing locator, unavailable deletion tool, or provider error leaves the event
 l9-memory-server --transport stdio
 ```
 
-Stdio MCP is the supported agent transport of the 2.5.0 operational release and of `main`, and stays supported for local use in the ADR-098 candidate and the 3.0.0 target; it is not the multi-machine deployment. Its principal is established once at startup, server-side, in three tiers (ADR-083): the human door (`L9_MEMORY_HUMAN_DOOR_SECRET` set) yields an administrator principal; otherwise the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET` set) yields the principal of a verified signed agent assertion and canonical identity assertion; otherwise the principal comes from the server working directory, with no administrator rights. Desktop clients launched outside a repository need explicit local namespace claims:
+Stdio MCP is the supported agent transport of the 2.5.0 operational release and of `main`, and stays supported for local use in the ADR-098 candidate and the 3.0.0 target; it is not the multi-machine deployment. Its principal is established once at startup, server-side, in three tiers (ADR-083): the human door (`L9_MEMORY_HUMAN_DOOR_SECRET` set) yields an administrator principal; otherwise the agent door (`L9_MEMORY_AGENTS_DOOR_SECRET` set) yields the principal of a verified signed agent assertion and canonical identity assertion; otherwise the principal comes from the server working directory, with no administrator rights unless `L9_MEMORY_LOCAL_IS_ADMIN` (or `L9_MEMORY_LOCAL_IS_GLOBAL_ADMIN`) is set true. Desktop clients launched outside a repository need explicit local namespace claims:
 
 ```bash
 export L9_MEMORY_LOCAL_READ_NAMESPACES=l9-graphiti-memory,l9-workspace
@@ -282,7 +282,7 @@ configuration in its own repository:
 
 Proven by the candidate's tests: the Streamable HTTP wire contract over real
 TCP, the signed-agent negative suite, receipt shapes, and the installed
-wheel's HTTP entry point, all against an in-memory or SQLite store. Not
+wheel's HTTP entry point, against an in-memory store (suite) and SQLite (installed-wheel proof). Not
 proven: HTTP against PostgreSQL, the four lifecycle operations ADR-082
 (2026-10-14) lists, refusal of an administrator grant, any C1 deployment, and
 any consumer's remote configuration.

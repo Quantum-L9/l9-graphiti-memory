@@ -402,12 +402,28 @@ existing HMAC agent assertion in `Authorization: Bearer`, plus the sealed
 `L9-Identity-Assertion-HMAC`, re-verified on every request against
 `L9_MEMORY_AGENT_SIGNING_KEYS_JSON`, with grants from
 `L9_MEMORY_AGENT_GRANTS_JSON` and the principal built by `agent_principal`, the
-function the stdio door uses. No OAuth profile is adopted. Guarantees 1, 2, 3,
-5 and 6 above are met by that mechanism in the candidate and exercised by
-`tests/integration/test_remote_mcp_http.py`. The human door is unreachable
-over HTTP, including on auth-disabled loopback HTTP; the 2026-10-13 finding
-about auth-disabled loopback serving the administrator describes `441b741`
-and is closed in the candidate.
+function the stdio door uses. No OAuth profile is adopted. The 2026-10-13
+"Implementation status: not implemented" line describes `441b741` and is
+superseded for the candidate as follows.
+
+Guarantees 1, 2, 5 and 6 are implemented by that mechanism, and guarantee 3
+by the server taking claims only from its own grant map. What
+`tests/integration/test_remote_mcp_http.py` exercises: missing, expired,
+over-ceiling, tampered, unknown-agent and other-actor credentials; another
+agent's genuine identity evidence; claims smuggled into the identity
+assertion and into request headers; namespace denial; tenant isolation; the
+human door. Not exercised: claim smuggling through MCP `_meta`, request-body
+or query fields; the presence of `auth_method` and granted patterns in a
+denial reason (guarantee 6); and the 2026-10-13 requirement that each case run
+against the installed wheel, whose HTTP proof covers only missing
+credentials, a tampered identity HMAC, a forbidden `Origin` and the
+protocol-version header. Those remain owed.
+
+The human door is unreachable over HTTP, including on auth-disabled loopback
+HTTP; that part of the 2026-10-13 finding describes `441b741` and is closed in
+the candidate. Auth-disabled loopback HTTP still serves the Tier-3 local
+principal, which carries administrator flags when
+`L9_MEMORY_LOCAL_IS_ADMIN` or `L9_MEMORY_LOCAL_IS_GLOBAL_ADMIN` is true.
 
 ### Replay: one disposition
 

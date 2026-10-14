@@ -235,7 +235,8 @@ No later ADR supersedes this decision as of 2026-10-13.
 **Effect:** states this decision's standing against the Memory 3.0.0 target.
 The transport and identity decision above is unchanged.
 
-**Candidate, not release.** This ADR's implementation is PR #94, unmerged at
+**Candidate, not release.** "Accepted" is the status of the decision. This
+ADR's implementation is PR #94, unmerged at
 2026-10-14. Its source version identifier is 2.7.0. "Package 2.6.0 is
 immutable; this ships as 2.7.0" (Migration Impact) is read as: the candidate
 is identified in source as 2.7.0 and is not 2.6.0. It is not an accepted live
@@ -259,6 +260,7 @@ required are in ADR-083, 2026-10-14.
 **Other limits carried to 3.0.0.** FastAPI's default `/docs`, `/redoc` and
 `/openapi.json` are served without authentication and need an exposure
 decision before a remote deployment. The HTTP suite runs on an in-memory
-store; PostgreSQL-backed HTTP proof is owed. Key and grant provisioning,
+store and the installed-wheel HTTP proof on SQLite; PostgreSQL-backed HTTP
+proof is owed. Key and grant provisioning,
 consumer adoption (including the Cursor-Governance policy that seals agent
 HTTP), C1 deployment and the ADR-094 classification are outside this ADR.

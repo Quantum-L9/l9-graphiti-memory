@@ -17,7 +17,7 @@ The system defends against:
 
 - caller identity spoofing
 - cross-tenant and cross-namespace access
-- replay and duplicate writes
+- duplicate writes (idempotency) and replayed writes; credential replay is bounded by expiry only (see "Credential replay")
 - credential persistence or logging
 - prompt-injection-like content entering active retrieval without review
 - PII leakage
@@ -94,7 +94,9 @@ bearer mode a token's principal can carry `is_admin` and `is_global_admin`.
 Until the implementation adds a startup refusal and a negative test, the rule
 is a deployment-configuration control verified by reading the grant map
 (ADR-083, 2026-10-14). The human door is unreachable over HTTP in the
-candidate, including on auth-disabled loopback.
+candidate, including on auth-disabled loopback; auth-disabled loopback still
+serves the Tier-3 local principal, which is an administrator when
+`L9_MEMORY_LOCAL_IS_ADMIN` or `L9_MEMORY_LOCAL_IS_GLOBAL_ADMIN` is true.
 
 ### Transport and default-deny
 

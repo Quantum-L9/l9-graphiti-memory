@@ -71,7 +71,6 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-045 | [Procedural Synthesis Approval Boundary](ADR-045-procedural-synthesis-approval-boundary.md) | Accepted |
 | ADR-046 | [Core Commit versus Asynchronous Enrichment](ADR-046-core-commit-versus-asynchronous-enrichment.md) | Accepted |
 | ADR-047 | [Schema Migration and Legacy Record Compatibility](ADR-047-schema-migration-and-legacy-record-compatibility.md) | Accepted |
-
 | ADR-048 | [Atomic Extraction and Evidence Binding](ADR-048-atomic-extraction-and-evidence-binding.md) | Accepted |
 | ADR-049 | [Sensitive Profiles and Purpose-Bound Consent](ADR-049-sensitive-profiles-and-purpose-bound-consent.md) | Accepted |
 | ADR-050 | [Phase-Lock Snapshot Verification](ADR-050-phase-lock-snapshot-verification.md) | Accepted |
@@ -122,7 +121,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-095 | [Structured Source Invalidation Lifecycle](ADR-095-structured-source-invalidation-lifecycle.md) | Accepted |
 | ADR-096 | [Canonical Repository Corpus Authority Binding](ADR-096-canonical-repository-corpus-authority-binding.md) | Accepted |
 | ADR-097 | [Active-Memory Runtime Composition and Full-Capability Readiness](ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md) | Accepted |
-| ADR-098 | [Remote MCP Transport and Signed-Agent HTTP Identity](ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md) | Accepted |
+| ADR-098 | [Remote MCP Transport and Signed-Agent HTTP Identity](ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md) | Accepted (decision); implementation is an unmerged candidate |
 
 ## Pending target amendments (Memory 3.0.0)
 

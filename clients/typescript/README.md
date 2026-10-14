@@ -11,7 +11,7 @@ updated: 2026-10-14
 
 # @quantum-l9/graphiti-memory-client
 
-Typed Node.js client for the existing authenticated HTTP MCP surface exposed by `l9-graphiti-memory`.
+Typed Node.js client for the authenticated Streamable HTTP MCP surface of the `l9-graphiti-memory` ADR-098 candidate.
 
 This README describes client package **3.0.0** (an npm package version; it is not Memory 3.0.0). The client speaks the `memory-remote-mcp/v1` HTTP contract introduced by the ADR-098 candidate (PR #94, server source version 2.7.0, unmerged at 2026-10-14). It works only against a server that implements that contract in **bearer** mode, and it is not bound to, or evidence of, any deployment, including the Memory 3.0.0 C1 target. Released servers (2.5.0, 2.6.0) answer `2024-11-05` and are refused.
 

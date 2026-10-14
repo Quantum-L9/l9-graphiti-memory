@@ -276,8 +276,9 @@ server advertises, not a conformance result.
 
 **Decision date:** 2026-10-14 (campaign MEM-DOC-3.0, documentation only).
 **Effect:** records what the ADR-098 candidate (PR #94) proves against the
-2026-10-13 list, whose "not implemented" status line described `441b741` and
-is superseded for the candidate by the evidence column below. The five
+2026-10-13 list, whose "not implemented" status line and "none exist today" /
+"does not exist today" notes described `441b741` and are superseded for the
+candidate by the evidence column below. The five
 properties are separate proof obligations; a pass on one is never evidence
 for another.
 
@@ -286,7 +287,7 @@ for another.
 | MCP protocol conformance | ADR-038, ADR-098 | `tests/integration/test_remote_mcp_http.py` over real TCP: negotiation of `2025-11-25`/`2025-06-18`, `MCP-Protocol-Version`, framing, `202`, `405`, `Origin`, `Accept`, `Content-Type`, size and envelope refusals | the same suite on the 3.0.0 bytes |
 | Authentication and identity | ADR-083, ADR-098 | same suite: missing, expired, over-ceiling, tampered, unknown-agent and other-actor credentials; smuggled claims; human door unreachable | admin-grant refusal (ADR-083, 2026-10-14) |
 | Lifecycle | this ADR | over HTTP the suite calls `health`, `capabilities`, `hydrate`, `search`, `get`, `close`, `phase_lock`, `write_agent` and `write_governed`; the installed wheel's HTTP proof calls `initialize`, `tools/list`, `capabilities`, `write_agent` and `search` | `ingest`, `ingest_governed_candidate`, `conflicts` and `verify_phase_lock` are not exercised over HTTP; installed-wheel coverage of the full set |
-| Receipts | this ADR, ADR-083 | `test_capability_and_lifecycle_receipts_keep_their_control_plane_shapes` | receipts from a PostgreSQL-backed service; the HTTP suite uses an in-memory store |
+| Receipts | this ADR, ADR-083 | `test_capability_and_lifecycle_receipts_keep_their_control_plane_shapes` | receipts from a PostgreSQL-backed service; the HTTP suite uses an in-memory store and the wheel proof SQLite |
 | Semantic parity | this ADR | unchanged: `tests/unit/test_control_plane_transport_parity.py`; both transports dispatch the same tool definitions to the same `MemoryService` | — |
 
 **Contract version.** The 2026-10-13 amendment left open whether remote HTTP
