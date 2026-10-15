@@ -21,6 +21,15 @@ are the ones the bound law states mechanically:
   vocabulary values;
 * ProductKind admitted, coherent with its consumption and deployment model,
   and the archetype a member of the kind's own archetype catalog;
+* a declared ``product.kind_exception_ref`` resolved under the schema's
+  ``kind_resolution.exception_rule``: it must name an admitted
+  ``product_kinds.yaml#kind_exceptions`` entry bound to this exact product,
+  repository, registry entry and archetype; only then do the entry's effective
+  models and identity dimensions replace the kind's, and its positive
+  obligations (remote protocol declared, authentication and authorization
+  contracts, product/release/actor/runtime identity, ``service_admitted``)
+  are checked. An unresolved, unadmitted or unbound claim is a failure, never
+  ignored and never coerced to the kind;
 * the kind's and archetype's required patterns and conformance classes
   present; no pattern both required and forbidden;
 * identity dimensions limited to the schema's dimension keys;
@@ -31,7 +40,11 @@ are the ones the bound law states mechanically:
   this repository;
 * ``provenance`` pins the authority checkout's HEAD revision and the git blob
   ids of the material authority files exactly as read;
-* every ``unknown`` value is backed by a declared material Unknown.
+* every ``unknown`` value is backed by a declared material Unknown;
+* with ``--release-version``, the release floor of a claimed exception
+  (``subject.applies_from_release``): the floor is a product-release
+  obligation (``l9.contract/product-release@1``), so it is checked only when a
+  release version is named, never as part of the release-independent topology.
 
 Product-owned ``l9-graphiti-memory:`` identifiers are owned by this
 repository (ProductTopology NM-001) and are not resolved globally.
@@ -59,6 +72,9 @@ MATERIAL_AUTHORITY_FILES = (
     "semantics/product_topology.schema.yaml",
     "semantics/product_kinds.yaml",
     "semantics/dependency_archetypes.yaml",
+    # v3.21.0: product-kind resolution depends on the repository registry, so a
+    # registry change invalidates a topology that claims a kind exception.
+    "semantics/repository_registry.yaml",
 )
 GLOBAL_REF = re.compile(r"^(?:l9\.[a-z0-9-]+(?:/[A-Za-z0-9_.-]+)?(?:@\d+)?|L9-[A-Z]+-\d{3})$")
 LEDGER_ID = re.compile(r"^[ \t]*(?:- )?(?:id|artifact_id):[ \t]*(\S+)", re.MULTILINE)
@@ -164,17 +180,168 @@ def check_models(topo: dict[str, Any], vocabulary_text: str) -> list[str]:
     return failures
 
 
+# Identity dimensions whose applicability ProductKind law (or a bound
+# exception) decides; actor and surface are conditional obligations of every kind.
+KIND_DIMENSIONS = {
+    "product": "product_identity",
+    "release": "release_identity",
+    "runtime": "runtime_identity",
+    "constellation": "constellation_identity",
+}
+NODE_ONLY_ADMISSION = frozenset({"gate_admitted", "routable"})
+
+
+def _registry_binds(authority: Path, repository_ref: Any, canonical_repository: Any) -> bool:
+    registry = _load(authority / "semantics" / "repository_registry.yaml") or {}
+    for entry in registry.get("repositories", []) or []:
+        if not isinstance(entry, dict) or entry.get("id") != repository_ref:
+            continue
+        coordinate = entry.get("coordinate") or {}
+        return entry.get("lifecycle") == "current" and (
+            f"{coordinate.get('organization')}/{coordinate.get('repository')}"
+            == canonical_repository
+        )
+    return False
+
+
+def bound_exception(
+    topo: dict[str, Any], kinds: dict[str, Any], authority: Path
+) -> tuple[dict[str, Any] | None, list[str]]:
+    """Resolve ``product.kind_exception_ref`` (schema ``kind_resolution.exception_rule``).
+
+    Returns ``(entry, [])`` for an exactly bound admitted exception,
+    ``(None, [])`` when no claim is declared, and ``(None, reasons)`` for any
+    unresolved, unadmitted, malformed or unbound claim.
+    """
+
+    product = topo.get("product", {})
+    claim = product.get("kind_exception_ref")
+    if claim is None:
+        return None, []
+    model = kinds.get("kind_exception_model") or {}
+    matches = [
+        e
+        for e in kinds.get("kind_exceptions") or []
+        if isinstance(e, dict) and e.get("id") == claim
+    ]
+    if len(matches) != 1:
+        return None, [f"product.kind_exception_ref does not resolve to one exception: {claim}"]
+    entry = matches[0]
+    subject = entry.get("subject") or {}
+    identity = topo.get("identity", {})
+    unbound = [
+        reason
+        for reason, holds in (
+            ("exception status is not admitted", entry.get("status") == "admitted"),
+            (
+                "exception authority is not the ProductKind owner",
+                (entry.get("authority") or {}).get("owner") == model.get("admission_authority"),
+            ),
+            ("exception kind differs from product.kind", entry.get("kind") == product.get("kind")),
+            (
+                "exception subject product differs from product.id",
+                subject.get("product_ref") == product.get("id"),
+            ),
+            (
+                "exception subject repository differs from identity.canonical_repository",
+                subject.get("canonical_repository") == identity.get("canonical_repository"),
+            ),
+            (
+                "exception subject archetype differs from product.archetype_ref",
+                subject.get("archetype_ref") == product.get("archetype_ref"),
+            ),
+            (
+                "exception subject repository_ref is not a current registry entry with the same coordinate",
+                _registry_binds(
+                    authority, subject.get("repository_ref"), identity.get("canonical_repository")
+                ),
+            ),
+        )
+        if not holds
+    ]
+    if unbound:
+        return None, [f"product.kind_exception_ref {claim} is not bound: {r}" for r in unbound]
+    return entry, []
+
+
+def _exception_obligations(topo: dict[str, Any], entry: dict[str, Any]) -> list[str]:
+    """Positive obligations a bound exception keeps or adds (never relaxes)."""
+
+    failures: list[str] = []
+    protocol = (entry.get("remote_consumption") or {}).get("protocol")
+    if protocol not in topo.get("consumption", {}).get("public_entry_modes", []):
+        failures.append(
+            f"consumption.public_entry_modes must declare the excepted protocol {protocol}"
+        )
+    security = topo.get("security", {})
+    for field in ("authentication_contract_refs", "authorization_contract_refs"):
+        if not security.get(field):
+            failures.append(f"security.{field} must be declared for excepted remote consumption")
+    dimensions = topo.get("identity", {}).get("dimensions", {})
+    allowed = set((entry.get("identity") or {}).get("identity_dimensions", []))
+    for name in ("product", "release", "actor"):
+        if dimensions.get(name, {}).get("applicable") is not True:
+            failures.append(f"identity.dimensions.{name} must be applicable under the exception")
+    if (
+        "runtime_identity" in allowed
+        and dimensions.get("runtime", {}).get("applicable") is not True
+    ):
+        failures.append(
+            "identity.dimensions.runtime: the hosted service's own runtime identity is required"
+        )
+    if dimensions.get("constellation", {}).get("applicable") is not False:
+        failures.append(
+            "identity.dimensions.constellation must stay inapplicable under the exception"
+        )
+    declaration = (entry.get("hosted_service_admission") or {}).get("topology_declaration") or {}
+    required = declaration.get("requires")
+    declared = topo.get("admission", {}).get("kind_specific_requirements") or []
+    if not required or required not in declared:
+        failures.append(f"admission.kind_specific_requirements must declare {required}")
+    return failures
+
+
 def check_kind(topo: dict[str, Any], kinds: dict[str, Any], authority: Path) -> list[str]:
     product = topo.get("product", {})
     kind_name = product.get("kind")
     if kind_name not in kinds["catalog_status"]["admitted_kinds"]:
         return [f"product.kind is not an admitted ProductKind: {kind_name}"]
     kind = kinds["kinds"][kind_name]
-    failures = [
-        f"{field}.model contradicts the declared ProductKind"
+    entry, failures = bound_exception(topo, kinds, authority)
+    models = dict(kind)
+    allowed = set(kind.get("identity_dimensions", []))
+    if entry is not None:
+        effective = entry.get("effective_models") or {}
+        models = {f"{f}_model": effective.get(f"{f}_model") for f in ("consumption", "deployment")}
+        allowed = set((entry.get("identity") or {}).get("identity_dimensions", []))
+        failures += _exception_obligations(topo, entry)
+    failures += [
+        f"{field}.model contradicts the declared ProductKind and no bound exception admits it"
         for field in ("consumption", "deployment")
-        if topo.get(field, {}).get("model") != kind[f"{field}_model"]
+        if topo.get(field, {}).get("model") != models[f"{field}_model"]
     ]
+    dimensions = topo.get("identity", {}).get("dimensions", {})
+    failures += [
+        f"identity.dimensions.{name}: {coordinate} is not a dimension of the kind or bound exception"
+        for name, coordinate in KIND_DIMENSIONS.items()
+        if dimensions.get(name, {}).get("applicable") is True and coordinate not in allowed
+    ]
+    if kind_name == "dependency":
+        node = kinds["kinds"].get("node", {})
+        if topo.get("communication", {}).get("constellation_boundary_required") is True:
+            failures.append(
+                "a Dependency never participates in Gate-routed Constellation communication"
+            )
+        node_patterns = set(node.get("required_patterns", []))
+        required_refs = set(topo.get("architecture", {}).get("required_pattern_refs", []))
+        failures += [
+            f"a Dependency never requires Node pattern {p}"
+            for p in sorted(required_refs & node_patterns)
+        ]
+        declared = set(topo.get("admission", {}).get("kind_specific_requirements") or [])
+        failures += [
+            f"a Dependency never acquires {r}" for r in sorted(declared & NODE_ONLY_ADMISSION)
+        ]
     catalog = _load(authority / "semantics" / kind["archetype_catalog"])
     archetype = {a["id"]: a for a in catalog["archetypes"]}.get(product.get("archetype_ref"))
     if archetype is None:
@@ -235,6 +402,31 @@ def check_unknowns(topo: dict[str, Any]) -> list[str]:
     return failures
 
 
+def _release_key(version: str) -> tuple[int, ...]:
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version.strip())
+    if match is None:
+        raise ValueError(f"not a release version: {version!r}")
+    return tuple(int(part) for part in match.groups())
+
+
+def check_release_floor(
+    topo: dict[str, Any], kinds: dict[str, Any], authority: Path, release_version: str
+) -> list[str]:
+    """A release admitted under a claimed exception is at or after its floor."""
+
+    entry, failures = bound_exception(topo, kinds, authority)
+    if failures or entry is None:
+        return failures
+    floor = str((entry.get("subject") or {}).get("applies_from_release") or "")
+    try:
+        below = _release_key(release_version) < _release_key(floor)
+    except ValueError as error:
+        return [f"release floor cannot be evaluated: {error}"]
+    if below:
+        return [f"release {release_version} is below the exception's release floor {floor}"]
+    return []
+
+
 def check_provenance(topo: dict[str, Any], authority: Path) -> list[str]:
     provenance = topo.get("provenance", {})
     head = head_revision(authority)
@@ -249,7 +441,9 @@ def check_provenance(topo: dict[str, Any], authority: Path) -> list[str]:
     return failures
 
 
-def validate(repo: Path, authority: Path, topology_path: Path) -> list[str]:
+def validate(
+    repo: Path, authority: Path, topology_path: Path, release_version: str | None = None
+) -> list[str]:
     topo = _load(topology_path)
     if not isinstance(topo, dict):
         return ["topology is not a mapping"]
@@ -263,6 +457,11 @@ def validate(repo: Path, authority: Path, topology_path: Path) -> list[str]:
         *check_references(topo, _global_ids(authority), repo),
         *check_unknowns(topo),
         *check_provenance(topo, authority),
+        *(
+            check_release_floor(topo, kinds, authority, release_version)
+            if release_version is not None
+            else []
+        ),
     ]
 
 
@@ -270,11 +469,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--authority-root", type=Path, required=True)
+    parser.add_argument(
+        "--release-version",
+        default=None,
+        help="also check a claimed exception's release floor for this release version",
+    )
     args = parser.parse_args()
     authority = args.authority_root.resolve()
     topology = args.repo_root / "product-topology.yaml"
     digest = hashlib.sha256(topology.read_bytes()).hexdigest()
-    failures = validate(args.repo_root, authority, topology)
+    failures = validate(args.repo_root, authority, topology, args.release_version)
     sys.stdout.write(f"topology: product-topology.yaml sha256:{digest}\n")
     sys.stdout.write(f"authority: Quantum-L9/.github@{head_revision(authority)}\n")
     if failures:

@@ -14,10 +14,16 @@ schema: l9.product-topology/v1
 # Quantum-L9/.github at the revision pinned under `provenance`. References in
 # the `l9-graphiti-memory:` namespace are product-owned semantics whose
 # authority is this repository (see unknowns.non_material: NM-001).
+# The product remains a Dependency and claims, through product.kind_exception_ref,
+# the admitted exception l9.product-kind-exception/memory-hosted-service@1
+# (Semantic Foundation v3.21.0): one centrally hosted Memory service consumed
+# remotely over authenticated MCP Streamable HTTP. Only the exception's
+# enumerated departures apply; every other Dependency obligation remains.
 product:
   id: l9-graphiti-memory:product/l9-graphite-memory
   kind: dependency
   archetype_ref: l9.dependency-archetype/semantic-subsystem@1
+  kind_exception_ref: l9.product-kind-exception/memory-hosted-service@1
   name: l9-graphite-memory
   versioning_family: semver
   status: candidate
@@ -38,10 +44,11 @@ identity:
       version_source: src/l9_graphite_memory/version.py::PACKAGE_VERSION
       governing_contract_ref: l9.contract/product-release@1
     runtime:
-      applicable: false
-      inherits_from: consumer
-      rule: RuntimeIdentity(dependency_instance) = RuntimeIdentity(consumer)
-      rule_source_ref: l9.product-kinds/global@1
+      applicable: true
+      rule: RuntimeIdentity(memory_service_instance) = RuntimeIdentity(admitted Memory service deployment); it is never ConstellationIdentity and confers no Gate admission or routability.
+      rule_source_ref: l9.product-kind-exception/memory-hosted-service@1
+      reason: the hosted Memory service carries its own runtime identity; the exact running deployment is bound only by hosted-service admission, never by this topology
+      authority_source: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-094-product-topology-and-release-governance.md
     constellation:
       applicable: false
       rule: no_independent_constellation_runtime_identity
@@ -83,7 +90,7 @@ purpose:
     - l9-graphiti-memory:capability/memory-curation@1
     - l9-graphiti-memory:capability/memory-projection@1
     - l9-graphiti-memory:capability/memory-receipts@1
-  primary_responsibility: Own the semantics of agent memory and expose them through one canonical control plane composed into a consumer's process.
+  primary_responsibility: Own the semantics of agent memory and expose them through one canonical control plane, served to remote agents by one centrally hosted Memory service over authenticated MCP Streamable HTTP and shipped as an installable package.
   objectives:
     - one canonical write and read path through MemoryService
     - atomic, evidence-bearing canonical persistence
@@ -93,7 +100,7 @@ purpose:
     - agent execution or checkpoint orchestration
     - constellation routing or Gate routing authority
     - business-domain semantics
-    - an independent runtime or constellation identity
+    - a Constellation identity, Gate admission or routability
 boundary:
   owns:
     - memory contracts
@@ -108,6 +115,7 @@ boundary:
     - memory provider ports
     - memory projection semantics
     - memory compatibility policy
+    - memory service runtime identity, process lifecycle and operational health
   does_not_own:
     - agent execution
     - world-model semantics
@@ -119,6 +127,7 @@ boundary:
     - Cursor-Governance semantics
     - Graphiti semantics
     - Zep semantics
+    - hosting coordinate and deployment infrastructure
   authority_boundary_refs:
     - l9.contract/authority-boundary@1
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-001-repository-role-and-boundaries.md
@@ -215,54 +224,63 @@ capabilities:
       semantic_owner: l9-graphiti-memory:authority/memory-architecture
       purpose: Emit evidence-bearing receipts for every consequential memory operation.
   requires:
-    - id: l9-graphiti-memory:requirement/consumer-process-host@1
-      purpose: A consuming product hosts the process, injects deployment identity and owns process lifecycle.
-      source_ref: l9.pattern/dependency-package@1
+    - id: l9-graphiti-memory:requirement/shared-canonical-store@1
+      purpose: PostgreSQL is the shared canonical persistence backend of the hosted service; MemoryService remains the semantic owner of every record.
+      source_ref: l9.product-kind-exception/memory-hosted-service@1
+    - id: l9-graphiti-memory:requirement/deployment-owned-host@1
+      purpose: A deployment-owned host runs one exact admitted release as the hosted service; the hosting coordinate is deployment-owned and is never a semantic category.
+      source_ref: l9.product-kind-exception/memory-hosted-service@1
   optional:
     - id: l9-graphiti-memory:requirement/graph-projection-provider@1
       purpose: A graph provider realization for the memory projection port.
-    - id: l9-graphiti-memory:requirement/shared-canonical-store@1
-      purpose: A PostgreSQL canonical store when the deployment shares canonical memory across processes.
   degraded_without:
     - id: l9-graphiti-memory:requirement/graph-projection-provider@1
       purpose: Without a provider, canonical memory remains complete and projection targets stay disabled.
   forbidden: []
 consumption:
-  model: local_composition
+  model: remote_invocation
   public_entry_modes:
+    - mcp_streamable_http
     - python_sdk
     - cli
     - mcp_stdio
-    - mcp_http
     - gate_adapter
   invocation_contract_refs:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md
+    - Quantum-L9/l9-graphiti-memory/docs/REMOTE_MCP_CONTRACT.md
   consumer_requirements:
     - id: l9-graphiti-memory:constraint/consumer-binds-control-plane-contract@1
       class: interface
       hardness: hard
       statement: A consumer binds to CONTROL_PLANE_CONTRACT_VERSION and an exact admitted release, never to tool presence.
       source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-082-consumer-control-plane-transport-parity.md
+    - id: l9-graphiti-memory:constraint/authenticated-remote-consumption@1
+      class: interface
+      hardness: hard
+      statement: Remote canonical consumption is MCP Streamable HTTP only; every request is authenticated by a signed agent assertion and its sealed identity evidence, the caller principal is derived server-side, and every namespace is authorized server-side.
+      source_ref: Quantum-L9/l9-graphiti-memory/docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md
   forbidden_consumption_modes:
-    - remote_invocation_as_canonical_consumption
+    - unauthenticated_remote_consumption
+    - remote_invocation_other_than_authenticated_mcp_streamable_http
     - implicit_gate_registration
 deployment:
-  model: consumer_bound_artifact
-  deployment_unit: python distribution l9-graphite-memory
-  runtime_boundary: consuming product process
-  scaling_boundary: consuming product
-  failure_boundary: consuming product process; canonical store transaction
-  upgrade_boundary: consumer binding of an exact admitted release
+  model: independent_runtime
+  deployment_unit: one hosted Memory service process running the python distribution l9-graphite-memory
+  runtime_boundary: the hosted Memory service process
+  scaling_boundary: the hosted Memory service and its shared PostgreSQL canonical store
+  failure_boundary: the hosted Memory service process; canonical store transaction
+  upgrade_boundary: deployment admission of an exact admitted release
   artifact_forms:
     - wheel
     - sdist
   deployment_constraints:
-    - id: l9-graphiti-memory:constraint/consumer-owned-deployment@1
+    - id: l9-graphiti-memory:constraint/deployment-owned-hosting-coordinate@1
       class: operational
       hardness: hard
-      statement: Deployment choices belong to the consuming product's own deployment repository.
-      source_ref: Quantum-L9/l9-graphiti-memory/docs/ACTIVE_MEMORY_DEPLOYMENT_CONTRACT.md
+      statement: The hosting coordinate (host, network path, TLS termination, reverse proxy and runtime secret delivery) is deployment-owned and never semantic authority; a successful deployment never self-admits the service.
+      source_ref: l9.product-kind-exception/memory-hosted-service@1
 contracts:
   public:
     - l9-graphiti-memory:contract/memory-control-plane@1
@@ -359,7 +377,8 @@ relationships:
       source_ref: l9.product-kinds/global@1
   forbidden_relationships:
     - relation: invoke
-      reason: remote_invocation_as_canonical_consumption is forbidden for a dependency
+      scope: any transport other than authenticated, namespace-authorized MCP Streamable HTTP
+      reason: the bound exception admits remote invocation only through authenticated MCP Streamable HTTP, never through Gate routing or Constellation identity
 bindings:
   product_bindings: []
   protocol_bindings: []
@@ -415,16 +434,18 @@ state:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-084-projection-runtime-and-target-aware-lifecycle.md
   cache_authority: derived
 runtime:
-  participation_model: consumer_bound
-  process_model: consumer_owned_process_lifecycle
-  concurrency_model: canonical store transactions; one outbox intent per projection target
-  resource_model: consumer_owned
+  participation_model: independent_operational_service
+  process_model: product_owned_server_process_lifecycle
+  concurrency_model: canonical store transactions; independent server processes share one PostgreSQL canonical store with serialized first-time schema initialization; one outbox intent per projection target
+  resource_model: product_owned
   startup_requirement_refs:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-077-canonical-store-backend-transition-safety.md
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md
   shutdown_requirement_refs: []
   health_contract_refs:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md
-  readiness_contract_refs: []
+  readiness_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-038-sdk-mcp-cli-and-http-surface.md
   degradation_contract_refs: []
 communication:
   constellation_boundary_required: false
@@ -441,16 +462,22 @@ communication:
 security:
   identity_source_refs:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md
-  authentication_contract_refs: []
+  authentication_contract_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md
+    - Quantum-L9/l9-graphiti-memory/docs/REMOTE_MCP_CONTRACT.md
   authorization_contract_refs:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-083-server-side-local-authorization-and-one-class-vocabulary.md
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-006-namespace-authorization.md
   trust_source_refs: []
   secret_contract_refs:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-016-secret-and-credential-boundaries.md
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-066-secret-file-credential-resolution.md
   credential_scope:
     - provider credentials resolved at runtime only
-  isolation_requirement_refs: []
+    - signed-agent keys and identity evidence resolved at runtime only; never accepted in a URL and never written to logs
+  isolation_requirement_refs:
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-085-tenant-safe-graph-scope-key.md
+    - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md
   data_handling_contract_refs: []
 configuration:
   contract_refs:
@@ -522,7 +549,10 @@ admission:
     - release admission is an explicit authority decision bound to the exact frozen candidate subject set (version, source revision, wheel sha256, sdist sha256)
     - validation, conformance and successful execution never admit a topology or a release
   kind_specific_requirements:
+    - service_admitted
     - dependency product release admission states follow l9.product-kinds/global@1
+    - hosted-service admission states follow l9.product-kind-exception/memory-hosted-service@1; declaring service_admitted is neither release admission nor admission of a running service
+    - release admission under the claimed exception binds only a release at or after 3.0.0
     - consumer binding is a separate downstream decision owned by each consumer
   evidence_requirement_refs:
     - l9.receipt/validation@1
@@ -610,22 +640,23 @@ operations:
     - Quantum-L9/l9-graphiti-memory/docs/adr/ADR-022-release-publishing-and-rollback.md
     - Quantum-L9/l9-graphiti-memory/deployment/generated-data/rollback-runbook.md
 provenance:
-  authority_ref: Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102
-  source_revision: Quantum-L9/l9-graphiti-memory@155848b9dc6103850456e6ad72f0df2ec054824c
+  authority_ref: Quantum-L9/.github@d4397e53f8f4c23458a80f87db9552463ad9e26f
+  source_revision: Quantum-L9/l9-graphiti-memory@efa900621dd0230544a9135470a7ca51974afc3f
   source_refs:
-    - Quantum-L9/.github/semantics/contracts.yaml@4b4ca1b7abf456ba28df2f2a8071412a2bd1ff84
-    - Quantum-L9/.github/semantics/authority_model.yaml@34b6767e5145203b67eefb92c869ad6a06021471
-    - Quantum-L9/.github/semantics/product_topology.schema.yaml@4fd2856bdf84c10a55a4be7e8519848c22c2bdbf
-    - Quantum-L9/.github/semantics/product_kinds.yaml@8e5aa829df8e00f89286d99ec8d9529e5da63805
-    - Quantum-L9/.github/semantics/dependency_archetypes.yaml@b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a
-  predecessor_topology_ref: null
+    - Quantum-L9/.github/semantics/contracts.yaml@8a0d0513fcb28036682041ca8e759e31d7620f48
+    - Quantum-L9/.github/semantics/authority_model.yaml@b0337e8912470d76ae64a7cbd0bd95752384f7b2
+    - Quantum-L9/.github/semantics/product_topology.schema.yaml@3ce98d488304f3d0d6252b753f192e83b042ae1b
+    - Quantum-L9/.github/semantics/product_kinds.yaml@7f68d961e5f4744cc1ceadd2390fd0fa417e8c48
+    - Quantum-L9/.github/semantics/dependency_archetypes.yaml@88fb55a52086a69d11ae0193a7ac17576baec6c1
+    - Quantum-L9/.github/semantics/repository_registry.yaml@25e281d388d9acb92f563426756e1b0e15571ba6
+  predecessor_topology_ref: Quantum-L9/l9-graphiti-memory/product-topology.yaml#sha256:03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e
 unknowns:
   material: []
   non_material:
     - id: MU-001
       subject: conformance.profile_refs
       result: resolved
-      reason: Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102 records l9.fixture-profile/core@1, published by Quantum-L9/l9-conformance at catalog/fixture-profile-core-1.yaml digest sha256:3d2cb01a2b872215a3e2298b4e3b3d7ae99ecf867d6486f5730a3f98aba2bb2f. The profile is consumed in conformance.profile_refs. This repository did not invent the id.
+      reason: Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102 recorded, and Quantum-L9/.github@d4397e53f8f4c23458a80f87db9552463ad9e26f still records, l9.fixture-profile/core@1, published by Quantum-L9/l9-conformance at catalog/fixture-profile-core-1.yaml digest sha256:3d2cb01a2b872215a3e2298b4e3b3d7ae99ecf867d6486f5730a3f98aba2bb2f. The profile is consumed in conformance.profile_refs. This repository did not invent the id.
       governing_refs:
         - l9.dependency-archetypes/global@1
         - l9.conformance-model/global@1
