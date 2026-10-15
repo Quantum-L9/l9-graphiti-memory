@@ -11,6 +11,11 @@ updated: 2026-07-22
 
 # Validation
 
+> This page records the 2.2.0 validation run as produced. Since ADR-099
+> (2026-10-15) the "L9 metadata coverage" and "release manifest integrity"
+> checks below no longer exist; current release validation is
+> `scripts/validate_release.sh` and its evidence under `build/release-validation`.
+
 ## Outcome
 
 - Local deterministic outcome: **PASS**

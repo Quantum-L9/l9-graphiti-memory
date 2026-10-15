@@ -535,8 +535,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "repository",
         "scripts/preflight.sh",
         "logs/preflight.txt",
-        "27 preflight gates pass",
-        r"Preflight complete: 27 gates passed",
+        # Re-pinned 27 -> 25 for ADR-099: the "L9 metadata coverage" and
+        # "release manifest" gates are retired.
+        "25 preflight gates pass",
+        r"Preflight complete: 25 gates passed",
     ),
     CheckSpec(
         "V-015",
