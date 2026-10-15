@@ -27,6 +27,10 @@ Proven here, per process boundary:
   local SQLite ledger, and an unusable DSN stops the server;
 - two processes cold-starting on one empty schema both come up.
 
+Every case runs twice: once from this source tree and once from the built
+wheel installed alone into an empty directory, with the checkout off the path,
+because a consumer binds the installed artifact, not this repository.
+
 Not proven here: TLS, a non-loopback network path, or any deployed host.
 Skips visibly without ``L9_MEMORY_TEST_POSTGRES_DSN``.
 """
@@ -54,6 +58,7 @@ from tests.integration.remote_mcp_harness import (
     OUTSIDER_KEY,
     READER,
     WRITER,
+    build_installed_site,
     credentials,
     free_port,
     mcp_headers,
@@ -68,7 +73,28 @@ pytest.importorskip("uvicorn", reason="HTTP transport requires the [server] extr
 pytest.importorskip("psycopg2", reason="the shared store requires the [postgres] extra")
 httpx2 = pytest.importorskip("httpx2", reason="the HTTP proof needs an HTTP client")
 
-SRC = Path(__file__).resolve().parents[2] / "src"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SRC = REPO_ROOT / "src"
+
+
+@pytest.fixture(scope="module", params=["source", "installed-wheel"])
+def import_root(request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """The only ``l9_graphite_memory`` the server processes can import."""
+
+    if request.param == "source":
+        return SRC
+    pytest.importorskip("build")
+    site = build_installed_site(tmp_path_factory.mktemp("wheel"), REPO_ROOT)
+    probe = subprocess.run(
+        [sys.executable, "-c", "import l9_graphite_memory; print(l9_graphite_memory.__file__)"],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=tmp_path_factory.mktemp("probe"),
+        env={**{k: v for k, v in os.environ.items() if k != "PYTHONPATH"}, "PYTHONPATH": str(site)},
+    )
+    assert Path(probe.stdout.strip()).resolve().is_relative_to(site.resolve()), probe.stdout
+    return site
 
 
 @pytest.fixture
@@ -80,7 +106,9 @@ def schema() -> str:
     return name
 
 
-def _server_env(tmp_path: Path, schema: str, *, tenant: str, dsn: str | None) -> dict[str, str]:
+def _server_env(
+    tmp_path: Path, schema: str, *, tenant: str, dsn: str | None, root: Path
+) -> dict[str, str]:
     env = {
         key: value
         for key, value in os.environ.items()
@@ -89,7 +117,7 @@ def _server_env(tmp_path: Path, schema: str, *, tenant: str, dsn: str | None) ->
     env.update(server_environment())
     env.update(
         {
-            "PYTHONPATH": str(SRC),
+            "PYTHONPATH": str(root),
             "HOME": str(tmp_path / "home"),
             "L9_MEMORY_DATA_DIR": str(tmp_path / "data"),
             "L9_MEMORY_STATE_DIR": str(tmp_path / "state"),
@@ -107,7 +135,7 @@ def _server_env(tmp_path: Path, schema: str, *, tenant: str, dsn: str | None) ->
     return env
 
 
-def _launch(tmp_path: Path, schema: str, *, tenant: str = "l9", dsn: str | None = None):
+def _launch(tmp_path: Path, schema: str, *, root: Path, tenant: str = "l9", dsn: str | None = None):
     port = free_port()
     workdir = tmp_path / f"server-{port}"
     workdir.mkdir()
@@ -125,7 +153,7 @@ def _launch(tmp_path: Path, schema: str, *, tenant: str = "l9", dsn: str | None 
             str(port),
         ],
         cwd=workdir,
-        env=_server_env(workdir, schema, tenant=tenant, dsn=dsn),
+        env=_server_env(workdir, schema, tenant=tenant, dsn=dsn, root=root),
         stdout=subprocess.DEVNULL,
         stderr=log,
     )
@@ -144,10 +172,12 @@ def _stop(process: subprocess.Popen[Any], log: Any) -> None:
 
 
 @contextmanager
-def server(tmp_path: Path, schema: str, *, tenant: str = "l9") -> Iterator[tuple[str, Path]]:
+def server(
+    tmp_path: Path, schema: str, *, root: Path, tenant: str = "l9"
+) -> Iterator[tuple[str, Path]]:
     """One server process on the shared schema; yields its URL and workdir."""
 
-    process, url, workdir, log = _launch(tmp_path, schema, tenant=tenant)
+    process, url, workdir, log = _launch(tmp_path, schema, root=root, tenant=tenant)
     try:
         try:
             wait_for(url)
@@ -182,11 +212,14 @@ def _no_sqlite_ledger(workdir: Path) -> None:
 
 
 def test_two_agents_share_one_postgres_store_across_server_processes(
-    tmp_path: Path, schema: str
+    tmp_path: Path, schema: str, import_root: Path
 ) -> None:
     content = "the shared ledger records a heron on the north weir"
     key = f"mp-{uuid.uuid4().hex}"
-    with server(tmp_path, schema) as (url_a, dir_a), server(tmp_path, schema) as (url_b, dir_b):
+    with (
+        server(tmp_path, schema, root=import_root) as (url_a, dir_a),
+        server(tmp_path, schema, root=import_root) as (url_b, dir_b),
+    ):
         # Each process serves the configured shared backend, not a local file.
         for url in (url_a, url_b):
             health = httpx2.get(f"{url}/healthz", timeout=10).json()
@@ -256,7 +289,7 @@ def test_two_agents_share_one_postgres_store_across_server_processes(
 
     # Every process has stopped. A new one on the same store still has the
     # record, and the idempotency key still binds to it.
-    with server(tmp_path, schema) as (url_c, dir_c):
+    with server(tmp_path, schema, root=import_root) as (url_c, dir_c):
         again = _payload(url_c, READER, "memory.get", {"record_id": record_id})
         assert again["record"]["content"] == content
         replay = _payload(
@@ -270,13 +303,13 @@ def test_two_agents_share_one_postgres_store_across_server_processes(
 
 
 def test_a_foreign_tenant_process_on_the_same_store_cannot_read_the_record(
-    tmp_path: Path, schema: str
+    tmp_path: Path, schema: str, import_root: Path
 ) -> None:
     """Tenant is a deployment coordinate: same store, same agents, no crossing."""
 
     with (
-        server(tmp_path, schema) as (url_a, _),
-        server(tmp_path, schema, tenant="tenant-b") as (url_b, _),
+        server(tmp_path, schema, root=import_root) as (url_a, _),
+        server(tmp_path, schema, root=import_root, tenant="tenant-b") as (url_b, _),
     ):
         written = _payload(
             url_a,
@@ -294,10 +327,10 @@ def test_a_foreign_tenant_process_on_the_same_store_cannot_read_the_record(
 
 
 def test_two_processes_cold_starting_on_one_empty_schema_both_serve(
-    tmp_path: Path, schema: str
+    tmp_path: Path, schema: str, import_root: Path
 ) -> None:
-    first = _launch(tmp_path, schema)
-    second = _launch(tmp_path, schema)
+    first = _launch(tmp_path, schema, root=import_root)
+    second = _launch(tmp_path, schema, root=import_root)
     try:
         for _, url, workdir, log in (first, second):
             try:
@@ -320,9 +353,9 @@ def test_two_processes_cold_starting_on_one_empty_schema_both_serve(
 
 @pytest.mark.parametrize("dsn", ["host=127.0.0.1 port=1 dbname=absent connect_timeout=2", " "])
 def test_an_unusable_postgres_dsn_stops_the_server_without_a_local_fallback(
-    tmp_path: Path, schema: str, dsn: str
+    tmp_path: Path, schema: str, dsn: str, import_root: Path
 ) -> None:
-    process, _, workdir, log = _launch(tmp_path, schema, dsn=dsn)
+    process, _, workdir, log = _launch(tmp_path, schema, root=import_root, dsn=dsn)
     try:
         assert process.wait(timeout=30) != 0
     finally:
