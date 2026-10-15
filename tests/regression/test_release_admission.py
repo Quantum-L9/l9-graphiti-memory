@@ -77,14 +77,17 @@ def release(tmp_path: Path) -> dict[str, Path]:
     dist.mkdir()
     (dist / WHEEL).write_bytes(b"wheel bytes")
     (dist / SDIST).write_bytes(b"sdist bytes")
-    receipt = tmp_path / f"l9-memory-release-{VERSION}.md"
+    root = tmp_path / "default-branch"
+    receipts = root / "docs" / "receipts"
+    receipts.mkdir(parents=True)
+    receipt = receipts / f"l9-memory-release-{VERSION}.md"
     receipt.write_text(_receipt(), encoding="utf-8")
-    return {"dist": dist, "receipt": receipt}
+    return {"dist": dist, "receipt": receipt, "root": root}
 
 
 def _verify(release: dict[str, Path], **kw: Any) -> list[str]:
     args = {"version": VERSION, "source_revision": SOURCE, "tag": TAG, **kw}
-    failures, _ = TOOL_MODULE.verify(release["receipt"], release["dist"], **args)
+    failures, _ = TOOL_MODULE.verify(release["root"], release["dist"], **args)
     return list(failures)
 
 
@@ -132,12 +135,25 @@ def test_a_duplicated_coordinate_fails_closed(release):
         ({"tag": "v3.0.1"}, "is not v3.0.0"),
         ({"tag": "3.0.0"}, "is not v3.0.0"),
         ({"source_revision": "main"}, "not a 40-hex commit"),
-        ({"version": "3.0.1", "tag": "v3.0.1"}, "receipt admits"),
+        ({"version": "3.0.1", "tag": "v3.0.1"}, "no release admission receipt"),
     ],
 )
 def test_the_published_coordinates_must_be_the_admitted_ones(release, kw, expected):
     failures = _verify(release, **kw)
     assert any(expected in f for f in failures), failures
+
+
+def test_a_receipt_filed_under_another_version_does_not_admit_it(release):
+    other = release["receipt"].with_name("l9-memory-release-3.0.1.md")
+    other.write_text(release["receipt"].read_text(encoding="utf-8"), encoding="utf-8")
+    failures = _verify(release, version="3.0.1", tag="v3.0.1")
+    assert any("receipt admits 'l9-graphite-memory 3.0.0'" in f for f in failures), failures
+
+
+@pytest.mark.parametrize("source", [SOURCE + "\n", SOURCE.upper(), SOURCE[:39]])
+def test_a_source_revision_must_be_exactly_40_lowercase_hex(release, source):
+    failures = _verify(release, source_revision=source)
+    assert any("not a 40-hex commit" in f for f in failures), failures
 
 
 def test_rebuilt_bytes_are_not_the_admitted_bytes(release):
@@ -152,6 +168,23 @@ def test_an_unadmitted_extra_artifact_fails_closed(release, extra):
     assert _verify(release)
 
 
+@pytest.mark.parametrize(
+    "version", ["../../../candidate/3.0.0", "3.0.0/../../x", "3.0", "3.0.0rc1", "3.0.0\n"]
+)
+def test_a_version_never_locates_a_receipt_outside_the_admission_root(release, version):
+    failures = _verify(release, version=version, tag=f"v{version}")
+    assert any("does not name a receipt" in f for f in failures), failures
+
+
+def test_a_receipt_resolving_outside_the_admission_root_is_refused(release, tmp_path):
+    forged = tmp_path / "candidate-tree-receipt.md"
+    forged.write_text(release["receipt"].read_text(encoding="utf-8"), encoding="utf-8")
+    release["receipt"].unlink()
+    release["receipt"].symlink_to(forged)
+    failures = _verify(release)
+    assert any("does not name a receipt" in f for f in failures), failures
+
+
 def test_a_missing_sdist_fails_closed(release):
     (release["dist"] / SDIST).unlink()
     failures = _verify(release)
@@ -162,8 +195,8 @@ def test_the_cli_exits_non_zero_and_admits_nothing(release, capsys, monkeypatch)
     release["receipt"].unlink()
     argv = [
         "verify_release_admission.py",
-        "--receipt",
-        str(release["receipt"]),
+        "--admission-root",
+        str(release["root"]),
         "--artifact-dir",
         str(release["dist"]),
         "--version",
@@ -215,7 +248,7 @@ def test_publication_is_gated_by_the_admission_verifier():
     # The verifier runs whenever publication would, and can never be skipped.
     assert steps[verify]["if"] == steps[publish[0]]["if"] == steps[record]["if"]
     assert "verify_release_admission.py" in steps[verify]["run"]
-    assert "build/release-admission/docs/receipts/l9-memory-release-" in steps[verify]["run"]
+    assert "--admission-root build/release-admission" in steps[verify]["run"]
     assert not any(step.get("continue-on-error") for step in steps)
     # The tag reaches the shell through env, never inline expression text.
     assert "${{" not in steps[verify]["run"]

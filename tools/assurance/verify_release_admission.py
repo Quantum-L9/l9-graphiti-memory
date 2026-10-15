@@ -21,8 +21,12 @@ branch. This tool only reads that record; it never makes or infers a decision.
 
 Publication passes only when every one of these holds:
 
-* the release tag is exactly ``v<version>``;
-* the receipt exists, parses, and names each coordinate exactly once;
+* the version is a plain ``MAJOR.MINOR.PATCH`` and the release tag is exactly
+  ``v<version>``;
+* the receipt, located by this tool at
+  ``<admission-root>/docs/receipts/l9-memory-release-<version>.md`` and never
+  outside ``<admission-root>``, exists, parses, and names each coordinate
+  exactly once;
 * ``Package`` is ``l9-graphite-memory <version>``;
 * ``Admitted source`` is the 40-hex revision being published;
 * the artifact directory holds exactly one wheel and one sdist and nothing
@@ -42,9 +46,10 @@ import sys
 from pathlib import Path
 
 DISTRIBUTION = "l9-graphite-memory"
-SHA = re.compile(r"^[0-9a-f]{40}$")
-DIGEST = re.compile(r"^[0-9a-f]{64}$")
-ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*([^|]*?)\s*\|\s*$")
+SHA = re.compile(r"[0-9a-f]{40}")
+DIGEST = re.compile(r"[0-9a-f]{64}")
+VERSION = re.compile(r"\d+\.\d+\.\d+")
+RECEIPTS = Path("docs") / "receipts"
 REQUIRED = ("Package", "Admitted source", "Wheel", "Wheel sha256", "Sdist", "Sdist sha256")
 
 
@@ -54,10 +59,11 @@ def parse_receipt(text: str) -> tuple[dict[str, str], list[str]]:
     rows: dict[str, str] = {}
     failures: list[str] = []
     for line in text.splitlines():
-        match = ROW.match(line.strip())
-        if match is None:
+        cells = line.strip().split("|")
+        # A two-column table row is "| key | value |": empty edges, two cells.
+        if len(cells) != 4 or cells[0].strip() or cells[3].strip():
             continue
-        key, value = match.group(1).strip(), match.group(2).replace("`", " ").strip()
+        key, value = cells[1].strip(), cells[2].replace("`", " ").strip()
         if key in {"Coordinate", "---"} or set(key) <= {"-", ":", " "}:
             continue
         if key in rows:
@@ -91,63 +97,88 @@ def _artifacts(artifact_dir: Path) -> tuple[Path | None, Path | None, list[str]]
     return wheel, sdist, failures
 
 
-def verify(
-    receipt: Path, artifact_dir: Path, version: str, source_revision: str, tag: str
-) -> tuple[list[str], dict[str, str]]:
-    """Return (failures, observed tuple); no failures means an exact admitted match."""
+def receipt_path(admission_root: Path, version: str) -> Path | None:
+    """The receipt for ``version`` under ``admission_root``; None if not confined."""
 
-    failures: list[str] = []
-    observed = {"version": version, "source revision": source_revision, "tag": tag}
-    if tag != f"v{version}":
-        failures.append(f"release tag {tag!r} is not v{version}")
-    if not SHA.match(source_revision):
-        failures.append(f"source revision is not a 40-hex commit: {source_revision!r}")
-    wheel, sdist, artifact_failures = _artifacts(artifact_dir)
-    failures += artifact_failures
+    if not VERSION.fullmatch(version):
+        return None
+    root = admission_root.resolve()
+    path = (root / RECEIPTS / f"l9-memory-release-{version}.md").resolve()
+    return path if path.is_relative_to(root) else None
+
+
+def _observe(artifact_dir: Path, observed: dict[str, str]) -> list[str]:
+    wheel, sdist, failures = _artifacts(artifact_dir)
     for label, path in (("wheel", wheel), ("sdist", sdist)):
         if path is not None:
             observed[label] = path.name
             observed[f"{label} sha256"] = _sha256(path)
-    if not receipt.is_file():
-        return [*failures, f"no release admission receipt at {receipt}"], observed
-    rows, receipt_failures = parse_receipt(receipt.read_text(encoding="utf-8"))
-    failures += receipt_failures
-    if receipt_failures:
-        return failures, observed
+    return failures
+
+
+def _compare(rows: dict[str, str], observed: dict[str, str]) -> list[str]:
+    version, source = observed["version"], observed["source revision"]
+    failures: list[str] = []
     if rows["Package"] != f"{DISTRIBUTION} {version}":
         failures.append(f"receipt admits {rows['Package']!r}, not {DISTRIBUTION} {version}")
-    if rows["Admitted source"] != source_revision:
-        failures.append(
-            f"receipt admits source {rows['Admitted source']!r}, not {source_revision!r}"
-        )
+    if rows["Admitted source"] != source:
+        failures.append(f"receipt admits source {rows['Admitted source']!r}, not {source!r}")
     for label, name_key, digest_key in (
         ("wheel", "Wheel", "Wheel sha256"),
         ("sdist", "Sdist", "Sdist sha256"),
     ):
-        if not DIGEST.match(rows[digest_key]):
-            failures.append(f"receipt {digest_key} is not a sha256 digest: {rows[digest_key]!r}")
+        admitted = rows[digest_key]
+        if not DIGEST.fullmatch(admitted):
+            failures.append(f"receipt {digest_key} is not a sha256 digest: {admitted!r}")
         if label not in observed:
             continue
         if rows[name_key] != observed[label]:
             failures.append(f"receipt admits {label} {rows[name_key]!r}, not {observed[label]!r}")
-        if rows[digest_key] != observed[f"{label} sha256"]:
+        if admitted != observed[f"{label} sha256"]:
             failures.append(
-                f"{label} sha256 {observed[f'{label} sha256']} is not the admitted"
-                f" {rows[digest_key]}"
+                f"{label} sha256 {observed[f'{label} sha256']} is not the admitted {admitted}"
             )
-    return failures, observed
+    return failures
+
+
+def verify(
+    admission_root: Path, artifact_dir: Path, version: str, source_revision: str, tag: str
+) -> tuple[list[str], dict[str, str]]:
+    """Return (failures, observed tuple); no failures means an exact admitted match."""
+
+    observed = {"version": version, "source revision": source_revision, "tag": tag}
+    failures: list[str] = []
+    if tag != f"v{version}":
+        failures.append(f"release tag {tag!r} is not v{version}")
+    if not SHA.fullmatch(source_revision):
+        failures.append(f"source revision is not a 40-hex commit: {source_revision!r}")
+    failures += _observe(artifact_dir, observed)
+    receipt = receipt_path(admission_root, version)
+    if receipt is None:
+        return [*failures, f"version {version!r} does not name a receipt"], observed
+    if not receipt.is_file():
+        return [*failures, f"no release admission receipt at {receipt}"], observed
+    rows, receipt_failures = parse_receipt(receipt.read_text(encoding="utf-8"))
+    if receipt_failures:
+        return [*failures, *receipt_failures], observed
+    return [*failures, *_compare(rows, observed)], observed
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--receipt", type=Path, required=True)
+    parser.add_argument(
+        "--admission-root",
+        type=Path,
+        required=True,
+        help="checkout of the protected default branch holding docs/receipts/",
+    )
     parser.add_argument("--artifact-dir", type=Path, required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--source-revision", required=True)
     parser.add_argument("--tag", required=True)
     args = parser.parse_args()
     failures, observed = verify(
-        args.receipt, args.artifact_dir, args.version, args.source_revision, args.tag
+        args.admission_root, args.artifact_dir, args.version, args.source_revision, args.tag
     )
     if failures:
         sys.stdout.write("".join(f"FAIL: {failure}\n" for failure in failures))
@@ -155,7 +186,8 @@ def main() -> int:
         sys.stdout.write("".join(f"  {key}: {value}\n" for key, value in observed.items()))
         return 1
     sys.stdout.write(
-        f"PASS: {args.receipt} admits {DISTRIBUTION} {args.version} at {args.source_revision}"
+        f"PASS: the default-branch receipt admits {DISTRIBUTION} {args.version}"
+        f" at {args.source_revision}"
         f" with wheel {observed['wheel sha256']} and sdist {observed['sdist sha256']}\n"
     )
     return 0

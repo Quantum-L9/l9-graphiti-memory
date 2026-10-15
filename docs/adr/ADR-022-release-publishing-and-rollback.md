@@ -102,7 +102,9 @@ matches; the published sdist was never admitted.
    `Sdist` and `Sdist sha256` coordinates must equal the version, the published
    commit and the files actually in `dist/`, and the tag must be `v<version>`.
 2. The receipt is read from the protected default branch, never from the
-   candidate's own tree. The admission decision is the merge of that receipt
+   candidate's own tree. The verifier locates it itself from a plain
+   `MAJOR.MINOR.PATCH` version and refuses any path that resolves outside that
+   checkout, so a candidate's version string cannot point it elsewhere. The admission decision is the merge of that receipt
    under the repository's merge authority; a receipt removed from the default
    branch admits nothing.
 3. `tools/assurance/verify_release_admission.py` checks it in `publish.yml`

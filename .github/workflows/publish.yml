@@ -154,7 +154,7 @@ jobs:
           set -euo pipefail
           VERSION="$(python -c 'from l9_graphite_memory.version import PACKAGE_VERSION; print(PACKAGE_VERSION)')"
           python tools/assurance/verify_release_admission.py \
-            --receipt "build/release-admission/docs/receipts/l9-memory-release-${VERSION}.md" \
+            --admission-root build/release-admission \
             --artifact-dir dist \
             --version "$VERSION" \
             --source-revision "$(git rev-parse HEAD)" \
