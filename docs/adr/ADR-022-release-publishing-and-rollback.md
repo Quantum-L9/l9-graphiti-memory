@@ -126,4 +126,3 @@ that alters the bytes fails closed.
 No new authority, schema or approval is introduced: the authority, the subject
 set and the receipt form already exist (ADR-094, the release binding, the
 2.6.0 receipt). This amendment adds enforcement only.
-

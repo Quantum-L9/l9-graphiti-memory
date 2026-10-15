@@ -430,7 +430,7 @@
         "version": "3.0.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "6a2e852503679bbb5f84bb02d9f53daf83a335b9f62be472bae8cbb17c84d42e",
+      "sha256": "d0cb4f8eec726dd17d63718e97653e11ef0234bd7e1342a5155b31f9503c7d7d",
       "size_bytes": 141731
     },
     {
@@ -3358,8 +3358,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/ADR-022-release-publishing-and-rollback.md",
-      "sha256": "a34795ebfa725a7705a7a7481e74cb36f068f2fbc1c67e168faea93d47490b8a",
-      "size_bytes": 5321
+      "sha256": "fa4e230fa6486cf78cb5bfd62d2482391f1ae918d82d1cc5c92ecb1b9861e913",
+      "size_bytes": 5320
     },
     {
       "category": "architecture_decisions",

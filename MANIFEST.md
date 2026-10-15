@@ -262,7 +262,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-019-observability-and-evidence-receipts.md` | `architecture_decisions` | `adr` | 2492 | `7485d3f8a634c3ff131fc4784af0eb64cda067f7fd1eb97d5b06e5b2ec1897c3` |
 | `docs/adr/ADR-020-package-and-configuration-layout.md` | `architecture_decisions` | `adr` | 2528 | `8a821e0b4218496fbe674c628e0f58848c25fffbd890d6c0c9ec73204af46be0` |
 | `docs/adr/ADR-021-testing-and-adapter-conformance.md` | `architecture_decisions` | `adr` | 2536 | `6158264313f83fc1cc1c3fd11e738b3c11fd3f6fc3ea418839ddb3b7b77468f5` |
-| `docs/adr/ADR-022-release-publishing-and-rollback.md` | `architecture_decisions` | `adr` | 5321 | `a34795ebfa725a7705a7a7481e74cb36f068f2fbc1c67e168faea93d47490b8a` |
+| `docs/adr/ADR-022-release-publishing-and-rollback.md` | `architecture_decisions` | `adr` | 5320 | `fa4e230fa6486cf78cb5bfd62d2482391f1ae918d82d1cc5c92ecb1b9861e913` |
 | `docs/adr/ADR-023-legacy-migration-and-compatibility.md` | `architecture_decisions` | `adr` | 2533 | `d5aa2d88dc1ca4f65acaaa6ae9186c1ee4731e5563fd6536d5644953cc63cfad` |
 | `docs/adr/ADR-024-memory-privacy-consent-and-deletion.md` | `architecture_decisions` | `adr` | 2826 | `af73f0573264d1aa92a1f1eab8cb37c96faf84ecc1156c265ecfa6563678aeaa` |
 | `docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md` | `architecture_decisions` | `adr` | 2447 | `eaa46c6f11aa49164e8bd9e66db144865b05a8849cbf884137b2da69fa4ea637` |
