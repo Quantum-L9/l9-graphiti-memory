@@ -430,7 +430,7 @@
         "version": "3.0.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "2aeaf5d3c0bcb53e19d5d86f7bdf116e4465b9a51951f12d0b6c0982f72da47f",
+      "sha256": "8323d01a2a832a85e60ab148ae5682f82c4104934bc521b136867873d7e48f18",
       "size_bytes": 141433
     },
     {
@@ -10350,8 +10350,8 @@
         "version": "3.0.0"
       },
       "path": "tests/regression/test_product_kind_exception.py",
-      "sha256": "14774824a8f3c7aa14bf7b158f8d61e19b4ee50803ba460d4be90a37347c72be",
-      "size_bytes": 11396
+      "sha256": "1b1677a4f6e10ab6eadf3e97721320fa2c63c79221b48a734728007985850bd9",
+      "size_bytes": 11445
     },
     {
       "category": "tests",
@@ -12078,8 +12078,8 @@
         "version": "3.0.0"
       },
       "path": "tools/assurance/validate_product_topology.py",
-      "sha256": "f7cc9e0831577a4356bf33e391da69734b2c046c69a8ae4c226df0cf4164e1e9",
-      "size_bytes": 21569
+      "sha256": "28b54ce80617ba72c873e0fc61136554d6f878da50b6d35136ad1bf5b8b4b173",
+      "size_bytes": 22105
     },
     {
       "category": "assurance",

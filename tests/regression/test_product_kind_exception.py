@@ -67,7 +67,8 @@ def _authority() -> Path:
 
 def _module(name: str, path: Path) -> ModuleType:
     spec = importlib.util.spec_from_file_location(name, path)
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.path.insert(0, str(path.parent))
     try:
@@ -123,7 +124,9 @@ def _canonical_findings(authority: Path, topo: dict[str, Any]) -> list[tuple[str
 def test_the_committed_topology_binds_the_exception(law, authority, kinds, topology, tmp_path):
     assert topology["product"]["kind_exception_ref"] == EXCEPTION_ID
     entry, unbound = law.bound_exception(topology, kinds, authority)
-    assert unbound == [] and entry is not None and entry["id"] == EXCEPTION_ID
+    assert unbound == []
+    assert entry is not None
+    assert entry["id"] == EXCEPTION_ID
     assert entry["effective_models"] == {
         "consumption_model": topology["consumption"]["model"],
         "deployment_model": topology["deployment"]["model"],
@@ -237,11 +240,13 @@ def test_an_unadmitted_exception_binds_nothing(law, authority, kinds, topology):
     drifted = copy.deepcopy(kinds)
     drifted["kind_exceptions"][0]["status"] = "proposed"
     entry, unbound = law.bound_exception(topology, drifted, authority)
-    assert entry is None and any("not admitted" in reason for reason in unbound)
+    assert entry is None
+    assert any("not admitted" in reason for reason in unbound)
     duplicated = copy.deepcopy(kinds)
     duplicated["kind_exceptions"].append(copy.deepcopy(kinds["kind_exceptions"][0]))
     entry, unbound = law.bound_exception(topology, duplicated, authority)
-    assert entry is None and unbound
+    assert entry is None
+    assert unbound
 
 
 def test_a_retired_registry_entry_unbinds_the_claim(law, authority, kinds, topology, tmp_path):
@@ -254,7 +259,8 @@ def test_a_retired_registry_entry_unbinds_the_claim(law, authority, kinds, topol
             entry["lifecycle"] = "retired"
     registry_path.write_text(yaml.safe_dump(registry, sort_keys=False), encoding="utf-8")
     entry, unbound = law.bound_exception(topology, kinds, shadow)
-    assert entry is None and any("registry" in reason for reason in unbound)
+    assert entry is None
+    assert any("registry" in reason for reason in unbound)
 
 
 @pytest.mark.parametrize(
@@ -271,7 +277,8 @@ def test_the_release_floor_binds_release_admission(
 @pytest.mark.parametrize("version", ["", "3.0", "3.0.0rc1", "v3.0.0", "latest"])
 def test_an_unparseable_release_version_fails_closed(version, law, authority, kinds, topology):
     failures = law.check_release_floor(topology, kinds, authority, version)
-    assert failures and "cannot be evaluated" in failures[0]
+    assert failures
+    assert "cannot be evaluated" in failures[0]
 
 
 def test_the_manifest_gate_fails_an_unbound_claim(authority, topology, tmp_path):

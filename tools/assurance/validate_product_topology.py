@@ -264,8 +264,8 @@ def bound_exception(
     return entry, []
 
 
-def _exception_obligations(topo: dict[str, Any], entry: dict[str, Any]) -> list[str]:
-    """Positive obligations a bound exception keeps or adds (never relaxes)."""
+def _remote_obligations(topo: dict[str, Any], entry: dict[str, Any]) -> list[str]:
+    """The excepted remote protocol is declared, authenticated and authorized."""
 
     failures: list[str] = []
     protocol = (entry.get("remote_consumption") or {}).get("protocol")
@@ -274,14 +274,25 @@ def _exception_obligations(topo: dict[str, Any], entry: dict[str, Any]) -> list[
             f"consumption.public_entry_modes must declare the excepted protocol {protocol}"
         )
     security = topo.get("security", {})
-    for field in ("authentication_contract_refs", "authorization_contract_refs"):
-        if not security.get(field):
-            failures.append(f"security.{field} must be declared for excepted remote consumption")
+    failures += [
+        f"security.{field} must be declared for excepted remote consumption"
+        for field in ("authentication_contract_refs", "authorization_contract_refs")
+        if not security.get(field)
+    ]
+    return failures
+
+
+def _identity_obligations(topo: dict[str, Any], entry: dict[str, Any]) -> list[str]:
+    """Product, release and actor identity stay; the service's runtime identity is
+    required; Constellation identity stays inapplicable."""
+
     dimensions = topo.get("identity", {}).get("dimensions", {})
     allowed = set((entry.get("identity") or {}).get("identity_dimensions", []))
-    for name in ("product", "release", "actor"):
-        if dimensions.get(name, {}).get("applicable") is not True:
-            failures.append(f"identity.dimensions.{name} must be applicable under the exception")
+    failures = [
+        f"identity.dimensions.{name} must be applicable under the exception"
+        for name in ("product", "release", "actor")
+        if dimensions.get(name, {}).get("applicable") is not True
+    ]
     if (
         "runtime_identity" in allowed
         and dimensions.get("runtime", {}).get("applicable") is not True
@@ -293,6 +304,13 @@ def _exception_obligations(topo: dict[str, Any], entry: dict[str, Any]) -> list[
         failures.append(
             "identity.dimensions.constellation must stay inapplicable under the exception"
         )
+    return failures
+
+
+def _exception_obligations(topo: dict[str, Any], entry: dict[str, Any]) -> list[str]:
+    """Positive obligations a bound exception keeps or adds (never relaxes)."""
+
+    failures = [*_remote_obligations(topo, entry), *_identity_obligations(topo, entry)]
     declaration = (entry.get("hosted_service_admission") or {}).get("topology_declaration") or {}
     required = declaration.get("requires")
     declared = topo.get("admission", {}).get("kind_specific_requirements") or []

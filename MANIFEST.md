@@ -699,7 +699,7 @@ updated: 2026-07-22
 | `tests/regression/test_cursor_instantiation_assurance.py` | `tests` | `test` | 4320 | `4ab10fdc1eee8035396984f6960aaaf80100aa6206778a6090d878e1142c6615` |
 | `tests/regression/test_l9_meta_assurance.py` | `tests` | `test` | 17453 | `1a40dc95e93b550455e04fee79139cc50f22ccbd64d2bcfee412a49dfca8a8ef` |
 | `tests/regression/test_phase6_operator.py` | `tests` | `test` | 2567 | `64aa907051086b623746ac86ffd180e1ecb7fd000d7b136e8a3051906d82d839` |
-| `tests/regression/test_product_kind_exception.py` | `tests` | `test` | 11396 | `14774824a8f3c7aa14bf7b158f8d61e19b4ee50803ba460d4be90a37347c72be` |
+| `tests/regression/test_product_kind_exception.py` | `tests` | `test` | 11445 | `1b1677a4f6e10ab6eadf3e97721320fa2c63c79221b48a734728007985850bd9` |
 | `tests/regression/test_product_release_governance.py` | `tests` | `test` | 6413 | `7cedfba655caccbf16284be0211c2d14a81ba41623b0f1dcf5268ec389a13b08` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `test` | 1699 | `b00c392c218b7cbda7adf9fbf5d436a73a796547b43aab926111b49e238a5ac0` |
 | `tests/regression/test_release_shell.py` | `tests` | `test` | 13395 | `b4bef8138f82ba34d9f742adf5b1031de11a264e7f9c8b7663478d8a1f4771ea` |
@@ -807,7 +807,7 @@ updated: 2026-07-22
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `d2b35d654c2e344bddc0d58f94d814248c4127a5dba6b92650fcb87ee4683f1a` |
 | `tools/assurance/validate_harvest_coverage.py` | `assurance` | `assurance` | 4184 | `f79497e37074687a55e2f6fc4a88b07152f710f4b04106e52d8ce58bbad79632` |
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2404 | `b7134c65005e4a92ce485b1a1cb582af8a0a0f29931516c3e7493e7373309088` |
-| `tools/assurance/validate_product_topology.py` | `assurance` | `assurance` | 21569 | `f7cc9e0831577a4356bf33e391da69734b2c046c69a8ae4c226df0cf4164e1e9` |
+| `tools/assurance/validate_product_topology.py` | `assurance` | `assurance` | 22105 | `28b54ce80617ba72c873e0fc61136554d6f878da50b6d35136ad1bf5b8b4b173` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2468 | `ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5` |
 | `tools/authority/project_l9_repository_corpus.py` | `assurance` | `assurance` | 13407 | `3f0cb12ce04a2f25b368e730954b1fbd3ad7815c0f3b9217d254103a777a633b` |
 | `tools/ci/nightly_maintenance_gate.py` | `assurance` | `assurance` | 3719 | `d67da58aa0c52c21434fdb309d8b4498dcf1e27b563675f43b6cd12c7a108cbb` |
