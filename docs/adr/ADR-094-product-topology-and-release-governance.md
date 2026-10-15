@@ -422,4 +422,3 @@ under the product owner's review when it merges, as the Status section
 states. It does not deploy anything, change the stateless signed-agent
 protocol (its bounded replay window is unchanged and stays a release-security
 decision), or edit any `Quantum-L9/.github` file.
-

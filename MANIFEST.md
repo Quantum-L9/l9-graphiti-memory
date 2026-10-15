@@ -334,7 +334,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-091-graphiti-episode-identity-and-live-qualification.md` | `architecture_decisions` | `adr` | 7120 | `f7a29669b2be2cfcc4618f7e4d5d2ae8483f7b6f4db55c9f8698d8c48fdedbd6` |
 | `docs/adr/ADR-092-graph-campaign-audit-remediation.md` | `architecture_decisions` | `adr` | 11301 | `35da47486c227eda8fe29f3db040b7ce9d67a5c2ec16164f73c54f1bb8680ffe` |
 | `docs/adr/ADR-093-graph-intelligence-v1-closure.md` | `architecture_decisions` | `adr` | 13762 | `eeb3b18af5ad4e8e0e245d0ea97bd6edfd3a30b2c19635b1c283b422a9dbd756` |
-| `docs/adr/ADR-094-product-topology-and-release-governance.md` | `architecture_decisions` | `adr` | 23935 | `2ffe2a67c79aa4216f5deac5addd6bd31bf165d4a6dde55af594cd3b113c6809` |
+| `docs/adr/ADR-094-product-topology-and-release-governance.md` | `architecture_decisions` | `adr` | 23934 | `483158e05defaa35eba1cce359b4d81aa4ecd114bbbbcc1e6749f45e5f5ef21d` |
 | `docs/adr/ADR-095-structured-source-invalidation-lifecycle.md` | `architecture_decisions` | `adr` | 11071 | `26fac16d2db03c6bcfab08f443a67dc0737f66eb0d898fd1246db42491800fab` |
 | `docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md` | `architecture_decisions` | `adr` | 10847 | `256e3af3967e08ca164de66fcad22c9b8f5fbd8f32f171a5957ea96afc063a14` |
 | `docs/adr/ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md` | `architecture_decisions` | `adr` | 13048 | `eaf77b5b39d7b09364bedcd054239349843f367c70c9bb22221f978780896c81` |

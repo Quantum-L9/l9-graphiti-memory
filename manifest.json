@@ -430,7 +430,7 @@
         "version": "3.0.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "b6dc00f5f70cf4726e93871b0421f7a34f3baf479411178bb5811e598f11b6e9",
+      "sha256": "2aeaf5d3c0bcb53e19d5d86f7bdf116e4465b9a51951f12d0b6c0982f72da47f",
       "size_bytes": 141433
     },
     {
@@ -4510,8 +4510,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/ADR-094-product-topology-and-release-governance.md",
-      "sha256": "2ffe2a67c79aa4216f5deac5addd6bd31bf165d4a6dde55af594cd3b113c6809",
-      "size_bytes": 23935
+      "sha256": "483158e05defaa35eba1cce359b4d81aa4ecd114bbbbcc1e6749f45e5f5ef21d",
+      "size_bytes": 23934
     },
     {
       "category": "architecture_decisions",
