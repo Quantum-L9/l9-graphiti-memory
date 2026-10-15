@@ -229,8 +229,10 @@ procedure, and nothing here has been run on C1.
 
 1. **Release.** A validated 3.0.0 artifact bound to exact source and
    wheel/sdist digests; not the unmerged candidate.
-2. **Classification.** ADR-094's open question resolved by its owner, or the
-   deployment explicitly recorded as canonically unclassified.
+2. **Classification.** Settled (ADR-094, 2026-10-15): the topology claims
+   `l9.product-kind-exception/memory-hosted-service@1`. Its `service_admitted`
+   requirement is met only by the applicable target-class authority admitting
+   the exact running deployment; deploying does not admit it.
 3. **Canonical store.** `store_backend: postgres` against a new, empty
    database, with the server installed with the `postgres` extra
    (`l9-graphite-memory[server,postgres]`); projection, graph intelligence and active memory at `none` unless

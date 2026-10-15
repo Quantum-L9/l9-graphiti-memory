@@ -42,13 +42,16 @@ optional, separately qualified capabilities (ADR-097).
 
 Open before 3.0.0 is live: the protocol suite and receipt shapes on PostgreSQL (ADR-082;
 cross-process sharing on PostgreSQL is proven by `tests/integration/test_remote_mcp_postgres_multiprocess.py`), key and grant provisioning, C1
-deployment evidence, consumer adoption, and the product classification below.
+deployment evidence, consumer adoption, and release and service admission (the classification below is settled).
 
-The accepted ProductKind is still `dependency` with `local_composition`
-consumption, and the topology forbids remote invocation as canonical
-consumption. A centrally hosted service is canonically unclassified: ADR-094
-(2026-10-14) records the discrepancy, the two candidate resolutions and their
-owners. Nothing here reclassifies the product.
+The ProductKind is still `dependency`. Under the admitted exception
+`l9.product-kind-exception/memory-hosted-service@1` (`.github` v3.21.0;
+ADR-094, 2026-10-15) canonical consumption is `remote_invocation` over
+authenticated MCP Streamable HTTP of one `independent_runtime` service whose
+process lifecycle and health are product-owned, on PostgreSQL. The service
+has its own runtime identity and no Constellation identity, Gate admission or
+routing authority. The 2026-10-13 and 2026-10-14 ADR-094 amendments record the
+earlier, unclassified state.
 
 ## Control flow
 

@@ -20,14 +20,17 @@ updated: 2026-10-14
 Accepted
 
 The decision takes effect when it merges to `main` under the product owner's
-review. It binds exactly one ProductTopology candidate:
+review. It binds exactly one ProductTopology candidate (reissued by the
+2026-10-15 amendment below; the predecessor digest and authority are recorded
+there):
 
 | Coordinate | Value |
 |---|---|
 | ProductTopology | `product-topology.yaml` |
-| Topology digest | `sha256:03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e` |
-| Global authority | `Quantum-L9/.github@976eedb58358355919a7eb39b4c78bd52a54a102` |
+| Topology digest | `sha256:e5eabf4ce5011702765e0c663b786572a09a3f7f06c133c01081733c0a486e5e` |
+| Global authority | `Quantum-L9/.github@d4397e53f8f4c23458a80f87db9552463ad9e26f` |
 | Global release contract | `l9.contract/product-release@1` |
+| Product-kind exception | `l9.product-kind-exception/memory-hosted-service@1` |
 
 The topology digest is the SHA-256 of the committed `product-topology.yaml`
 bytes, including its inline L9 metadata header. If those bytes change
@@ -344,3 +347,79 @@ choose Candidate B and open Node admission.** Until then the accepted topology
 and digest stand, no document may call the hosted service an admitted
 topology, a Node, or an approved remote canonical consumption mode, and the
 3.0.0 deployment is architecturally intended but canonically unclassified.
+
+## Amendment — classification settled: the admitted hosted-Memory exception (2026-10-15)
+
+**Decision date:** 2026-10-15 (campaign L9-MEMORY-3.0-PREDEPLOY-2026-10-14).
+**Status of the question:** settled by the canonical authority. This
+amendment succeeds the two open amendments above. They stay as written; they
+were correct at the revision they read.
+
+### What settled it
+
+`Quantum-L9/.github` Semantic Foundation v3.21.0 (PR #183, merge
+`d4397e53f8f4c23458a80f87db9552463ad9e26f`) admits exactly one product-kind
+exception, `l9.product-kind-exception/memory-hosted-service@1`, bound to this
+product (`l9-graphiti-memory:product/l9-graphite-memory`), this repository
+(registry entry `l9-graphiti-memory`) and archetype
+`l9.dependency-archetype/semantic-subsystem@1`, from release 3.0.0. Neither
+Candidate A nor Candidate B was chosen: the owner of ProductKind meaning
+ruled on the question the 2026-10-14 amendment routed to it, by admitting an
+exception instead of a new kind, a Node, or a consumer-owned host.
+
+### Decision
+
+1. **Memory remains a `dependency`** with the same archetype, product
+   identity and canonical repository. `product-topology.yaml` claims the
+   exception only through `product.kind_exception_ref`.
+2. **Authenticated remote canonical consumption is permitted for this exact
+   product.** `consumption.model` is `remote_invocation`, through MCP
+   Streamable HTTP only (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`), with
+   per-request signed-agent authentication, server-derived attribution and
+   server-side namespace authorization. Unauthenticated remote consumption is
+   forbidden.
+3. **Deployment is `independent_runtime`**, as one operational service. The
+   server process lifecycle and its operational health are product-owned.
+   PostgreSQL is the shared canonical persistence backend; MemoryService
+   remains the semantic owner of every record.
+4. **Service runtime identity is distinct from Constellation identity.** The
+   topology's runtime dimension is applicable under the exception's rule:
+   RuntimeIdentity(memory_service_instance) = RuntimeIdentity(admitted Memory
+   service deployment). Constellation identity stays inapplicable. Nothing
+   here introduces Gate admission, Gate routing, a Node archetype or a
+   runnable-node pattern; `l9.pattern/dependency-package@1` stays required.
+5. **Release admission, service admission and deployment are three separate
+   decisions.** The topology declares `service_admitted` as a kind-specific
+   admission requirement. Declaring it is not release admission
+   (`l9.contract/product-release@1`, which also enforces the 3.0.0 floor) and
+   not admission of a running service; only the applicable target-class
+   authority admits an exact running deployment, and a successful deployment
+   never self-admits.
+6. **C1 is a deployment target, not semantic authority.** The hosting
+   coordinate is deployment-owned and is not a semantic category.
+7. The wheel and sdist remain the product's artifacts and release-identity
+   carriers; the release identity tuple is unchanged.
+
+### What changes in this repository
+
+| Item | Before | After |
+|---|---|---|
+| Topology digest | sha256:03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e (recorded as `provenance.predecessor_topology_ref`) | the Status table above |
+| Global authority | `.github@976eedb` (v3.16.0) | `.github@d4397e5` (v3.21.0); `semantics/repository_registry.yaml` added to the pinned material files, because v3.21.0 makes product-kind resolution depend on it |
+| Decision item 1 | `local_composition` / `consumer_bound_artifact` | `remote_invocation` / `independent_runtime` under the exception |
+| Decision item 3 | no independent RuntimeIdentity | the hosted service's own RuntimeIdentity; still no Constellation identity |
+| Decision item 4 | 17 gate conditions; "no such compiler exists" | 18 conditions (adds `product_kind_exception_absent_or_exactly_bound_and_admitted`); `l9-semantic-compiler-engine` 0.9.3 exists but builds only its own product, cannot load the v3.21.0 exception catalog, and rejects the `@2` projection profiles (`successor_of`), so the local generator remains the derivation |
+| `validate_product_topology.py` | kind models only | resolves the claim under the schema's `exception_rule`, checks the exception's positive obligations, and with `--release-version` rejects a release below the floor |
+| `validate_release.sh` | product contract skipped without an authority checkout | still skipped in self-contained runs without one, but **fails closed in publication mode**; `publish.yml` now checks out the pinned authority |
+
+Items 1, 3 and 4 of the Decision section above are superseded only to the
+extent of this table; everything else in it stands.
+
+### What this amendment does not do
+
+It admits no topology, release or service. The reissued topology takes effect
+under the product owner's review when it merges, as the Status section
+states. It does not deploy anything, change the stateless signed-agent
+protocol (its bounded replay window is unchanged and stays a release-security
+decision), or edit any `Quantum-L9/.github` file.
+
