@@ -91,6 +91,7 @@ publication:
   workflow: .github/workflows/publish.yml
   requires: an explicit release admission for the exact candidate; published digests equal admitted digests
   product_contract: publication mode fails closed unless the product contract is checked against authority.revision
+  admission_gate: tools/assurance/verify_release_admission.py against docs/receipts/l9-memory-release-<version>.md on the default branch; runs before PyPI and stops on any mismatch of version, source revision, wheel or sdist sha256 (ADR-022, 2026-10-15)
 hosted_service_admission:
   # Declared by the topology (admission.kind_specific_requirements: service_admitted).
   # Release admission resolves the requirement without admitting a running

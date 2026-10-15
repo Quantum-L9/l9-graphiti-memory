@@ -1,5 +1,5 @@
 {
-  "file_count": 862,
+  "file_count": 864,
   "files": [
     {
       "category": "ci",
@@ -126,8 +126,8 @@
         "version": "3.0.0"
       },
       "path": ".github/workflows/publish.yml",
-      "sha256": "0053650504c2d7e716554a8437c0fa34bbba0bb0d3fdd3482d55c53aaa678b74",
-      "size_bytes": 5361
+      "sha256": "3ca9832abc90699674de49653f95aa597c9d6b2ea87d972cec616a3f822c8df0",
+      "size_bytes": 7160
     },
     {
       "category": "ci",
@@ -430,8 +430,8 @@
         "version": "3.0.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "8323d01a2a832a85e60ab148ae5682f82c4104934bc521b136867873d7e48f18",
-      "size_bytes": 141433
+      "sha256": "6a2e852503679bbb5f84bb02d9f53daf83a335b9f62be472bae8cbb17c84d42e",
+      "size_bytes": 141731
     },
     {
       "category": "repository_root",
@@ -3358,8 +3358,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/ADR-022-release-publishing-and-rollback.md",
-      "sha256": "b9ab332121590baebfc30c97ece6b57a9b797c3a524437efd01f9a27474c402e",
-      "size_bytes": 2514
+      "sha256": "a34795ebfa725a7705a7a7481e74cb36f068f2fbc1c67e168faea93d47490b8a",
+      "size_bytes": 5321
     },
     {
       "category": "architecture_decisions",
@@ -4590,8 +4590,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/README.md",
-      "sha256": "3bfce412af4963202b76ef142237255e646e16621f3777dcee91a9b06b01c19e",
-      "size_bytes": 15037
+      "sha256": "27f0d35928e28f08e43141d3ee0916e51f645e55924b3debdfb26648d507d77a",
+      "size_bytes": 15304
     },
     {
       "category": "documentation",
@@ -5086,8 +5086,8 @@
         "version": "3.0.0"
       },
       "path": "release-work/product-release-binding.yaml",
-      "sha256": "e5721cbe0f42bd62244b0ebfb268f72aec764e7092cfdf7e64eb50bccfbf61b0",
-      "size_bytes": 6986
+      "sha256": "8d18617d3b50e73f8a88a44710b8b072dc865fd7abae8d9a37c0fe8fca62d559",
+      "size_bytes": 7240
     },
     {
       "category": "repository_root",
@@ -10391,6 +10391,22 @@
         "l9_schema": 1,
         "layer": "test",
         "owner": "memory-control-plane",
+        "path": "tests/regression/test_release_admission.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "3.0.0"
+      },
+      "path": "tests/regression/test_release_admission.py",
+      "sha256": "6be9db85a2ddf8f71a6529f95613727d08fa08b14f37362267c65d762844491b",
+      "size_bytes": 8414
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "test",
+        "owner": "memory-control-plane",
         "path": "tests/regression/test_release_shell.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -11982,8 +11998,8 @@
         "version": "3.0.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "4736ac8983e4f6027c73ed817e2fb4441a9d14a53669cbc658a2cca7e438a0b5",
-      "size_bytes": 38292
+      "sha256": "3dee9ab1d7708162b51ba0d64579969491f512aab5b0ea334aba26b661000b6b",
+      "size_bytes": 38446
     },
     {
       "category": "assurance",
@@ -12096,6 +12112,22 @@
       "path": "tools/assurance/validate_projection_manifests.py",
       "sha256": "ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5",
       "size_bytes": 2468
+    },
+    {
+      "category": "assurance",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "assurance",
+        "owner": "memory-control-plane",
+        "path": "tools/assurance/verify_release_admission.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "3.0.0"
+      },
+      "path": "tools/assurance/verify_release_admission.py",
+      "sha256": "d0f7bdbc5a160578d80f7989c993b23be10d5564da88415639202576ebc74b5f",
+      "size_bytes": 6945
     },
     {
       "category": "assurance",
