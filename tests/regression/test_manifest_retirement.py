@@ -134,7 +134,8 @@ def test_release_output_carries_no_root_inventory() -> None:
     )
     uploaded = upload["with"]["path"].split()
     assert "MANIFEST.md" not in uploaded
-    assert "dist/" in uploaded and "build/release-validation/" in uploaded
+    assert "dist/" in uploaded
+    assert "build/release-validation/" in uploaded
     sdist_rules = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
     assert "MANIFEST.md" not in sdist_rules
     topology = yaml.safe_load(TOPOLOGY.read_text(encoding="utf-8"))
@@ -281,7 +282,8 @@ def test_candidate_integrity_evidence_requires_an_executed_comparison(
 ) -> None:
     module = _evidence_module()
     spec = next(item for item in module.CHECKS if item.check_id == "V-024")
-    assert spec.success_pattern and not spec.allow_empty_log
+    assert spec.success_pattern
+    assert not spec.allow_empty_log
     if log is not None:
         path = tmp_path / spec.log_path
         path.parent.mkdir(parents=True)
