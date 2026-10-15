@@ -197,10 +197,7 @@
       "Quantum-L9/l9-graphiti-memory/scripts/validate_release.sh"
     ],
     "compilation_profile_ref": "l9.compilation/product-build@1",
-    "generated_surfaces": [
-      "MANIFEST.md",
-      "manifest.json"
-    ],
+    "generated_surfaces": [],
     "reproducibility_requirement_refs": [],
     "source_owned_surfaces": [
       "product-topology.yaml"
@@ -455,7 +452,7 @@
       "l9.contract/admission-and-promotion@1"
     ]
   },
-  "manifest_digest": "sha256:b6ef52214a60574d3d8b4d49cdaa341752818f99e81ac98cbaf39d03d95ffb29",
+  "manifest_digest": "sha256:0cb5638ef34bfab1d14ce93161ded9844ea0070fdcfccdbeb1fe036980bda8ba",
   "observability": {
     "audit_requirement_refs": [],
     "capability_metrics": [],
@@ -498,7 +495,7 @@
     "derivation": "deterministic",
     "inputs": [
       {
-        "digest": "sha256:e5eabf4ce5011702765e0c663b786572a09a3f7f06c133c01081733c0a486e5e",
+        "digest": "sha256:db3f58851bd27d7932dfa22b0e25361cb5d50d68f9807e5f5a5627c62e29699f",
         "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
       },
       {
@@ -814,7 +811,7 @@
     "trust_source_refs": []
   },
   "source_topology": {
-    "digest": "sha256:e5eabf4ce5011702765e0c663b786572a09a3f7f06c133c01081733c0a486e5e",
+    "digest": "sha256:db3f58851bd27d7932dfa22b0e25361cb5d50d68f9807e5f5a5627c62e29699f",
     "ref": "Quantum-L9/l9-graphiti-memory/product-topology.yaml"
   },
   "state": {

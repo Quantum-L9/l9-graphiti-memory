@@ -126,7 +126,6 @@ jobs:
             build-digests.txt
             build/release-validation/
             CHANGE_SUMMARY.md
-            MANIFEST.md
             VALIDATION.md
       # Release admission (ADR-094; ADR-022, 2026-10-15). The `release`
       # environment approval says a person allowed this run; it names no

@@ -76,13 +76,13 @@ def main() -> int:
         registry_digest=_digest(registry_bytes),
         classes_digest=_digest(classes_bytes),
     )
-    output_bytes = _dump_yaml(corpus, relative=args.output.as_posix())
+    output_bytes = _dump_yaml(corpus)
     receipt = build_receipt(
         corpus=corpus,
         output_path=args.output,
         output_digest=_digest(output_bytes),
     )
-    receipt_bytes = _dump_yaml(receipt, relative=args.receipt.as_posix())
+    receipt_bytes = _dump_yaml(receipt)
     if args.check:
         errors: list[str] = []
         if not args.output.is_file():
@@ -306,34 +306,15 @@ def _digest(raw: bytes) -> str:
     return f"sha256:{hashlib.sha256(raw).hexdigest()}"
 
 
-def _l9_meta_header(relative: str) -> str:
-    """The inline L9_META block the assurance plane requires on every tracked
-    comment-safe file (tools/assurance/apply_l9_meta.py). Rendering it here
-    keeps a regenerated projection byte-identical to what metadata
-    preparation would insert, so the generated files never need hand repair.
-    """
-    fields = (
-        ("l9_schema", "1"),
-        ("repo", "Quantum-L9/l9-graphiti-memory"),
-        ("path", relative),
-        ("layer", "package"),
-        ("owner", "memory-control-plane"),
-        ("status", "active"),
-        ("version", "2.5.0"),
-        ("updated", "2026-07-22"),
-    )
-    lines = ["# L9_META", *(f"#   {key}: {value}" for key, value in fields), ""]
-    return "\n".join(lines) + "\n"
-
-
-def _dump_yaml(value: Mapping[str, Any], *, relative: str) -> bytes:
-    body = yaml.safe_dump(
+def _dump_yaml(value: Mapping[str, Any]) -> bytes:
+    # No inline L9_META header: per-file metadata is retired (ADR-099), so the
+    # projection is exactly the deterministic YAML its receipt digests.
+    return yaml.safe_dump(
         dict(value),
         sort_keys=False,
         allow_unicode=True,
         width=100,
-    )
-    return (_l9_meta_header(relative) + body).encode("utf-8")
+    ).encode("utf-8")
 
 
 def _within_workspace(path: Path) -> Path:

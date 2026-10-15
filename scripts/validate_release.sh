@@ -11,10 +11,11 @@
 
 # Release validation is OBSERVATIONAL. It reads, hashes, builds into an
 # untracked workspace, runs tests, installs temporary artifacts, emits
-# temporary evidence, compares, and fails. It never rewrites tracked metadata,
-# manifests, validation evidence or source, and never repairs candidate drift.
-# Preparation (tools/assurance/apply_l9_meta.py, generate_manifest.py in apply
-# mode) is an explicit, separate step that runs before the candidate is frozen.
+# temporary evidence, compares, and fails. It never rewrites tracked
+# validation evidence or source, and never repairs candidate drift.
+# Repository-wide file inventories and per-file metadata headers are retired
+# (ADR-099): nothing here generates or checks them. A pull request's changed
+# files are listed in its body, not in a tracked inventory.
 #
 #   L9_RELEASE_EVIDENCE_DIR   evidence workspace (default build/release-validation;
 #                             never the tracked validation/ tree)
@@ -129,28 +130,34 @@ candidate_digest() {
   fi
 }
 
-# Read-only candidate checks: metadata identity, manifest purity, manifest
-# digests. Run before and after substantive validation; a difference is drift
-# the candidate owner must repair through explicit preparation, never here.
+# Read-only candidate check: the tracked bytes after substantive validation
+# equal the bytes before it. A difference is drift the candidate owner must
+# repair through explicit preparation, never here.
 candidate_integrity() {
   label="$1"
   log="$OUT/logs/candidate_integrity_$label.txt"
   printf '== candidate_integrity_%s ==\n' "$label"
-  # Explicit && chaining: `set -e` is suspended inside a list that feeds `||`,
-  # so a plain sequence would mask a failing check behind the final printf.
+  digest="$(candidate_digest)"
   {
-    python3 tools/assurance/apply_l9_meta.py --check \
-      && python3 tools/assurance/generate_manifest.py --check \
-      && python3 tools/assurance/check_l9_meta.py \
-      && python3 tools/assurance/validate_manifest.py \
-      && printf 'PASS: candidate integrity (%s)\n' "$label"
-  } >"$log" 2>&1 || { cat "$log"; fail "candidate integrity ($label): tracked metadata or manifest drift; prepare and refreeze the candidate"; }
+    printf 'candidate digest before: %s\n' "$DIGEST_BEFORE"
+    printf 'candidate digest %s: %s\n' "$label" "$digest"
+  } >"$log"
+  if [[ "$digest" != "$DIGEST_BEFORE" ]]; then
+    cat "$log"
+    fail "candidate integrity ($label): tracked candidate bytes changed; prepare and refreeze the candidate"
+  fi
+  # Without git the candidate cannot be enumerated: say so instead of passing,
+  # so the evidence check for this log fails closed rather than claiming it.
+  if [[ "$digest" == "unavailable" ]]; then
+    printf 'UNVERIFIED: candidate integrity (%s): no git work tree to enumerate\n' "$label" >>"$log"
+  else
+    printf 'PASS: candidate integrity (%s)\n' "$label" >>"$log"
+  fi
   cat "$log"
 }
 
 DIGEST_BEFORE="$(candidate_digest)"
 printf 'candidate digest before: %s\n' "$DIGEST_BEFORE" | tee "$OUT/logs/candidate_digest.txt"
-candidate_integrity pre
 
 run pytest pytest -q
 run compileall python3 -m compileall -q src tests tools scripts
@@ -175,7 +182,6 @@ elif [[ "$ARTIFACT_MODE" == "publication" ]]; then
 else
   printf '== product_contract ==\nSKIP: L9_SEMANTIC_AUTHORITY_ROOT not set; topology and ProductManifest not checked against global law\n'
 fi
-run l9_meta python3 tools/assurance/check_l9_meta.py
 run layer_boundaries python3 tools/assurance/check_layer_boundaries.py
 run recursive_alignment python3 tools/assurance/check_recursive_alignment.py
 run bypass_check python3 tools/assurance/check_memory_write_bypass.py

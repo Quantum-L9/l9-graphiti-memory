@@ -50,8 +50,6 @@ def test_release_version_is_written_identically_everywhere() -> None:
     seen = {
         "pyproject.toml": _pyproject_version(),
         "version.py": PACKAGE_VERSION,
-        "generate_manifest.py": _constant(assurance / "generate_manifest.py", "RELEASE"),
-        "apply_l9_meta.py": _constant(assurance / "apply_l9_meta.py", "VERSION"),
         "generate_validation_evidence.py": _constant(
             assurance / "generate_validation_evidence.py", "RELEASE"
         ),

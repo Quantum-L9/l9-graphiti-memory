@@ -53,10 +53,8 @@ run_gate "cursor instantiation probe" python3 -m l9_graphite_memory.cli client c
 for hook in "$ROOT"/hooks/*.sh; do run_gate "shell syntax $(basename "$hook")" bash -n "$hook"; done
 run_gate "ADR ledger" python3 "$ROOT/tools/assurance/validate_adrs.py"
 run_gate "harvest coverage" python3 "$ROOT/tools/assurance/validate_harvest_coverage.py"
-run_gate "L9 metadata coverage" python3 "$ROOT/tools/assurance/check_l9_meta.py"
 run_gate "layer boundary alignment" python3 "$ROOT/tools/assurance/check_layer_boundaries.py"
 run_gate "recursive L9 alignment" python3 "$ROOT/tools/assurance/check_recursive_alignment.py"
-run_gate "release manifest" python3 "$ROOT/tools/assurance/validate_manifest.py"
 run_gate "write bypass assurance" python3 "$ROOT/tools/assurance/check_memory_write_bypass.py"
 run_gate "configuration drift assurance" python3 "$ROOT/tools/assurance/check_config_drift.py"
 run_gate "committed secret assurance" python3 "$ROOT/tools/assurance/check_secrets.py"
