@@ -400,6 +400,15 @@ class PostgresRecordStore:
         psycopg2 = _driver()
         try:
             with self._transaction() as tx:
+                # Concurrent `CREATE ... IF NOT EXISTS` races in the catalog:
+                # two processes cold-starting on one empty schema would fail
+                # with a pg_type unique violation. The transaction-scoped
+                # advisory lock, keyed to the schema, makes the second
+                # initializer wait and then find the tables in place.
+                tx.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended("
+                    "'l9-memory-schema-init:' || coalesce(current_schema(), ''), 0))"
+                )
                 self._migrate_projection_links_to_targets(tx)
                 for statement in statements:
                     tx.execute(statement)

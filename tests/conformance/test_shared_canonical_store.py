@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import threading
 import uuid
 from pathlib import Path
 
@@ -26,7 +27,7 @@ from l9_graphite_memory.contracts import (
     MemoryWriteRequest,
     Provenance,
 )
-from l9_graphite_memory.errors import ConfigurationError
+from l9_graphite_memory.errors import ConfigurationError, StoreError
 from l9_graphite_memory.services import MemoryService
 from tests.conftest import make_postgres_store
 
@@ -137,3 +138,40 @@ def test_shared_backend_is_one_authority_for_independent_clients(principal) -> N
     finally:
         writer.close()
         reader.close()
+
+
+def test_concurrent_first_initialization_of_one_shared_schema_succeeds() -> None:
+    """Two processes cold-starting on one empty schema both come up.
+
+    Each hosted server initializes the shared store at startup. Without a
+    lock, concurrent ``CREATE TABLE IF NOT EXISTS`` statements race in the
+    PostgreSQL catalog and one start fails with a unique violation on
+    ``pg_type``. Initialization holds a transaction-scoped advisory lock, so
+    the second initializer waits and then finds the schema in place.
+    """
+
+    schema = f"l9_coldstart_{uuid.uuid4().hex}"
+    stores = [make_postgres_store(schema) for _ in range(4)]
+    barrier = threading.Barrier(len(stores))
+    failures: list[StoreError] = []
+
+    def start(store) -> None:
+        barrier.wait()
+        try:
+            store.initialize()
+        except StoreError as exc:  # recorded and asserted below
+            failures.append(exc)
+
+    threads = [threading.Thread(target=start, args=(store,)) for store in stores]
+    try:
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=60)
+        assert failures == []
+        with stores[0]._cursor() as cursor:
+            cursor.execute("SELECT count(*) AS n FROM schema_migrations")
+            assert cursor.fetchone()["n"] == 1
+    finally:
+        for store in stores:
+            store.close()

@@ -51,8 +51,10 @@ class TokenAuthenticator:
         scheme, _, supplied = authorization_header.partition(" ")
         if scheme.lower() != "bearer" or not supplied:
             raise AuthenticationError("Authorization must use Bearer scheme")
+        supplied_bytes = supplied.encode("utf-8")
         for configured_token, config in self._entries:
-            if hmac.compare_digest(supplied, configured_token):
+            # Bytes, not str: compare_digest raises TypeError on non-ASCII str.
+            if hmac.compare_digest(supplied_bytes, configured_token.encode("utf-8")):
                 return _principal_from_config(config, auth_method="bearer")
         fingerprint = hashlib.sha256(supplied.encode("utf-8")).hexdigest()[:12]
         raise AuthenticationError(f"invalid bearer token fingerprint={fingerprint}")

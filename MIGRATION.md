@@ -98,3 +98,48 @@ Canonical v2.2 writes store provider locators in `projection_links`. Legacy prov
 ## Rollback
 
 Stop v2.2 writers and workers, preserve the v2.2 database for diagnosis, restore the pinned v0.2 environment and separate data source, and verify read-only operation before reopening writes. Never point both versions at the same writable backend.
+
+## Upgrading from 2.6.0 to 3.0.0 (release candidate)
+
+3.0.0 is a release candidate, not an admitted release (ADR-094). This section
+states what changes for an operator and how to return to 2.6.0.
+
+### What changes
+
+| Surface | 2.6.0 | 3.0.0 | Who is affected |
+|---|---|---|---|
+| HTTP MCP transport | answers `2024-11-05`; notifications get `200` | stateless Streamable HTTP `2025-11-25` / `2025-06-18`; absent or unsupported `MCP-Protocol-Version` gets `400` (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`) | HTTP callers: breaking. This is the reason for the major version. |
+| HTTP authentication | static bearer tokens | `bearer` (default, unchanged) or opt-in `signed-agent`; a signed-agent grant carrying `is_admin` stops the server at startup | operators enabling `signed-agent` |
+| stdio MCP | `2024-11-05` | unchanged | nobody |
+| Canonical store schema | 9 | 9 (unchanged) | nobody |
+| PostgreSQL first start | concurrent cold starts on one empty schema could fail | serialized by an advisory lock | multi-process deployments |
+| HTTP access log | full request URL | path without query string | log consumers |
+
+### Shared hosted instance
+
+The approved first hosted shared instance starts on a new, empty PostgreSQL
+database. Nothing is imported: no SQLite ledger, prior store, graph, Redis
+state or backup, and no migration runs. Set the backend explicitly; an unset
+`L9_MEMORY_STORE_BACKEND` is the local SQLite default, not the shared store:
+
+```bash
+pip install 'l9-graphite-memory[server,postgres]==3.0.0'
+export L9_MEMORY_STORE_BACKEND=postgres
+export L9_MEMORY_POSTGRES_DSN=...        # runtime secret, never tracked
+```
+
+A configured but unusable DSN stops the server; it never falls back to a local
+file. Any other environment (an existing store, a backend change) needs its
+own authorized lifecycle plan (ADR-077).
+
+### Rollback
+
+- stdio consumers: reinstall the pinned 2.6.0 wheel; nothing else changes.
+- HTTP: set `L9_MEMORY_HTTP_AUTH_MODE=bearer` or stop the HTTP transport;
+  2.6.0 HTTP clients cannot talk to a 3.0.0 server, and 3.0.0 clients cannot
+  talk to 2.6.0.
+- Data: the canonical schema is still 9 and the persisted record models are
+  unchanged since 2.6.0 (the contract additions are capability and readiness
+  types only), so a 2.6.0 process can read what 3.0.0 wrote. This follows from
+  the source diff; no 3.0.0-to-2.6.0 downgrade was executed. Never run both
+  versions as writers against one store at the same time.

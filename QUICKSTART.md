@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-07-27
+updated: 2026-10-14
 /L9_META -->
 
 # Quick Start
@@ -50,6 +50,18 @@ l9-memory import legacy-episodes.jsonl --group-id l9-graphiti-memory --dry-run
 l9-memory-server --transport stdio
 ```
 
+This is the local stdio MCP mode: the server runs on the same machine as the
+agent and is launched by it. It is supported in the 2.5.0 operational release,
+on `main`, and in the ADR-098 candidate, and it is what the Cursor lifecycle
+below installs.
+
+The target agent transport is Memory 3.0.0: one centrally hosted
+`MemoryService` on the operator's C1 environment, reached over authenticated
+HTTPS MCP (ADR-038). It is not deployed, so there is no remote-client
+quickstart. The released `l9-memory-server --transport http` is not qualified
+for remote agents, and the candidate's signed-agent HTTP mode is not a release;
+see `RUNBOOK.md`, "Remote HTTP MCP", for both and for the C1 prerequisites.
+
 ## Cursor instantiation
 
 ```bash
@@ -59,6 +71,6 @@ l9-memory client cursor verify
 l9-memory client cursor status
 ```
 
-`install` atomically writes the managed `l9-graphite-memory` entry into `~/.cursor/mcp.json`, preserving unrelated servers and never persisting secrets. `verify` launches the generated command and proves the full MCP handshake, tool inventory, and `memory.health`. Restart Cursor after installing, then see `docs/CURSOR_INSTANTIATION.md` for the full lifecycle and recovery.
+`install` atomically writes the managed local stdio `l9-graphite-memory` entry into `~/.cursor/mcp.json`, preserving unrelated servers and never persisting secrets. `verify` launches that stdio command and proves the full MCP handshake, tool inventory, and `memory.health` for the local entry; it is not evidence about any remote HTTP service. Restart Cursor after installing, then see `docs/CURSOR_INSTANTIATION.md` for the full lifecycle and recovery.
 
 See `RUNBOOK.md` for consent-governed profile writes, deletion, provider projection, recovery, backups, and release validation.
