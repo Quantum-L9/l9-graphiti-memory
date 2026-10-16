@@ -29,6 +29,7 @@ from __future__ import annotations
 import ipaddress
 import itertools
 import json
+import math
 import os
 import ssl
 import time
@@ -103,6 +104,16 @@ REMOTE_OPERATION_TOOLS: dict[str, str] = {
     operation: MCP_OPERATION_TOOLS[operation]
     for operation in (*LIFECYCLE_OPERATIONS, "write_agent", "write_governed")
 }
+
+#: Capability-receipt fields the client binds to. Each must be present in the
+#: server's own receipt; a model default is not evidence.
+_CAPABILITY_BINDING_FIELDS: tuple[str, ...] = (
+    "package_version",
+    "contract_version",
+    "remote_mcp_contract_version",
+    "http_mcp_protocol_versions",
+    "transports",
+)
 
 #: Operations that cannot be served remotely under existing law, with the
 #: reason. They are refused locally; no request is sent.
@@ -361,8 +372,8 @@ class RemoteMemoryClient:
         ssl_context: ssl.SSLContext | None = None,
         clock: Callable[[], float] = time.time,
     ) -> None:
-        if timeout_seconds <= 0:
-            raise _configuration("remote timeout must be positive")
+        if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+            raise _configuration("remote timeout must be a positive, finite number of seconds")
         self.endpoint = normalize_endpoint(url)
         self._credentials = credentials
         self._timeout = timeout_seconds
@@ -613,9 +624,20 @@ class RemoteMemoryClient:
             )
         self.protocol_version = str(negotiated)
         self._notify("notifications/initialized")
-        capabilities = self._typed(
-            ControlPlaneCapabilities, self._tool_payload(REMOTE_OPERATION_TOOLS["capabilities"], {})
+        raw = self._tool_payload(REMOTE_OPERATION_TOOLS["capabilities"], {})
+        # The model defaults these to this client's own values, so a receipt
+        # that omits them would bind on evidence the server never gave.
+        absent = sorted(
+            name
+            for name in _CAPABILITY_BINDING_FIELDS
+            if not isinstance(raw, dict) or name not in raw
         )
+        if absent:
+            raise RemoteMemoryError(
+                RemoteFailureKind.CONTRACT_MISMATCH,
+                "remote capability receipt omits " + ", ".join(absent),
+            )
+        capabilities = self._typed(ControlPlaneCapabilities, raw)
         problems: list[str] = []
         if capabilities.contract_version != CONTROL_PLANE_CONTRACT_VERSION:
             problems.append(
@@ -649,7 +671,11 @@ class RemoteMemoryClient:
         result = self._request("tools/call", {"name": tool_name, "arguments": arguments})
         try:
             content = result["content"]
-            text = next(item["text"] for item in content if item.get("type") == "text")
+            text = next(
+                item["text"]
+                for item in content
+                if isinstance(item, dict) and item.get("type") == "text"
+            )
             return json.loads(text)
         except (KeyError, TypeError, StopIteration, ValueError):
             raise RemoteMemoryError(

@@ -236,6 +236,40 @@ def test_a_server_outside_the_contract_is_refused(overrides: dict[str, Any]) -> 
     assert caught.value.kind is RemoteFailureKind.CONTRACT_MISMATCH
 
 
+@pytest.mark.parametrize(
+    "omitted",
+    [
+        "package_version",
+        "contract_version",
+        "remote_mcp_contract_version",
+        "http_mcp_protocol_versions",
+        "transports",
+    ],
+)
+def test_a_receipt_omitting_a_binding_field_is_refused(omitted: str) -> None:
+    """Regression (Codex P1 on #100): model defaults must not stand in for evidence."""
+
+    receipt = _capabilities()
+    del receipt[omitted]
+    client = ScriptedClient(iter([initialize(), 202, result(receipt)]))
+    with pytest.raises(RemoteMemoryError) as caught:
+        client.connect()
+    assert caught.value.kind is RemoteFailureKind.CONTRACT_MISMATCH
+    assert omitted in str(caught.value)
+
+
+def test_a_non_object_content_entry_is_a_protocol_failure() -> None:
+    """Regression (Codex P2 on #100): ``{"content": ["bad"]}`` was an AttributeError."""
+
+    def malformed(message: dict[str, Any]) -> dict[str, Any]:
+        return {"jsonrpc": "2.0", "id": message["id"], "result": {"content": ["bad"]}}
+
+    client = ScriptedClient(iter([*handshake(), malformed]))
+    with pytest.raises(RemoteMemoryError) as caught:
+        client.health()
+    assert caught.value.kind is RemoteFailureKind.PROTOCOL
+
+
 def test_an_unspeakable_negotiated_revision_is_refused() -> None:
     client = ScriptedClient(iter([initialize("2026-07-28")]))
     with pytest.raises(RemoteMemoryError) as caught:
@@ -361,7 +395,25 @@ def test_a_search_field_the_tool_lacks_is_refused_not_dropped() -> None:
     assert client.sent == []
 
 
-def test_a_nonpositive_timeout_is_a_configuration_failure() -> None:
+@pytest.mark.parametrize("timeout", [0, -1, float("nan"), float("inf"), float("-inf")])
+def test_a_nonpositive_or_nonfinite_timeout_is_a_configuration_failure(timeout: float) -> None:
+    """Regression (Codex P2 on #100): nan/inf passed the check and failed in the socket."""
+
     held = credentials()
-    with pytest.raises(RemoteMemoryError):
-        RemoteMemoryClient("https://memory.example", held, timeout_seconds=0)
+    with pytest.raises(RemoteMemoryError) as caught:
+        RemoteMemoryClient("https://memory.example", held, timeout_seconds=timeout)
+    assert caught.value.kind is RemoteFailureKind.CONFIGURATION
+
+
+@pytest.mark.parametrize("raw", ["nan", "inf", "-1", "soon"])
+def test_a_bad_timeout_variable_is_a_configuration_failure(raw: str) -> None:
+    env = {
+        "L9_MEMORY_REMOTE_URL": "https://memory.example",
+        "L9_MEMORY_REMOTE_TIMEOUT_SECONDS": raw,
+        AGENT_ASSERTION_ENV: ASSERTION,
+        IDENTITY_ASSERTION_JSON_ENV: json.dumps(IDENTITY),
+        IDENTITY_ASSERTION_HMAC_ENV: HMAC,
+    }
+    with pytest.raises(RemoteMemoryError) as caught:
+        RemoteMemoryClient.from_environment(environ=env)
+    assert caught.value.kind is RemoteFailureKind.CONFIGURATION
