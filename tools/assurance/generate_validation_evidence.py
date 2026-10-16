@@ -383,8 +383,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # reported 1953 passed on 3.10 and 3.13. 1858 + 95 = 1953.
         # Re-pinned 1953 -> 1954: 1 case in test_release_shell.py (a failing
         # step's log is printed and its status kept). Not CI-skipped.
-        "1954 tests pass",
-        r"1954 passed",
+        # Re-pinned 1954 -> 1955: 1 case in test_recursive_alignment.py (the
+        # text-file walk prunes excluded directories). Not CI-skipped.
+        "1955 tests pass",
+        r"1955 passed",
     ),
     CheckSpec(
         "V-002",
