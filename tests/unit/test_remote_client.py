@@ -83,7 +83,8 @@ def test_endpoint_refusals(url: str) -> None:
         normalize_endpoint(url)
     assert caught.value.kind is RemoteFailureKind.CONFIGURATION
     assert caught.value.error_type == "ConfigurationError"
-    assert "abc" not in str(caught.value) and "pass" not in str(caught.value)
+    assert "abc" not in str(caught.value)
+    assert "pass" not in str(caught.value)
 
 
 # -- credentials -------------------------------------------------------------
@@ -93,7 +94,8 @@ def test_credentials_expose_identity_but_never_values() -> None:
     held = credentials()
     assert held.agent_id == "cursor"
     assert held.expires_at == NOW + 600
-    assert ASSERTION not in repr(held) and HMAC not in repr(held)
+    assert ASSERTION not in repr(held)
+    assert HMAC not in repr(held)
     headers = held.headers(now=NOW)
     assert headers["Authorization"] == f"Bearer {ASSERTION}"
     assert headers["L9-Identity-Assertion-HMAC"] == HMAC
@@ -209,7 +211,8 @@ def test_connect_binds_the_contract_and_carries_the_negotiated_revision() -> Non
     assert capabilities.remote_mcp_contract_version == "memory-remote-mcp/v1"
     initialize_message, notification, capability_call = client.sent
     assert initialize_message["method"] == "initialize"
-    assert "id" not in notification and notification["method"] == "notifications/initialized"
+    assert "id" not in notification
+    assert notification["method"] == "notifications/initialized"
     assert capability_call["params"]["name"] == "memory.capabilities"
     assert client.protocol_version == "2025-11-25"
     assert client.connect() is capabilities  # bound once
@@ -359,5 +362,6 @@ def test_a_search_field_the_tool_lacks_is_refused_not_dropped() -> None:
 
 
 def test_a_nonpositive_timeout_is_a_configuration_failure() -> None:
+    held = credentials()
     with pytest.raises(RemoteMemoryError):
-        RemoteMemoryClient("https://memory.example", credentials(), timeout_seconds=0)
+        RemoteMemoryClient("https://memory.example", held, timeout_seconds=0)

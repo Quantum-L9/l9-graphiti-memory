@@ -158,19 +158,23 @@ def test_lifecycle_spans_server_processes_on_one_postgres_store(
             WRITER,
             ["phase-lock", "mp", "--group-id", HOME_NAMESPACE, "--task-signature", signature],
         )
-        assert code == 0 and lock["granted"] is True, err
+        assert code == 0, err
+        assert lock["granted"] is True, err
         code, verified, err = consumer(
             url_b, WRITER, ["verify-phase-lock", signature, "--group-id", HOME_NAMESPACE]
         )
-        assert code == 0 and verified["valid"] is True, err
+        assert code == 0, err
+        assert verified["valid"] is True, err
 
         # Grants are the server's, whichever process answers.
         code, refused, _ = consumer(
             url_b, READER, ["write", "the reader writes", "--group-id", HOME_NAMESPACE]
         )
-        assert code == 2 and refused["status"] == "rejected"
+        assert code == 2
+        assert refused["status"] == "rejected"
         code, _, err = consumer(url_a, WRITER, ["search", "x", "--group-id", FOREIGN_NAMESPACE])
-        assert code == 1 and err["error"] == "AuthorizationError"
+        assert code == 1
+        assert err["error"] == "AuthorizationError"
 
         for workdir in (dir_a, dir_b):
             ledgers = [p for p in workdir.rglob("*") if p.suffix in {".sqlite3", ".sqlite", ".db"}]
@@ -198,7 +202,8 @@ def test_records_outlive_server_processes_and_a_stopped_server_is_not_answered_l
 
     for argv in (["health"], ["get", written["record_id"]]):
         code, out, err = consumer(stopped_url, READER, argv)
-        assert code == 1 and out is None
+        assert code == 1
+        assert out is None
         assert err["error"] == "ConnectionError"
         assert err["remote"]["failure_kind"] == "unreachable"
     consumer.assert_no_local_ledger()

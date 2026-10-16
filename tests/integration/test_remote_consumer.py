@@ -225,7 +225,8 @@ def test_every_lifecycle_command_reaches_the_hosted_service(
     code, dry, _ = run(
         ["write", "a dry run commits nothing", "--group-id", HOME_NAMESPACE, "--dry-run"]
     )
-    assert code == 0 and dry["status"] == "admitted"
+    assert code == 0
+    assert dry["status"] == "admitted"
 
     code, found, _ = run(["search", "kingfisher", "--group-id", HOME_NAMESPACE])
     assert code == 0
@@ -239,24 +240,30 @@ def test_every_lifecycle_command_reaches_the_hosted_service(
     assert any(record_id in section["record_ids"] for section in hydrated["sections"])
 
     code, record, _ = run(["get", record_id, "--group-id", HOME_NAMESPACE])
-    assert code == 0 and record["content"] == "the remote ledger records a kingfisher"
+    assert code == 0
+    assert record["content"] == "the remote ledger records a kingfisher"
     code, missing, _ = run(["get", str(uuid.uuid4()), "--group-id", HOME_NAMESPACE])
-    assert code == 2 and missing["found"] is False
+    assert code == 2
+    assert missing["found"] is False
     # The dry run passed admission and committed nothing.
     code, uncommitted, _ = run(["get", dry["record_id"], "--group-id", HOME_NAMESPACE])
-    assert code == 2 and uncommitted["found"] is False
+    assert code == 2
+    assert uncommitted["found"] is False
 
     code, conflicts, _ = run(["conflicts", "--group-id", HOME_NAMESPACE])
-    assert code == 0 and conflicts["conflicts"] == []
+    assert code == 0
+    assert conflicts["conflicts"] == []
 
     signature = "remote-proof-signature-0001"
     code, lock, _ = run(
         ["phase-lock", "remote proof", "--group-id", HOME_NAMESPACE, "--task-signature", signature]
     )
-    assert code == 0 and lock["granted"] is True
+    assert code == 0
+    assert lock["granted"] is True
     assert Path(lock["state_file"]).is_relative_to(client_home / "state")
     code, verified, _ = run(["verify-phase-lock", signature, "--group-id", HOME_NAMESPACE])
-    assert code == 0 and verified["valid"] is True
+    assert code == 0
+    assert verified["valid"] is True
 
     candidate = (FIXTURE / "continuation_candidate.json").read_text(encoding="utf-8")
     code, admitted, _ = run(["ingest-governed-candidate"], stdin=candidate)
@@ -269,15 +276,19 @@ def test_every_lifecycle_command_reaches_the_hosted_service(
     close_args = ["close", "--summary", "remote session closed", "--group-id", HOME_NAMESPACE]
     close_args += ["--session-id", "remote-42", "--idempotency-key", "close-remote-42"]
     code, closed, _ = run(close_args)
-    assert code == 0 and closed["status"] == "complete" and closed["record_id"]
+    assert code == 0
+    assert closed["status"] == "complete"
+    assert closed["record_id"]
     code, replay, _ = run(close_args)
     assert code == 0
-    assert replay["replayed"] is True and replay["record_id"] == closed["record_id"]
+    assert replay["replayed"] is True
+    assert replay["record_id"] == closed["record_id"]
     assert replay["replay_payload_matched"] is True
     code, dry_close, _ = run(
         ["close", "--summary", "dry", "--group-id", HOME_NAMESPACE, "--dry-run"]
     )
-    assert code == 3 and dry_close["status"] == "partial"
+    assert code == 3
+    assert dry_close["status"] == "partial"
 
     no_local_ledger(client_home)
 
@@ -312,11 +323,13 @@ def test_agent_write_doors_and_typed_receipts(server_url) -> None:
     hits = client.search(MemorySearchRequest(query="remote write", namespaces=(HOME_NAMESPACE,)))
     assert {hit.record.record_id for hit in hits.hits} == {agent.record_id, governed.record_id}
     record = client.get(agent.record_id)  # type: ignore[arg-type]
-    assert record is not None and record.provenance.source_agent_id == WRITER
+    assert record is not None
+    assert record.provenance.source_agent_id == WRITER
     bundle = client.hydrate(HydrationRequest(task="remote write", namespaces=(HOME_NAMESPACE,)))
     assert bundle.sections
     closed = client.close(CloseRequest(namespace=HOME_NAMESPACE, summary="typed close"))
-    assert closed.status.value == "complete" and closed.record_id is not None
+    assert closed.status.value == "complete"
+    assert closed.record_id is not None
 
 
 # ---------------------------------------------------------------------------
@@ -351,7 +364,8 @@ def test_another_agent_sees_the_record_but_keeps_its_own_grant(
         ["write", "the reader writes", "--group-id", HOME_NAMESPACE],
     )
     assert code == 2
-    assert refused["status"] == "rejected" and refused["record_id"] is None
+    assert refused["status"] == "rejected"
+    assert refused["record_id"] is None
 
     # An ungranted read is an AuthorizationError, the type a local run raises.
     code, out, err = run_cli(
@@ -361,7 +375,8 @@ def test_another_agent_sees_the_record_but_keeps_its_own_grant(
         WRITER,
         ["search", "heron", "--group-id", FOREIGN_NAMESPACE],
     )
-    assert code == 1 and out is None
+    assert code == 1
+    assert out is None
     assert err["error"] == "AuthorizationError"
     assert err["remote"]["failure_kind"] == "authorization"
 
@@ -384,7 +399,8 @@ def test_unregistered_and_tampered_credentials_are_refused_by_the_server(
     code, _, err = run_cli(
         capsys, monkeypatch, server_url, WRITER, ["health"], key="not-the-writer-key-000000000000"
     )
-    assert code == 1 and err["remote"]["http_status"] == 401
+    assert code == 1
+    assert err["remote"]["http_status"] == 401
 
 
 def test_a_credential_beyond_the_lifetime_ceiling_is_refused(server_url) -> None:
@@ -453,7 +469,8 @@ def test_non_lifecycle_commands_are_refused_without_a_request(
 ) -> None:
     (Path.cwd() / "notes.md").write_text("a local excerpt", encoding="utf-8")
     code, out, err = run_cli(capsys, monkeypatch, closed_port_url(), WRITER, argv)
-    assert code == 1 and out is None
+    assert code == 1
+    assert out is None
     assert err["error"] == "RemoteOperationUnsupported"
     assert err["remote"]["failure_kind"] == "unsupported_remotely"
     if argv[0] == "distill":
@@ -470,7 +487,8 @@ def test_an_unreachable_server_is_a_typed_failure_not_a_local_answer(
         ["close", "--summary", "s", "--group-id", HOME_NAMESPACE],
     ):
         code, out, err = run_cli(capsys, monkeypatch, closed_port_url(), WRITER, argv)
-        assert code == 1 and out is None
+        assert code == 1
+        assert out is None
         assert err["error"] == "ConnectionError"
         assert err["remote"]["failure_kind"] == "unreachable"
     no_local_ledger(client_home)
@@ -478,7 +496,8 @@ def test_an_unreachable_server_is_a_typed_failure_not_a_local_answer(
 
 def test_plain_http_to_a_remote_host_is_refused(capsys, monkeypatch, client_home) -> None:
     code, _, err = run_cli(capsys, monkeypatch, "http://memory.example.invalid", WRITER, ["health"])
-    assert code == 1 and err["error"] == "ConfigurationError"
+    assert code == 1
+    assert err["error"] == "ConfigurationError"
     assert "https" in err["message"]
 
 
@@ -508,8 +527,10 @@ class _Redirector(http.server.BaseHTTPRequestHandler):
         return None
 
 
-def test_a_redirect_is_refused_and_credentials_go_nowhere_else() -> None:
-    _Redirector.hits = []
+def test_a_redirect_is_refused_and_credentials_go_nowhere_else(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(_Redirector, "hits", [])
     httpd = http.server.HTTPServer(("127.0.0.1", 0), _Redirector)
     thread = threading.Thread(target=httpd.serve_forever, daemon=True)
     thread.start()
