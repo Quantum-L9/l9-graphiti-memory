@@ -18,7 +18,7 @@ updated: 2026-07-22
 
 ## Status
 
-Accepted
+Superseded by ADR-099
 
 ## Context
 
@@ -70,4 +70,9 @@ A superseding metadata carrier may replace this design only if it preserves comp
 
 ## Supersedes / Superseded By
 
-Supersedes incomplete file provenance in prior releases. No later ADR supersedes this decision.
+Supersedes incomplete file provenance in prior releases.
+
+Superseded by ADR-099 on 2026-10-15: the repository-wide file inventory
+(`MANIFEST.md`, `manifest.json`) and per-file `L9_META` enforcement are
+retired. Existing inline headers remain as inert historical text and are no
+longer checked.

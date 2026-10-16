@@ -149,18 +149,36 @@ def _tool_invocations(tool: str) -> list[list[str]]:
     ]
 
 
-def test_release_validation_never_invokes_metadata_apply_mode() -> None:
-    invocations = _tool_invocations("apply_l9_meta.py")
-    assert invocations, "validator must still verify inline metadata"
-    for tokens in invocations:
-        assert "--check" in tokens, tokens
+RETIRED_TOOLS = (
+    "apply_l9_meta.py",
+    "check_l9_meta.py",
+    "generate_manifest.py",
+    "validate_manifest.py",
+    "l9_meta.py",
+)
 
 
-def test_release_validation_never_invokes_manifest_apply_mode() -> None:
-    invocations = _tool_invocations("generate_manifest.py")
-    assert invocations, "validator must still verify the manifest"
-    for tokens in invocations:
-        assert "--check" in tokens, tokens
+def test_release_validation_never_invokes_retired_inventory_or_metadata_tools() -> None:
+    # ADR-099: the root file inventory and L9_META enforcement are retired.
+    # Neither a command line nor any other text of the validator names them.
+    script = VALIDATOR.read_text(encoding="utf-8")
+    for tool in RETIRED_TOOLS:
+        assert _tool_invocations(tool) == [], tool
+        assert tool not in script, tool
+    for inventory in ("MANIFEST.md", "manifest.json"):
+        assert inventory not in script, inventory
+
+
+def test_release_validation_keeps_read_only_candidate_integrity() -> None:
+    # Retiring the inventory must not retire the candidate check: tracked bytes
+    # are digested before validation and compared after it, and the evidence
+    # log claims PASS only when the comparison actually ran.
+    script = VALIDATOR.read_text(encoding="utf-8")
+    assert 'DIGEST_BEFORE="$(candidate_digest)"' in script
+    assert ["candidate_integrity", "post"] in _validator_commands()
+    assert 'if [[ "$digest" != "$DIGEST_BEFORE" ]]; then' in script
+    assert "UNVERIFIED: candidate integrity" in script
+    assert 'if [[ "$DIGEST_BEFORE" != "$DIGEST_AFTER" ]]; then' in script
 
 
 def test_release_validation_evidence_root_is_untracked_build_workspace() -> None:

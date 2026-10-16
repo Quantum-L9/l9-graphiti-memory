@@ -99,9 +99,17 @@ def test_example_config_matches_canonical_generator() -> None:
     assert entry == canonical
 
 
-def test_manifest_covers_client_config_package() -> None:
-    manifest = json.loads((REPO_ROOT / "manifest.json").read_text(encoding="utf-8"))
-    listed = {item["path"] for item in manifest["files"]}
+def test_client_config_package_and_its_decision_are_tracked() -> None:
+    # The retired root inventory (ADR-099) used to prove these files ship with
+    # the source; git's tracked set is now the evidence.
+    listed = set(
+        subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "ls-files", "-z"],
+            capture_output=True,
+            check=True,
+            text=True,
+        ).stdout.split("\0")
+    )
     expected = {
         "src/l9_graphite_memory/client_config/__init__.py",
         "src/l9_graphite_memory/client_config/contracts.py",
@@ -111,13 +119,7 @@ def test_manifest_covers_client_config_package() -> None:
         "docs/CURSOR_INSTANTIATION.md",
     }
     missing = expected - listed
-    assert not missing, f"manifest missing {sorted(missing)}"
-
-
-def test_client_config_files_carry_l9_meta() -> None:
-    for path in sorted(CLIENT_CONFIG_DIR.glob("*.py")):
-        head = path.read_text(encoding="utf-8").splitlines()[:12]
-        assert any("L9_META" in line for line in head), path.name
+    assert not missing, f"untracked {sorted(missing)}"
 
 
 def test_cli_exposes_client_command_group() -> None:

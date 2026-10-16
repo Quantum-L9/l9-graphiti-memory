@@ -28,14 +28,13 @@ updated: 2026-07-22
 4. Gate alone resolves destination. The bridge has no peer URL, destination field, or node registry.
 5. The local editor component is a receipt guard, not constellation Gate. It owns no routing or workflow.
 6. Core memory modules do not import CLI, HTTP server, provider transport, secret loading, or integration surfaces.
-7. Every packaged file carries `L9_META` through inline metadata, the cryptographic manifest, or both.
+7. Retired by ADR-099 (2026-10-15): per-file `L9_META` metadata and the root file inventory are no longer required or checked. Existing headers are inert historical text.
 
 ## Validation
 
 ```bash
 python tools/assurance/check_recursive_alignment.py
 python tools/assurance/check_layer_boundaries.py
-python tools/assurance/check_l9_meta.py
 pytest -q
 bash scripts/validate_release.sh
 ```

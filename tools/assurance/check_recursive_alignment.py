@@ -23,7 +23,6 @@ sys.dont_write_bytecode = True
 from dataclasses import dataclass
 from pathlib import Path
 
-from check_l9_meta import validate as validate_l9_meta
 from check_layer_boundaries import scan as scan_layer_boundaries
 
 _DEPRECATED_ENVELOPE = "Packet" + "Envelope"
@@ -64,7 +63,6 @@ ALLOWED_TOP_LEVEL = {
     "deployment",
     "LICENSE",
     "MANIFEST.in",
-    "MANIFEST.md",
     "MIGRATION.md",
     "QUICKSTART.md",
     "README.md",
@@ -76,7 +74,6 @@ ALLOWED_TOP_LEVEL = {
     "config",
     "docs",
     "hooks",
-    "manifest.json",
     "product-topology.yaml",
     "pyproject.toml",
     "release-work",
@@ -182,9 +179,6 @@ def scan(root: Path) -> tuple[Violation, ...]:
                     "generated cache committed",
                 )
             )
-
-    for failure in validate_l9_meta(root):
-        violations.append(Violation("l9_meta", "manifest.json", 1, failure))
 
     for finding in scan_layer_boundaries(root):
         violations.append(

@@ -50,13 +50,13 @@ product:
   kind_exception_release_floor: 3.0.0
 product_topology:
   path: product-topology.yaml
-  digest: sha256:e5eabf4ce5011702765e0c663b786572a09a3f7f06c133c01081733c0a486e5e
+  digest: sha256:db3f58851bd27d7932dfa22b0e25361cb5d50d68f9807e5f5a5627c62e29699f
   admission_decision_ref: docs/adr/ADR-094-product-topology-and-release-governance.md
   mechanical_validation: tools/assurance/validate_product_topology.py --authority-root <Quantum-L9/.github at authority.revision> --release-version <PACKAGE_VERSION>
 product_manifest:
   status: resolved
   ref: release-work/product-manifest.json
-  digest: sha256:b6ef52214a60574d3d8b4d49cdaa341752818f99e81ac98cbaf39d03d95ffb29
+  digest: sha256:0cb5638ef34bfab1d14ce93161ded9844ea0070fdcfccdbeb1fe036980bda8ba
   generator: tools/assurance/generate_product_manifest.py
   compiler_revision: sha256:3283257400db638a7d12a67b253997575ce198178a9ad5c966c40e081247a18f
   compiler_profile_ref: l9.compilation/product-build@1
@@ -79,9 +79,12 @@ release_identity:
     - sdist
   excluded:
     - clients/typescript (separately versioned @quantum-l9/graphiti-memory-client)
+# Explicit preparation before the candidate is frozen. The repository-wide
+# file inventory (MANIFEST.md, manifest.json) and per-file L9_META metadata
+# are retired (ADR-099): no preparation or validation step produces or checks
+# them. A pull request's changed files are listed in its body.
 preparation:
-  - python3 tools/assurance/apply_l9_meta.py
-  - python3 tools/assurance/generate_manifest.py
+  - python3 tools/assurance/generate_product_manifest.py --authority-root <Quantum-L9/.github at authority.revision>
 validation:
   entrypoint: scripts/validate_release.sh
   evidence_dir: build/release-validation

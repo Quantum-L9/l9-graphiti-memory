@@ -21,13 +21,13 @@ Accepted
 
 The decision takes effect when it merges to `main` under the product owner's
 review. It binds exactly one ProductTopology candidate (reissued by the
-2026-10-15 amendment below; the predecessor digest and authority are recorded
+2026-10-15 amendments below; each predecessor digest and authority is recorded
 there):
 
 | Coordinate | Value |
 |---|---|
 | ProductTopology | `product-topology.yaml` |
-| Topology digest | `sha256:e5eabf4ce5011702765e0c663b786572a09a3f7f06c133c01081733c0a486e5e` |
+| Topology digest | `sha256:db3f58851bd27d7932dfa22b0e25361cb5d50d68f9807e5f5a5627c62e29699f` |
 | Global authority | `Quantum-L9/.github@d4397e53f8f4c23458a80f87db9552463ad9e26f` |
 | Global release contract | `l9.contract/product-release@1` |
 | Product-kind exception | `l9.product-kind-exception/memory-hosted-service@1` |
@@ -422,3 +422,30 @@ under the product owner's review when it merges, as the Status section
 states. It does not deploy anything, change the stateless signed-agent
 protocol (its bounded replay window is unchanged and stays a release-security
 decision), or edit any `Quantum-L9/.github` file.
+
+## Amendment — retired root inventory removed from the topology (2026-10-15)
+
+**Decision date:** 2026-10-15 (mission L9-MEMORY-MANIFEST-RETIREMENT-2026-10-15).
+**Scope:** a reissue of the topology digest only. Classification, the
+product-kind exception, the global authority revision and every Decision
+item stand as the preceding amendment left them.
+
+ADR-099 retires the repository-wide file inventory (`MANIFEST.md`,
+`manifest.json`) and per-file `L9_META` enforcement. Those two files were the
+topology's only `build.generated_surfaces`; they are deleted, so the topology
+now declares none. `provenance.predecessor_topology_ref` names the digest this
+amendment replaces, and the ProductManifest is regenerated from the reissued
+topology by `tools/assurance/generate_product_manifest.py` at the same
+authority revision.
+
+| Item | Before | After |
+|---|---|---|
+| Topology digest | sha256:e5eabf4ce5011702765e0c663b786572a09a3f7f06c133c01081733c0a486e5e | the Status table above |
+| `build.generated_surfaces` | `MANIFEST.md`, `manifest.json` | none |
+| ProductManifest digest | sha256:b6ef52214a60574d3d8b4d49cdaa341752818f99e81ac98cbaf39d03d95ffb29 | `release-work/product-release-binding.yaml` `product_manifest.digest` |
+| `resolved_manifest_gate` | pass | pass |
+
+The ProductManifest (`release-work/product-manifest.json`) is the governed
+product contract this ADR derives; it is not the retired all-files inventory
+and is unaffected by ADR-099 beyond this regeneration. Release admission still
+binds the exact version, source revision, wheel and sdist sha256 (ADR-022).

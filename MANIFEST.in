@@ -9,7 +9,7 @@
 #   updated: 2026-07-22
 
 include LICENSE README.md ARCHITECTURE.md RUNBOOK.md MIGRATION.md SECURITY.md
-include AGENTS.md CONTRIBUTING.md CHANGE_SUMMARY.md MANIFEST.md VALIDATION.md ROADMAP.md QUICKSTART.md
+include AGENTS.md CONTRIBUTING.md CHANGE_SUMMARY.md VALIDATION.md ROADMAP.md QUICKSTART.md
 recursive-include docs *.md
 recursive-include hooks *.sh
 recursive-include scripts *.sh *.py

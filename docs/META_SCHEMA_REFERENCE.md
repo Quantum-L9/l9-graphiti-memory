@@ -23,6 +23,11 @@ documentation alone.
 
 ## Part 1 — L9-Mandated Metadata: `L9_META` (l9_schema: 1)
 
+> **Retired (ADR-099, 2026-10-15).** `L9_META` is no longer mandated or enforced
+> in this repository, and `apply_l9_meta.py`, `check_l9_meta.py` and the root
+> `manifest.json` are deleted. Part 1 describes the schema as it was enforced
+> when this reference was written; existing headers are inert historical text.
+
 ### Contract
 
 Every tracked file in the repository MUST carry metadata through at least one of two carriers,

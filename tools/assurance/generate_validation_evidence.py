@@ -367,8 +367,16 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # the PostgreSQL DSN and installs build). 1808 + 38 = 1846.
         # Re-pinned 1846 -> 1880 for the exact-release admission gate: 34
         # cases in test_release_admission.py. Not CI-skipped. 1846 + 34 = 1880.
-        "1880 tests pass",
-        r"1880 passed",
+        # Re-pinned 1880 -> 1858 for ADR-099 (retired root inventory and
+        # L9_META enforcement): test_l9_meta_assurance.py (43 cases) deleted
+        # with the tools it tested; in test_release_shell.py two apply-mode
+        # cases replaced by two retirement cases; in
+        # test_cursor_instantiation_assurance.py the manifest-coverage and
+        # header cases replaced by one tracked-files case; 22 cases added in
+        # test_manifest_retirement.py. None CI-skipped. Collected 1931 -> 1909
+        # locally. 1880 - 43 - 1 + 22 = 1858.
+        "1858 tests pass",
+        r"1858 passed",
     ),
     CheckSpec(
         "V-002",
@@ -405,9 +413,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # repository corpus authority binding). Re-pinned 96 -> 97 for ADR-097
         # (active-memory runtime composition and full-capability readiness).
         # Re-pinned 97 -> 98 for ADR-098 (remote MCP transport and
-        # signed-agent HTTP identity).
-        "98 ADRs complete and indexed",
-        r"PASS: 98 ADRs",
+        # signed-agent HTTP identity). Re-pinned 98 -> 99 for ADR-099
+        # (retired repository inventory and L9_META enforcement).
+        "99 ADRs complete and indexed",
+        r"PASS: 99 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -418,15 +427,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "51 harvest decisions closed",
         r"PASS: 51 harvest decisions",
     ),
-    CheckSpec(
-        "V-005",
-        "structural",
-        "repository files",
-        "check_l9_meta.py",
-        "logs/l9_meta.txt",
-        "all tracked files carry L9_META",
-        r"PASS: all tracked files carry L9_META",
-    ),
+    # V-005 (check_l9_meta.py) retired with per-file L9_META enforcement
+    # (ADR-099). The id is not reused.
     CheckSpec(
         "V-006",
         "contract",
@@ -533,8 +535,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "repository",
         "scripts/preflight.sh",
         "logs/preflight.txt",
-        "27 preflight gates pass",
-        r"Preflight complete: 27 gates passed",
+        # Re-pinned 27 -> 25 for ADR-099: the "L9 metadata coverage" and
+        # "release manifest" gates are retired.
+        "25 preflight gates pass",
+        r"Preflight complete: 25 gates passed",
     ),
     CheckSpec(
         "V-015",
@@ -628,8 +632,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "V-024",
         "structural",
         "release candidate",
-        "apply_l9_meta.py --check, generate_manifest.py --check, check_l9_meta.py, "
-        "validate_manifest.py after substantive validation",
+        # ADR-099: the retired metadata and inventory tools no longer run;
+        # integrity is the tracked-byte digest compared before and after
+        # substantive validation.
+        "candidate digest comparison after substantive validation",
         "logs/candidate_integrity_post.txt",
         "tracked candidate unchanged by validation",
         r"PASS: candidate integrity",

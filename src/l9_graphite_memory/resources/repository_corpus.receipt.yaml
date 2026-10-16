@@ -1,13 +1,3 @@
-# L9_META
-#   l9_schema: 1
-#   repo: Quantum-L9/l9-graphiti-memory
-#   path: src/l9_graphite_memory/resources/repository_corpus.receipt.yaml
-#   layer: package
-#   owner: memory-control-plane
-#   status: active
-#   version: 2.5.0
-#   updated: 2026-07-22
-
 schema: l9.projection-receipt/v1
 projection:
   artifact_ref: l9.projection/memory-repository-corpus@1
@@ -24,7 +14,7 @@ projection:
 output:
   path: src/l9_graphite_memory/resources/repository_corpus.yaml
   schema: l9.projection.memory-repository-corpus/v1
-  digest: sha256:772a8d878805c14c91847ad887985789f4fbad0c4d012349bc9d4d23e94ce785
+  digest: sha256:7e23270ea9ef1028bdad8ea6a5f34cb7fce24a277c0fc659ff57809a5d89f149
 generator:
   id: l9-graphiti-memory.repository-corpus-projector/v1
   deterministic: true

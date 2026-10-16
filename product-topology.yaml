@@ -613,9 +613,7 @@ distribution:
 build:
   compilation_profile_ref: l9.compilation/product-build@1
   target_binding_refs: []
-  generated_surfaces:
-    - MANIFEST.md
-    - manifest.json
+  generated_surfaces: []
   source_owned_surfaces:
     - product-topology.yaml
   build_requirement_refs:
@@ -649,7 +647,7 @@ provenance:
     - Quantum-L9/.github/semantics/product_kinds.yaml@7f68d961e5f4744cc1ceadd2390fd0fa417e8c48
     - Quantum-L9/.github/semantics/dependency_archetypes.yaml@88fb55a52086a69d11ae0193a7ac17576baec6c1
     - Quantum-L9/.github/semantics/repository_registry.yaml@25e281d388d9acb92f563426756e1b0e15571ba6
-  predecessor_topology_ref: Quantum-L9/l9-graphiti-memory/product-topology.yaml#sha256:03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e
+  predecessor_topology_ref: Quantum-L9/l9-graphiti-memory/product-topology.yaml#sha256:e5eabf4ce5011702765e0c663b786572a09a3f7f06c133c01081733c0a486e5e
 unknowns:
   material: []
   non_material:

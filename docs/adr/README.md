@@ -85,7 +85,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-059 | [Recursive Alignment Authority and Applicability](ADR-059-recursive-alignment-authority-and-applicability.md) | Accepted |
 | ADR-060 | [Gate-Only Constellation Dispatch](ADR-060-gate-only-constellation-dispatch.md) | Accepted |
 | ADR-061 | [Local Receipt Guard Boundary](ADR-061-local-receipt-guard-boundary.md) | Accepted |
-| ADR-062 | [L9 Metadata and File Provenance](ADR-062-l9-meta-and-file-provenance.md) | Accepted |
+| ADR-062 | [L9 Metadata and File Provenance](ADR-062-l9-meta-and-file-provenance.md) | Superseded by ADR-099 |
 | ADR-063 | [Projection Manifest, Compiler, and Control-Plane Boundaries](ADR-063-projection-manifest-compiler-and-control-plane-boundaries.md) | Accepted |
 | ADR-064 | [Cursor Client Instantiation and Proof Boundary](ADR-064-cursor-client-instantiation-and-proof-boundary.md) | Accepted |
 | ADR-065 | [Active-Memory Deployment Identity](ADR-065-active-memory-deployment-identity.md) | Accepted |
@@ -122,6 +122,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-096 | [Canonical Repository Corpus Authority Binding](ADR-096-canonical-repository-corpus-authority-binding.md) | Accepted |
 | ADR-097 | [Active-Memory Runtime Composition and Full-Capability Readiness](ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md) | Accepted |
 | ADR-098 | [Remote MCP Transport and Signed-Agent HTTP Identity](ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md) | Accepted (decision); implementation is an unmerged candidate |
+| ADR-099 | [Retire the Repository File Inventory and L9_META Enforcement](ADR-099-retire-repository-inventory-and-l9-meta-enforcement.md) | Accepted |
 
 ## Pending target amendments (Memory 3.0.0)
 
@@ -150,6 +151,7 @@ ADR-098 candidate (PR #94, source version 2.7.0, unmerged at 2026-10-14).
 | 2026-10-15 | ADR-094 | Classification settled by `.github` v3.21.0 (`d4397e5`): topology claims `l9.product-kind-exception/memory-hosted-service@1`; remote MCP Streamable HTTP consumption, product-owned service runtime, `service_admitted` declared; release floor 3.0.0 | settled; topology reissued, admission pending |
 | 2026-10-15 | ADR-022 | Publication requires the exact-release admission receipt from the default branch (version, source, wheel and sdist sha256); the `release` environment approval is not admission; 2.6.0 sdist was published unadmitted | enforced in publish.yml |
 | 2026-10-14 | ADR-098 | Candidate status, release identity, replay and admin limits | candidate |
+| 2026-10-15 | ADR-094 | Topology reissued without `generated_surfaces` after ADR-099 retired the root inventory; ProductManifest regenerated | reissued; admission pending |
 
 ## Validation
 
@@ -159,4 +161,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-098 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-099 ledger and all mandatory sections.
