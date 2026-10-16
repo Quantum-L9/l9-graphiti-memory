@@ -17,7 +17,7 @@ import hashlib
 import json
 import os
 import sys
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -30,6 +30,7 @@ from l9_graphite_memory.client_config import (
     probe_generated_server,
     probe_installed_entry,
 )
+from l9_graphite_memory.config import MemorySettings, load_settings
 from l9_graphite_memory.contracts import (
     ALL_MAINTENANCE_OPERATIONS,
     CloseRequest,
@@ -78,6 +79,13 @@ from l9_graphite_memory.ingestion import (
 from l9_graphite_memory.maintenance import MaintenanceService
 from l9_graphite_memory.memory_guard import GuardEvidence
 from l9_graphite_memory.migration import LEGACY_QUEUE_DIRNAME, LegacyWriteQueueDrain
+from l9_graphite_memory.remote_client import (
+    REMOTE_BLOCKED_OPERATIONS,
+    RemoteFailureKind,
+    RemoteMemoryClient,
+    RemoteMemoryError,
+    remote_url_from_environment,
+)
 from l9_graphite_memory.runtime import (
     MemoryRuntime,
     build_runtime,
@@ -560,10 +568,14 @@ def cmd_distill(args: argparse.Namespace) -> int:
 
 
 def _state_path(runtime: MemoryRuntime) -> Path:
+    return _settings_state_path(runtime.settings)
+
+
+def _settings_state_path(settings: MemorySettings) -> Path:
     conversation = (
         os.environ.get("CURSOR_CONVERSATION_ID") or os.environ.get("L9_SESSION_ID") or "default"
     )
-    return runtime.settings.state_dir / f"{conversation}.json"
+    return settings.state_dir / f"{conversation}.json"
 
 
 def _read_state(path: Path) -> GuardEvidence | None:
@@ -591,7 +603,13 @@ def _write_state(path: Path, state: GuardEvidence) -> None:
 def _mark_phase_lock_state(runtime: MemoryRuntime, receipt: PhaseLockReceipt) -> Path:
     """Mirror a durable phase-lock receipt into the local verification cache."""
 
-    path = _state_path(runtime)
+    return _mark_phase_lock_state_in(runtime.settings, receipt)
+
+
+def _mark_phase_lock_state_in(settings: MemorySettings, receipt: PhaseLockReceipt) -> Path:
+    """Mirror a phase-lock receipt, local or remote, into the verification cache."""
+
+    path = _settings_state_path(settings)
     current = _read_state(path) or GuardEvidence(namespace=receipt.namespace)
     state = current.model_copy(
         update={
@@ -1093,9 +1111,266 @@ def cmd_hydrate_context(args: argparse.Namespace) -> int:
         runtime.close()
 
 
+# -- remote control plane (ADR-082 amendment, 2026-10-16) --------------------
+#
+# With a remote URL selected, a lifecycle command reaches the hosted
+# MemoryService as the signed agent through RemoteMemoryClient and prints the
+# same receipt with the same exit code the local command would. No local store
+# is opened, and every command outside the table below is refused rather than
+# served locally: a consumer that selected the hosted service must never be
+# answered by a different one.
+
+
+def _remote_settings(args: argparse.Namespace) -> MemorySettings:
+    load_secrets_sync()
+    return load_settings(getattr(args, "config", None))
+
+
+def _remote_namespace(args: argparse.Namespace, settings: MemorySettings) -> str:
+    """The namespace this command addresses; the server decides if it may."""
+
+    resolution = resolve_group(
+        Path.cwd(), explicit=getattr(args, "group_id", None), settings=settings
+    )
+    if not resolution.group_id:
+        raise L9MemoryError(resolution.error or "namespace is unresolved")
+    return resolution.group_id
+
+
+def _remote_health(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    del args
+    report = client.health()
+    _print(report)
+    return 0 if report.status.value == "complete" else 1
+
+
+def _remote_capabilities(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    del args
+    _print(client.capabilities())
+    return 0
+
+
+def _remote_resolve(args: argparse.Namespace, client: RemoteMemoryClient | None) -> int:
+    del client
+    settings = _remote_settings(args)
+    resolution = resolve_group(
+        Path.cwd(), explicit=getattr(args, "group_id", None), settings=settings
+    )
+    _print(resolution)
+    return 0 if resolution.group_id else 2
+
+
+def _remote_search(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    settings = _remote_settings(args)
+    namespaces = tuple(args.namespace) or (_remote_namespace(args, settings),)
+    if args.include_workspace and settings.workspace_namespace not in namespaces:
+        namespaces = (*namespaces, settings.workspace_namespace)
+    receipt = client.search(
+        MemorySearchRequest(
+            query=args.query,
+            namespaces=namespaces,
+            memory_classes=tuple(args.memory_class),
+            valid_at=_parse_datetime(args.valid_at) or datetime.now(timezone.utc),
+            recorded_before=_parse_datetime(args.recorded_before),
+            include_superseded=args.include_superseded,
+            include_archived=args.include_archived,
+            min_confidence=args.min_confidence,
+            limit=args.limit,
+            token_budget=args.token_budget,
+            tags=tuple(args.tag),
+        )
+    )
+    _print(receipt)
+    return 0 if receipt.status.value != "failed" else 1
+
+
+def _remote_hydrate(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    settings = _remote_settings(args)
+    namespaces = tuple(args.namespace) or (_remote_namespace(args, settings),)
+    result = client.hydrate(
+        HydrationRequest(
+            task=args.task,
+            namespaces=namespaces,
+            entities=tuple(args.entity),
+            topics=tuple(args.topic),
+            memory_classes=tuple(args.memory_class),
+            token_budget=args.token_budget,
+            max_records=args.max_records,
+            tags=tuple(args.tag),
+        )
+    )
+    _print(result)
+    return 0 if result.status.value != "failed" else 1
+
+
+def _remote_get(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    record = client.get(UUID(args.record_id))
+    if record is None:
+        _print({"found": False, "record_id": args.record_id})
+        return 2
+    _print(record)
+    return 0
+
+
+def _remote_conflicts(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    report = client.conflicts(_remote_namespace(args, _remote_settings(args)))
+    _print(report)
+    return 2 if report.has_conflicts else 0
+
+
+def _remote_phase_lock(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    settings = _remote_settings(args)
+    signature = args.task_signature or hashlib.sha256(args.task.encode("utf-8")).hexdigest()[:32]
+    receipt = client.phase_lock(
+        PhaseLockRequest(
+            namespace=_remote_namespace(args, settings),
+            task_signature=signature,
+            ttl_seconds=args.ttl_seconds,
+        )
+    )
+    state_file = _mark_phase_lock_state_in(settings, receipt)
+    payload = receipt.model_dump(mode="json")
+    payload["state_file"] = str(state_file)
+    _print(payload)
+    return 0 if receipt.granted else 2
+
+
+def _remote_verify_phase_lock(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    verification = client.verify_phase_lock(
+        _remote_namespace(args, _remote_settings(args)), args.task_signature
+    )
+    _print(verification)
+    return 0 if verification.valid else 2
+
+
+def _remote_close(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    receipt = client.close(
+        CloseRequest(
+            namespace=_remote_namespace(args, _remote_settings(args)),
+            summary=args.summary,
+            session_id=args.session_id
+            or os.environ.get("CURSOR_CONVERSATION_ID")
+            or os.environ.get("L9_SESSION_ID"),
+            capsule_digest=args.capsule_digest,
+            idempotency_key=args.idempotency_key,
+            dry_run=args.dry_run,
+        )
+    )
+    _print(receipt)
+    if receipt.status is OperationStatus.COMPLETE:
+        return 0
+    if receipt.status is OperationStatus.PARTIAL and args.dry_run:
+        return 3
+    return 2
+
+
+def _remote_write(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    """``write`` as ``memory.ingest``: the operator form of the ingest operation.
+
+    Provenance on the remote door is derived by the server from the verified
+    agent (ADR-098): ``--source`` and the session id are local labels the
+    contract carries no field for, so they are not sent.
+    """
+
+    if any((args.subject, args.predicate, args.object)) and not all(
+        (args.subject, args.predicate, args.object)
+    ):
+        raise L9MemoryError("subject, predicate, and object must be provided together")
+    consent_fields = (args.consent_subject_id, args.consent_purpose, args.consent_evidence)
+    if any(consent_fields) and not all(consent_fields):
+        raise L9MemoryError(
+            "consent-subject-id, consent-purpose, and consent-evidence must be supplied together"
+        )
+    arguments: dict[str, Any] = {
+        "namespace": _remote_namespace(args, _remote_settings(args)),
+        "content": args.body,
+        "memory_class": args.kind.value,
+        "confidence": args.confidence,
+        "source_trust": args.source_trust,
+        "valid_from": (_parse_datetime(args.valid_from) or datetime.now(timezone.utc)).isoformat(),
+        "tags": list(args.tag),
+        "supersedes": [str(UUID(value)) for value in args.supersedes],
+        "references": [str(UUID(value)) for value in args.references],
+        "dry_run": args.dry_run,
+    }
+    optional = {
+        "subject": args.subject,
+        "predicate": args.predicate,
+        "object": args.object,
+        "source_id": args.source_id,
+        "idempotency_key": args.idempotency_key,
+        "valid_to": args.valid_to,
+    }
+    arguments.update({key: value for key, value in optional.items() if value})
+    if all(consent_fields):
+        consent: dict[str, Any] = {
+            "subject_id": args.consent_subject_id,
+            "purpose": args.consent_purpose,
+            "evidence_description": args.consent_evidence,
+            "allowed_classes": [args.kind.value],
+        }
+        if args.consent_source_id:
+            consent["source_id"] = args.consent_source_id
+        if args.consent_expires_at:
+            consent["expires_at"] = args.consent_expires_at
+        arguments["consent"] = consent
+    receipt = client.ingest(arguments)
+    _print(receipt)
+    return 0 if receipt.status.value not in {"rejected"} else 2
+
+
+def _remote_ingest_governed_candidate(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
+    result = client.ingest_governed_candidate(_read_json_payload(args))
+    _print(result)
+    return 0 if result.status.value != "rejected" else 7
+
+
+#: Commands served by the remote control plane: the ADR-082 lifecycle set
+#: (``write`` is the CLI form of ``ingest``) and the local ``resolve``.
+REMOTE_COMMANDS: dict[str, Callable[[argparse.Namespace, Any], int]] = {
+    "resolve": _remote_resolve,
+    "health": _remote_health,
+    "capabilities": _remote_capabilities,
+    "hydrate": _remote_hydrate,
+    "search": _remote_search,
+    "get": _remote_get,
+    "write": _remote_write,
+    "ingest-governed-candidate": _remote_ingest_governed_candidate,
+    "close": _remote_close,
+    "conflicts": _remote_conflicts,
+    "phase-lock": _remote_phase_lock,
+    "verify-phase-lock": _remote_verify_phase_lock,
+}
+
+
+def _run_remote(args: argparse.Namespace, url: str) -> int:
+    handler = REMOTE_COMMANDS.get(args.command)
+    if handler is None:
+        raise RemoteMemoryError(
+            RemoteFailureKind.UNSUPPORTED_REMOTELY,
+            REMOTE_BLOCKED_OPERATIONS.get(
+                args.command,
+                f"l9-memory {args.command} is not served by the remote control plane; "
+                "unset the remote URL to run it against a local runtime",
+            ),
+        )
+    if args.command == "resolve":
+        return handler(args, None)
+    return handler(args, RemoteMemoryClient.from_environment(url))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="L9 contract-governed memory")
     parser.add_argument("--config", default=None, help="Optional YAML settings file")
+    parser.add_argument(
+        "--remote-url",
+        default=None,
+        help=(
+            "Hosted memory server (memory-remote-mcp/v1). Overrides L9_MEMORY_REMOTE_URL. "
+            "When set, lifecycle commands run there as the signed agent and every other "
+            "command is refused; nothing falls back to a local store."
+        ),
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("health")
@@ -1108,7 +1383,10 @@ def build_parser() -> argparse.ArgumentParser:
     write.add_argument(
         "--kind",
         type=_memory_class,
-        default=MemoryClass.OBSERVATION,
+        # A string, so argparse runs it through the type like a supplied value.
+        # The enum member itself was str()-ed into "MemoryClass.OBSERVATION"
+        # and refused, so ``write`` without --kind never worked.
+        default=MemoryClass.OBSERVATION.value,
         # Generated from the one vocabulary table, so this help text cannot
         # describe a mapping the resolver does not perform.
         help=(
@@ -1205,7 +1483,7 @@ def build_parser() -> argparse.ArgumentParser:
     import_parser.add_argument("path")
     import_parser.add_argument("--group-id", default=None)
     import_parser.add_argument(
-        "--memory-class", type=_memory_class, default=MemoryClass.OBSERVATION
+        "--memory-class", type=_memory_class, default=MemoryClass.OBSERVATION.value
     )
     import_parser.add_argument("--repository", default=None)
     import_parser.add_argument("--tag", action="append", default=[])
@@ -1439,8 +1717,14 @@ def main(argv: list[str] | None = None) -> int:
         "invalidate-source": cmd_invalidate_source,
         "generated-data-capabilities": cmd_generated_data_capabilities,
     }
+    remote_url = args.remote_url or remote_url_from_environment()
     try:
+        if remote_url:
+            return _run_remote(args, remote_url)
         return handlers[args.command](args)
+    except RemoteMemoryError as exc:
+        sys.stderr.write(_json(exc.as_dict()) + "\n")
+        return 1
     except (L9MemoryError, ValueError, OSError) as exc:
         sys.stderr.write(_json({"error": type(exc).__name__, "message": str(exc)}) + "\n")
         return 1

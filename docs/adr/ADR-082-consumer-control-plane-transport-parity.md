@@ -304,3 +304,108 @@ has proven over HTTP; the lifecycle row above lists the gaps.
 The capability receipt reports which HTTP revisions the package supports. It
 does not report whether an HTTP server is running or which `http_auth_mode`
 it uses; a consumer learns those from its own deployment evidence.
+
+## Amendment — Memory-owned remote consumer (2026-10-16)
+
+**Decision date:** 2026-10-16 (campaign MEMORY-C1-REMOTE-CONSUMER-CLOSURE).
+**Effect:** adds the consumer half of `memory-remote-mcp/v1`. No contract
+version, tool definition, receipt shape, capability receipt or server
+behaviour changes.
+
+**Context.** ADR-098 gave the hosted `MemoryService` a conforming Streamable
+HTTP door with signed-agent identity, but the package shipped no client for
+it. A consumer that wanted the hosted service had to implement JSON-RPC over
+HTTP, credential carriage, contract binding and failure classification
+itself. That is the transport duplication this ADR rejected for stdio in
+2026-09-05, and it would put Memory transport ownership in the consumer.
+Cursor-Governance drives memory only through `l9-memory` argv, stdout
+receipts, exit codes and stderr error types.
+
+**Decision.**
+
+1. `l9_graphite_memory.remote_client.RemoteMemoryClient` is the
+   Memory-owned client of `memory-remote-mcp/v1`. It negotiates
+   `2025-11-25`/`2025-06-18`, sends `notifications/initialized`, and then
+   binds the server's `memory.capabilities` receipt. The receipt must name
+   `memory-control-plane/v1` and `memory-remote-mcp/v1`, advertise the
+   negotiated revision, and expose every lifecycle operation plus
+   `write_agent` and `write_governed` on the MCP transport. Otherwise the
+   client refuses with `contract_mismatch` before any lifecycle call. Every
+   receipt is validated into the same pydantic model the in-process service
+   returns, so a drifted receipt is also a `contract_mismatch`, never a
+   partial read.
+2. **Identity is the stdio agent door's, carried per request.** The client
+   reads `L9_MEMORY_AGENT_ASSERTION`, `L9_MEMORY_IDENTITY_ASSERTION_JSON` and
+   `L9_MEMORY_IDENTITY_ASSERTION_HMAC` (or takes a credential provider) and
+   sends them as the three ADR-098 headers on every request. It never holds
+   or sends a signing key, grant, role, tenant or namespace claim. No new
+   credential class exists.
+   - **Expiry.** An assertion within 5 s of expiry is refused locally
+     (`credential_expired`).
+   - **Refresh.** A callable provider is consulted per request, and one
+     `401` is retried with freshly minted evidence. A `401` means nothing was
+     served, so the retry cannot duplicate a write.
+3. **The CLI is the hook-lane carrier.** `l9-memory --remote-url URL …` or
+   `L9_MEMORY_REMOTE_URL` runs the following commands against the hosted
+   service, with the argv, stdout receipt and exit codes of the local
+   commands:
+   - `health`, `capabilities`, `hydrate`, `search`, `get`, `write`,
+     `ingest-governed-candidate`, `close`, `conflicts`, `phase-lock`,
+     `verify-phase-lock` — the ADR-082 lifecycle set, where `write` is the
+     operator form of `ingest`;
+   - `resolve`, which is local namespace computation.
+
+   A failure prints `{"error", "message", "remote": {failure_kind,
+   http_status, rpc_code, remote_type}}` on stderr and exits `1`. `error` is
+   the type a local run raises for the same outcome:
+   - `AuthorizationError`, `AuthenticationError`, `ConfigurationError`,
+     `ValueError`;
+   - `ConnectionError` for an unreachable server;
+   - the server's own `data.type` for a tool failure.
+
+   A consumer's type-based classification therefore holds unchanged.
+4. **No fallback.** With a remote URL selected, no local runtime or store is
+   constructed. Every other command is refused with `unsupported_remotely`
+   before any request is sent, and an unreachable, stalled or redirecting
+   server is a typed failure:
+   - plain `http://` is accepted only to a loopback host;
+   - a URL carrying user information, a query or a fragment is refused;
+   - redirects are refused, so credentials reach one endpoint only.
+5. **Distillation is blocked remotely.** `memory.distill` (and
+   `memory.bootstrap`) require `principal.is_admin`. ADR-098 refuses to start
+   a server that would give a signed agent an administrator grant, and the
+   tool reads a path on the server's filesystem, so a client's local excerpt
+   is unreachable. Serving it would need a new tool, credential class or
+   authority. None is defined, and inventing one is outside this decision.
+   `l9-memory distill` under a remote URL is refused with the reason, and
+   local distillation is unchanged. `REMOTE_BLOCKED_OPERATIONS` records the
+   block.
+6. **Remote provenance is server-derived.** On `write`, the CLI's `--source`
+   label and the session id are not sent: the remote contract carries no
+   field for them. The record's provenance is the verified agent's, with
+   `source=mcp` and `tool=memory.ingest`.
+
+**Also corrected.** `write --kind` and `import --memory-class` defaulted to
+the enum member, which argparse passed through `str()` as
+`"MemoryClass.OBSERVATION"` and refused. `l9-memory write` without `--kind`
+had never parsed. Both defaults are now the string value.
+
+**Proof obligations from 2026-10-14, updated.**
+
+| Obligation | Evidence added |
+|---|---|
+| Lifecycle over HTTP | `tests/integration/test_remote_consumer.py` runs every lifecycle command through the shipped CLI against a real signed-agent server on TCP, including the four owed operations (`ingest`, `ingest_governed_candidate`, `conflicts`, `verify_phase_lock`), plus both agent write doors through the client |
+| Receipts on PostgreSQL | `tests/integration/test_remote_consumer_postgres.py`, run from the source tree and from the installed wheel alone: candidate admission, hydration, close, close replay, phase lock and verification, grant refusals and `get` — each a separate CLI process, across separate server processes on one PostgreSQL schema and across a full restart, with receipts validated into their models by the client |
+| No local fallback | both suites assert that no SQLite ledger appears beside the consumer, and that a stopped, unreachable or stalled server is a typed failure |
+
+**Not covered.**
+- TLS to a real deployment and any non-loopback path.
+- Consumer adoption. Cursor-Governance's CANONICAL_LAW §8.5.4 and ADR-0031
+  seal agent HTTP, and its `ops/config/memory-binding.json` pins 2.6.0. Both
+  are consumer-owned and unchanged here.
+- Remote distillation, blocked as above.
+- In-window replay, as in ADR-098.
+
+**Rollback.** Unset `L9_MEMORY_REMOTE_URL` (or omit `--remote-url`): every
+command runs locally exactly as before. Reverting removes the client module
+and the flag, and no record, receipt or server behaviour depends on them.
