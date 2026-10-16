@@ -365,8 +365,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # in test_product_release_governance.py, and 5 installed-wheel
         # parametrizations of test_remote_mcp_postgres_multiprocess.py (CI sets
         # the PostgreSQL DSN and installs build). 1808 + 38 = 1846.
-        "1846 tests pass",
-        r"1846 passed",
+        # Re-pinned 1846 -> 1880 for the exact-release admission gate: 34
+        # cases in test_release_admission.py. Not CI-skipped. 1846 + 34 = 1880.
+        "1880 tests pass",
+        r"1880 passed",
     ),
     CheckSpec(
         "V-002",

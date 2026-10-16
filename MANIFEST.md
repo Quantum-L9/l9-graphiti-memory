@@ -33,7 +33,7 @@ updated: 2026-07-22
 | Category | Files |
 |---|---:|
 | `architecture_decisions` | 99 |
-| `assurance` | 97 |
+| `assurance` | 98 |
 | `ci` | 10 |
 | `configuration` | 11 |
 | `documentation` | 137 |
@@ -42,10 +42,10 @@ updated: 2026-07-22
 | `production_source` | 153 |
 | `repository_root` | 73 |
 | `skill` | 10 |
-| `tests` | 224 |
+| `tests` | 225 |
 | `validation_evidence` | 30 |
 
-- Hashed inventory files below: **861**
+- Hashed inventory files below: **863**
 - `MANIFEST.md` is hashed by `manifest.json`.
 - `manifest.json` excludes its own digest to avoid self-reference.
 - Every manifest entry carries canonical `l9_meta`, including non-commentable files.
@@ -61,7 +61,7 @@ updated: 2026-07-22
 | `.github/workflows/graph-qualification.yml` | `ci` | `ci` | 4391 | `a7da59f9be9af095f36dd7903d62f5789188aebc787b44c589e316fd5923cf89` |
 | `.github/workflows/l9-repository-corpus-projection.yml` | `ci` | `ci` | 10057 | `927a4032a66cd512601ef727797a3a92a772c38130ceb6a73ad102e84cec349b` |
 | `.github/workflows/nightly-maintenance.yml` | `ci` | `ci` | 5140 | `0626627b16523ced1bfdf6f13271a434e92a2c0138b862a2ff5ccfb15db41d48` |
-| `.github/workflows/publish.yml` | `ci` | `ci` | 5361 | `0053650504c2d7e716554a8437c0fa34bbba0bb0d3fdd3482d55c53aaa678b74` |
+| `.github/workflows/publish.yml` | `ci` | `ci` | 7119 | `bb2c2d68f229baf5ac360bdea8cbb2a8c0f5381dcf391c4493c9269ef07f4e04` |
 | `.github/workflows/typescript-client-publish.yml` | `ci` | `ci` | 1464 | `c3e86cde7cd4edabbfbc43a6133b076c3d61640abf22ad22514f914ba5ce09ed` |
 | `.github/workflows/typescript-client.yml` | `ci` | `ci` | 1062 | `5f12f20714980847b42ba383db9c308a10cf9deda89c2d5e8914556c835de714` |
 | `.gitignore` | `repository_root` | `repository` | 1175 | `7f8eb0b806c149551eb074ceac48bc4e5bad84d1ef1271590019d79177426e10` |
@@ -262,7 +262,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-019-observability-and-evidence-receipts.md` | `architecture_decisions` | `adr` | 2492 | `7485d3f8a634c3ff131fc4784af0eb64cda067f7fd1eb97d5b06e5b2ec1897c3` |
 | `docs/adr/ADR-020-package-and-configuration-layout.md` | `architecture_decisions` | `adr` | 2528 | `8a821e0b4218496fbe674c628e0f58848c25fffbd890d6c0c9ec73204af46be0` |
 | `docs/adr/ADR-021-testing-and-adapter-conformance.md` | `architecture_decisions` | `adr` | 2536 | `6158264313f83fc1cc1c3fd11e738b3c11fd3f6fc3ea418839ddb3b7b77468f5` |
-| `docs/adr/ADR-022-release-publishing-and-rollback.md` | `architecture_decisions` | `adr` | 2514 | `b9ab332121590baebfc30c97ece6b57a9b797c3a524437efd01f9a27474c402e` |
+| `docs/adr/ADR-022-release-publishing-and-rollback.md` | `architecture_decisions` | `adr` | 5515 | `a50f5b998bd654b0093a62064b9c6df9fd0495889bdf97def107b92967a9b5bc` |
 | `docs/adr/ADR-023-legacy-migration-and-compatibility.md` | `architecture_decisions` | `adr` | 2533 | `d5aa2d88dc1ca4f65acaaa6ae9186c1ee4731e5563fd6536d5644953cc63cfad` |
 | `docs/adr/ADR-024-memory-privacy-consent-and-deletion.md` | `architecture_decisions` | `adr` | 2826 | `af73f0573264d1aa92a1f1eab8cb37c96faf84ecc1156c265ecfa6563678aeaa` |
 | `docs/adr/ADR-025-storage-source-of-truth-and-backend-partitioning.md` | `architecture_decisions` | `adr` | 2447 | `eaa46c6f11aa49164e8bd9e66db144865b05a8849cbf884137b2da69fa4ea637` |
@@ -339,7 +339,7 @@ updated: 2026-07-22
 | `docs/adr/ADR-096-canonical-repository-corpus-authority-binding.md` | `architecture_decisions` | `adr` | 10847 | `256e3af3967e08ca164de66fcad22c9b8f5fbd8f32f171a5957ea96afc063a14` |
 | `docs/adr/ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md` | `architecture_decisions` | `adr` | 13048 | `eaf77b5b39d7b09364bedcd054239349843f367c70c9bb22221f978780896c81` |
 | `docs/adr/ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md` | `architecture_decisions` | `adr` | 14630 | `6bdf07ea80ffd139300abdb0befe045c94513058319f98f3380d00693fac3798` |
-| `docs/adr/README.md` | `architecture_decisions` | `adr` | 15037 | `3bfce412af4963202b76ef142237255e646e16621f3777dcee91a9b06b01c19e` |
+| `docs/adr/README.md` | `architecture_decisions` | `adr` | 15304 | `27f0d35928e28f08e43141d3ee0916e51f645e55924b3debdfb26648d507d77a` |
 | `docs/alignment_report.yaml` | `documentation` | `documentation` | 3531 | `9479a76b0bf8e8757e2849ca089cba5f0c47d1fda61f2f75cde8b3ce28e6bd48` |
 | `docs/audits/GMP-Report-001-Quarantine-Review-Conflict-Links-Redis-CI.md` | `documentation` | `documentation` | 15609 | `7bb82e1d6c0e147557ab1322f6eb9afd10473d674bdefedc9a5447339c53d7f2` |
 | `docs/audits/L9_GRAPHITI_MEMORY_FORENSIC_CODEBASE_AUDIT.md` | `documentation` | `documentation` | 23490 | `950dd757e835df18166726bead2d45269b2d9bdf82ded464f20e70bfbf78612f` |
@@ -370,7 +370,7 @@ updated: 2026-07-22
 | `release-work/handoffs/VALIDATION_RECORD.md` | `repository_root` | `repository` | 5732 | `28e993329fca424d3ede848f45d96a8cb335162388ce5036fa24cf6f3445e95b` |
 | `release-work/handoffs/l9-deploy-phase6-final-polished-handoff.zip` | `repository_root` | `repository` | 144850 | `babe37e1687c966b4a58791a7a3d55f1d05c82b24cd30994c2f16798e7cae32d` |
 | `release-work/product-manifest.json` | `repository_root` | `repository` | 33688 | `69d9e9101591773bbe10e441d720778d56d3ff8ccd5fd7c15478eda701a5df66` |
-| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 6986 | `e5721cbe0f42bd62244b0ebfb268f72aec764e7092cfdf7e64eb50bccfbf61b0` |
+| `release-work/product-release-binding.yaml` | `repository_root` | `repository` | 7240 | `8d18617d3b50e73f8a88a44710b8b072dc865fd7abae8d9a37c0fe8fca62d559` |
 | `release-work/repository-review/INDEX.md` | `repository_root` | `repository` | 2788 | `f24c6e0168fc6eec88116f0ba97d85a55b3cba612c459229f9ab664e60a5846f` |
 | `release-work/repository-review/architecture-summary.md` | `repository_root` | `repository` | 7798 | `a2568d87dbb6baf9c3aef5901ebfaa96ccbf7332c7e1761420ebefc4784fc243` |
 | `release-work/repository-review/authority-map.md` | `repository_root` | `repository` | 6048 | `71208da6337ec2934955f2b2bd34d7516d698956bd93c173c03f2f3b20510109` |
@@ -702,6 +702,7 @@ updated: 2026-07-22
 | `tests/regression/test_product_kind_exception.py` | `tests` | `test` | 11445 | `1b1677a4f6e10ab6eadf3e97721320fa2c63c79221b48a734728007985850bd9` |
 | `tests/regression/test_product_release_governance.py` | `tests` | `test` | 6413 | `7cedfba655caccbf16284be0211c2d14a81ba41623b0f1dcf5268ec389a13b08` |
 | `tests/regression/test_recursive_alignment.py` | `tests` | `test` | 1699 | `b00c392c218b7cbda7adf9fbf5d436a73a796547b43aab926111b49e238a5ac0` |
+| `tests/regression/test_release_admission.py` | `tests` | `test` | 9983 | `2b82b95eee6370b89debd08a36ea85784c1c0614abba186d28654584694d6805` |
 | `tests/regression/test_release_shell.py` | `tests` | `test` | 13395 | `b4bef8138f82ba34d9f742adf5b1031de11a264e7f9c8b7663478d8a1f4771ea` |
 | `tests/regression/test_release_version_consistency.py` | `tests` | `test` | 4150 | `69b0e55d10ec0eab657ff6247ed42cb930c01059e914eb80ae1f81c816e6177f` |
 | `tests/regression/test_skill_pack.py` | `tests` | `test` | 1031 | `9c4348e93021b99d60e6b74e0a115dce2ccf52e2ad25eb3c11891b3ab4d9c61b` |
@@ -801,7 +802,7 @@ updated: 2026-07-22
 | `tools/assurance/check_source_quality.py` | `assurance` | `assurance` | 5899 | `723d79a32c7009c8b022fed7450d79ac816a1a565ea8d6154efef4a08751bce4` |
 | `tools/assurance/generate_manifest.py` | `assurance` | `assurance` | 11208 | `fb9a1ee6c0b27171f07b073f3a13ac7ccfcdab5a672d71f51584d4d3f7ebe00b` |
 | `tools/assurance/generate_product_manifest.py` | `assurance` | `assurance` | 22987 | `3283257400db638a7d12a67b253997575ce198178a9ad5c966c40e081247a18f` |
-| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 38292 | `4736ac8983e4f6027c73ed817e2fb4441a9d14a53669cbc658a2cca7e438a0b5` |
+| `tools/assurance/generate_validation_evidence.py` | `assurance` | `assurance` | 38446 | `9c9b6ae3e7c49ddbe7d6950a1cc27a063d634c4c554189c283b957a3c04d0312` |
 | `tools/assurance/l9_meta.py` | `assurance` | `assurance` | 16799 | `53b84003e9101912e09898536718bfd89081e089a2414a030cc3d8f452982353` |
 | `tools/assurance/render_active_memory_redis_acl.py` | `assurance` | `assurance` | 4497 | `68d58151c2bdb6b495f6e43bb8afb30967661f0edd5d3ad3fafb231b0eff65a6` |
 | `tools/assurance/validate_adrs.py` | `assurance` | `assurance` | 2580 | `d2b35d654c2e344bddc0d58f94d814248c4127a5dba6b92650fcb87ee4683f1a` |
@@ -809,6 +810,7 @@ updated: 2026-07-22
 | `tools/assurance/validate_manifest.py` | `assurance` | `assurance` | 2404 | `b7134c65005e4a92ce485b1a1cb582af8a0a0f29931516c3e7493e7373309088` |
 | `tools/assurance/validate_product_topology.py` | `assurance` | `assurance` | 22105 | `28b54ce80617ba72c873e0fc61136554d6f878da50b6d35136ad1bf5b8b4b173` |
 | `tools/assurance/validate_projection_manifests.py` | `assurance` | `assurance` | 2468 | `ff2de67d99864be87adae45b745611098459a337ddf4fbf6efacebf438dd19f5` |
+| `tools/assurance/verify_release_admission.py` | `assurance` | `assurance` | 8222 | `3804cf405d16059f29a25bca940c6846db28240b5442ef1c1f89e6023009cbc9` |
 | `tools/authority/project_l9_repository_corpus.py` | `assurance` | `assurance` | 13407 | `3f0cb12ce04a2f25b368e730954b1fbd3ad7815c0f3b9217d254103a777a633b` |
 | `tools/ci/nightly_maintenance_gate.py` | `assurance` | `assurance` | 3719 | `d67da58aa0c52c21434fdb309d8b4498dcf1e27b563675f43b6cd12c7a108cbb` |
 | `tools/phase6/AGENT_EXECUTION_PROMPT.md` | `assurance` | `repository` | 2506 | `05e1399a3e37cb652198efb42b259c69db003cfaf7917114d0756118e3909009` |
