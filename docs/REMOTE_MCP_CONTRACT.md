@@ -162,3 +162,51 @@ Cursor-Governance.
   only that revision is refused with `400`. The served revisions were chosen
   from the specification, not from probes of installed Cursor or Claude Code
   builds; such probes are consumer proof.
+
+## 6. Memory-owned client (2026-10-16)
+
+The package ships the client side of this contract. Decision:
+[ADR-082, 2026-10-16 amendment](adr/ADR-082-consumer-control-plane-transport-parity.md).
+
+| Surface | Use |
+|---|---|
+| `l9_graphite_memory.remote_client.RemoteMemoryClient` | Python consumers. Typed lifecycle methods return the same receipt models as `MemoryService`; `write_agent` and `write_governed` are included. Credentials are fixed `AgentCredentials` or a provider called per request. |
+| `l9-memory --remote-url URL <command>` or `L9_MEMORY_REMOTE_URL=URL l9-memory <command>` | Hooks and operators. Covers `health`, `capabilities`, `hydrate`, `search`, `get`, `write` (as `memory.ingest`), `ingest-governed-candidate`, `close`, `conflicts`, `phase-lock` and `verify-phase-lock`, plus local `resolve`. Same argv, stdout receipt and exit codes as the local command. |
+
+Client inputs, all on the consumer side:
+
+| Variable | Content |
+|---|---|
+| `L9_MEMORY_REMOTE_URL` | `https://host[/path]`; `/mcp` is appended when absent. `http://` is accepted only for a loopback host. A URL with user information, a query or a fragment is refused. |
+| `L9_MEMORY_AGENT_ASSERTION` | the minted agent assertion, the same value the stdio door reads |
+| `L9_MEMORY_IDENTITY_ASSERTION_JSON` | the sealed identity assertion as JSON; the client base64url-encodes it |
+| `L9_MEMORY_IDENTITY_ASSERTION_HMAC` | its HMAC |
+| `L9_MEMORY_REMOTE_TIMEOUT_SECONDS` | per-request timeout, default `30` |
+
+Behaviour:
+
+- The client binds the server before the first operation. It negotiates the
+  revision, sends `notifications/initialized`, and requires
+  `memory.capabilities` to report `memory-control-plane/v1`,
+  `memory-remote-mcp/v1`, the negotiated revision and every operation above.
+- An assertion within 5 s of expiry is refused without a request.
+- Redirects are refused.
+- A failure exits `1` with `{"error", "message", "remote": {"failure_kind",
+  "http_status", "rpc_code", "remote_type"}}` on stderr. `error` is the type
+  a local run raises for the same outcome, so type-based classification
+  carries over.
+  - **Failure kinds:** `configuration`, `credential_expired`, `unreachable`,
+    `timeout`, `authentication`, `authorization`, `protocol`,
+    `contract_mismatch`, `invalid_request`, `tool_failure` and
+    `unsupported_remotely`.
+- With a remote URL selected, no local store is opened, and every other
+  command is refused (`unsupported_remotely`), including `distill` and
+  `bootstrap`. Those tools require administrator authority that this
+  contract never grants a signed agent, and they read server-side paths.
+- `memory.search` has no `token_budget` and `memory.hydrate` has no
+  `valid_at`. A request that sets either is refused, never silently
+  narrowed.
+
+Consumer adoption is outside this document. That covers selecting the remote
+URL, provisioning keys and grants, and refreshing assertions, which is
+consumer law in Cursor-Governance, where agent HTTP is sealed today.
