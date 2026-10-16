@@ -373,3 +373,34 @@ def test_publish_preserves_release_gates() -> None:
     checkout = job["steps"][0]
     assert checkout["uses"].startswith("actions/checkout")
     assert "refs/tags/" in checkout["with"]["ref"]
+
+
+def test_release_validation_prints_a_failing_step_log_and_still_fails(tmp_path: Path) -> None:
+    """A failed step's output reaches the job log; the step's status is kept.
+
+    Regression: under ``set -e`` the failing command ended the script before
+    ``run`` printed the captured log, so CI showed ``== pytest ==`` and no
+    test name.
+    """
+
+    script = (Path(__file__).resolve().parents[2] / "scripts" / "validate_release.sh").read_text(
+        encoding="utf-8"
+    )
+    start = script.index("run() {")
+    body = script[start : script.index("\n}\n", start) + 3]
+    harness = tmp_path / "harness.sh"
+    harness.write_text(
+        "set -euo pipefail\n"
+        f"OUT={tmp_path}\n"
+        'mkdir -p "$OUT/logs"\n'
+        f"{body}\n"
+        "run ok echo fine\n"
+        "run broken sh -c 'echo the failing test name; exit 3'\n"
+        "echo unreachable\n",
+        encoding="utf-8",
+    )
+    result = subprocess.run(["bash", str(harness)], capture_output=True, text=True, check=False)
+    assert result.returncode == 3
+    assert "fine" in result.stdout
+    assert "the failing test name" in result.stdout
+    assert "unreachable" not in result.stdout

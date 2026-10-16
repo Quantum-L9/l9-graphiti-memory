@@ -381,8 +381,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # cases x source and installed wheel; CI sets the PostgreSQL DSN and
         # installs build) and 2 in test_cli_parser.py. None CI-skipped; CI
         # reported 1953 passed on 3.10 and 3.13. 1858 + 95 = 1953.
-        "1953 tests pass",
-        r"1953 passed",
+        # Re-pinned 1953 -> 1954: 1 case in test_release_shell.py (a failing
+        # step's log is printed and its status kept). Not CI-skipped.
+        "1954 tests pass",
+        r"1954 passed",
     ),
     CheckSpec(
         "V-002",

@@ -110,11 +110,16 @@ export PYTHONDONTWRITEBYTECODE=1
 export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1784592000}"
 
+# A failing step must still print its log: under `set -e` the step's own
+# failure used to end the script before `cat`, so CI showed the step name and
+# nothing else. The exit status is preserved, so a failure still fails.
 run() {
   name="$1"; shift
   printf '== %s ==\n' "$name"
-  "$@" >"$OUT/logs/$name.txt" 2>&1
+  local status=0
+  "$@" >"$OUT/logs/$name.txt" 2>&1 || status=$?
   cat "$OUT/logs/$name.txt"
+  return "$status"
 }
 
 # Digest of every tracked byte: proves the candidate is identical before and
