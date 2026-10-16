@@ -98,7 +98,11 @@ response with no `id`.
 
 The principal is built by `agent_principal`, the one function the stdio door
 also uses, so a remote agent holds exactly the claims the same agent holds
-locally. Nothing in a request becomes a claim: unknown identity-assertion
+locally. No signed-agent grant may carry `is_admin`: a signed agent is never
+an administrator over HTTP, so an administrator grant is malformed trusted
+configuration and the server refuses to start rather than serve it —
+in signed-agent mode and on auth-disabled loopback HTTP serving the agent
+door alike. Nothing in a request becomes a claim: unknown identity-assertion
 members are ignored, request headers are not read for claims, and the
 requested namespace remains an address that `MemoryService` checks. The
 agent id `human` cannot be registered: the human door
@@ -153,6 +157,9 @@ identity and is not equivalent to the signed-agent contract.
   cookie, or cached principal carries over
 - A remote agent principal equals the stdio principal for the same grant,
   except `auth_method`
+- No HTTP request is served under an administrator agent principal: a
+  signed-agent grant with `is_admin` stops the server before it accepts a
+  connection
 - Roles, namespaces, tenant, and administrator flags come only from server
   configuration
 - No credential is accepted from, or echoed into, a URL, a response body, or
@@ -190,7 +197,9 @@ before any comparison or arithmetic (decimal `exp` of at most 12 digits,
 64 lowercase hex signature, ASCII-only HMAC comparison), so a hostile header is
 a `401`, never a server error. An unregistered agent and a bad signature on a
 registered one receive the same `401`, so agent ids cannot be enumerated.
-Human and agent tiers stay separate, including on auth-disabled loopback HTTP,
+An agent grant carrying `is_admin` is refused at startup, so the signed-agent
+door can never produce a tenant administrator over HTTP. Human and agent tiers
+stay separate, including on auth-disabled loopback HTTP,
 which serves the signed agent door or the Tier 3 local principal and never the
 human door (closing a gap present at 2.6.0). Origin validation closes DNS rebinding for browser-reachable
 deployments. TLS is required for remote deployment and is terminated in front
@@ -209,9 +218,12 @@ consumer-owned campaign.
 ## Validation Requirements
 
 - `tests/integration/test_remote_mcp_http.py`: real uvicorn on TCP, HTTP
-  client, known-good and known-bad credentials, protocol and Origin refusals
+  client, known-good and known-bad credentials, protocol and Origin refusals,
+  and startup refusal of an administrator agent grant in signed-agent and
+  auth-disabled modes
 - `tests/integration/test_installed_wheel_lifecycle.py`: the same contract
-  served by the installed wheel's server entry point
+  served by the installed wheel's server entry point, which exits with the
+  refusal before starting uvicorn when an agent grant carries `is_admin`
 - stdio subprocess non-regression in the same suite
 - `clients/typescript` `npm run verify:all`
 

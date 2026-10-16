@@ -64,15 +64,16 @@ Server-side only — never sent by a client:
 | Variable | Content |
 |---|---|
 | `L9_MEMORY_AGENT_SIGNING_KEYS_JSON` | `{agent_id: key}` for every agent this deployment admits |
-| `L9_MEMORY_AGENT_GRANTS_JSON` | `{agent_id: AgentDoorGrant}` — `principal_id`, `user_id`, `roles`, `read_namespaces`, `write_namespaces`, `promote_namespaces`, `is_admin` |
+| `L9_MEMORY_AGENT_GRANTS_JSON` | `{agent_id: AgentDoorGrant}` — `principal_id`, `user_id`, `roles`, `read_namespaces`, `write_namespaces`, `promote_namespaces`; `is_admin` must be absent or `false` |
 | `L9_MEMORY_HTTP_AGENT_ASSERTION_MAX_TTL_SECONDS` | lifetime ceiling, default `3600` (plus 60 s clock skew) |
 | `L9_MEMORY_HTTP_ALLOWED_ORIGINS` | comma list of browser origins; a request with any other `Origin` gets `403` |
 
-Every registered agent must have a valid grant, and `human` cannot be
-registered; otherwise the server refuses to start. A grant's `is_admin` is
-honored: `is_admin: true` yields an administrator principal over HTTP. The
-3.0.0 deployment policy is that no remote agent grant sets it; the server does
-not yet refuse one (ADR-083, 2026-10-14). Tenant, organization, and
+Every registered agent must have a valid grant, no grant may set `is_admin`,
+and `human` cannot be registered; otherwise the server refuses to start.
+No signed-agent principal is ever an administrator, in signed-agent mode or on
+auth-disabled loopback HTTP serving the agent door. (Bearer-mode token
+principals and the auth-disabled Tier 3 local principal keep their configured
+`is_admin` / `is_global_admin`; this refusal does not cover them.) Tenant, organization, and
 workspace come from `L9_MEMORY_LOCAL_*_ID` on the server.
 
 **Refresh.** The assertion is reusable until it expires: it is not single-use,

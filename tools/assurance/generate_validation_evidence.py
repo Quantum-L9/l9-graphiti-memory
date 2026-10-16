@@ -344,8 +344,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1791 -> 1793: 2 cases in test_remote_mcp_http.py (tenant
         # isolation between two HTTP deployments of one service; idempotent
         # replay and cross-agent key reuse over HTTP). Not CI-skipped.
-        "1793 tests pass",
-        r"1793 passed",
+        # Re-pinned 1793 -> 1798 for the administrator-grant refusal: 4 cases
+        # in test_remote_mcp_http.py (3 parametrized signed-agent startup
+        # refusals, 1 auth-disabled agent-door refusal) and 1 in
+        # test_installed_wheel_lifecycle.py (the installed wheel exits before
+        # binding). Not CI-skipped. 1793 + 5 = 1798.
+        "1798 tests pass",
+        r"1798 passed",
     ),
     CheckSpec(
         "V-002",

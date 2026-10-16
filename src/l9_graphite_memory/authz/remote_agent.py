@@ -74,6 +74,22 @@ MAX_IDENTITY_ASSERTION_HEADER_BYTES = 16_384
 _REGISTRATION_REVEALING_REFUSALS = ("unknown agent_id", "invalid assertion signature")
 
 
+def administrator_grant_refusal(agent_id: str) -> ConfigurationError:
+    """The startup refusal for a signed-agent grant carrying ``is_admin``.
+
+    Administrator authority belongs to the human door, which only a local
+    process holding ``L9_MEMORY_HUMAN_DOOR_SECRET`` reaches. A grant that would
+    make an agent a tenant administrator over HTTP is malformed trusted
+    configuration, refused before the server accepts a connection rather than
+    served as a principal.
+    """
+
+    return ConfigurationError(
+        f"{GRANTS_ENV} grants is_admin to agent_id={agent_id!r}; administrator "
+        "authority is not reachable over HTTP (ADR-098)"
+    )
+
+
 def _required_env(name: str) -> str:
     value = os.environ.get(name, "").strip()
     if not value:
@@ -127,12 +143,17 @@ class SignedAgentAuthenticator:
             )
         # Every registered agent's grant is validated now, so a malformed grant
         # stops the server at startup instead of surfacing on one agent's call.
+        # An administrator grant is refused the same way: the human door is the
+        # only administrator tier, and it is not reachable over HTTP.
         validated: dict[str, AgentDoorGrant] = {}
         for agent_id in keys:
             try:
-                validated[agent_id] = agent_grant_from_config(agent_id, grants.get(agent_id))
+                grant = agent_grant_from_config(agent_id, grants.get(agent_id))
             except AuthenticationError as exc:
                 raise ConfigurationError(str(exc)) from exc
+            if grant.is_admin:
+                raise administrator_grant_refusal(agent_id)
+            validated[agent_id] = grant
         self._settings = settings
         self._keys = keys
         self._grants = validated
@@ -219,5 +240,6 @@ __all__ = [
     "IDENTITY_ASSERTION_HEADER",
     "IDENTITY_ASSERTION_HMAC_HEADER",
     "SignedAgentAuthenticator",
+    "administrator_grant_refusal",
     "encode_identity_assertion",
 ]

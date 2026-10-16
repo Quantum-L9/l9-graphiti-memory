@@ -342,3 +342,61 @@ def test_installed_wheel_serves_remote_mcp_to_signed_agents(
         except subprocess.TimeoutExpired:
             server.kill()
             server.wait(timeout=15)
+
+
+def test_installed_wheel_refuses_an_administrator_agent_grant_before_serving(
+    installed_site: Path, tmp_path: Path
+) -> None:
+    """ADR-098 against the artifact: an administrator agent grant never reaches a socket.
+
+    The console server entry point exits with the refusal before uvicorn
+    starts, so no request is ever served under an administrator agent
+    principal. The log level is pinned to INFO so the absent uvicorn startup
+    banner is evidence rather than a consequence of the caller's environment.
+    """
+
+    pytest.importorskip("fastapi", reason="HTTP transport requires the [server] extra")
+    pytest.importorskip("uvicorn", reason="HTTP transport requires the [server] extra")
+    from tests.integration.remote_mcp_harness import (
+        AGENT_GRANTS,
+        READER,
+        free_port,
+        server_environment,
+    )
+
+    env = _env(installed_site, tmp_path)
+    env.update(server_environment())
+    grants = {**AGENT_GRANTS, READER: {**AGENT_GRANTS[READER], "is_admin": True}}
+    env.update(
+        {
+            "L9_MEMORY_AGENT_GRANTS_JSON": json.dumps(grants),
+            "L9_MEMORY_HTTP_AUTH_MODE": "signed-agent",
+            "L9_MEMORY_LOCAL_TENANT_ID": "l9",
+            "L9_MEMORY_LOG_LEVEL": "INFO",
+        }
+    )
+    port = free_port()
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "l9_graphite_memory.server",
+            "--transport",
+            "http",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(port),
+        ],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    assert completed.returncode != 0, completed.stderr[-2000:]
+    assert f"is_admin to agent_id='{READER}'" in completed.stderr, completed.stderr[-2000:]
+    assert "administrator authority is not reachable over HTTP" in completed.stderr
+    assert "Started server process" not in completed.stderr
+    assert "Uvicorn running" not in completed.stderr
