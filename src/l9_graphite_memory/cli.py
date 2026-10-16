@@ -1122,7 +1122,8 @@ def cmd_hydrate_context(args: argparse.Namespace) -> int:
 
 
 def _remote_settings(args: argparse.Namespace) -> MemorySettings:
-    load_secrets_sync()
+    """Local settings for namespace resolution and the state cache; no store."""
+
     return load_settings(getattr(args, "config", None))
 
 
@@ -1354,6 +1355,8 @@ def _run_remote(args: argparse.Namespace, url: str) -> int:
                 "unset the remote URL to run it against a local runtime",
             ),
         )
+    # Before the credentials are read: they may be among the secrets it loads.
+    load_secrets_sync()
     if args.command == "resolve":
         return handler(args, None)
     return handler(args, RemoteMemoryClient.from_environment(url))

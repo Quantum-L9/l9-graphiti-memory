@@ -541,3 +541,21 @@ def test_a_server_that_stalls_is_a_timeout() -> None:
         assert time.monotonic() - started < 10
     finally:
         listener.close()
+
+
+def test_credentials_are_read_after_secrets_are_loaded(capsys, monkeypatch, client_home) -> None:
+    """Credentials delivered by the secret loader (e.g. Infisical) must be seen."""
+
+    loaded = agent_env(WRITER)
+
+    def load_secrets_sync() -> None:
+        for name, value in loaded.items():
+            monkeypatch.setenv(name, value)
+
+    monkeypatch.setattr(cli, "load_secrets_sync", load_secrets_sync)
+    # No credentials in the environment until the loader runs; the server is
+    # a closed port, so reading them in time turns "configuration" into
+    # "unreachable".
+    code, _, err = run_cli(capsys, monkeypatch, closed_port_url(), None, ["health"])
+    assert code == 1
+    assert err["remote"]["failure_kind"] == "unreachable", err
