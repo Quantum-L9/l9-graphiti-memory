@@ -359,8 +359,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1805 -> 1808: 3 cases in test_remote_mcp_http.py (NaN,
         # Infinity and -Infinity bodies are -32700 parse errors; #96 review).
         # Not CI-skipped. 1805 + 3 = 1808.
-        "1808 tests pass",
-        r"1808 passed",
+        # Re-pinned 1808 -> 1846 for the v3.21.0 kind-exception rebind: 32
+        # cases in test_product_kind_exception.py (run whenever
+        # L9_SEMANTIC_AUTHORITY_ROOT is set, which CI sets for this script), 1
+        # in test_product_release_governance.py, and 5 installed-wheel
+        # parametrizations of test_remote_mcp_postgres_multiprocess.py (CI sets
+        # the PostgreSQL DSN and installs build). 1808 + 38 = 1846.
+        "1846 tests pass",
+        r"1846 passed",
     ),
     CheckSpec(
         "V-002",

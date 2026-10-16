@@ -1,5 +1,5 @@
 {
-  "file_count": 861,
+  "file_count": 862,
   "files": [
     {
       "category": "ci",
@@ -46,7 +46,7 @@
         "version": "3.0.0"
       },
       "path": ".github/workflows/ci.yml",
-      "sha256": "2a7689254927a5e5fddc6713c8387ca80b58da59b615472874bd10720c3d1cc6",
+      "sha256": "fb0627b701057600ee2e6da10d1f080b393af30c70375a1e1f65f1678ab03237",
       "size_bytes": 20109
     },
     {
@@ -126,8 +126,8 @@
         "version": "3.0.0"
       },
       "path": ".github/workflows/publish.yml",
-      "sha256": "d3ff80bb60030f31cda036abb3a4ea5db6408174d31ba1b3a42ea85f30511a25",
-      "size_bytes": 4741
+      "sha256": "0053650504c2d7e716554a8437c0fa34bbba0bb0d3fdd3482d55c53aaa678b74",
+      "size_bytes": 5361
     },
     {
       "category": "ci",
@@ -350,8 +350,8 @@
         "version": "3.0.0"
       },
       "path": "ARCHITECTURE.md",
-      "sha256": "f2089bc67aa6177fc7870da89ac87fe008afb134544cc09c6737599e2b2620b6",
-      "size_bytes": 18080
+      "sha256": "944265c6823fd8a458b8f32ff3e3d186e9f2be92a5aac90716a2690aecb8b154",
+      "size_bytes": 18321
     },
     {
       "category": "repository_root",
@@ -430,8 +430,8 @@
         "version": "3.0.0"
       },
       "path": "MANIFEST.md",
-      "sha256": "8a094f22536a58817151a68d7c1a5536845b202863d392fc50984eab4480258a",
-      "size_bytes": 141282
+      "sha256": "8323d01a2a832a85e60ab148ae5682f82c4104934bc521b136867873d7e48f18",
+      "size_bytes": 141433
     },
     {
       "category": "repository_root",
@@ -478,8 +478,8 @@
         "version": "3.0.0"
       },
       "path": "README.md",
-      "sha256": "f3d127968b042dde0c5b2898fdd980132db9bb20c2e93bf5939095e50e03bc88",
-      "size_bytes": 15418
+      "sha256": "b9a501208d574fb5449c769510ad7c7f1ffc61ef2045c06a5b2305b7e8bd40f5",
+      "size_bytes": 15905
     },
     {
       "category": "repository_root",
@@ -510,8 +510,8 @@
         "version": "3.0.0"
       },
       "path": "RUNBOOK.md",
-      "sha256": "92f48b37f6d2e2d4ea2fd8e35c5d1bbc38e45ea0d8de6ad1a02cb777310af3bf",
-      "size_bytes": 30313
+      "sha256": "f88832817ec83f8ce3217f02b161deea1fb0358d8a19a97effd21965df41d225",
+      "size_bytes": 30466
     },
     {
       "category": "repository_root",
@@ -1278,8 +1278,8 @@
         "version": "3.0.0"
       },
       "path": "docs/REMOTE_MCP_CONTRACT.md",
-      "sha256": "34ef1d5dc1d46ed1162bff540e3cbc12b22214dba8770fa9a57bb80247529e89",
-      "size_bytes": 11617
+      "sha256": "5bcd1b43aa35bd962a9059c55fdf7d56861a1ab2fd343f4b7883144e7cb4ea3e",
+      "size_bytes": 11714
     },
     {
       "category": "documentation",
@@ -4510,8 +4510,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/ADR-094-product-topology-and-release-governance.md",
-      "sha256": "87aca9cb85ab6b716ed7d01169d957281bc08ff80bc24e0d3174bb7ff60d7b47",
-      "size_bytes": 18619
+      "sha256": "483158e05defaa35eba1cce359b4d81aa4ecd114bbbbcc1e6749f45e5f5ef21d",
+      "size_bytes": 23934
     },
     {
       "category": "architecture_decisions",
@@ -4590,8 +4590,8 @@
         "version": "3.0.0"
       },
       "path": "docs/adr/README.md",
-      "sha256": "dc705351382bda6691d6dc1cb748a831015928570642a42343638d88071cfaa5",
-      "size_bytes": 14716
+      "sha256": "3bfce412af4963202b76ef142237255e646e16621f3777dcee91a9b06b01c19e",
+      "size_bytes": 15037
     },
     {
       "category": "documentation",
@@ -5006,8 +5006,8 @@
         "version": "3.0.0"
       },
       "path": "product-topology.yaml",
-      "sha256": "03272dd6f7774149f125fa5c4d462f1a9c70c4f6ea27f9cd085bcdb78642fb6e",
-      "size_bytes": 29383
+      "sha256": "e5eabf4ce5011702765e0c663b786572a09a3f7f06c133c01081733c0a486e5e",
+      "size_bytes": 33293
     },
     {
       "category": "repository_root",
@@ -5070,8 +5070,8 @@
         "version": "3.0.0"
       },
       "path": "release-work/product-manifest.json",
-      "sha256": "ed8cde29da0cc226a126cac42536dc7ac77ecc2b8778634f415fbd8e845a3cc8",
-      "size_bytes": 30351
+      "sha256": "69d9e9101591773bbe10e441d720778d56d3ff8ccd5fd7c15478eda701a5df66",
+      "size_bytes": 33688
     },
     {
       "category": "repository_root",
@@ -5086,8 +5086,8 @@
         "version": "3.0.0"
       },
       "path": "release-work/product-release-binding.yaml",
-      "sha256": "782ae92c2d28cc8b9c522e757b9e2ceca3d0f2b423987cebb4a331d0895844df",
-      "size_bytes": 5876
+      "sha256": "e5721cbe0f42bd62244b0ebfb268f72aec764e7092cfdf7e64eb50bccfbf61b0",
+      "size_bytes": 6986
     },
     {
       "category": "repository_root",
@@ -5518,8 +5518,8 @@
         "version": "3.0.0"
       },
       "path": "scripts/validate_release.sh",
-      "sha256": "554ac26b44c7f99bc1176a5ded4c527d402b1bb2d1b873a376f17d78b36772c7",
-      "size_bytes": 13222
+      "sha256": "3beaee48e79aee92863b2136e4084c437d1c425d77c3fdc715b4a2f6e91a63e7",
+      "size_bytes": 13782
     },
     {
       "category": "operations",
@@ -9630,8 +9630,8 @@
         "version": "3.0.0"
       },
       "path": "tests/integration/remote_mcp_harness.py",
-      "sha256": "77f149fa45d8d4b2ac1623def91f02ecfd0b915e2bf5b2dcb9490da3984a84d3",
-      "size_bytes": 8476
+      "sha256": "2a0e87effea584d2aa35c8cf1c98daf8958cf2b1c770de0982d77321cba24612",
+      "size_bytes": 10131
     },
     {
       "category": "tests",
@@ -9774,8 +9774,8 @@
         "version": "3.0.0"
       },
       "path": "tests/integration/test_installed_wheel_lifecycle.py",
-      "sha256": "fadb4501eef812600983759f6901bdb48c454783622908f2d6fd9a6b6fc9484e",
-      "size_bytes": 14764
+      "sha256": "1b091d50bb4cc6adb58a112a33a0937291a701d742d1210db737c2b0ae007742",
+      "size_bytes": 13672
     },
     {
       "category": "tests",
@@ -10126,8 +10126,8 @@
         "version": "3.0.0"
       },
       "path": "tests/integration/test_remote_mcp_postgres_multiprocess.py",
-      "sha256": "9468d7d1d7c66bb6a72dca7db9c797c1114c981b3e2d67f99564e0068a33b4ba",
-      "size_bytes": 12007
+      "sha256": "226464346c4b31f7011b4352ddaf1f816b39d2d19e471524a2a3a2617aaea531",
+      "size_bytes": 13460
     },
     {
       "category": "tests",
@@ -10343,6 +10343,22 @@
         "l9_schema": 1,
         "layer": "test",
         "owner": "memory-control-plane",
+        "path": "tests/regression/test_product_kind_exception.py",
+        "repo": "Quantum-L9/l9-graphiti-memory",
+        "status": "active",
+        "updated": "2026-07-22",
+        "version": "3.0.0"
+      },
+      "path": "tests/regression/test_product_kind_exception.py",
+      "sha256": "1b1677a4f6e10ab6eadf3e97721320fa2c63c79221b48a734728007985850bd9",
+      "size_bytes": 11445
+    },
+    {
+      "category": "tests",
+      "l9_meta": {
+        "l9_schema": 1,
+        "layer": "test",
+        "owner": "memory-control-plane",
         "path": "tests/regression/test_product_release_governance.py",
         "repo": "Quantum-L9/l9-graphiti-memory",
         "status": "active",
@@ -10350,8 +10366,8 @@
         "version": "3.0.0"
       },
       "path": "tests/regression/test_product_release_governance.py",
-      "sha256": "099706cd7e349e73cb988793827900750425cf93c88c458d7918c57d398e1347",
-      "size_bytes": 5179
+      "sha256": "7cedfba655caccbf16284be0211c2d14a81ba41623b0f1dcf5268ec389a13b08",
+      "size_bytes": 6413
     },
     {
       "category": "tests",
@@ -11950,8 +11966,8 @@
         "version": "3.0.0"
       },
       "path": "tools/assurance/generate_product_manifest.py",
-      "sha256": "0c1461e2440a8ae0c5da4e5326e90931962f021f5bea37abf2ddb45310d8aa59",
-      "size_bytes": 20534
+      "sha256": "3283257400db638a7d12a67b253997575ce198178a9ad5c966c40e081247a18f",
+      "size_bytes": 22987
     },
     {
       "category": "assurance",
@@ -11966,8 +11982,8 @@
         "version": "3.0.0"
       },
       "path": "tools/assurance/generate_validation_evidence.py",
-      "sha256": "7149e524e9e4a882eb4ca44fe470bfb8a08b99e8b00547acd966080eecbb7502",
-      "size_bytes": 37855
+      "sha256": "4736ac8983e4f6027c73ed817e2fb4441a9d14a53669cbc658a2cca7e438a0b5",
+      "size_bytes": 38292
     },
     {
       "category": "assurance",
@@ -12062,8 +12078,8 @@
         "version": "3.0.0"
       },
       "path": "tools/assurance/validate_product_topology.py",
-      "sha256": "f728d52406eda85f5a24bdce3caf8c251e1ba51221c627dbca2916d2e15a334f",
-      "size_bytes": 12069
+      "sha256": "28b54ce80617ba72c873e0fc61136554d6f878da50b6d35136ad1bf5b8b4b173",
+      "size_bytes": 22105
     },
     {
       "category": "assurance",

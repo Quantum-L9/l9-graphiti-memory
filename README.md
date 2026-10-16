@@ -38,9 +38,9 @@ The repository name uses **Graphiti** because the project integrates with Graphi
 
 ## L9 alignment boundary
 
-This repository is a dependency package, not a runnable constellation node. Internal operations use typed memory contracts. L9 inter-node consumers inject the canonical TransportPacket factory and Gate client through `GateMemoryBridge`; the package never defines the shared packet model or resolves destinations. Optional editor hooks use a local receipt guard, not a second Gate. See [`ALIGNMENT.md`](ALIGNMENT.md).
+This repository is a dependency package, not a runnable constellation node; from 3.0.0 it may also run as one centrally hosted Memory service under an admitted product-kind exception, still without Constellation identity or Gate routing. Internal operations use typed memory contracts. L9 inter-node consumers inject the canonical TransportPacket factory and Gate client through `GateMemoryBridge`; the package never defines the shared packet model or resolves destinations. Optional editor hooks use a local receipt guard, not a second Gate. See [`ALIGNMENT.md`](ALIGNMENT.md).
 
-The authoritative product contract is [`product-topology.yaml`](product-topology.yaml): ProductKind `dependency`, archetype `l9.dependency-archetype/semantic-subsystem@1`, consumed by local composition as a consumer-bound artifact. Every release is governed by the global `l9.contract/product-release@1`; [`release-work/product-release-binding.yaml`](release-work/product-release-binding.yaml) is the derived map from that law to this repository's validation and proof entrypoints. See [ADR-094](docs/adr/ADR-094-product-topology-and-release-governance.md).
+The authoritative product contract is [`product-topology.yaml`](product-topology.yaml): ProductKind `dependency`, archetype `l9.dependency-archetype/semantic-subsystem@1`, claiming the admitted exception `l9.product-kind-exception/memory-hosted-service@1` (Semantic Foundation v3.21.0): canonical consumption is remote invocation over authenticated MCP Streamable HTTP of one independently running service, and the wheel and sdist remain the release artifacts. Every release is governed by the global `l9.contract/product-release@1`; [`release-work/product-release-binding.yaml`](release-work/product-release-binding.yaml) is the derived map from that law to this repository's validation and proof entrypoints. See [ADR-094](docs/adr/ADR-094-product-topology-and-release-governance.md).
 
 ## Architecture
 
@@ -180,7 +180,7 @@ What stands between the candidate and a live 3.0.0: integration and release
 validation on exact bytes; the protocol suite and receipt shapes on PostgreSQL
 (cross-process sharing on PostgreSQL is proven by
 `tests/integration/test_remote_mcp_postgres_multiprocess.py`); durable per-agent
-keys and a server-side grant map; the product classification (ADR-094, 2026-10-14, open); C1
+keys and a server-side grant map; release and service admission (the product classification is settled by ADR-094, 2026-10-15); C1
 deployment evidence; and consumer adoption, which each consumer owns.
 Cursor-Governance currently seals the agent HTTP path, so the Cursor and
 Claude Code agents it governs need an authorized consumer campaign first. `config/mcp.json.example` stays the
@@ -247,10 +247,10 @@ A consumer choosing the full-capability shared-agent deployment MUST:
 
 This defines a deployment qualification target, not an assertion that the
 standard package runtime currently composes Redis active-agent sessions or
-that its HTTP surface is approved as a remote canonical dependency consumer.
-The accepted `product-topology.yaml` and its dependency consumption boundary
-remain unchanged. A consumer owns its process, deployment choices and exact
-release binding. The generic deployment platform does not own memory behavior.
+that any deployment of its HTTP surface is admitted. The topology permits
+authenticated remote canonical consumption under the admitted exception
+(ADR-094, 2026-10-15), but release admission, service admission and deployment
+remain separate decisions. A consumer owns its own binding to an exact release. The generic deployment platform does not own memory behavior.
 
 ## Validation
 

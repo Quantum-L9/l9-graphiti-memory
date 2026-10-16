@@ -20,10 +20,15 @@ from __future__ import annotations
 import base64
 import contextlib
 import json
+import os
+import shutil
 import socket
+import subprocess
+import sys
 import threading
 import time
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 from l9_graphite_memory.authz.signed_assertion import (
@@ -245,3 +250,54 @@ def wait_for(url: str, *, timeout: float = 30.0) -> None:
             last = exc
         time.sleep(0.1)
     raise RuntimeError(f"server at {url} never answered: {last!r}")
+
+
+def build_installed_site(root: Path, repo_root: Path) -> Path:
+    """Build the wheel once into ``root`` and install it, alone, into ``root/site``.
+
+    Consumers bind an installed artifact, never a checkout, so proofs that
+    matter run with only this directory on ``PYTHONPATH``. Dependencies come
+    from the running interpreter; ``l9_graphite_memory`` comes only from here.
+    """
+
+    dist = root / "dist"
+    build = subprocess.run(
+        [sys.executable, "-m", "build", "--wheel", "--outdir", str(dist), str(repo_root)],
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "SOURCE_DATE_EPOCH": "1784592000"},
+    )
+    assert build.returncode == 0, build.stderr[-2000:]
+    wheels = sorted(dist.glob("l9_graphite_memory-*.whl"))
+    assert len(wheels) == 1, wheels
+    site = root / "site"
+    site.mkdir()
+    if shutil.which("uv"):
+        install = [
+            "uv",
+            "pip",
+            "install",
+            "--python",
+            sys.executable,
+            "--target",
+            str(site),
+            "--reinstall",
+            "--no-deps",
+            str(wheels[0]),
+        ]
+    else:
+        install = [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--target",
+            str(site),
+            "--force-reinstall",
+            "--no-deps",
+            str(wheels[0]),
+        ]
+    result = subprocess.run(install, capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr[-2000:]
+    return site

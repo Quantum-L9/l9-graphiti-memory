@@ -163,9 +163,15 @@ run harvest_coverage python3 tools/assurance/validate_harvest_coverage.py
 # checked against the bound Quantum-L9/.github semantics when a checkout of it
 # is supplied (CI pins one). Global law is read from that checkout, never
 # copied into this repository; the manifest check renders, compares, writes nothing.
+# The topology check also names this release, so a release below a claimed
+# kind exception's floor (l9.contract/product-release@1) fails here. Publication
+# mode never skips the product contract: an unbound authority fails closed.
 if [[ -n "${L9_SEMANTIC_AUTHORITY_ROOT:-}" ]]; then
-  run product_topology python3 tools/assurance/validate_product_topology.py --authority-root "$L9_SEMANTIC_AUTHORITY_ROOT"
+  RELEASE_VERSION="$(python3 -c 'from l9_graphite_memory.version import PACKAGE_VERSION; print(PACKAGE_VERSION)')"
+  run product_topology python3 tools/assurance/validate_product_topology.py --authority-root "$L9_SEMANTIC_AUTHORITY_ROOT" --release-version "$RELEASE_VERSION"
   run product_manifest python3 tools/assurance/generate_product_manifest.py --authority-root "$L9_SEMANTIC_AUTHORITY_ROOT" --check
+elif [[ "$ARTIFACT_MODE" == "publication" ]]; then
+  fail "publication mode requires L9_SEMANTIC_AUTHORITY_ROOT: the product contract is never skipped for a published release"
 else
   printf '== product_contract ==\nSKIP: L9_SEMANTIC_AUTHORITY_ROOT not set; topology and ProductManifest not checked against global law\n'
 fi

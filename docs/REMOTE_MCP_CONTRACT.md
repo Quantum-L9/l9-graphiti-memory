@@ -150,9 +150,10 @@ Cursor-Governance.
   version.
 - Audience binding of the agent assertion to one deployment. Use
   per-deployment keys.
-- The product topology's `kind: dependency` declares no independent runtime
-  identity; how an independently hosted server is classified is open and
-  owned as recorded in ADR-094 (2026-10-14).
+- Admission of any running server. The classification is settled (ADR-094,
+  2026-10-15): the topology claims the admitted hosted-Memory exception and
+  declares the service's own runtime identity, never Constellation identity;
+  service admission is still a separate target-class decision.
 - In-window replay prevention (ADR-083, 2026-10-14).
 - Administrator authority for bearer-mode token principals and the
   auth-disabled Tier-3 local principal; signed-agent grants carrying

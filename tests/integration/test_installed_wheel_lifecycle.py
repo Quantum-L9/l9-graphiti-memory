@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -37,48 +36,9 @@ def installed_site(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Build the wheel once and install it into an isolated target directory."""
 
     pytest.importorskip("build")
-    root = tmp_path_factory.mktemp("wheel")
-    dist = root / "dist"
-    build = subprocess.run(
-        [sys.executable, "-m", "build", "--wheel", "--outdir", str(dist), str(REPO_ROOT)],
-        capture_output=True,
-        text=True,
-        check=False,
-        env={**os.environ, "SOURCE_DATE_EPOCH": "1784592000"},
-    )
-    assert build.returncode == 0, build.stderr[-2000:]
-    wheels = sorted(dist.glob("l9_graphite_memory-*.whl"))
-    assert len(wheels) == 1, wheels
-    site = root / "site"
-    site.mkdir()
-    if shutil.which("uv"):
-        install = [
-            "uv",
-            "pip",
-            "install",
-            "--python",
-            sys.executable,
-            "--target",
-            str(site),
-            "--reinstall",
-            "--no-deps",
-            str(wheels[0]),
-        ]
-    else:
-        install = [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--target",
-            str(site),
-            "--force-reinstall",
-            "--no-deps",
-            str(wheels[0]),
-        ]
-    result = subprocess.run(install, capture_output=True, text=True, check=False)
-    assert result.returncode == 0, result.stderr[-2000:]
-    return site
+    from tests.integration.remote_mcp_harness import build_installed_site
+
+    return build_installed_site(tmp_path_factory.mktemp("wheel"), REPO_ROOT)
 
 
 def _env(site: Path, data: Path) -> dict[str, str]:

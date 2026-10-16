@@ -11,20 +11,28 @@
 
 """Derive the ProductManifest from the authoritative ProductTopology.
 
-Global law names ``l9-semantic-compiler`` as the ProductManifest owner, but no
-such compiler exists. Release progression must not depend on it, so this
-repository derives its ``l9.product-manifest/v1`` deterministically here and
-records exactly that in the manifest's ``compiler`` block (ADR-094 amendment).
-An admitted global compiler, if one ever exists, supersedes this generator.
+Global law names ``l9-semantic-compiler`` as the ProductManifest owner. That
+compiler (``Quantum-L9/l9-semantic-compiler-engine`` 0.9.3) builds only its own
+product and cannot load the v3.21.0 product-kind exception catalog, so release
+progression must not depend on it: this repository derives its
+``l9.product-manifest/v1`` deterministically here and records exactly that in
+the manifest's ``compiler`` block (ADR-094 amendments). An admitted global
+compiler that can derive this product supersedes this generator.
 
 Inputs are read, never copied: ``product-topology.yaml`` from this repository,
 and the bound global semantics from a ``Quantum-L9/.github`` checkout passed as
 ``--authority-root``. The generator never edits the topology and never invents
-a coordinate. Each of the 17 ``resolved_manifest_gate`` conditions in
+a coordinate. Each of the 18 ``resolved_manifest_gate`` conditions in
 ``l9.schema/product-manifest@1`` is evaluated mechanically:
 
 * ``resolved_manifest_gate.result`` is ``pass`` only when every condition holds;
 * every failing condition is listed in ``unresolved`` with its reasons.
+
+A declared ``product.kind_exception_ref`` is resolved by the same binding the
+topology validator applies; when it is exactly bound, the exception's identity
+dimensions, runtime identity rule and displaced remote-invocation prohibition
+replace the kind's, the manifest carries the exact exception coordinate, and
+its provenance pins the digest of the applied exception entry.
 
 Per the schema, a manifest may exist while unresolved, but only a ``pass``
 manifest may be consumed for release progression.
@@ -55,6 +63,7 @@ GATE = (
     "source_product_topology_valid",
     "product_kind_resolved",
     "product_archetype_resolved",
+    "product_kind_exception_absent_or_exactly_bound_and_admitted",
     "governance_profile_separate_from_identity",
     "identity_resolution_contract_resolved",
     "identity_topology_resolved",
@@ -191,6 +200,25 @@ def _kind_and_archetype(
         )
         archetype = NO_ARCHETYPE
     return kind, archetype
+
+
+def _effective_kind(kind: dict[str, Any], exception: dict[str, Any] | None) -> dict[str, Any]:
+    """The kind law as a bound exception leaves it: only enumerated departures change."""
+
+    if exception is None:
+        return kind
+    identity = exception.get("identity") or {}
+    return {
+        **kind,
+        "identity_dimensions": identity.get("identity_dimensions", []),
+        "runtime_identity_rule": identity.get("runtime_identity_rule"),
+        # departure: product_kinds.yaml#kinds.dependency.forbidden.remote_invocation_as_canonical_consumption
+        "forbidden": [
+            f
+            for f in kind.get("forbidden", [])
+            if f != "remote_invocation_as_canonical_consumption"
+        ],
+    }
 
 
 def _identity(
@@ -345,6 +373,9 @@ def evaluate_gate(
     failing: Gate = {name: [] for name in GATE}
     failing["source_product_topology_valid"] = topology_law.validate(repo, law.root, topology_path)
     kind, archetype = _kind_and_archetype(topo, law, failing)
+    exception, unbound = topology_law.bound_exception(topo, law.kinds, law.root)
+    failing["product_kind_exception_absent_or_exactly_bound_and_admitted"] = unbound
+    kind = _effective_kind(kind, exception)
     _identity(topo, kind, law, repo, failing)
     failing["hard_requirements_resolved"] = _requirements(topo, law, repo)
     failing["capability_closure_resolved"] = _capabilities(topo)
@@ -372,6 +403,8 @@ def derive(repo: Path, authority: Path) -> dict[str, Any]:
     product = topo["product"]
     kind = law.kind(str(product.get("kind"))) or {}
     archetype = law.archetype(kind, str(product.get("archetype_ref"))) if kind else None
+    exception, _ = topology_law.bound_exception(topo, law.kinds, law.root)
+    effective = _effective_kind(kind, exception)
     profile = law.profile()
     required_patterns = sorted(
         {
@@ -381,7 +414,9 @@ def derive(repo: Path, authority: Path) -> dict[str, Any]:
     )
     manifest: dict[str, Any] = {
         "schema": "l9.product-manifest/v1",
-        "product": {k: product.get(k) for k in ("id", "kind", "archetype_ref", "name")},
+        "product": {
+            k: product.get(k) for k in ("id", "kind", "archetype_ref", "kind_exception_ref", "name")
+        },
         "source_topology": {
             "ref": f"{topology_law.REPO_PREFIX}{TOPOLOGY.as_posix()}",
             "digest": file_digest(topology_path),
@@ -394,8 +429,8 @@ def derive(repo: Path, authority: Path) -> dict[str, Any]:
         },
         "identity": {
             **topo["identity"],
-            "kind_identity_dimensions": kind.get("identity_dimensions", []),
-            "runtime_identity_rule": kind.get("runtime_identity_rule"),
+            "kind_identity_dimensions": effective.get("identity_dimensions", []),
+            "runtime_identity_rule": effective.get("runtime_identity_rule"),
         },
         "requirements": topo["requirements"],
         "capabilities": topo["capabilities"],
@@ -422,6 +457,15 @@ def derive(repo: Path, authority: Path) -> dict[str, Any]:
                 "product_release_admission", []
             ),
             "consumer_binding": kind.get("admission_model", {}).get("consumer_binding", []),
+            **(
+                {
+                    "hosted_service_admission": (
+                        exception.get("hosted_service_admission") or {}
+                    ).get("states", [])
+                }
+                if exception is not None
+                else {}
+            ),
         },
         "lifecycle": topo["lifecycle"],
         "conformance": topo["conformance"],
@@ -433,7 +477,7 @@ def derive(repo: Path, authority: Path) -> dict[str, Any]:
             "profile_ref": PROFILE_ID,
             "profile_digest": digest(profile),
             "compiler_version": f"{topology_law.REPO_PREFIX}{GENERATOR.as_posix()}@{file_digest(repo / GENERATOR)}",
-            "realization": "repository-local deterministic derivation; no l9-semantic-compiler exists (ADR-094)",
+            "realization": "repository-local deterministic derivation; the l9-semantic-compiler cannot derive this product or load its kind exception (ADR-094)",
         },
         "provenance": {
             "derivation": "deterministic",
@@ -445,6 +489,17 @@ def derive(repo: Path, authority: Path) -> dict[str, Any]:
                 *(
                     {"ref": f"Quantum-L9/.github/{f['path']}@{f['blob']}", "digest": f["digest"]}
                     for f in law.authority_files()
+                ),
+                *(
+                    [
+                        {
+                            "ref": "Quantum-L9/.github/semantics/product_kinds.yaml"
+                            f"#kind_exceptions[{exception['id']}]",
+                            "digest": digest(exception),
+                        }
+                    ]
+                    if exception is not None
+                    else []
                 ),
             ],
         },

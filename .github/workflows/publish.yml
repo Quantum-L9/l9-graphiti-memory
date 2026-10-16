@@ -89,8 +89,20 @@ jobs:
         run: python -m build --outdir dist
       - name: Record candidate artifact digests
         run: sha256sum dist/* | tee build-digests.txt
+      # ADR-094: publication checks the product contract against the same
+      # pinned semantic authority as CI (release binding authority.revision);
+      # validate_release.sh fails closed in publication mode without it.
+      - name: Check out the bound semantic authority
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: Quantum-L9/.github
+          ref: d4397e53f8f4c23458a80f87db9552463ad9e26f
+          path: build/semantic-authority
+          persist-credentials: false
       - name: Validate the exact release artifact set
         run: bash scripts/validate_release.sh
+        env:
+          L9_SEMANTIC_AUTHORITY_ROOT: build/semantic-authority
       - name: Prove the validated artifact set is the publication set
         run: |
           set -euo pipefail

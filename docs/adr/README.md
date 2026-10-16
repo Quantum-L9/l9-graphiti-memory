@@ -147,6 +147,7 @@ ADR-098 candidate (PR #94, source version 2.7.0, unmerged at 2026-10-14).
 | 2026-10-14 | ADR-064 | Remote consumer adoption is consumer-owned (policy, refresh, keys) | applicability note |
 | 2026-10-13 | ADR-094 | Hosted remote consumption versus the accepted `dependency` topology | open |
 | 2026-10-14 | ADR-094 | Discrepancy at `.github@976eedb`, candidates A and B, owners, the operator decision needed | open; topology unchanged |
+| 2026-10-15 | ADR-094 | Classification settled by `.github` v3.21.0 (`d4397e5`): topology claims `l9.product-kind-exception/memory-hosted-service@1`; remote MCP Streamable HTTP consumption, product-owned service runtime, `service_admitted` declared; release floor 3.0.0 | settled; topology reissued, admission pending |
 | 2026-10-14 | ADR-098 | Candidate status, release identity, replay and admin limits | candidate |
 
 ## Validation

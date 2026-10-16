@@ -113,3 +113,22 @@ def test_derived_product_manifest_is_current_and_bound() -> None:
     revision = binding["authority"]["revision"]
     assert manifest["authority"]["revision"] == revision
     assert f"ref: {revision}" in CI.read_text(encoding="utf-8")
+
+
+def test_the_kind_exception_claim_is_carried_by_every_release_surface() -> None:
+    # v3.21.0: a manifest must carry kind_exception_ref whenever its source
+    # topology claims one, and publication checks the product contract against
+    # the same pinned authority as CI (validate_release.sh fails closed without it).
+    topology = yaml.safe_load(TOPOLOGY.read_text(encoding="utf-8"))
+    claim = topology["product"].get("kind_exception_ref")
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    binding = yaml.safe_load(BINDING.read_text(encoding="utf-8"))
+    assert manifest["product"]["kind_exception_ref"] == claim
+    assert binding["product"].get("kind_exception_ref") == claim
+    if claim is not None:
+        refs = [entry["ref"] for entry in manifest["provenance"]["inputs"]]
+        assert f"Quantum-L9/.github/semantics/product_kinds.yaml#kind_exceptions[{claim}]" in refs
+        assert "service_admitted" in topology["admission"]["kind_specific_requirements"]
+    publish = (REPO_ROOT / ".github" / "workflows" / "publish.yml").read_text(encoding="utf-8")
+    assert f"ref: {binding['authority']['revision']}" in publish
+    assert "L9_SEMANTIC_AUTHORITY_ROOT: build/semantic-authority" in publish
