@@ -375,8 +375,14 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # header cases replaced by one tracked-files case; 22 cases added in
         # test_manifest_retirement.py. None CI-skipped. Collected 1931 -> 1909
         # locally. 1880 - 43 - 1 + 22 = 1858.
-        "1858 tests pass",
-        r"1858 passed",
+        # Re-pinned 1858 -> 1953 for the Memory-owned remote consumer (ADR-082
+        # amendment 2026-10-16): 68 cases in test_remote_client.py, 21 in
+        # test_remote_consumer.py, 4 in test_remote_consumer_postgres.py (2
+        # cases x source and installed wheel; CI sets the PostgreSQL DSN and
+        # installs build) and 2 in test_cli_parser.py. None CI-skipped; CI
+        # reported 1953 passed on 3.10 and 3.13. 1858 + 95 = 1953.
+        "1953 tests pass",
+        r"1953 passed",
     ),
     CheckSpec(
         "V-002",
@@ -508,8 +514,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 141 -> 142 for ADR-096: src/l9_graphite_memory/
         # repository_corpus.py joins the production surface.
         # Re-pinned 142 -> 143 for ADR-098: authz/remote_agent.py.
-        "143 production files pass",
-        r"PASS: 143 production Python files",
+        # Re-pinned 143 -> 144 for the ADR-082 2026-10-16 amendment:
+        # remote_client.py.
+        "144 production files pass",
+        r"PASS: 144 production Python files",
     ),
     CheckSpec(
         "V-012",
