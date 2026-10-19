@@ -152,6 +152,8 @@ ADR-098 candidate (PR #94, source version 2.7.0, unmerged at 2026-10-14).
 | 2026-10-15 | ADR-022 | Publication requires the exact-release admission receipt from the default branch (version, source, wheel and sdist sha256); the `release` environment approval is not admission; 2.6.0 sdist was published unadmitted | enforced in publish.yml |
 | 2026-10-14 | ADR-098 | Candidate status, release identity, replay and admin limits | candidate |
 | 2026-10-15 | ADR-094 | Topology reissued without `generated_surfaces` after ADR-099 retired the root inventory; ProductManifest regenerated | reissued; admission pending |
+| 2026-10-16 | ADR-082 | Memory-owned remote consumer: `RemoteMemoryClient` and `l9-memory --remote-url` / `L9_MEMORY_REMOTE_URL` carry every lifecycle operation over `memory-remote-mcp/v1` as the signed agent, with local receipts and exit codes and no local fallback; four owed lifecycle operations and PostgreSQL receipts now exercised over HTTP; remote distillation blocked | implemented; consumer adoption is consumer-owned |
+| 2026-10-16 | ADR-098 | Administrator-only tools (`memory.distill`, `memory.bootstrap`) unreachable over HTTP for a signed agent; the client refuses them | restatement of existing invariants |
 
 ## Validation
 

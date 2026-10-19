@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import os
 import re
 import subprocess
 import sys
@@ -108,9 +109,31 @@ class Violation:
     evidence: str
 
 
+def _excluded_dir(name: str) -> bool:
+    return name in EXCLUDED_PARTS or name.endswith(".egg-info")
+
+
+def _walk(root: Path) -> list[Path]:
+    """Every path under ``root`` that is not inside an excluded directory.
+
+    Excluded directories are pruned rather than entered and filtered. Walking
+    into ``.git`` raced git's own housekeeping: a ``gc --auto`` detached by a
+    merge removes ``.git/objects/<xx>`` directories mid-walk, and Python
+    3.10's ``Path.rglob`` raised ``FileNotFoundError`` on the vanished
+    directory. Like ``rglob``, symbolic links to directories are not followed.
+    """
+
+    paths: list[Path] = []
+    for directory, dirnames, filenames in os.walk(root):
+        dirnames[:] = [name for name in dirnames if not _excluded_dir(name)]
+        base = Path(directory)
+        paths.extend(base / name for name in filenames)
+    return paths
+
+
 def _text_files(root: Path) -> tuple[Path, ...]:
     result: list[Path] = []
-    for path in root.rglob("*"):
+    for path in _walk(root):
         if not path.is_file():
             continue
         relative = path.relative_to(root)

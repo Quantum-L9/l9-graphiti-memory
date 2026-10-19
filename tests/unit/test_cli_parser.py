@@ -64,3 +64,18 @@ def test_cli_exposes_topology_plan_ingestion_with_preflight_default() -> None:
     assert preflight.command == "ingest-topology-plan"
     assert preflight.apply is False
     assert applied.apply is True
+
+
+def test_write_without_kind_defaults_to_observation() -> None:
+    """Regression: the enum default was str()-ed to "MemoryClass.OBSERVATION" and refused."""
+
+    from l9_graphite_memory.contracts import MemoryClass
+
+    args = build_parser().parse_args(["write", "a fact with no explicit class"])
+    assert args.kind is MemoryClass.OBSERVATION
+
+
+def test_remote_url_is_a_global_option() -> None:
+    args = build_parser().parse_args(["--remote-url", "https://memory.example/mcp", "health"])
+    assert args.remote_url == "https://memory.example/mcp"
+    assert build_parser().parse_args(["health"]).remote_url is None

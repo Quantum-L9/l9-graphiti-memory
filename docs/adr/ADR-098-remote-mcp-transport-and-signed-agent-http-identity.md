@@ -278,3 +278,14 @@ signed-agent sharing on PostgreSQL is proven by
 PostgreSQL is not. Key and grant provisioning,
 consumer adoption (including the Cursor-Governance policy that seals agent
 HTTP), C1 deployment and the ADR-094 classification are outside this ADR.
+
+## Amendment — client half and administrator-only tools (2026-10-16)
+
+The Memory-owned client of this contract is recorded in ADR-082's 2026-10-16
+amendment. It changes nothing above. One consequence of this decision is
+recorded there and restated here because it follows from this ADR's
+invariants: administrator-only tools (`memory.distill`, `memory.bootstrap`)
+are unreachable over HTTP for a signed agent. No signed-agent grant may carry
+`is_admin`, and both tools read paths on the server's filesystem. The client
+refuses them before sending anything. Serving them remotely would require a
+new decision, not a client change.
