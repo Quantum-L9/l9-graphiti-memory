@@ -267,7 +267,8 @@ def test_the_image_runs_as_the_profile_requires() -> None:
     assert "8200/tcp" in config["ExposedPorts"]
     assert config["Entrypoint"] == ["/usr/local/bin/l9-memory-carrier"]
     revision = config["Labels"]["org.opencontainers.image.revision"]
-    assert len(revision) == 40 and all(c in "0123456789abcdef" for c in revision)
+    assert len(revision) == 40
+    assert all(c in "0123456789abcdef" for c in revision)
 
 
 def test_readiness_follows_the_canonical_postgres_store(tmp_path, database) -> None:
@@ -275,7 +276,8 @@ def test_readiness_follows_the_canonical_postgres_store(tmp_path, database) -> N
         ready = _wait_ready(c)
         canonical = ready["readiness"]["families"]
         store = next(family for family in canonical if family["name"] == "canonical")
-        assert store["healthy"] is True and store["detail"]["shared_store"] is True
+        assert store["healthy"] is True
+        assert store["detail"]["shared_store"] is True
         assert httpx2.get(f"{c.url}/healthz", timeout=10).json()["store"]["name"] == "postgres"
         # Serving wrote nothing to the container filesystem: no ledger, no state.
         _written(c, "a write that must land in PostgreSQL, not on local disk")
@@ -322,7 +324,8 @@ def test_signed_agents_share_records_and_every_bad_credential_is_refused(
         content = f"carrier proof {uuid.uuid4().hex}: the kingfisher nests by the sluice"
         record_id = _written(c, content)
         got = _call(c, READER, "memory.get", {"record_id": record_id})
-        assert got["found"] is True and got["record"]["content"] == content
+        assert got["found"] is True
+        assert got["record"]["content"] == content
         assert got["record"]["provenance"]["source_agent_id"] == WRITER
         hits = _call(
             c, READER, "memory.search", {"query": "kingfisher", "namespaces": [HOME_NAMESPACE]}
@@ -335,7 +338,8 @@ def test_signed_agents_share_records_and_every_bad_credential_is_refused(
             "memory.write_agent",
             {"namespace": FOREIGN_NAMESPACE, "content": "outside the grant"},
         )
-        assert foreign["status"] == "rejected" and foreign["record_id"] is None
+        assert foreign["status"] == "rejected"
+        assert foreign["record_id"] is None
         assert foreign["authorization"]["allowed"] is False
         read_only = _call(
             c, READER, "memory.write_agent", {"namespace": HOME_NAMESPACE, "content": "no grant"}
@@ -349,7 +353,8 @@ def test_records_survive_the_container_being_replaced(tmp_path, database) -> Non
         record_id = _written(first, content)
     with carrier(tmp_path, database) as second:
         got = _call(second, READER, "memory.get", {"record_id": record_id})
-        assert got["found"] is True and got["record"]["content"] == content
+        assert got["found"] is True
+        assert got["record"]["content"] == content
 
 
 def test_no_secret_reaches_the_container_log(tmp_path, database) -> None:

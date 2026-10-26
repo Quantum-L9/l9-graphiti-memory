@@ -18,8 +18,9 @@
 # (.github/workflows/release-container.yml); l9-deploy runs it from
 # .l9/deployment.yaml. A local `docker build` is a test build only.
 
-# Base images are pinned by tag and index digest; build with --platform linux/amd64.
-FROM ghcr.io/astral-sh/uv:0.8.4-python3.13-bookworm-slim@sha256:b93f8bbb995fa6469a40978d63278714c442eac4208f7e29529fcd2215584521 AS builder
+# Base images are pinned by index digest; build with --platform linux/amd64.
+# ghcr.io/astral-sh/uv:0.8.4-python3.13-bookworm-slim
+FROM ghcr.io/astral-sh/uv@sha256:b93f8bbb995fa6469a40978d63278714c442eac4208f7e29529fcd2215584521 AS builder
 
 # Source identity is required, not defaulted: the release action passes the
 # exact commit as L9_SOURCE_REVISION, and an image that cannot name its source
@@ -39,12 +40,18 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
 
 COPY pyproject.toml uv.lock README.md LICENSE MANIFEST.in ./
 COPY src ./src
-# The locked server and postgres extras only; the package is installed as a
-# wheel, not an editable checkout, so the runtime holds no source tree.
+# Dependencies: the locked server and postgres extras, from wheels only, so no
+# third-party setup script runs. The package itself is then built from this
+# source and installed as a wheel, not an editable checkout, so the runtime
+# holds no source tree.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-editable --extra server --extra postgres
+    uv sync --frozen --no-dev --no-build --no-install-project --extra server --extra postgres
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv build --wheel --out-dir /build/dist \
+    && uv pip install --python /opt/venv/bin/python --no-deps --no-build /build/dist/*.whl
 
-FROM python:3.13-slim-bookworm@sha256:e32be0e55814a08977501ca863271d9bd02443710db8f2afaf8372e2c4508530 AS runtime
+# python:3.13-slim-bookworm
+FROM python@sha256:e32be0e55814a08977501ca863271d9bd02443710db8f2afaf8372e2c4508530 AS runtime
 
 ARG L9_SOURCE_REVISION
 LABEL org.opencontainers.image.title="l9-graphite-memory" \

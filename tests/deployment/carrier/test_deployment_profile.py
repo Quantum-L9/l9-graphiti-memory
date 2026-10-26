@@ -86,7 +86,8 @@ def test_the_host_key_is_a_well_formed_public_key_line_not_a_placeholder() -> No
     kind, blob = _target(_profile())["server"]["host_key"].split(" ")
     assert kind == "ssh-ed25519"
     raw = base64.b64decode(blob, validate=True)
-    assert raw[4:15] == b"ssh-ed25519" and len(raw) == 51
+    assert raw[4:15] == b"ssh-ed25519"
+    assert len(raw) == 51
 
 
 SCHEMA_INVALID: dict[str, Mutation] = {

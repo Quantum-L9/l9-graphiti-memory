@@ -202,9 +202,13 @@ def test_the_dockerfile_is_the_profile_carrier() -> None:
     # Bases are pinned by digest; the source revision is mandatory and the one
     # the release action passes.
     froms = re.findall(r"^FROM\s+(\S+)", text, flags=re.MULTILINE)
-    assert len(froms) == 2 and all("@sha256:" in image for image in froms), froms
+    assert len(froms) == 2, froms
+    assert all("@sha256:" in image for image in froms), froms
     assert "ARG L9_SOURCE_REVISION" in text
     assert "--extra server --extra postgres" in text
+    # Dependencies come from wheels only; no third-party setup script runs.
+    assert "--no-build --no-install-project" in text
+    assert "--no-deps --no-build" in text
     assert re.search(r"^EXPOSE 8200$", text, flags=re.MULTILINE)
     assert re.search(r"^USER 10001:10001$", text, flags=re.MULTILINE)
     assert "L9_MEMORY_STORE_BACKEND=postgres" in text
