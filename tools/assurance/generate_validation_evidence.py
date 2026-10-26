@@ -385,8 +385,13 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # step's log is printed and its status kept). Not CI-skipped.
         # Re-pinned 1954 -> 1955: 1 case in test_recursive_alignment.py (the
         # text-file walk prunes excluded directories). Not CI-skipped.
-        "1955 tests pass",
-        r"1955 passed",
+        # Re-pinned 1955 -> 1996 for the hosted container carrier: 31 cases in
+        # tests/deployment/carrier/test_deployment_profile.py and 10 in
+        # test_release_workflow.py. The 13 cases in test_container_carrier.py
+        # need a built image (L9_MEMORY_TEST_CARRIER_IMAGE), so ci.yml skips
+        # them and release-container.yml runs them in full. 1955 + 41 = 1996.
+        "1996 tests pass",
+        r"1996 passed",
     ),
     CheckSpec(
         "V-002",
