@@ -224,6 +224,10 @@ def test_the_dockerfile_is_the_profile_carrier() -> None:
         "L9_MEMORY_POSTGRES_DSN is required",
         "L9_MEMORY_HTTP_AUTH_REQUIRED must be true",
         "L9_MEMORY_HTTP_AUTH_MODE must be signed-agent",
+        "L9_MEMORY_PROJECTION_BACKEND must be none",
+        "L9_MEMORY_PROJECTION_RUNTIME must be legacy",
+        "L9_MEMORY_GRAPH_BACKEND must be none",
+        "L9_MEMORY_ACTIVE_BACKEND must be none",
     ):
         assert refused in text
     ignore = (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()

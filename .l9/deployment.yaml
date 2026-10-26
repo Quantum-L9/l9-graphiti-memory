@@ -41,7 +41,13 @@ runtime:
     L9_MEMORY_STORE_BACKEND: postgres
     L9_MEMORY_HTTP_AUTH_REQUIRED: "true"
     L9_MEMORY_HTTP_AUTH_MODE: signed-agent
+    # Every other backend is pinned off here, where a stale runtime.env entry
+    # cannot reach it: the only external system this release talks to is
+    # its PostgreSQL store.
     L9_MEMORY_PROJECTION_BACKEND: none
+    L9_MEMORY_PROJECTION_RUNTIME: legacy
+    L9_MEMORY_GRAPH_BACKEND: none
+    L9_MEMORY_ACTIVE_BACKEND: none
     L9_MEMORY_JSON_LOGS: "1"
 health:
   # Through the existing HTTPS endpoint. /readyz answers 200 only while the

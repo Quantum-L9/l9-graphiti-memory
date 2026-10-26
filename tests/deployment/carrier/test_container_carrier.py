@@ -80,7 +80,17 @@ PROFILE_ENVIRONMENT = {
     "L9_MEMORY_HTTP_AUTH_REQUIRED": "true",
     "L9_MEMORY_HTTP_AUTH_MODE": "signed-agent",
     "L9_MEMORY_PROJECTION_BACKEND": "none",
+    "L9_MEMORY_PROJECTION_RUNTIME": "legacy",
+    "L9_MEMORY_GRAPH_BACKEND": "none",
+    "L9_MEMORY_ACTIVE_BACKEND": "none",
     "L9_MEMORY_JSON_LOGS": "1",
+}
+# The profile without its backend pins: what a stale runtime.env entry would
+# reach if the deployment profile ever stopped overriding it.
+UNPINNED_PROFILE = {
+    key: value
+    for key, value in PROFILE_ENVIRONMENT.items()
+    if key not in {"L9_MEMORY_GRAPH_BACKEND", "L9_MEMORY_ACTIVE_BACKEND"}
 }
 
 pytestmark = pytest.mark.skipif(
@@ -419,6 +429,16 @@ REFUSED_STARTS: dict[str, tuple[dict[str, str] | None, dict[str, str | None], st
         None,
         {"L9_MEMORY_POSTGRES_DSN": "host=l9-carrier-nowhere port=5432 user=x connect_timeout=3"},
         "postgres connection failed",
+    ),
+    "a stale graph backend in runtime.env": (
+        UNPINNED_PROFILE,
+        {"L9_MEMORY_GRAPH_BACKEND": "neo4j"},
+        "L9_MEMORY_GRAPH_BACKEND must be none",
+    ),
+    "a stale active-memory backend in runtime.env": (
+        UNPINNED_PROFILE,
+        {"L9_MEMORY_ACTIVE_BACKEND": "redis"},
+        "L9_MEMORY_ACTIVE_BACKEND must be none",
     ),
 }
 

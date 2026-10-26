@@ -144,6 +144,12 @@ MISTARGETED: dict[str, Mutation] = {
         restore_test_command=["sh", "-c", "psql $LIVE_DSN < dump.sql"]
     ),
     "a liveness-only health probe": lambda p: p["health"]["startup"].update(path="/healthz"),
+    "an unpinned graph backend": lambda p: p["runtime"]["environment"].pop(
+        "L9_MEMORY_GRAPH_BACKEND"
+    ),
+    "an unpinned active-memory backend": lambda p: p["runtime"]["environment"].pop(
+        "L9_MEMORY_ACTIVE_BACKEND"
+    ),
 }
 
 

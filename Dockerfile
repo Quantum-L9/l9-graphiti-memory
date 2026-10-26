@@ -88,6 +88,15 @@ refuse() {
   || refuse "L9_MEMORY_HTTP_AUTH_REQUIRED must be true"
 [ "${L9_MEMORY_HTTP_AUTH_MODE:-}" = "signed-agent" ] \
   || refuse "L9_MEMORY_HTTP_AUTH_MODE must be signed-agent"
+# No other backend: an unset variable takes the package default, which is off.
+[ "${L9_MEMORY_PROJECTION_BACKEND:-none}" = "none" ] \
+  || refuse "L9_MEMORY_PROJECTION_BACKEND must be none"
+[ "${L9_MEMORY_PROJECTION_RUNTIME:-legacy}" = "legacy" ] \
+  || refuse "L9_MEMORY_PROJECTION_RUNTIME must be legacy"
+[ "${L9_MEMORY_GRAPH_BACKEND:-none}" = "none" ] \
+  || refuse "L9_MEMORY_GRAPH_BACKEND must be none"
+[ "${L9_MEMORY_ACTIVE_BACKEND:-none}" = "none" ] \
+  || refuse "L9_MEMORY_ACTIVE_BACKEND must be none"
 exec l9-memory-server --transport http --host 0.0.0.0 --port 8200 "$@"
 EOF
 
@@ -102,6 +111,9 @@ ENV PATH="/opt/venv/bin:$PATH" \
     L9_MEMORY_HTTP_AUTH_REQUIRED=true \
     L9_MEMORY_HTTP_AUTH_MODE=signed-agent \
     L9_MEMORY_PROJECTION_BACKEND=none \
+    L9_MEMORY_PROJECTION_RUNTIME=legacy \
+    L9_MEMORY_GRAPH_BACKEND=none \
+    L9_MEMORY_ACTIVE_BACKEND=none \
     L9_MEMORY_JSON_LOGS=1
 
 USER 10001:10001

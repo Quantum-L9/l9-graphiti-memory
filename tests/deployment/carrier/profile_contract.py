@@ -53,6 +53,12 @@ REQUIRED_ENVIRONMENT = {
     "L9_MEMORY_STORE_BACKEND": "postgres",
     "L9_MEMORY_HTTP_AUTH_REQUIRED": "true",
     "L9_MEMORY_HTTP_AUTH_MODE": "signed-agent",
+    # Compose lets these override runtime.env, so a stale secret-store entry
+    # cannot turn on a backend the profile does not declare.
+    "L9_MEMORY_PROJECTION_BACKEND": "none",
+    "L9_MEMORY_PROJECTION_RUNTIME": "legacy",
+    "L9_MEMORY_GRAPH_BACKEND": "none",
+    "L9_MEMORY_ACTIVE_BACKEND": "none",
 }
 # Credentials reach the container only through the Infisical-rendered runtime.env.
 SECRET_MARKERS = ("DSN", "KEY", "GRANT", "TOKEN", "PASSWORD", "SECRET", "ASSERTION")
