@@ -1,0 +1,23 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .dockerignore
+#   layer: deployment
+#   owner: memory-control-plane
+#   status: active
+#   version: 3.0.0
+#   updated: 2026-10-26
+#
+# Allow-list build context: the image is built from the package source and its
+# lock only. Nothing else in the repository (tests, docs, local state, .env
+# files, generated data, virtual environments) can reach a layer.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!MANIFEST.in
+!src/
+src/**/__pycache__
+src/**/*.py[cod]
+src/**/*.egg-info
