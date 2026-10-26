@@ -45,6 +45,9 @@ EXCLUDED_PARTS = {
 }
 ALLOWED_TOP_LEVEL = {
     ".biomeignore",
+    # The hosted service's OCI carrier: l9-ci-core container-release builds
+    # ./Dockerfile with context ".", whose .dockerignore must sit at its root.
+    ".dockerignore",
     ".editorconfig",
     ".github",
     ".gitignore",
@@ -57,6 +60,7 @@ ALLOWED_TOP_LEVEL = {
     "ARCHITECTURE.md",
     "CHANGE_SUMMARY.md",
     "CODE_OF_CONDUCT.md",
+    "Dockerfile",
     "biome.json",
     "campaigns",
     "clients",

@@ -1,0 +1,144 @@
+{
+  "x-l9-meta": {
+    "l9_schema": 1,
+    "origin": "l9-deployment-platform",
+    "layer": [
+      "repository"
+    ],
+    "tags": [
+      "L9_META",
+      "deployment-platform"
+    ],
+    "owner": "platform",
+    "status": "active"
+  },
+  "$id": "https://schemas.quantum-l9.invalid/l9/health-probe/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "http"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "path",
+          "expected_status"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "tcp"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "host",
+          "port"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "command"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "command"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "database"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "command"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "attempts": {
+      "default": 12,
+      "maximum": 100,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "command": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "expected_status": {
+      "maximum": 599,
+      "minimum": 100,
+      "type": "integer"
+    },
+    "host": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "interval_seconds": {
+      "default": 5,
+      "maximum": 300,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "path": {
+      "pattern": "^/",
+      "type": "string"
+    },
+    "port": {
+      "maximum": 65535,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "query": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "timeout_seconds": {
+      "maximum": 900,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "type": {
+      "enum": [
+        "http",
+        "tcp",
+        "command",
+        "database"
+      ]
+    },
+    "schema": {
+      "const": "l9.health-probe/v1"
+    }
+  },
+  "required": [
+    "type",
+    "timeout_seconds"
+  ],
+  "title": "L9 Health Probe",
+  "type": "object"
+}

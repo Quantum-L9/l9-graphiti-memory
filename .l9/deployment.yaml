@@ -1,0 +1,173 @@
+# --- L9_META ---
+# l9_schema: 1
+# repo: Quantum-L9/l9-graphiti-memory
+# path: .l9/deployment.yaml
+# layer: deployment
+# owner: memory-control-plane
+# status: candidate
+# version: 3.0.0
+# updated: 2026-10-26
+# --- /L9_META ---
+#
+# The hosted Memory 3.0 service's deployment contract (l9.deployment-profile/v2,
+# Quantum-L9/l9-deploy ADR-0008): the candidate names its own target. Memory stays
+# ProductKind=dependency under l9.product-kind-exception/memory-hosted-service@1;
+# this is not a Constellation node.
+#
+# A committed profile is a candidate. It deploys nothing by itself: only a release
+# request for an admitted, tagged source (.github/workflows/release-container.yml)
+# reaches l9-deploy, and l9-deploy still requires its protected-environment approval.
+schema: l9.deployment-profile/v2
+project:
+  id: l9-graphiti-memory
+  repository: Quantum-L9/l9-graphiti-memory
+  owner_team: memory-control-plane
+  # Canonical memory is durable state held outside the container.
+  runtime_profile: stateful-container
+artifact:
+  registry: ghcr.io
+  image: ghcr.io/quantum-l9/l9-graphiti-memory
+runtime:
+  architecture: linux/amd64
+  container_port: 8200
+  user: non_root
+  # The server writes nothing locally on the postgres backend; a read-only root
+  # also leaves no writable place for a SQLite ledger to appear.
+  read_only_root_filesystem: true
+  stop_grace_seconds: 30
+  # Non-secret settings only. Compose gives these precedence over the rendered
+  # runtime.env, so a secret store entry cannot switch the backend or auth mode.
+  environment:
+    L9_MEMORY_STORE_BACKEND: postgres
+    L9_MEMORY_HTTP_AUTH_REQUIRED: "true"
+    L9_MEMORY_HTTP_AUTH_MODE: signed-agent
+    # Every other backend is pinned off here, where a stale runtime.env entry
+    # cannot reach it: the only external system this release talks to is
+    # its PostgreSQL store.
+    L9_MEMORY_PROJECTION_BACKEND: none
+    L9_MEMORY_PROJECTION_RUNTIME: legacy
+    L9_MEMORY_GRAPH_BACKEND: none
+    L9_MEMORY_ACTIVE_BACKEND: none
+    L9_MEMORY_JSON_LOGS: "1"
+health:
+  # Through the existing HTTPS endpoint. /readyz answers 200 only while the
+  # canonical PostgreSQL store is healthy.
+  startup:
+    type: http
+    path: /readyz
+    expected_status: 200
+    timeout_seconds: 10
+    interval_seconds: 5
+    attempts: 24
+  post_deploy:
+    type: http
+    path: /readyz
+    expected_status: 200
+    timeout_seconds: 10
+    interval_seconds: 5
+    attempts: 12
+release:
+  strategy: replace
+  automatic_rollback: true
+  stabilization_seconds: 30
+migrations:
+  # The store creates its own schema on startup; there is no separate migration.
+  enabled: false
+  backup_required: false
+storage:
+  persistent_volumes: []
+services:
+  # The one canonical store: an isolated PostgreSQL 16 database outside this
+  # release. Its DSN arrives only in the rendered runtime.env
+  # (L9_MEMORY_POSTGRES_DSN). The probe runs on the target, inside the release
+  # container (Compose names it <project>-app-1), and prints nothing.
+  postgres:
+    mode: external
+    required: true
+    probe:
+      type: database
+      command:
+        - docker
+        - exec
+        - l9-graphiti-memory-app-1
+        - python
+        - -c
+        - "import os, psycopg2; psycopg2.connect(os.environ['L9_MEMORY_POSTGRES_DSN'], connect_timeout=5).close()"
+      timeout_seconds: 15
+      interval_seconds: 5
+      attempts: 6
+backup:
+  # Canonical l9-deploy tooling (host.backup_tools: postgres installs
+  # l9-postgres-backup and l9-backup-verify). The DSN is read from the running
+  # release container, never from this file or the command line.
+  command:
+    - sh
+    - -c
+    - >-
+      DATABASE_URL="$(docker exec l9-graphiti-memory-app-1 printenv L9_MEMORY_POSTGRES_DSN)"
+      && export DATABASE_URL
+      && exec /usr/local/sbin/l9-postgres-backup {project} {environment} {request_id}
+  verify_command:
+    - sh
+    - -c
+    - >-
+      f="$(ls -1t /srv/l9/backups/{project}/{environment}/*.sql.gz | head -n 1)"
+      && test -n "$f"
+      && exec /usr/local/sbin/l9-backup-verify "$f"
+  # Isolated restore: the newest verified dump is loaded into a throwaway,
+  # network-less PostgreSQL 16 container, never into the live database, and must
+  # yield the canonical memory_records table.
+  restore_test_command:
+    - sh
+    - -c
+    - >-
+      set -eu;
+      f="$(ls -1t /srv/l9/backups/{project}/{environment}/*.sql.gz | head -n 1)";
+      /usr/local/sbin/l9-backup-verify "$f";
+      c="l9-restore-{project}-{environment}";
+      docker rm -f "$c" >/dev/null 2>&1 || true;
+      docker run -d --rm --name "$c" --network none -e POSTGRES_HOST_AUTH_METHOD=trust
+      postgres:16@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97 >/dev/null;
+      trap 'docker rm -f "$c" >/dev/null 2>&1' EXIT;
+      i=0; until docker exec "$c" pg_isready -U postgres -q; do i=$((i+1)); test "$i" -lt 60; sleep 1; done;
+      gzip -dc "$f" | docker exec -i "$c" psql -v ON_ERROR_STOP=1 -q -U postgres -d postgres >/dev/null;
+      docker exec "$c" psql -U postgres -d postgres -tAc
+      "select count(*) from information_schema.tables where table_name = 'memory_records'" | grep -qx '[1-9][0-9]*'
+  timeout_seconds: 1800
+secrets:
+  authority: infisical
+  runtime_mode: deploy_render
+  project_slug: l9-graphiti-memory
+targets:
+  # C1 (Hetzner server 114194366) is a shared, protected host
+  # (Cursor-Governance rules/93-c1-server-protection). Not the separate L9-Memory
+  # VM 119722208.
+  # - docker: verify checks the existing Docker runtime without changing it.
+  # - ingress: external publishes only 127.0.0.1:8200 for the host's existing
+  #   Caddy, and l9-deploy never installs or edits a Caddy site in this mode. The
+  #   /graphiti route (127.0.0.1:8100) and Cognitive Runtime (18080) are not touched.
+  # - Port 8200 is held by the legacy 2.2.0 systemd service until the separately
+  #   authorized cutover; this release must not be deployed while it still binds it.
+  production:
+    server:
+      address: 46.62.243.82
+      ssh:
+        user: root
+        port: 22
+      # Evidence lead only: the key Quantum-L9/l9-cognitive-runtime@94348537
+      # .l9/deployment.yaml pins for this same address. It must be re-verified
+      # against the host over a trusted channel before any release is requested.
+      host_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICMwpLXB2J962/OrrUqXNGwiHb39e7f9jSKixo97xJxU
+    host:
+      docker: verify
+      backup_tools: postgres
+    ingress:
+      mode: external
+      hostnames:
+        - memory.quantumaipartners.com
+      host_port: 8200
+    # Only the admitted release tag. A version bump moves this with
+    # PACKAGE_VERSION (tests/deployment/carrier/test_deployment_profile.py).
+    allowed_source_refs:
+      - refs/tags/v3.0.0
+    secrets_environment: prod

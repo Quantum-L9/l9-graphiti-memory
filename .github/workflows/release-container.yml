@@ -1,0 +1,173 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .github/workflows/release-container.yml
+#   layer: ci
+#   owner: memory-control-plane
+#   status: active
+#   version: 3.0.0
+#   updated: 2026-10-26
+
+# Thin caller: the hosted Memory service's one OCI image and one deployment
+# request come from Quantum-L9/l9-ci-core's container-release action. This file
+# builds and publishes nothing itself.
+#
+# It runs only when dispatched on an annotated release tag v<version> whose
+# exact candidate (source revision, wheel and sdist sha256) is admitted by the
+# receipt on the protected default branch (ADR-094, the same check publish.yml
+# makes before PyPI). The `release` environment is the operator's release
+# authorization. l9-deploy then requires its own approval of the exact plan.
+name: Release container
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment target named in .l9/deployment.yaml
+        required: true
+        type: choice
+        options:
+          - production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-container-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  admission:
+    name: Exact-release admission
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_DATE_EPOCH: "1784592000"
+    steps:
+      - name: Require a release tag run
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" != tag || ! "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "dispatch this workflow on an admitted v<MAJOR.MINOR.PATCH> tag, not $GITHUB_REF" >&2
+            exit 1
+          fi
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Require an annotated tag on the run's exact commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git cat-file -t "$GITHUB_REF")" = tag
+          test "$(git rev-parse "$GITHUB_REF^{commit}")" = "$GITHUB_SHA"
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: "3.13"
+      # The same locked environment and single build publish.yml uses, so the
+      # digests compared below are the ones the admission receipt names.
+      - name: Sync locked environment
+        run: uv sync --frozen --no-install-project --no-build --extra dev
+      - name: Build the candidate wheel and sdist (not published here)
+        run: .venv/bin/python -m build --outdir dist
+      - name: Check out the release admission record (default branch)
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: build/release-admission
+          persist-credentials: false
+      - name: Verify the exact-release admission
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(PYTHONPATH=src python3 -c 'from l9_graphite_memory.version import PACKAGE_VERSION; print(PACKAGE_VERSION)')"
+          python3 tools/assurance/verify_release_admission.py \
+            --admission-root build/release-admission \
+            --artifact-dir dist \
+            --version "$VERSION" \
+            --source-revision "$GITHUB_SHA" \
+            --tag "$GITHUB_REF_NAME"
+
+  carrier-smoke:
+    name: Carrier smoke (local image, PostgreSQL 16)
+    needs: admission
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: "3.13"
+      - name: Sync locked environment
+        run: uv sync --frozen --no-install-project --no-build --extra dev --extra server --extra postgres
+      # A local, unpushed test image of this exact source. The image that is
+      # published is built once by the Core action in the release job.
+      - name: Build a local test image
+        run: >-
+          docker buildx build --platform linux/amd64 --load
+          --build-arg "L9_SOURCE_REVISION=$GITHUB_SHA"
+          --tag l9-graphite-memory:carrier-smoke .
+      - name: Run the carrier suite against the image
+        env:
+          L9_MEMORY_TEST_CARRIER_IMAGE: l9-graphite-memory:carrier-smoke
+          PYTHONPATH: src
+        run: .venv/bin/python -m pytest -q -rs tests/deployment/carrier | tee carrier.log
+      - name: Fail if any carrier test skipped
+        run: |
+          if grep -E '^SKIPPED' carrier.log; then
+            echo "the carrier proof must run in full before a release" >&2
+            exit 1
+          fi
+
+  analysis:
+    name: Canonical release analysis
+    needs: admission
+    # The same Core revision as the container-release action below.
+    uses: Quantum-L9/l9-ci-core/.github/workflows/analyze-semgrep.yml@89c9bc4e5ceafab932c92a2fdca2d3739fccf95f
+    permissions:
+      actions: read
+      checks: write
+      contents: read
+      security-events: write
+    with:
+      # Explicit class: Core maps workflow_dispatch to `nightly` otherwise,
+      # which the `release` profile does not admit.
+      event: release
+      profile: release
+      matrix-id: release-semgrep
+      language: python
+
+  release:
+    name: Publish immutable image and request deployment
+    needs: [admission, carrier-smoke, analysis]
+    if: >-
+      needs.analysis.outputs.gate-status == 'pass' &&
+      startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      actions: read
+      attestations: write
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Publish and request deployment
+        # Emits l9.deployment-request/v2 as l9.release.requested.v2, the only
+        # event l9-deploy accepts, bound to the image digest and this run's
+        # analysis artifact.
+        uses: Quantum-L9/l9-ci-core/.github/actions/container-release@89c9bc4e5ceafab932c92a2fdca2d3739fccf95f
+        with:
+          deployment-profile: .l9/deployment.yaml
+          image-repository: ghcr.io/quantum-l9/l9-graphiti-memory
+          environment: ${{ inputs.environment }}
+          analysis-artifact: ${{ needs.analysis.outputs.artifact-name }}
+          matrix-id: release-semgrep
+          source-revision-build-arg-name: L9_SOURCE_REVISION
+          github-token: ${{ github.token }}
+          # Organization secret; it must be able to POST repository_dispatch to
+          # Quantum-L9/l9-deploy.
+          deployment-broker-token: ${{ secrets.GH_TOKEN }}

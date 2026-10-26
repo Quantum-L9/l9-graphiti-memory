@@ -6,7 +6,7 @@ layer: documentation
 owner: memory-control-plane
 status: active
 version: 2.7.0
-updated: 2026-10-14
+updated: 2026-10-26
 /L9_META -->
 
 # Remote MCP Contract — `memory-remote-mcp/v1`
@@ -24,11 +24,14 @@ This document describes what the Memory server guarantees. It does not install
 or authorize any consumer; a consumer's configuration is unverified until that
 consumer proves it in its own campaign.
 
-**Status (2026-10-14).** "2.7.0" was the source version identifier of the
+**Status (2026-10-26).** "2.7.0" was the source version identifier of the
 ADR-098 candidate (PR #94). That candidate is integrated into the Memory
-3.0.0 release candidate (source version 3.0.0), which is unmerged, untagged
-and not an accepted release; the contract binds a release only once that
-release is admitted on its exact bytes (ADR-094). No deployment of it exists.
+3.0.0 release candidate (source version 3.0.0), which is on the default branch
+but untagged and not an accepted release; the contract binds a release only
+once that release is admitted on its exact bytes (ADR-094). The hosted
+carrier (`Dockerfile`, `.l9/deployment.yaml`,
+`.github/workflows/release-container.yml`) is a candidate too: no image is
+published and no deployment of it exists.
 
 ## 1. Transport
 
@@ -144,7 +147,8 @@ Cursor-Governance.
 ## 5. Not covered by this contract
 
 - Deployment of a shared server, PostgreSQL as its canonical store, and TLS
-  termination.
+  termination. The carrier that deploys one is described by
+  `.l9/deployment.yaml` and owned by l9-deploy's contract, not by this one.
 - OAuth 2.1 / RFC 9728 discovery. No L9 authorization server exists; when one
   is chosen, `WWW-Authenticate` can add `resource_metadata` in a new contract
   version.
