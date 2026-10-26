@@ -132,7 +132,9 @@ def violations(profile: dict[str, Any]) -> list[str]:
     server = target.get("server", {})
     require(server.get("address") == C1_ADDRESS, f"target must be C1 {C1_ADDRESS}")
     require(server.get("address") != L9_MEMORY_VM_ADDRESS, "target must not be the L9-Memory VM")
-    require(target.get("host", {}).get("docker") == "verify", "C1 Docker is verified, never managed")
+    require(
+        target.get("host", {}).get("docker") == "verify", "C1 Docker is verified, never managed"
+    )
     require(target.get("host", {}).get("backup_tools") == "postgres", "postgres backup tools")
     ingress = target.get("ingress", {})
     require(ingress.get("mode") == "external", "ingress must be the existing external proxy")

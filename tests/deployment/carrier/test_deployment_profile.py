@@ -71,7 +71,11 @@ def test_the_committed_profile_targets_only_the_c1_memory_endpoint() -> None:
     assert violations(profile) == []
     target = _target(profile)
     assert target["server"]["address"] == C1_ADDRESS
-    assert target["ingress"] == {"mode": "external", "hostnames": [HOSTNAME], "host_port": HOST_PORT}
+    assert target["ingress"] == {
+        "mode": "external",
+        "hostnames": [HOSTNAME],
+        "host_port": HOST_PORT,
+    }
 
 
 def test_the_host_key_is_a_well_formed_public_key_line_not_a_placeholder() -> None:

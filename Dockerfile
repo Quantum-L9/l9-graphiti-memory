@@ -52,9 +52,14 @@ LABEL org.opencontainers.image.title="l9-graphite-memory" \
       org.opencontainers.image.revision="${L9_SOURCE_REVISION}" \
       org.opencontainers.image.source="https://github.com/Quantum-L9/l9-graphiti-memory"
 
+# Settings loading creates data_dir and state_dir if missing. They exist here,
+# root-owned and read-only to the service, so startup needs no writable path and
+# no SQLite ledger can be created even if the root filesystem were writable.
 RUN groupadd --gid 10001 memory \
     && useradd --uid 10001 --gid memory --no-create-home --home-dir /nonexistent \
-       --shell /usr/sbin/nologin memory
+       --shell /usr/sbin/nologin memory \
+    && install -d -o root -g root -m 0555 \
+       /var/lib/l9-memory /var/lib/l9-memory/data /var/lib/l9-memory/state
 
 COPY --from=builder /opt/venv /opt/venv
 
@@ -83,6 +88,8 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     HOME=/nonexistent \
+    L9_MEMORY_DATA_DIR=/var/lib/l9-memory/data \
+    L9_MEMORY_STATE_DIR=/var/lib/l9-memory/state \
     L9_SOURCE_REVISION="${L9_SOURCE_REVISION}" \
     L9_MEMORY_STORE_BACKEND=postgres \
     L9_MEMORY_HTTP_AUTH_REQUIRED=true \
