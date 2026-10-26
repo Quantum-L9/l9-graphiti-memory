@@ -99,6 +99,17 @@ pytestmark = pytest.mark.skipif(
 httpx2 = pytest.importorskip("httpx2", reason="the carrier proof needs an HTTP client")
 
 
+def _token() -> str:
+    """A unique, digit-free marker for record content.
+
+    Admission redacts PII, and a run of ten digits inside a random hex string
+    reads as a phone number, so a uuid in content is rewritten about one time
+    in ten. Letters only keep the stored content byte-for-byte comparable.
+    """
+
+    return uuid.uuid4().hex.translate(str.maketrans("0123456789", "ghijklmnop"))
+
+
 def _docker(*args: str, check: bool = True, timeout: float = 120) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["docker", *args], capture_output=True, text=True, check=check, timeout=timeout
@@ -331,7 +342,7 @@ def test_signed_agents_share_records_and_every_bad_credential_is_refused(
         assert session.status_code == 200, session.text
         assert session.json()["result"]["serverInfo"]["name"] == "l9-graphite-memory"
 
-        content = f"carrier proof {uuid.uuid4().hex}: the kingfisher nests by the sluice"
+        content = f"carrier proof {_token()}: the kingfisher nests by the sluice"
         record_id = _written(c, content)
         got = _call(c, READER, "memory.get", {"record_id": record_id})
         assert got["found"] is True
@@ -358,7 +369,7 @@ def test_signed_agents_share_records_and_every_bad_credential_is_refused(
 
 
 def test_records_survive_the_container_being_replaced(tmp_path, database) -> None:
-    content = f"carrier persistence {uuid.uuid4().hex}"
+    content = f"carrier persistence {_token()}"
     with carrier(tmp_path, database) as first:
         record_id = _written(first, content)
     with carrier(tmp_path, database) as second:
