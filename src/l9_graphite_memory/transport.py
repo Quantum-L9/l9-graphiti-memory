@@ -238,6 +238,8 @@ class HttpMcpTransport:
 
     def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
         result = self._rpc("tools/call", {"name": name, "arguments": arguments or {}})
+        if isinstance(result, dict) and result.get("isError") is True:
+            raise ProjectionError(f"Graphiti tool {name} reported isError")
         content = result.get("content")
         if isinstance(content, list) and content and isinstance(content[0], dict):
             text = content[0].get("text")

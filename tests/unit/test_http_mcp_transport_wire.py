@@ -170,6 +170,16 @@ def test_session_expiry_triggers_single_reinit_and_retry() -> None:
     assert transport._session_id == "fresh-session"
 
 
+def test_call_tool_refuses_an_is_error_result() -> None:
+    transport = HttpMcpTransport(url="https://graphiti.example")
+    transport._rpc = lambda *_args, **_kwargs: {  # type: ignore[method-assign]
+        "isError": True,
+        "content": [{"type": "text", "text": "Error: nope"}],
+    }
+    with pytest.raises(ProjectionError, match="isError"):
+        transport.call_tool("add_memory", {})
+
+
 def test_parse_body_rejects_unknown_content_type() -> None:
     with pytest.raises(ProjectionError, match="unsupported Content-Type"):
         HttpMcpTransport._parse_body("text/plain", b"not json")

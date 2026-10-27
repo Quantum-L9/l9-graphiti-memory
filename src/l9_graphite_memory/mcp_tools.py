@@ -45,6 +45,11 @@ from l9_graphite_memory.contracts.class_vocabulary import (
     alias_summary,
     resolve_memory_class,
 )
+from l9_graphite_memory.contracts.identity import (
+    caller_identity_argument,
+    oauth_actor_ref,
+    oauth_grant_claims_operator,
+)
 from l9_graphite_memory.curation.procedural import (
     PatternProceduralSynthesizer,
     ProceduralSynthesisWorker,
@@ -496,6 +501,16 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     },
 )
 
+_CONSEQUENTIAL_WRITE_HANDLERS = frozenset(
+    {
+        "_ingest",
+        "_write_agent",
+        "_write_governed",
+        "_ingest_governed_candidate",
+    }
+)
+
+
 _CANONICAL_HANDLER_METHODS: dict[str, str] = {
     "memory.ingest": "_ingest",
     WRITE_AGENT_TOOL: "_write_agent",
@@ -630,10 +645,32 @@ class MCPToolApplication:
         return self._graph
 
     def call(self, principal: MemoryPrincipal, name: str, arguments: dict[str, Any]) -> Any:
+        supplied = caller_identity_argument(arguments)
+        if supplied is not None:
+            raise AuthorizationError(
+                f"tool arguments cannot set {supplied}; actor and surface are server-derived"
+            )
+        if oauth_grant_claims_operator(
+            principal.auth_method,
+            is_admin=principal.is_admin,
+            is_global_admin=principal.is_global_admin,
+        ):
+            raise AuthorizationError("an OAuth grant is not an operator admin grant")
         canonical = ALIASES.get(name, name)
         handler_name = _CANONICAL_HANDLER_METHODS.get(canonical)
         if handler_name is None:
             raise KeyError(f"unknown tool: {name}")
+        if handler_name in _CONSEQUENTIAL_WRITE_HANDLERS and principal.auth_method == "oauth":
+            actor = oauth_actor_ref(
+                verified_actor_ref=principal.agent_id,
+                evidence_refs=(),
+                oauth_client_id=principal.principal_id,
+            )
+            if actor is None:
+                raise AuthorizationError(
+                    "consequential write requires server-verified actor evidence; "
+                    "an OAuth client is not an actor"
+                )
         handler = getattr(self, handler_name)
         try:
             if handler_name == "_graph_operation":
