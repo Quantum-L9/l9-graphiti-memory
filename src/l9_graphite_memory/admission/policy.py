@@ -26,6 +26,7 @@ class AdmissionPolicy(BaseModel):
     min_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     quarantine_on_safety_signal: bool = True
     quarantine_on_pii: bool = False
+    quarantine_on_ambiguous_numeric: bool = True
     identity_requires_explicit_evidence: bool = True
     preference_requires_explicit_evidence: bool = True
     private_classes_require_consent: bool = True

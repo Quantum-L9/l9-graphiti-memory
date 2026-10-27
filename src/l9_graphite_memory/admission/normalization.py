@@ -32,10 +32,10 @@ _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
     ),
     (
         "phone",
-        re.compile(r"(?<!\d)(?:\+?1[\s.\-]?)?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}(?!\d)"),
+        re.compile(r"(?<!\d)(?:\+1[\s.\-]?)?(?:\(\d{3}\)|\d{3})[\s.\-]\d{3}[\s.\-]\d{4}(?!\d)"),
         "[PHONE_REDACTED]",
     ),
-    ("ssn", re.compile(r"\b\d{3}[\-\s]?\d{2}[\-\s]?\d{4}\b"), "[SSN_REDACTED]"),
+    ("ssn", re.compile(r"\b\d{3}[\-\s]\d{2}[\-\s]\d{4}\b"), "[SSN_REDACTED]"),
     ("openai_key", re.compile(r"\bsk-[A-Za-z0-9_\-]{20,}\b"), "[SECRET_REDACTED]"),
     (
         "bearer",
@@ -43,6 +43,9 @@ _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
         "Bearer [SECRET_REDACTED]",
     ),
 )
+
+_AMBIGUOUS_NUMERIC = re.compile(r"(?<!\d)(\d{9}|\d{10})(?!\d)")
+_RESOLVED_NUMERIC = frozenset({"epoch", "identifier", "phone", "ssn"})
 
 _INJECTION_MARKERS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
@@ -69,6 +72,7 @@ class NormalizationResult(BaseModel):
     normalized_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
     pii_types: tuple[str, ...] = ()
     safety_signals: tuple[str, ...] = ()
+    unresolved_ambiguous: tuple[str, ...] = ()
 
 
 def canonical_json(value: Any) -> str:
@@ -98,6 +102,24 @@ def normalize_candidate(
         if pattern.search(redacted):
             pii_types.append(pii_type)
             redacted = pattern.sub(replacement, redacted)
+    declarations = _numeric_declarations(context)
+    unresolved: list[str] = []
+    for token in _AMBIGUOUS_NUMERIC.findall(redacted):
+        declared = declarations.get(token)
+        if declared == "phone":
+            redacted = re.sub(
+                rf"(?<!\d){re.escape(token)}(?!\d)", "[PHONE_REDACTED]", redacted, count=1
+            )
+            pii_types.append("phone")
+        elif declared == "ssn":
+            redacted = re.sub(
+                rf"(?<!\d){re.escape(token)}(?!\d)", "[SSN_REDACTED]", redacted, count=1
+            )
+            pii_types.append("ssn")
+        elif declared in {"epoch", "identifier"}:
+            continue
+        else:
+            unresolved.append(token)
     signals = tuple(name for name, pattern in _INJECTION_MARKERS if pattern.search(normalized))
     digest_payload = {"content": redacted, "context": context or {}}
     return NormalizationResult(
@@ -107,4 +129,12 @@ def normalize_candidate(
         normalized_digest=sha256_text(canonical_json(digest_payload)),
         pii_types=tuple(sorted(set(pii_types))),
         safety_signals=signals,
+        unresolved_ambiguous=tuple(unresolved),
     )
+
+
+def _numeric_declarations(context: dict[str, Any] | None) -> dict[str, str]:
+    raw = (context or {}).get("numeric_declarations")
+    if not isinstance(raw, dict):
+        return {}
+    return {str(token): str(kind) for token, kind in raw.items() if str(kind) in _RESOLVED_NUMERIC}

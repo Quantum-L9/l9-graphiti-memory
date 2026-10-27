@@ -54,7 +54,10 @@ class ConsentGrant(BaseModel):
         *,
         at: datetime,
         subject_id: str | None = None,
+        expected_purpose: str | None = None,
     ) -> bool:
+        if expected_purpose is not None and self.purpose != expected_purpose:
+            return False
         if self.namespace != namespace or memory_class not in self.allowed_classes:
             return False
         if subject_id is not None and self.subject_id != subject_id:
