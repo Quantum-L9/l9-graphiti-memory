@@ -425,8 +425,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 97 -> 98 for ADR-098 (remote MCP transport and
         # signed-agent HTTP identity). Re-pinned 98 -> 99 for ADR-099
         # (retired repository inventory and L9_META enforcement).
-        "99 ADRs complete and indexed",
-        r"PASS: 99 ADRs",
+        # Re-pinned 99 -> 100 for ADR-100 (native OAuth MCP full cutover).
+        "100 ADRs complete and indexed",
+        r"PASS: 100 ADRs",
     ),
     CheckSpec(
         "V-004",

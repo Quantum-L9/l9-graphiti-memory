@@ -18,7 +18,10 @@ updated: 2026-10-14
 
 ## Status
 
-Accepted
+Accepted. ADR-100 (2026-10-27) supersedes, for the hosted service, the
+requirement to retain a Memory stdio door and the rollback that disables HTTP
+while keeping stdio. The SDK, CLI, and composition-root decision remains
+accepted. The historical decision text below is unchanged.
 
 ## Context
 
@@ -75,6 +78,10 @@ Retain stdio MCP and CLI while disabling HTTP; core service remains unchanged.
 Adapts SDK-first lessons from L9_Original_Repo.
 
 No later ADR supersedes this decision as of 2026-07-21. ADR-098 extends the HTTP surface with Streamable HTTP conformance and signed-agent HTTP identity without changing this decision.
+
+ADR-100 (2026-10-27) supersedes, for the hosted Memory service, the stdio door
+and the rollback that retains stdio by disabling HTTP. It does not rewrite
+the 2026-07-21 decision or the later amendments.
 
 ## Amendment — remote agent transport target (2026-10-13)
 

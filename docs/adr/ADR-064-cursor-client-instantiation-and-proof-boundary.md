@@ -13,7 +13,10 @@ updated: 2026-10-14
 
 ## Status
 
-Accepted (2026-07-27)
+Accepted (2026-07-27). ADR-100 (2026-10-27) supersedes the requirement that
+the hosted Memory client be a local stdio `mcp.json` entry proved by
+`client cursor verify`. Atomic `client_config` rules for a repository-owned
+local entry remain accepted. The historical decision text below is unchanged.
 
 ## Context
 
@@ -149,7 +152,10 @@ because the managed entry shape is unchanged.
 ## Supersedes / Superseded By
 
 Supersedes the unmanaged write path of `scripts/write_cursor_config.py`
-introduced with the packaging baseline. Not superseded.
+introduced with the packaging baseline.
+
+ADR-100 (2026-10-27) supersedes the hosted stdio client requirement. It does
+not rewrite the local instantiation rules or the later applicability notes.
 
 ## Amendment — applicability to remote HTTP (2026-10-13)
 

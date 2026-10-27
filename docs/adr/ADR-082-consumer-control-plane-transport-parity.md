@@ -18,7 +18,10 @@ updated: 2026-10-14
 
 ## Status
 
-Accepted
+Accepted. ADR-100 (2026-10-27) supersedes the 2026-10-16 remote-consumer
+identity that carries signed-agent HMAC. Lifecycle parity onto
+`MemoryService` remains accepted. The historical decision text below is
+unchanged.
 
 ## Context
 
@@ -176,6 +179,9 @@ ADR-063 with idempotency, a structured payload, and a requested namespace;
 the client-instantiation proof of ADR-064 is unchanged.
 
 No later ADR supersedes this decision as of 2026-09-05.
+
+ADR-100 (2026-10-27) supersedes the signed-agent HMAC identity on the remote
+consumer. It does not rewrite lifecycle parity or the earlier amendments.
 
 ## Amendment — 2.3.0 (campaign stage M2)
 

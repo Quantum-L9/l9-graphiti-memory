@@ -18,7 +18,10 @@ updated: 2026-10-14
 
 ## Status
 
-Accepted
+Accepted for MCP Streamable HTTP as the remote transport. ADR-100
+(2026-10-27) supersedes signed-agent HTTP identity, static bearer mode, and
+the obligation to leave Memory stdio unchanged. The historical decision text
+below is unchanged.
 
 ## Context
 
@@ -240,6 +243,11 @@ Extends ADR-038 (HTTP surface) and reuses the stdio door of ADR-083 and the
 identity consumption it carries.
 
 No later ADR supersedes this decision as of 2026-10-13.
+
+ADR-100 (2026-10-27) supersedes signed-agent HTTP identity, static bearer
+mode, and the stdio compatibility obligation. It retains Streamable HTTP as
+the remote MCP transport. It does not rewrite this decision's historical text
+or the later amendments.
 
 ## Amendment — candidate status, release identity and security limits (2026-10-14)
 
