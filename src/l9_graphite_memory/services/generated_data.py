@@ -65,7 +65,7 @@ class GeneratedDataService:
             ),
             evidence=(
                 EvidenceRef(
-                    kind=EvidenceKind.EXPLICIT,
+                    kind=EvidenceKind.OBSERVATION,
                     description="governed generated-data candidate",
                     source_id=candidate.candidate_id,
                 ),
@@ -259,7 +259,7 @@ class GeneratedDataService:
             ),
             evidence=(
                 EvidenceRef(
-                    kind=EvidenceKind.EXPLICIT,
+                    kind=EvidenceKind.OBSERVATION,
                     description="generated-data reuse event",
                     source_id=event.event_id,
                 ),

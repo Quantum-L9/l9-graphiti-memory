@@ -25,6 +25,11 @@ from .normalization import NormalizationResult
 from .policy import AdmissionPolicy
 
 
+def _expected_purpose(request: MemoryWriteRequest) -> str | None:
+    purpose = request.metadata.get("purpose")
+    return purpose if isinstance(purpose, str) else None
+
+
 class AdmissionEngine:
     def __init__(self, policy: AdmissionPolicy | None = None) -> None:
         self.policy = policy or AdmissionPolicy()
@@ -70,6 +75,7 @@ class AdmissionEngine:
                 request.memory_class,
                 at=request.valid_from,
                 subject_id=subject_id,
+                expected_purpose=_expected_purpose(request),
             ):
                 reasons.append(
                     "consent does not authorize this subject, namespace, class, or validity time"
@@ -101,6 +107,15 @@ class AdmissionEngine:
         else:
             status = WriteStatus.ADMITTED
 
+        if (
+            normalization.unresolved_ambiguous
+            and status is WriteStatus.ADMITTED
+            and self.policy.quarantine_on_ambiguous_numeric
+        ):
+            tokens = ", ".join(normalization.unresolved_ambiguous)
+            warnings.append(f"ambiguous numeric token: {tokens}")
+            reasons.append(f"ambiguous numeric token requires a declaration: {tokens}")
+            status = WriteStatus.QUARANTINED
         if normalization.pii_types:
             warnings.append(f"PII redacted: {', '.join(normalization.pii_types)}")
             if self.policy.quarantine_on_pii and status is WriteStatus.ADMITTED:

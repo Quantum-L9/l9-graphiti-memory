@@ -602,12 +602,49 @@ def _consent_from_payload(
         ),
         purpose=str(value["purpose"]),
         evidence=EvidenceRef(
-            kind=EvidenceKind.EXPLICIT,
+            kind=EvidenceKind.OBSERVATION,
             description=str(value["evidence_description"]),
             source_id=str(value.get("source_id") or principal.audit_subject),
         ),
+        granted_at=_required_granted_at(value),
         expires_at=_dt(value.get("expires_at")),
     )
+
+
+def _required_granted_at(value: dict[str, Any]) -> datetime:
+    if "granted_at" not in value:
+        raise ValueError("consent.granted_at is required")
+    granted_at = _dt(value.get("granted_at"))
+    if granted_at is None:
+        raise ValueError("consent.granted_at is required")
+    return granted_at
+
+
+def _evidence_from_args(
+    args: dict[str, Any], principal: MemoryPrincipal
+) -> tuple[EvidenceRef, ...]:
+    supplied = args.get("evidence") or []
+    if not isinstance(supplied, list):
+        raise ValueError("evidence must be a list")  # noqa: TRY004
+    refs: list[EvidenceRef] = []
+    for item in supplied:
+        if not isinstance(item, dict):
+            raise ValueError("evidence items must be objects")  # noqa: TRY004
+        refs.append(
+            EvidenceRef(
+                kind=EvidenceKind(str(item["kind"])),
+                description=str(item["description"]),
+                source_id=str(item["source_id"]) if item.get("source_id") else None,
+            )
+        )
+    refs.append(
+        EvidenceRef(
+            kind=EvidenceKind.OBSERVATION,
+            description="authenticated caller submitted this memory through MCP",
+            source_id=principal.audit_subject,
+        )
+    )
+    return tuple(refs)
 
 
 class MCPToolApplication:
@@ -699,13 +736,7 @@ class MCPToolApplication:
                 extraction_method="direct-mcp/v1",
                 source_trust=float(args.get("source_trust", 1.0)),
             ),
-            evidence=(
-                EvidenceRef(
-                    kind=EvidenceKind.EXPLICIT,
-                    description="authenticated caller submitted this memory through MCP",
-                    source_id=principal.audit_subject,
-                ),
-            ),
+            evidence=_evidence_from_args(args, principal),
             confidence=Confidence(score=float(args.get("confidence", 1.0)), evidence_count=1),
             valid_from=_dt(args.get("valid_from")) or datetime.now(timezone.utc),
             valid_to=_dt(args.get("valid_to")),
