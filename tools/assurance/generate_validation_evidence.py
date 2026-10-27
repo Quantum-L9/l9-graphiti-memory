@@ -388,8 +388,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1955 -> 1959: 4 cases in
         # tests/regression/test_adr_100_oauth_cutover.py. None CI-skipped.
         # 1955 + 4 = 1959.
-        "1959 tests pass",
-        r"1959 passed",
+        # Re-pinned 1959 -> 1971: 10 cases in test_graphiti_error_transport.py
+        # and 2 in test_graphiti_http_projection_loop.py. None CI-skipped.
+        # 1959 + 12 = 1971.
+        "1971 tests pass",
+        r"1971 passed",
     ),
     CheckSpec(
         "V-002",

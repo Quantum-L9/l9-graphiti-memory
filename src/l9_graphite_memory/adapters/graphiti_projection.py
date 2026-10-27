@@ -17,7 +17,7 @@ import re
 from typing import Any
 from uuid import UUID
 
-from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
+from l9_graphite_memory.contracts import MemoryRecord, ProjectionLink, RetirementMode
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.graph import (
     GRAPH_SCOPE_SCHEME,
@@ -61,6 +61,35 @@ def parse_episode_name_locator(locator: str) -> tuple[str, str] | None:
     if not separator or not group_id or not name.startswith("memory:"):
         return None
     return group_id, name
+
+
+def inventory_phantom_links(links: list[ProjectionLink]) -> dict[str, Any]:
+    """Inventory name locators that still need provider confirmation.
+
+    A name locator can be a legitimate queued write or a link installed from
+    a failed tool result. This receipt does not delete anything and does not
+    claim the provider copy is absent. Repair waits on provider confirmation
+    and an operator grant.
+    """
+
+    candidates: list[dict[str, Any]] = []
+    for link in links:
+        if parse_episode_name_locator(link.locator) is None:
+            continue
+        candidates.append(
+            {
+                "record_id": str(link.record_id),
+                "target_identity": link.target_identity,
+                "locator": link.locator,
+                "provider_confirmed": False,
+            }
+        )
+    return {
+        "action": "inventory_only",
+        "provider_absence_proved": False,
+        "candidate_count": len(candidates),
+        "candidates": candidates,
+    }
 
 
 class GraphitiProjection:
@@ -120,15 +149,34 @@ class GraphitiProjection:
                     return nested
         return None
 
+    def _provider_accepted(self, result: dict[str, Any]) -> bool:
+        """True only for a write the provider actually accepted.
+
+        A name locator is allowed for the official queued-message shape,
+        which means ingestion is still pending. An error string, an isError
+        envelope, or any other ambiguous body is not acceptance (F-001).
+        """
+
+        if result.get("isError") is True or result.get("error"):
+            return False
+        if self._extract_locator(result):
+            return True
+        message = result.get("message")
+        if isinstance(message, str) and "queued" in message.lower():
+            return not message.lower().startswith("error")
+        return False
+
     def _settle_write(self, record: MemoryRecord, result: Any, group_id: str) -> dict[str, Any]:
         if not isinstance(result, dict):
             result = {"result": result}
-        if result.get("error"):
-            raise ProjectionError(f"projection write failed: {result['error']}")
-        locator = self._extract_locator(result) or episode_name_locator(group_id, record.record_id)
+        if not self._provider_accepted(result):
+            raise ProjectionError(f"projection write was not accepted: {result!r}")
+        extracted = self._extract_locator(result)
+        locator = extracted or episode_name_locator(group_id, record.record_id)
         return {
             **result,
             "locator": locator,
+            "pending_ingest": extracted is None,
             "record_id": str(record.record_id),
             "scope_scheme": GRAPH_SCOPE_SCHEME,
         }

@@ -77,6 +77,7 @@ class FakeGraphitiState:
     def __init__(self) -> None:
         self.episodes: dict[str, dict[str, Any]] = {}
         self.dropped: list[dict[str, Any]] = []
+        self.fail_add = False
         self.calls: list[str] = []
         self.sessions: set[str] = set()
         self.lock = threading.Lock()
@@ -216,6 +217,26 @@ def _handler(state: FakeGraphitiState) -> type[BaseHTTPRequestHandler]:
                 params = request.get("params", {})
                 name = params.get("name")
                 arguments = params.get("arguments", {})
+                if name == "add_memory" and state.fail_add:
+                    result = {
+                        "isError": True,
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Error: provider rejected the episode",
+                            }
+                        ],
+                    }
+                    self._reply(
+                        200,
+                        {
+                            "jsonrpc": "2.0",
+                            "id": request.get("id"),
+                            "result": result,
+                        },
+                        session=session,
+                    )
+                    return
                 if name == "add_memory":
                     value = state.add_memory(arguments)
                 elif name == "delete_episode":
@@ -440,3 +461,35 @@ def test_a_restarted_provider_session_is_transparently_reestablished(loop, maint
     assert _drain(worker)["delivered"] == 1
     assert str(later.record_id) in state.episodes
     assert state.calls.count("initialize") == 2
+
+
+def test_graphiti_failed_add_no_delivered(loop, maintainer):
+    state, store, _projection, service, worker = loop
+    state.fail_add = True
+    written = _write(service, maintainer, "a projection the provider rejects")
+    totals = _drain(worker)
+    assert totals["delivered"] == 0
+    assert totals["retried"] == 1
+    assert store.get_projection_link(written.record_id, "graphiti") is None
+    assert str(written.record_id) not in state.episodes
+
+
+def test_no_link_deletion(loop, maintainer, admin_principal):
+    state, store, _projection, service, worker = loop
+    state.fail_add = True
+    written = _write(service, maintainer, "deleted before any provider copy existed")
+    assert _drain(worker)["delivered"] == 0
+    assert store.get_projection_link(written.record_id, "graphiti") is None
+    deletion = service.delete(
+        admin_principal,
+        DeletionRequest(
+            record_id=written.record_id,
+            reason="subject request",
+            verification_reference="no-link",
+        ),
+    )
+    assert deletion.status is DeletionStatus.PENDING_PROJECTION
+    totals = _drain(worker)
+    assert totals["dead"] == 0
+    assert store.get_record(written.record_id).state is MemoryState.DELETED
+    assert str(written.record_id) not in state.episodes

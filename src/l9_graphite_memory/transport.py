@@ -25,6 +25,31 @@ from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.rate_limiter import RateLimiter
 from l9_graphite_memory.version import PACKAGE_VERSION
 
+# JSON-RPC codes that describe the request, not the provider's availability.
+# Invalid params (-32602) must not open the circuit (F-019). Server errors
+# -32000..-32099 are availability faults.
+_SEMANTIC_RPC_CODES = frozenset({-32700, -32600, -32601, -32602})
+_ADD_MEMORY_ARGUMENTS = frozenset(
+    {"name", "episode_body", "source", "source_description", "group_id"}
+)
+
+
+def rpc_error_is_availability(error: Any) -> bool:
+    """Whether a JSON-RPC error should count as a Graphiti circuit failure.
+
+    Parse, invalid-request, method-not-found, and invalid-params errors are
+    semantic. Every other integer code counts as an availability fault,
+    including server errors -32000 through -32099, as does any error without
+    an integer code.
+    """
+
+    if not isinstance(error, dict):
+        return True
+    code = error.get("code")
+    if not isinstance(code, int) or isinstance(code, bool):
+        return True
+    return code not in _SEMANTIC_RPC_CODES
+
 
 class MemoryTransport(Protocol):
     name: str
@@ -192,7 +217,14 @@ class HttpMcpTransport:
         if not self.circuit.can_execute():
             raise ProjectionError("Graphiti MCP circuit is open")
         if method != "initialize":
-            self._ensure_session(timeout=timeout)
+            try:
+                self._ensure_session(timeout=timeout)
+            except ProjectionError:
+                # A failed handshake must report the probe. Leaving HALF_OPEN
+                # without record_failure wedges the breaker (F-002).
+                self._session_id = None
+                self.circuit.record_failure()
+                raise
         payload = {
             "jsonrpc": "2.0",
             "id": "l9-memory",
@@ -201,7 +233,8 @@ class HttpMcpTransport:
         }
         decoded = self._rpc_once(payload, timeout=timeout, retry_on_session_error=True)
         if "error" in decoded:
-            self.circuit.record_failure()
+            if rpc_error_is_availability(decoded["error"]):
+                self.circuit.record_failure()
             raise ProjectionError(json.dumps(decoded["error"], sort_keys=True))
         self.circuit.record_success()
         result = decoded.get("result", decoded)
@@ -225,7 +258,11 @@ class HttpMcpTransport:
                 # The server-side session expired or the process restarted;
                 # re-handshake once and retry this exact call.
                 self._session_id = None
-                self._ensure_session(timeout=timeout)
+                try:
+                    self._ensure_session(timeout=timeout)
+                except ProjectionError:
+                    self.circuit.record_failure()
+                    raise
                 return self._rpc_once(payload, timeout=timeout, retry_on_session_error=False)
             self.circuit.record_failure()
             raise ProjectionError(f"Graphiti MCP HTTP {exc.code}: {detail}") from exc
@@ -238,6 +275,10 @@ class HttpMcpTransport:
 
     def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
         result = self._rpc("tools/call", {"name": name, "arguments": arguments or {}})
+        # isError is the tool outcome. Reading content first would treat
+        # "Error: ..." text as a successful payload and install a link (F-001).
+        if isinstance(result, dict) and result.get("isError") is True:
+            raise ProjectionError(f"Graphiti tool {name} isError: {result.get('content')}")
         content = result.get("content")
         if isinstance(content, list) and content and isinstance(content[0], dict):
             text = content[0].get("text")
@@ -330,14 +371,24 @@ class HttpMcpTransport:
         )
         if not tool:
             raise ProjectionError("Graphiti MCP exposes neither add_memory nor add_episode")
-        arguments: dict[str, Any] = {
+        metadata = kwargs.pop("metadata", None)
+        source_description = str(kwargs.pop("source_description", f"l9-memory/{kind}"))
+        if metadata is not None:
+            # Official add_memory does not declare metadata (U-002). Translate
+            # it out of the tool arguments instead of forwarding an unknown key.
+            source_description = f"{source_description} [metadata translated]"
+        arguments = {
             "name": str(kwargs.pop("name", f"{kind}:{body[:80]}")),
             "episode_body": body,
             "source": str(kwargs.pop("source", "json")),
-            "source_description": str(kwargs.pop("source_description", f"l9-memory/{kind}")),
+            "source_description": source_description,
             "group_id": group_id,
-            **kwargs,
         }
+        if kwargs:
+            rejected = ", ".join(sorted(kwargs))
+            raise ProjectionError(f"Graphiti {tool} rejected unsupported arguments: {rejected}")
+        if set(arguments) != _ADD_MEMORY_ARGUMENTS:
+            raise ProjectionError(f"Graphiti {tool} argument schema drifted: {sorted(arguments)}")
         result = self.call_tool(tool, arguments)
         if isinstance(result, dict) and result.get("error"):
             raise ProjectionError(str(result["error"]))

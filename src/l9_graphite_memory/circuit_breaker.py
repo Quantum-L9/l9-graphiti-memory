@@ -49,6 +49,7 @@ class CircuitBreaker:
         self._clock = clock
         self._failure_count = 0
         self._last_failure: float | None = None
+        self._probe_at: float | None = None
         self._state = CircuitState.CLOSED
         self._lock = threading.RLock()
 
@@ -56,12 +57,14 @@ class CircuitBreaker:
         with self._lock:
             self._failure_count = 0
             self._last_failure = None
+            self._probe_at = None
             self._state = CircuitState.CLOSED
 
     def record_failure(self) -> None:
         with self._lock:
             self._failure_count += 1
             self._last_failure = self._clock()
+            self._probe_at = None
             if self._failure_count >= self.failure_threshold:
                 self._state = CircuitState.OPEN
 
@@ -69,14 +72,23 @@ class CircuitBreaker:
         with self._lock:
             if self._state is CircuitState.CLOSED:
                 return True
+            now = self._clock()
             if self._state is CircuitState.OPEN:
                 if (
                     self._last_failure is not None
-                    and self._clock() - self._last_failure >= self.recovery_timeout
+                    and now - self._last_failure >= self.recovery_timeout
                 ):
+                    # One probe. A second caller stays out until this probe
+                    # is reported or its own recovery window expires.
                     self._state = CircuitState.HALF_OPEN
+                    self._probe_at = now
                     return True
                 return False
+            # HALF_OPEN. An unreported probe must not stick forever (F-002):
+            # after recovery_timeout, admit exactly one new probe.
+            if self._probe_at is None or now - self._probe_at >= self.recovery_timeout:
+                self._probe_at = now
+                return True
             return False
 
     def snapshot(self) -> CircuitSnapshot:
