@@ -13,10 +13,12 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import logging
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 # Import the HTTP request/response types at module scope so that, under
@@ -154,7 +156,11 @@ class MCPServer:
             try:
                 result = self.tools.call(principal, name, arguments)
             except KeyError as exc:
-                return self.error(request_id, -32601, str(exc))
+                missing = exc.args[0] if exc.args else ""
+                if isinstance(missing, str) and missing.startswith("unknown tool:"):
+                    return self.error(request_id, -32601, missing)
+                field = missing if isinstance(missing, str) else "argument"
+                return self.error(request_id, -32602, f"invalid params: missing {field}")
             except AuthenticationError as exc:
                 return self.error(request_id, -32001, str(exc))
             except L9MemoryError as exc:
@@ -189,6 +195,30 @@ class MCPServer:
         if method == "ping":
             return self.response(request_id, {})
         return self.error(request_id, -32601, f"method not found: {method}")
+
+
+# Tool handlers call MemoryService synchronously. A fixed pool keeps that work
+# off the event loop so one slow tool cannot stall /healthz. The size is the
+# backpressure limit: a full pool queues, it does not spawn another thread.
+HTTP_TOOL_WORKERS = 8
+_http_tool_executor: ThreadPoolExecutor | None = None
+
+
+def _tool_executor() -> ThreadPoolExecutor:
+    global _http_tool_executor
+    if _http_tool_executor is None:
+        _http_tool_executor = ThreadPoolExecutor(
+            max_workers=HTTP_TOOL_WORKERS,
+            thread_name_prefix="l9-mcp-tool",
+        )
+    return _http_tool_executor
+
+
+async def await_blocking(func: Any, /, *args: Any) -> Any:
+    """Run one synchronous MCP or health call on the bounded tool pool."""
+
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(_tool_executor(), func, *args)
 
 
 def _agents_door_env(name: str) -> str:
@@ -639,7 +669,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
             # A stateless server has nothing to update for a notification or
             # a client response; accepting it is the whole contract.
             return Response(status_code=202)
-        return JSONResponse(content=server.handle(body, principal))
+        return JSONResponse(content=await await_blocking(server.handle, body, principal))
 
     for path in MCP_ENDPOINT_PATHS:
         app.add_api_route(path, mcp_endpoint, methods=["POST"])
@@ -647,7 +677,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
 
     @app.get("/healthz")
     async def healthz() -> JSONResponse:
-        report = runtime.service.health()
+        report = await await_blocking(runtime.service.health)
         code = 200 if report.status.value != "failed" else 503
         return JSONResponse(status_code=code, content=report.model_dump(mode="json"))
 
@@ -657,7 +687,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         # canonical and an enabled projection always gate; graph and active
         # memory gate only when the deployment marks them required.
         readiness = await runtime.readiness()
-        content = runtime.service.health().model_dump(mode="json")
+        content = (await await_blocking(runtime.service.health)).model_dump(mode="json")
         if runtime.graph_service is not None:
             content["graph"] = readiness.family("graph").detail
         content["active_memory"] = {
