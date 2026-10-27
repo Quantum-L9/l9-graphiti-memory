@@ -61,7 +61,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-035 | [Schema Registry and Upcasting](ADR-035-schema-registry-and-upcasting.md) | Accepted |
 | ADR-036 | [Canonical Write Bypass Enforcement](ADR-036-canonical-write-bypass-enforcement.md) | Accepted |
 | ADR-037 | [Configuration Authority and Drift Prevention](ADR-037-configuration-authority-and-drift-prevention.md) | Accepted |
-| ADR-038 | [SDK, MCP, CLI, and HTTP Surface](ADR-038-sdk-mcp-cli-and-http-surface.md) | Accepted |
+| ADR-038 | [SDK, MCP, CLI, and HTTP Surface](ADR-038-sdk-mcp-cli-and-http-surface.md) | Accepted; hosted stdio door superseded by ADR-100 |
 | ADR-039 | [Retrieval Planning and Tier Fusion](ADR-039-retrieval-planning-and-tier-fusion.md) | Accepted |
 | ADR-040 | [Importance, Ranking, and Decay Policy](ADR-040-importance-ranking-and-decay-policy.md) | Accepted |
 | ADR-041 | [LLM Extraction and Typed Failure Semantics](ADR-041-llm-extraction-and-typed-failure-semantics.md) | Accepted |
@@ -87,7 +87,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-061 | [Local Receipt Guard Boundary](ADR-061-local-receipt-guard-boundary.md) | Accepted |
 | ADR-062 | [L9 Metadata and File Provenance](ADR-062-l9-meta-and-file-provenance.md) | Superseded by ADR-099 |
 | ADR-063 | [Projection Manifest, Compiler, and Control-Plane Boundaries](ADR-063-projection-manifest-compiler-and-control-plane-boundaries.md) | Accepted |
-| ADR-064 | [Cursor Client Instantiation and Proof Boundary](ADR-064-cursor-client-instantiation-and-proof-boundary.md) | Accepted |
+| ADR-064 | [Cursor Client Instantiation and Proof Boundary](ADR-064-cursor-client-instantiation-and-proof-boundary.md) | Accepted; hosted stdio client superseded by ADR-100 |
 | ADR-065 | [Active-Memory Deployment Identity](ADR-065-active-memory-deployment-identity.md) | Accepted |
 | ADR-066 | [Secret-File Credential Resolution for Active-Memory Redis](ADR-066-secret-file-credential-resolution.md) | Accepted |
 | ADR-067 | [Active-Memory Public SDK and External-Runtime Lifecycle](ADR-067-active-memory-public-sdk-and-lifecycle.md) | Accepted |
@@ -105,8 +105,8 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-079 | [Governed Write Phase-Lock Atomicity](ADR-079-governed-write-phase-lock-atomicity.md) | Accepted |
 | ADR-080 | [Automated Quarantine Review](ADR-080-automated-quarantine-review.md) | Accepted |
 | ADR-081 | [Canonical Conflict Links](ADR-081-canonical-conflict-links.md) | Accepted |
-| ADR-082 | [Consumer Control-Plane Transport Parity](ADR-082-consumer-control-plane-transport-parity.md) | Accepted |
-| ADR-083 | [Server-Side Local Authorization and One Class Vocabulary](ADR-083-server-side-local-authorization-and-one-class-vocabulary.md) | Accepted |
+| ADR-082 | [Consumer Control-Plane Transport Parity](ADR-082-consumer-control-plane-transport-parity.md) | Accepted; signed-agent remote identity superseded by ADR-100 |
+| ADR-083 | [Server-Side Local Authorization and One Class Vocabulary](ADR-083-server-side-local-authorization-and-one-class-vocabulary.md) | Accepted; hosted HMAC and bearer doors superseded by ADR-100 |
 | ADR-084 | [Projection Runtime and Target-Aware Lifecycle](ADR-084-projection-runtime-and-target-aware-lifecycle.md) | Accepted |
 | ADR-085 | [Tenant-Safe Graph Scope Key](ADR-085-tenant-safe-graph-scope-key.md) | Accepted |
 | ADR-086 | [Graph Intelligence Port and Read-Only Neo4j Substrate](ADR-086-graph-intelligence-port-and-neo4j-substrate.md) | Accepted |
@@ -121,8 +121,9 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-095 | [Structured Source Invalidation Lifecycle](ADR-095-structured-source-invalidation-lifecycle.md) | Accepted |
 | ADR-096 | [Canonical Repository Corpus Authority Binding](ADR-096-canonical-repository-corpus-authority-binding.md) | Accepted |
 | ADR-097 | [Active-Memory Runtime Composition and Full-Capability Readiness](ADR-097-active-memory-runtime-composition-and-full-capability-readiness.md) | Accepted |
-| ADR-098 | [Remote MCP Transport and Signed-Agent HTTP Identity](ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md) | Accepted (decision); implementation is an unmerged candidate |
+| ADR-098 | [Remote MCP Transport and Signed-Agent HTTP Identity](ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md) | Streamable HTTP retained; signed-agent identity superseded by ADR-100 |
 | ADR-099 | [Retire the Repository File Inventory and L9_META Enforcement](ADR-099-retire-repository-inventory-and-l9-meta-enforcement.md) | Accepted |
+| ADR-100 | [Native OAuth MCP Full Cutover](ADR-100-native-oauth-mcp-full-cutover.md) | Accepted |
 
 ## Pending target amendments (Memory 3.0.0)
 
@@ -134,6 +135,10 @@ originally made. The amendments below describe the Memory 3.0.0 target: one
 authorized agents over authenticated HTTPS MCP, backed by a new, empty
 PostgreSQL database. The target is not deployed. Its transport exists as the
 ADR-098 candidate (PR #94, source version 2.7.0, unmerged at 2026-10-14).
+ADR-100 (2026-10-27) supersedes the hosted Memory stdio, signed-agent HMAC,
+and static-bearer provisions of that target. The hosted contract is
+OAuth-only native MCP Streamable HTTP. That service is not deployed, and the
+Auth0 tenant proof is not part of this record.
 
 | Date | ADR | Amendment | Status |
 |---|---|---|---|
@@ -154,6 +159,7 @@ ADR-098 candidate (PR #94, source version 2.7.0, unmerged at 2026-10-14).
 | 2026-10-15 | ADR-094 | Topology reissued without `generated_surfaces` after ADR-099 retired the root inventory; ProductManifest regenerated | reissued; admission pending |
 | 2026-10-16 | ADR-082 | Memory-owned remote consumer: `RemoteMemoryClient` and `l9-memory --remote-url` / `L9_MEMORY_REMOTE_URL` carry every lifecycle operation over `memory-remote-mcp/v1` as the signed agent, with local receipts and exit codes and no local fallback; four owed lifecycle operations and PostgreSQL receipts now exercised over HTTP; remote distillation blocked | implemented; consumer adoption is consumer-owned |
 | 2026-10-16 | ADR-098 | Administrator-only tools (`memory.distill`, `memory.bootstrap`) unreachable over HTTP for a signed agent; the client refuses them | restatement of existing invariants |
+| 2026-10-27 | ADR-100 | Supersede hosted Memory stdio, signed-agent HMAC, and static bearer; retain Streamable HTTP under Auth0 | decision accepted; code removal and Auth0 tenant proof are not in this record |
 
 ## Validation
 
@@ -163,4 +169,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-099 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-100 ledger and all mandatory sections.

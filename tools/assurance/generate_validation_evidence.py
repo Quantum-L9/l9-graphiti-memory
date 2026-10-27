@@ -385,8 +385,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # step's log is printed and its status kept). Not CI-skipped.
         # Re-pinned 1954 -> 1955: 1 case in test_recursive_alignment.py (the
         # text-file walk prunes excluded directories). Not CI-skipped.
-        "1955 tests pass",
-        r"1955 passed",
+        # Re-pinned 1955 -> 1959: 4 cases in
+        # tests/regression/test_adr_100_oauth_cutover.py. None CI-skipped.
+        # 1955 + 4 = 1959.
+        "1959 tests pass",
+        r"1959 passed",
     ),
     CheckSpec(
         "V-002",
@@ -425,8 +428,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 97 -> 98 for ADR-098 (remote MCP transport and
         # signed-agent HTTP identity). Re-pinned 98 -> 99 for ADR-099
         # (retired repository inventory and L9_META enforcement).
-        "99 ADRs complete and indexed",
-        r"PASS: 99 ADRs",
+        # Re-pinned 99 -> 100 for ADR-100 (native OAuth MCP full cutover).
+        "100 ADRs complete and indexed",
+        r"PASS: 100 ADRs",
     ),
     CheckSpec(
         "V-004",

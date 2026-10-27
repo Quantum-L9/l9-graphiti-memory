@@ -18,7 +18,10 @@ updated: 2026-10-14
 
 ## Status
 
-Accepted
+Accepted. ADR-100 (2026-10-27) supersedes, for the hosted service, the
+signed-agent HMAC door, the static bearer, and the auth-disabled HTTP
+principal as the agent credential. Server-derived grants and the one-class
+vocabulary remain accepted. The historical decision text below is unchanged.
 
 ## Context
 
@@ -296,7 +299,10 @@ vocabulary. Its Tier 3 statement is that of ADR-006: repository-scoped or
 explicitly operator-configured. Extends ADR-082 (consumer
 control-plane transport parity) with the two write tools the receipt omitted.
 Does not supersede ADR-006 (local ACL claims), which it explicitly preserves.
-Superseded by: none.
+
+ADR-100 (2026-10-27) supersedes the hosted HMAC, static-bearer, and
+auth-disabled HTTP credential. It does not rewrite the vocabulary decision
+or the later amendments.
 
 ## Amendment — proposed remote per-request trust boundary (2026-10-13)
 
