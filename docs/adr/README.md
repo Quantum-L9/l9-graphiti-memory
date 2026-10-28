@@ -160,6 +160,7 @@ Auth0 tenant proof is not part of this record.
 | 2026-10-16 | ADR-082 | Memory-owned remote consumer: `RemoteMemoryClient` and `l9-memory --remote-url` / `L9_MEMORY_REMOTE_URL` carry every lifecycle operation over `memory-remote-mcp/v1` as the signed agent, with local receipts and exit codes and no local fallback; four owed lifecycle operations and PostgreSQL receipts now exercised over HTTP; remote distillation blocked | implemented; consumer adoption is consumer-owned |
 | 2026-10-16 | ADR-098 | Administrator-only tools (`memory.distill`, `memory.bootstrap`) unreachable over HTTP for a signed agent; the client refuses them | restatement of existing invariants |
 | 2026-10-27 | ADR-100 | Supersede hosted Memory stdio, signed-agent HMAC, and static bearer; retain Streamable HTTP under Auth0 | decision accepted; code removal and Auth0 tenant proof are not in this record |
+| 2026-10-27 | ADR-100 | Publish the resource identifier `https://memory.quantumaipartners.com/mcp` as the Auth0 audience | identifier only; issuer domain, client ids, and the live PKCE receipt remain unbound |
 
 ## Validation
 

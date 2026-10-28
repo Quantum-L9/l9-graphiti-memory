@@ -54,8 +54,12 @@ projection client. It is not an inbound Memory stdio compatibility route, and
 this record neither enables nor retires it.
 
 **Credentials.** The hosted credential is an Auth0 access token for one Memory
-resource (RFC 8707 `resource`, Auth0 audience). The issuer is Auth0. This
-repository does not stand up a second authorization server or an OAuth proxy.
+resource (RFC 8707 `resource`, Auth0 audience). The resource identifier is
+`https://memory.quantumaipartners.com/mcp`. The host is the existing Memory
+route. The path is the native MCP endpoint. The Graphiti route on that host
+is not this identifier. The Auth0 issuer domain and the public client ids are
+not named here. The issuer is Auth0. This repository does not stand up a second
+authorization server or an OAuth proxy.
 Signed-agent HMAC headers, `L9-Identity-Assertion` HMAC, and a static bearer
 mapped to a configured principal are not hosted credentials. Resource-server
 code is not treated as proven until a live PKCE authorization for that
