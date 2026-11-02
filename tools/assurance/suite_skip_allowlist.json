@@ -60,6 +60,13 @@
 			"justification": "Live Graphiti qualification needs graphiti-core, which is not a locked extra of the validate job."
 		},
 		{
+			"id": "SKIP-009",
+			"kind": "skip",
+			"pattern": "L9_MEMORY_TEST_CARRIER_IMAGE is not set; the carrier proof needs a built image",
+			"profiles": ["ci", "local"],
+			"justification": "The validate job does not build the carrier image (#101). release-container.yml builds it, runs tests/deployment/carrier in full, and fails the release if any carrier test skips."
+		},
+		{
 			"id": "SKIP-101",
 			"kind": "skip",
 			"pattern": "L9_MEMORY_TEST_POSTGRES_DSN is not set; .*",
