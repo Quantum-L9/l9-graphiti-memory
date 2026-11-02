@@ -21,13 +21,17 @@ the candidate it inspects.
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
+import os
 import re
 import sys
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Final
+from typing import Final, TypeVar
+from xml.etree import ElementTree
 
 REPOSITORY: Final = "Quantum-L9/l9-graphiti-memory"
 RELEASE: Final = "3.0.0"
@@ -45,6 +49,7 @@ class CheckSpec:
     success_pattern: str | None = None
     allow_empty_log: bool = False
     severity: str = "high"
+    derived_suite: bool = False
 
 
 CHECKS: Final[tuple[CheckSpec, ...]] = (
@@ -52,344 +57,15 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         "V-001",
         "execution",
         "tests/",
-        "pytest -q",
+        # Derived, not pinned (ADR-101): the suite is judged from the run's
+        # JUnit report and the collected node ids at HEAD and at the merge-base
+        # with origin/main, against the committed skip allow-list and
+        # declared-removals files. No pass count is maintained by hand.
+        "pytest -q --junitxml; pytest --collect-only -q at HEAD and at the merge-base",
         "logs/pytest.txt",
-        # 608 is the count CI produces: the postgres service is present so the
-        # shared-backend matrix runs, while the five cross-repo contract tests
-        # skip because CI checks out only this repository, and the constellation-SDK
-        # contract tests skip because CI omits the constellation extra. A workspace
-        # that can reach a Cursor-Governance checkout runs some or all of those five
-        # and reports more; point CURSOR_GOVERNANCE_ROOT at a nonexistent path to
-        # reproduce CI. The five are not discovered uniformly:
-        # test_cross_repo_contract.py path-sniffs for a sibling checkout, while
-        # test_runtime_status_protocol.py runs only on an explicit
-        # CURSOR_GOVERNANCE_ROOT -- so a bare sibling checkout yields 612, and a
-        # sibling plus the exported variable yields 613.
-        #
-        # Re-pinned 602 -> 608 for ADR-079: test_phase_lock_write_atomicity.py
-        # adds two cases across the three STORE_BACKENDS. All six run in CI --
-        # the postgres leg included, which is where the advisory-lock path is
-        # actually exercised, since a local run without
-        # L9_MEMORY_TEST_POSTGRES_DSN skips it.
-        #
-        # Re-pinned 608 -> 649 for the publication-identity work: 41 cases added
-        # across test_publication_identity.py, test_identity_golden_vectors.py,
-        # test_locator_future_conformance.py and the v2 end-to-end suite. The
-        # arithmetic is the same one that produced 608 -- collected minus the
-        # fifteen CI skips (ten constellation-SDK, five cross-repo) -- and it
-        # reproduces the old pin exactly on main: 623 collected - 15 = 608.
-        # This branch collects 664, so 664 - 15 = 649.
-        #
-        # Re-pinned 649 -> 715 for the 2026-09-04 forensic repair: 66 cases
-        # added across test_lifecycle_projection_consistency.py,
-        # test_phase_lock_snapshot_scale.py, test_temporal_law.py,
-        # test_idempotency_race_and_drift.py,
-        # test_retrieval_projection_hydration.py, test_probe_redaction.py,
-        # test_graphiti_http_projection_loop.py, the active-store conformance
-        # suite, and test_authz.py. Same arithmetic: this branch collects 730,
-        # so 730 - 15 = 715. Locally, export L9_MEMORY_TEST_POSTGRES_DSN to
-        # reproduce the CI figure; without it the postgres legs skip.
-        #
-        # Re-pinned 715 -> 797 for GMP-001: quarantine review (ADR-080),
-        # conflict links (ADR-081), and the Redis leg of the active-store
-        # conformance suite, which CI now runs against a redis:7 service.
-        # Same arithmetic: this branch collects 812, so 812 - 15 = 797. Export
-        # both L9_MEMORY_TEST_POSTGRES_DSN and L9_MEMORY_TEST_REDIS_URL to
-        # reproduce the CI figure locally.
-        #
-        # Re-pinned 797 -> 813 for ADR-082 (consumer control-plane transport
-        # parity): 16 cases in test_control_plane_transport_parity.py, none
-        # backend-parameterized. Same arithmetic: this branch collects 828,
-        # so 828 - 15 = 813.
-        #
-        # Re-pinned 813 -> 836 for release 2.3.0 (campaign stage M2, consumer
-        # conformance hardening): 15 cases in test_consumer_conformance.py,
-        # 3 in test_installed_wheel_lifecycle.py, 3 more in
-        # test_cursor_mcp_instantiation.py, 2 in
-        # test_release_version_consistency.py. Same arithmetic: this branch
-        # collects 851, so 851 - 15 = 836.
-        #
-        # Re-pinned 836 -> 840 for release 2.3.0 audit closure (ADR-082
-        # amendment: governed-candidate supersession and close replay
-        # forensics): 4 cases in test_control_plane_transport_parity.py.
-        # Same arithmetic: this branch collects 855, so 855 - 15 = 840.
-        #
-        # Re-pinned 840 -> 841 for 2.3.1: one new case in
-        # test_release_version_consistency.py (published extras must not
-        # carry a git/URL Requires-Dist). Same arithmetic: 856 - 15 = 841.
-        #
-        # Re-pinned 841 -> 855 for MEM-P2-01 (search receipts bind every
-        # result-affecting selector and a request digest): 14 cases in
-        # test_search_request_identity.py stacked on 2.3.1. Same arithmetic:
-        # 856 + 14 = 870 collected, 870 - 15 = 855.
-        #
-        # Re-pinned 855 -> 860 for the MCP tool-handler parity guard (PR #61,
-        # ADR-014 invariants "every listed tool has exactly one handler" and
-        # the unknown-tool error test): 5 cases in
-        # test_release_b_capability.py, none backend-parameterized. Same
-        # arithmetic: 870 + 5 = 875 collected, 875 - 15 = 860.
-        #
-        # Re-pinned 855 -> 1014 for 2.5.0 on the #63/#64 branch, before the
-        # parity merge. Both terms are measured, not estimated: 1030
-        # collected, and CI skips 16 (10 constellation_node_sdk,
-        # 4 "Cursor-Governance checkout unavailable", 1 CURSOR_GOVERNANCE_ROOT,
-        # 1 agent-lane identity), so 1030 - 16 = 1014. The added cases are the
-        # signed-agent door's (ADR-0031), ADR-083's vocabulary and namespace
-        # suites, and F-AUTH-1's typed-grant negative cases.
-        #
-        # This pin is CI's number, and the count is a property of the
-        # ENVIRONMENT as much as of the suite. Three environments, all observed:
-        #
-        #   no postgres/redis                       867 passed, 107 skipped
-        #   postgres + redis, governance sibling   1018 passed,  12 skipped
-        #   CI (services, no governance sibling)   1014 passed,  16 skipped
-        #
-        # Only `collected` (1024 on this head) is invariant. So do not "fix" a local V-001
-        # miss by pinning the local count: bring the environment to CI's shape
-        # instead -- start postgres and redis, and run from a checkout with no
-        # Cursor-Governance sibling, which is what makes the four cross-repo
-        # contract tests skip as they do in CI.
-        #
-        # Re-pinned 1014 -> 1008 on the combined #61/#62 + #63/#64 head
-        # (open-PR audit 2026-09-24): +5 handler-parity cases, and ADR-083's
-        # namespace suite rewritten for F-64-AUTHZ-001 (26 cases -> 15). Same
-        # arithmetic: 1030 + 5 - 26 + 15 = 1024 collected, 1024 - 16 = 1008.
-        #
-        # Re-pinned 1008 -> 1059 for release-assurance integrity: 41 cases in
-        # test_l9_meta_assurance.py (structural metadata identity, manifest
-        # check purity) and 10 in test_release_shell.py (observational
-        # validator, single-build publication). None backend-parameterized.
-        # Same arithmetic: 1024 + 51 = 1075 collected, 1075 - 16 = 1059.
-        #
-        # Re-pinned 1059 -> 1164 when ADR-084 (projection runtime, PR #76)
-        # merged over release-assurance integrity. ADR-084 adds 80 cases
-        # (26 runtime unit, 51 target-lifecycle = 17 x 3 store backends,
-        # 3 schema-8 migration) and its review remediation adds 25 (6 runtime
-        # unit, 1 adapter rendering, 18 target-lifecycle = 6 x 3 backends).
-        # Measured with postgres + redis on the merged tree: 1180 collected,
-        # and CI's same 16 skips give 1180 - 16 = 1164.
-        #
-        # Re-pinned 1164 -> 1167 for the review findings on release-assurance
-        # integrity (PR #78): an interrupted comment block fails closed, a
-        # blank-separated following header is unrelated, and the validator
-        # canonicalizes its evidence root before guarding. Same arithmetic:
-        # 1180 + 3 = 1183 collected, 1183 - 16 = 1167.
-        #
-        # Graph intelligence campaign (ADR-085..ADR-093), pinned on its own
-        # branch from the same 1008 base before it merged over ADR-084:
-        #
-        # Re-pinned 1008 -> 1026 for ADR-085 (GraphScopeKey v1, graph
-        # intelligence campaign PR-A): 13 cases in test_graph_scope_key.py
-        # and 5 in tests/security/test_graph_tenant_isolation.py, none
-        # skipped in CI. Same arithmetic: 1024 + 18 = 1042 collected,
-        # 1042 - 16 = 1026.
-        #
-        # Re-pinned 1026 -> 1069 for ADR-086 (graph-intelligence port and
-        # read-only Neo4j adapter, campaign PR-B): 43 unit cases
-        # (test_graph_query_policy.py, test_neo4j_graph_intelligence_adapter.py,
-        # test_graph_intelligence_factory.py) plus 2 live Neo4j cases that CI
-        # skips without L9_MEMORY_TEST_NEO4J_URI. 1042 + 45 = 1087 collected,
-        # CI skips 16 + 2 = 18, so 1087 - 18 = 1069.
-        #
-        # Re-pinned 1069 -> 1120 for ADR-087 (graph-intelligence contracts,
-        # algorithm policy, evidence binding, service; campaign PR-C): 51
-        # cases across test_graph_contracts.py, test_graph_algorithm_policy.py,
-        # test_graph_evidence_linking.py, test_graph_service.py and
-        # conformance/test_graph_intelligence_port.py, none skipped in CI.
-        # 1087 + 51 = 1138 collected, 1138 - 18 = 1120.
-        #
-        # Re-pinned 1120 -> 1134 for ADR-088 (bounded structural graph
-        # operations, campaign PR-D): 10 cases in
-        # test_neo4j_structural_operations.py and 4 in test_graph_service.py
-        # (search operations and the cap regression), plus 10 live cases in
-        # integration/test_neo4j_graph_traversal.py that CI skips without
-        # L9_MEMORY_TEST_NEO4J_URI. 1138 + 24 = 1162 collected, CI skips
-        # 18 + 10 = 28, so 1162 - 28 = 1134.
-        #
-        # Re-pinned 1134 -> 1147 for ADR-089 (stream-only GDS analytics,
-        # campaign PR-E): 13 cases in test_neo4j_gds_operations.py plus 11
-        # live cases in integration/test_neo4j_gds_analytics.py that CI
-        # skips without L9_MEMORY_TEST_NEO4J_URI. 1162 + 24 = 1186 collected,
-        # CI skips 28 + 11 = 39, so 1186 - 39 = 1147.
-        #
-        # Re-pinned 1147 -> 1160 for ADR-090 (graph-intelligence public
-        # surfaces and observability, campaign PR-F): 13 cases in
-        # test_graph_public_surfaces.py, none skipped in CI.
-        # 1186 + 13 = 1199 collected, 1199 - 39 = 1160.
-        #
-        # Re-pinned 1160 -> 1173 for ADR-091 (Graphiti episode identity and
-        # live qualification, campaign PR-G): 13 cases in
-        # test_graphiti_projection_episode_identity.py, none skipped in CI.
-        # The live module tests/qualification/ skips as a whole without
-        # graphiti_core, adding one CI skip: 39 + 1 = 40.
-        #
-        # Re-pinned 1173 -> 1195 for ADR-092 (campaign audit remediation,
-        # PR-H): 6 cases in security/test_legacy_projection_erasure.py, 3 in
-        # test_graph_evidence_linking.py, 13 in
-        # test_graph_request_budget_and_policy.py; none skipped in CI.
-        # Re-pinned 1195 -> 1201 for the #72 review fixes: 2 stale-link window
-        # cases and 3 store-matrix release cases (memory, sqlite, postgres) in
-        # test_legacy_projection_erasure.py, 1 stalled-search case.
-        # Re-pinned 1201 -> 1217 for the second PR-H audit (PR-I): 6 store-matrix
-        # failure-injection/restart and stale-plan cases, 6 path-hop binding
-        # cases, 4 wall-clock request-ceiling cases.
-        # Re-pinned 1217 -> 1221 for the #73 review fixes: in-memory link-writer
-        # lock, request and search admission refusal, pool slot release.
-        # Re-pinned 1221 -> 1227 for the third audit: 3 store-matrix
-        # projection/deletion race cases, 3 authorization-ordering cases.
-        # Re-pinned 1227 -> 1231 for the legacy-carry race: 3 store-matrix
-        # release-between-read-and-write cases, 1 link-install contention case.
-        # Re-pinned 1231 -> 1257 for the V1 closure (ADR-093): graph.search
-        # entity binding and profile refusal 10, health dimensions 5, graph
-        # cutover and rollback window 11 (store matrix). The live Neo4j suites
-        # run in the graph-live job, not here.
-        # Re-pinned 1257 -> 1261 for the #74 review fixes: cutover tenant
-        # scoping, per-migration cutover, ADMIN-only status, provider rank.
-        #
-        # Re-pinned 1167 -> 1427 when the graph intelligence campaign merged over
-        # ADR-084 (projection runtime): main's 1167, the campaign's 253, and 7
-        # target-aware integration cases (1 graph-target selection, 2 per-target
-        # legacy release x 3 store backends).
-        # Re-pinned 1427 -> 1430 for the #83 review fixes: cutover waits for
-        # confirmed ingestion, configurable episode lookup limit, a disabled
-        # required backend is not ready (link-prediction snapshot is live-only).
-        # Re-pinned 1430 -> 1433: the stale-scope rebuild scans beyond the first
-        # page (1 case x 3 store backends).
-        # Re-pinned 1433 -> 1435 for the #84 review: a full episode listing fails
-        # closed (retire and erase); the equal-shortest-path order is live-only.
-        # Re-pinned 1435 -> 1438 for ADR-094 (product topology and release
-        # governance) restacked over the graph campaign: 3 cases in
-        # test_product_release_governance.py, none backend-parameterized.
-        # Re-pinned 1438 -> 1519 for ADR-095 (structured source invalidation),
-        # restacked over ADR-094: 81 additional cases from the existing #81
-        # source-invalidation test matrix -- 45 store-matrix cases (15 x 3
-        # backends) in test_source_invalidation, 5 schema-9 migration cases,
-        # 26 request-contract and CLI cases, and 5 live-proof cases.
-        #
-        # Re-pinned 1519 -> 1543 for the canonical actor assertion door:
-        # 16 cases in test_signed_assertion.py (the unresolved-result case is
-        # three parameters) and 8 in test_server_principal.py. None are
-        # backend-parameterized or CI-skipped. Same arithmetic: 1519 + 24 = 1543.
-        # Re-pinned 1543 -> 1573 for assertion provenance validation at the
-        # same door: 30 cases in test_signed_assertion.py (1 golden-provenance
-        # check, 1 empty evidence_refs, 1 empty governing_coordinates, 7 missing
-        # required coordinates, 5 wrong resolver / revision / projection /
-        # binding / agent-bindings refs, 1 wrong agent-binding fragment, 2
-        # missing evidence refs, and 12 malformed semantic digests as 3 keys x
-        # 4 shapes). None are backend-parameterized or CI-skipped. 1543 + 30.
-        # Re-pinned 1573 -> 1591 for ADR-096 (canonical repository corpus
-        # authority binding), stacked over the assertion provenance door:
-        # 14 cases in test_repository_corpus.py (one parametrized x 5) and 4
-        # in test_repository_corpus_ingestion.py. None are backend-
-        # parameterized or CI-skipped. 1573 + 18 = 1591.
-        # Re-pinned 1591 -> 1595 for the repair-retest fixes that travel with
-        # 2.6.0: 2 cases in test_release_shell.py (symlink overlap guard,
-        # spaced missing artifact directory) and 2 in
-        # test_cursor_client_config.py (absolute launcher, relative or missing
-        # launcher). None are backend-parameterized or CI-skipped. 1591 + 4.
-        # Re-pinned 1595 -> 1618 for ADR-097 (active-memory runtime composition
-        # and full-capability readiness): 14 cases in
-        # test_active_memory_runtime.py, the 6 AwarenessBus contract cases on
-        # the Redis leg of tests/conformance/active (the bus fixture is now
-        # parameterized like the store fixture; CI runs Redis), 2 live Redis
-        # cases in test_active_memory_redis_live.py (the stop/start outage case
-        # skips here without server control and runs in full-capability-live),
-        # and the 1 unparameterized case of
-        # test_full_capability_readiness_live.py (its 6 backend-bound cases
-        # need Neo4j beside PostgreSQL and Redis and run in
-        # full-capability-live). 1595 + 14 + 6 + 2 + 1 = 1618; CI skips 51.
-        # Re-pinned 1618 -> 1630 for the Phase 5 projection seam qualification:
-        # 10 cases of test_projection_seams_live.py run in CI shape against
-        # PostgreSQL with the in-process official-dialect Graphiti server (the
-        # 11th, seam 2, needs a live endpoint and Neo4j and skips), 1 case in
-        # test_active_memory_runtime.py (refused credential reported as an
-        # authentication failure) and 1 in
-        # test_graphiti_projection_episode_identity.py (rank-derived scores
-        # for unscored provider hits). 1618 + 10 + 1 + 1 = 1630; CI skips 52.
-        # Re-pinned 1630 -> 1643 for fail-closed Redis readiness (F90-1):
-        # 13 cases in test_active_memory_runtime.py (incomplete store probe
-        # x 4, incomplete bus probe x 2, refused or unproven probe x 5, the
-        # complete-probe and optional-unproven cases). None are backend-
-        # parameterized or CI-skipped. 1630 + 13 = 1643; CI skips 52.
-        # Re-pinned 1643 -> 1648 for the #91 review fixes: 5 cases in
-        # test_active_memory_runtime.py (full capability requires the shared
-        # PostgreSQL store, SQLite canonical reports not shared, shadow-only
-        # projection not selected, active-target projection selected and
-        # probed, refused EXPIRE leaves no probe key). None are backend-
-        # parameterized or CI-skipped. 1643 + 5 = 1648; CI skips 52.
-        # Re-pinned 1648 -> 1704 for the RECON-0 namespace registrations: 46
-        # cases in test_group_resolver.py (copy parity, one-to-one allowlist,
-        # pre-RECON preservation, 31 exact-remote fixtures, nested .github,
-        # 9 lookalike remotes, ambiguous path, bare directory name) and 10 in
-        # test_stdio_namespace_resolution.py (Tier 3 and signed Tier 2
-        # non-widening x 5 namespaces). None are backend-parameterized or
-        # CI-skipped. 1648 + 46 + 10 = 1704; CI skips 52.
-        # Re-pinned 1704 -> 1705 for the remote-over-path-hint precedence fix:
-        # 1 case in test_group_resolver.py (nested checkout under a directory
-        # carrying another repository's hint). Not CI-skipped. 1704 + 1 = 1705.
-        # Re-pinned 1705 -> 1768 for ADR-098 (remote MCP transport and
-        # signed-agent HTTP identity): 62 cases in test_remote_mcp_http.py
-        # (real uvicorn over TCP; protocol, Origin, credential, grant and
-        # stdio non-regression cases) and 1 in test_installed_wheel_lifecycle.py
-        # (the installed wheel's server entry point). None are backend-
-        # parameterized or CI-skipped: CI installs the server and dev extras.
-        # 1705 + 62 + 1 = 1768; CI skips 52.
-        # Re-pinned 1768 -> 1790 for the #94 review regressions: 22 cases in
-        # test_remote_mcp_http.py (non-ASCII and out-of-shape credentials,
-        # undecodable identity and body JSON, chunked oversize, agent-id
-        # non-enumeration, no human door on auth-disabled HTTP, non-ASCII
-        # bearer token). None are CI-skipped. 1768 + 22 = 1790; CI skips 52.
-        # Re-pinned 1790 -> 1791: 1 case in test_signed_assertion.py (non-ASCII
-        # digits in exp are malformed). Not CI-skipped. 1790 + 1 = 1791.
-        # Re-pinned 1791 -> 1793: 2 cases in test_remote_mcp_http.py (tenant
-        # isolation between two HTTP deployments of one service; idempotent
-        # replay and cross-agent key reuse over HTTP). Not CI-skipped.
-        # Re-pinned 1793 -> 1798 for the administrator-grant refusal: 4 cases
-        # in test_remote_mcp_http.py (3 parametrized signed-agent startup
-        # refusals, 1 auth-disabled agent-door refusal) and 1 in
-        # test_installed_wheel_lifecycle.py (the installed wheel exits before
-        # binding). Not CI-skipped. 1793 + 5 = 1798.
-        # Re-pinned 1798 -> 1805 for the 3.0.0 shared-memory proof: 5 cases in
-        # test_remote_mcp_postgres_multiprocess.py (cross-process signed-agent
-        # sharing, foreign tenant, concurrent cold start, 2 unusable DSNs), 1
-        # in test_shared_canonical_store.py (concurrent schema initialization)
-        # and 1 in test_remote_mcp_http.py (URL credential absent from the
-        # access log). All run in CI, which sets the PostgreSQL test DSN.
-        # 1798 + 7 = 1805.
-        # Re-pinned 1805 -> 1808: 3 cases in test_remote_mcp_http.py (NaN,
-        # Infinity and -Infinity bodies are -32700 parse errors; #96 review).
-        # Not CI-skipped. 1805 + 3 = 1808.
-        # Re-pinned 1808 -> 1846 for the v3.21.0 kind-exception rebind: 32
-        # cases in test_product_kind_exception.py (run whenever
-        # L9_SEMANTIC_AUTHORITY_ROOT is set, which CI sets for this script), 1
-        # in test_product_release_governance.py, and 5 installed-wheel
-        # parametrizations of test_remote_mcp_postgres_multiprocess.py (CI sets
-        # the PostgreSQL DSN and installs build). 1808 + 38 = 1846.
-        # Re-pinned 1846 -> 1880 for the exact-release admission gate: 34
-        # cases in test_release_admission.py. Not CI-skipped. 1846 + 34 = 1880.
-        # Re-pinned 1880 -> 1858 for ADR-099 (retired root inventory and
-        # L9_META enforcement): test_l9_meta_assurance.py (43 cases) deleted
-        # with the tools it tested; in test_release_shell.py two apply-mode
-        # cases replaced by two retirement cases; in
-        # test_cursor_instantiation_assurance.py the manifest-coverage and
-        # header cases replaced by one tracked-files case; 22 cases added in
-        # test_manifest_retirement.py. None CI-skipped. Collected 1931 -> 1909
-        # locally. 1880 - 43 - 1 + 22 = 1858.
-        # Re-pinned 1858 -> 1953 for the Memory-owned remote consumer (ADR-082
-        # amendment 2026-10-16): 68 cases in test_remote_client.py, 21 in
-        # test_remote_consumer.py, 4 in test_remote_consumer_postgres.py (2
-        # cases x source and installed wheel; CI sets the PostgreSQL DSN and
-        # installs build) and 2 in test_cli_parser.py. None CI-skipped; CI
-        # reported 1953 passed on 3.10 and 3.13. 1858 + 95 = 1953.
-        # Re-pinned 1953 -> 1954: 1 case in test_release_shell.py (a failing
-        # step's log is printed and its status kept). Not CI-skipped.
-        # Re-pinned 1954 -> 1955: 1 case in test_recursive_alignment.py (the
-        # text-file walk prunes excluded directories). Not CI-skipped.
-        # Re-pinned 1955 -> 1959: 4 cases in
-        # tests/regression/test_adr_100_oauth_cutover.py. None CI-skipped.
-        # 1955 + 4 = 1959.
-        "1959 tests pass",
-        r"1959 passed",
+        "0 failed and 0 errors; every collected test passed or skipped; every skip "
+        "reason declared; no undeclared test removed against the merge-base",
+        derived_suite=True,
     ),
     CheckSpec(
         "V-002",
@@ -429,8 +105,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # signed-agent HTTP identity). Re-pinned 98 -> 99 for ADR-099
         # (retired repository inventory and L9_META enforcement).
         # Re-pinned 99 -> 100 for ADR-100 (native OAuth MCP full cutover).
-        "100 ADRs complete and indexed",
-        r"PASS: 100 ADRs",
+        # Re-pinned 100 -> 101 for ADR-101 (derived V-001 suite validation).
+        "101 ADRs complete and indexed",
+        r"PASS: 101 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -707,7 +384,478 @@ def _evidence_label(root: Path, evidence_path: Path) -> str:
         return evidence_path.as_posix()
 
 
+# --- V-001: derived suite check (ADR-101) -------------------------------------
+#
+# Inputs, all written by scripts/validate_release.sh into the evidence root:
+#   logs/pytest.txt               terminal output of the full run (-ra summary)
+#   logs/pytest_junit.xml         per-test outcomes of that same run
+#   logs/pytest_collect.txt       `pytest --collect-only -q` at the candidate
+#   logs/suite_base.txt           the resolved merge-base, or UNRESOLVED: <why>
+#   logs/pytest_collect_base.txt  `pytest --collect-only -q` at the merge-base
+# and two committed declarations read from the candidate itself:
+#   tools/assurance/suite_skip_allowlist.json
+#   tools/assurance/suite_declared_removals.json
+#
+# A rule that is violated is FAIL. An input that is missing, unreadable,
+# malformed, or undeterminable is UNKNOWN. Neither is ever PASS.
+
+SUITE_SUMMARY_LOG: Final = "logs/pytest.txt"
+SUITE_JUNIT: Final = "logs/pytest_junit.xml"
+SUITE_COLLECT: Final = "logs/pytest_collect.txt"
+SUITE_BASE: Final = "logs/suite_base.txt"
+SUITE_BASE_COLLECT: Final = "logs/pytest_collect_base.txt"
+SKIP_ALLOWLIST: Final = Path("tools") / "assurance" / "suite_skip_allowlist.json"
+DECLARED_REMOVALS: Final = Path("tools") / "assurance" / "suite_declared_removals.json"
+SKIP_ALLOWLIST_SCHEMA: Final = "l9.suite-skip-allowlist/v1"
+DECLARED_REMOVALS_SCHEMA: Final = "l9.suite-declared-removals/v1"
+# `ci` is the default and the strict profile: it admits only the skips CI's
+# service-backed environment is expected to produce, which is what the old
+# exact pin protected. `local` additionally admits skips that only a machine
+# without the CI services produces; it is an explicit opt-in for diagnosis.
+SUITE_PROFILES: Final = ("ci", "local")
+SUITE_PROFILE_ENV: Final = "L9_SUITE_PROFILE"
+_REPORT_LIMIT: Final = 10
+_SUMMARY_COUNT = re.compile(
+    r"(\d+) (passed|failed|skipped|xfailed|xpassed|errors?|warnings?|deselected|rerun)"
+)
+_SUMMARY_LINE = re.compile(r"^=*\s*(?:\d+ [a-z]+(?:, )?)+ in [0-9.]+s\b")
+_COLLECT_SUMMARY = re.compile(
+    r"^(?:(?P<count>\d+) tests? collected|no tests collected)(?P<rest>.*?) in [0-9.]+s\b"
+)
+
+
+_T = TypeVar("_T")
+
+
+class SuiteEvidenceError(Exception):
+    """A V-001 input is missing, unreadable, malformed, or undeterminable."""
+
+
+@dataclass(frozen=True, slots=True)
+class SkipAllowance:
+    entry_id: str
+    kind: str
+    pattern: re.Pattern[str]
+    profiles: frozenset[str]
+    justification: str
+
+
+@dataclass(frozen=True, slots=True)
+class SuiteCase:
+    key: tuple[str, str]
+    outcome: str  # passed | skipped | xfailed | failed | error
+    reason: str = ""
+    collection_skip: bool = False
+
+
+@dataclass(slots=True)
+class SuiteVerdict:
+    violations: list[str] = field(default_factory=list)
+    unknowns: list[str] = field(default_factory=list)
+    facts: list[str] = field(default_factory=list)
+
+    @property
+    def status(self) -> str:
+        if self.violations:
+            return "FAIL"
+        if self.unknowns:
+            return "UNKNOWN"
+        return "PASS"
+
+
+def _read_input(path: Path, label: str) -> str:
+    if not path.is_file():
+        raise SuiteEvidenceError(f"{label} missing: {path.name}")
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise SuiteEvidenceError(f"{label} unreadable: {exc}") from exc
+
+
+def _read_json(path: Path, label: str, schema: str) -> dict[str, object]:
+    try:
+        data = json.loads(_read_input(path, label))
+    except json.JSONDecodeError as exc:
+        raise SuiteEvidenceError(f"{label} is not JSON: {exc}") from exc
+    if not isinstance(data, dict) or data.get("schema") != schema:
+        raise SuiteEvidenceError(f"{label} does not declare schema {schema}")
+    return data
+
+
+def _required_text(entry: dict[str, object], key: str, label: str) -> str:
+    value = entry.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise SuiteEvidenceError(f"{label}: {key} must be a non-empty string")
+    return value
+
+
+def load_skip_allowlist(path: Path) -> tuple[SkipAllowance, ...]:
+    data = _read_json(path, "skip allow-list", SKIP_ALLOWLIST_SCHEMA)
+    entries = data.get("entries")
+    if not isinstance(entries, list):
+        raise SuiteEvidenceError("skip allow-list: entries must be a list")
+    allowances: list[SkipAllowance] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(entries):
+        label = f"skip allow-list entry {index}"
+        if not isinstance(entry, dict):
+            raise SuiteEvidenceError(f"{label} is not an object")
+        entry_id = _required_text(entry, "id", label)
+        if entry_id in seen:
+            raise SuiteEvidenceError(f"skip allow-list: duplicate id {entry_id}")
+        seen.add(entry_id)
+        kind = _required_text(entry, "kind", label)
+        if kind not in {"skip", "xfail"}:
+            raise SuiteEvidenceError(f"{label}: kind must be skip or xfail")
+        profiles = entry.get("profiles")
+        if (
+            not isinstance(profiles, list)
+            or not profiles
+            or not set(profiles) <= set(SUITE_PROFILES)
+        ):
+            raise SuiteEvidenceError(
+                f"{label}: profiles must be a non-empty subset of {SUITE_PROFILES}"
+            )
+        try:
+            pattern = re.compile(_required_text(entry, "pattern", label))
+        except re.error as exc:
+            raise SuiteEvidenceError(f"{label}: pattern does not compile: {exc}") from exc
+        allowances.append(
+            SkipAllowance(
+                entry_id,
+                kind,
+                pattern,
+                frozenset(str(item) for item in profiles),
+                _required_text(entry, "justification", label),
+            )
+        )
+    return tuple(allowances)
+
+
+def load_declared_removals(path: Path) -> dict[str, str]:
+    data = _read_json(path, "declared removals", DECLARED_REMOVALS_SCHEMA)
+    removals = data.get("removals")
+    if not isinstance(removals, list):
+        raise SuiteEvidenceError("declared removals: removals must be a list")
+    declared: dict[str, str] = {}
+    for index, entry in enumerate(removals):
+        label = f"declared removal {index}"
+        if not isinstance(entry, dict):
+            raise SuiteEvidenceError(f"{label} is not an object")
+        node_id = _required_text(entry, "node_id", label)
+        if node_id in declared:
+            raise SuiteEvidenceError(f"declared removals: duplicate node id {node_id}")
+        declared[node_id] = _required_text(entry, "reason", label)
+    return declared
+
+
+def parse_collect_only(text: str, label: str) -> tuple[tuple[str, ...], int]:
+    """Return the collected node ids and the collection error count.
+
+    The ids are the first contiguous block of node-id lines that `pytest
+    --collect-only -q` prints; its count must equal the summary line's.
+    """
+
+    lines = text.splitlines()
+    summary = None
+    for line in reversed(lines):
+        summary = _COLLECT_SUMMARY.match(line.strip())
+        if summary:
+            break
+    if summary is None:
+        raise SuiteEvidenceError(f"{label}: no collection summary line")
+    errors_match = re.search(r"(\d+) errors?", summary.group("rest"))
+    errors = int(errors_match.group(1)) if errors_match else 0
+    expected = int(summary.group("count") or 0)
+    ids: list[str] = []
+    started = False
+    for line in lines:
+        if not started:
+            if "::" in line and not line[:1].isspace():
+                started = True
+            else:
+                continue
+        if not line.strip():
+            break
+        if "::" not in line or line[:1].isspace():
+            raise SuiteEvidenceError(f"{label}: unexpected line in node-id block: {line!r}")
+        ids.append(line.rstrip())
+    if len(ids) != expected or len(set(ids)) != len(ids):
+        raise SuiteEvidenceError(
+            f"{label}: {len(ids)} node ids listed ({len(set(ids))} distinct), "
+            f"summary says {expected}"
+        )
+    return tuple(ids), errors
+
+
+def junit_key(node_id: str) -> tuple[str, str]:
+    """Map a node id to the (classname, name) pair pytest's JUnit writer uses."""
+
+    path, bracket, params = node_id.partition("[")
+    names = path.split("::")
+    names[0] = re.sub(r"\.py$", "", names[0].replace("/", "."))
+    names[-1] += bracket + params
+    return ".".join(names[:-1]), names[-1]
+
+
+def _collection_skip_reason(text: str) -> str:
+    # A module-level skip is written as str(longrepr), i.e. the repr of a
+    # (path, lineno, "Skipped: <reason>") tuple.
+    try:
+        value = ast.literal_eval(text.strip())
+    except (ValueError, SyntaxError) as exc:
+        raise SuiteEvidenceError(f"JUnit collection skip has no readable reason: {text!r}") from exc
+    if not (isinstance(value, tuple) and len(value) == 3 and isinstance(value[2], str)):
+        raise SuiteEvidenceError(f"JUnit collection skip has no readable reason: {text!r}")
+    return value[2].removeprefix("Skipped: ")
+
+
+def parse_junit(path: Path) -> tuple[SuiteCase, ...]:
+    _read_input(path, "JUnit report")
+    try:
+        # The report is this run's own pytest output, not foreign input.
+        tree = ElementTree.parse(path)
+    except ElementTree.ParseError as exc:
+        raise SuiteEvidenceError(f"JUnit report is not well-formed XML: {exc}") from exc
+    cases: list[SuiteCase] = []
+    for case in tree.getroot().iter("testcase"):
+        key = (case.get("classname") or "", case.get("name") or "")
+        children = {child.tag: child for child in case}
+        if "failure" in children:
+            cases.append(SuiteCase(key, "failed"))
+        elif "error" in children:
+            cases.append(SuiteCase(key, "error"))
+        elif "skipped" in children:
+            skipped = children["skipped"]
+            message = skipped.get("message") or ""
+            if skipped.get("type") == "pytest.xfail":
+                cases.append(SuiteCase(key, "xfailed", message))
+            elif skipped.get("type") is None and message == "collection skipped":
+                reason = _collection_skip_reason(skipped.text or "")
+                cases.append(SuiteCase(key, "skipped", reason, collection_skip=True))
+            else:
+                cases.append(SuiteCase(key, "skipped", message))
+        else:
+            cases.append(SuiteCase(key, "passed"))
+    if not cases:
+        raise SuiteEvidenceError("JUnit report holds no test cases")
+    return tuple(cases)
+
+
+def parse_terminal_summary(text: str) -> dict[str, int]:
+    for line in reversed(text.splitlines()):
+        stripped = line.strip()
+        if _SUMMARY_LINE.match(stripped):
+            counts: dict[str, int] = {}
+            for number, word in _SUMMARY_COUNT.findall(stripped):
+                name = {"error": "errors", "warning": "warnings"}.get(word, word)
+                counts[name] = counts.get(name, 0) + int(number)
+            return counts
+    raise SuiteEvidenceError("pytest log has no final summary line")
+
+
+def _listed(items: list[str]) -> str:
+    shown = "; ".join(items[:_REPORT_LIMIT])
+    more = len(items) - _REPORT_LIMIT
+    return shown + (f"; ... {more} more" if more > 0 else "")
+
+
+def _parse_base(text: str) -> str:
+    for line in text.splitlines():
+        if line.startswith("UNRESOLVED:"):
+            raise SuiteEvidenceError(f"merge-base {line}")
+    sha = re.search(r"(?m)^base sha: ([0-9a-f]{40})$", text)
+    status = re.search(r"(?m)^base collection exit status: (\d+)$", text)
+    if sha is None:
+        raise SuiteEvidenceError("merge-base unresolved: no base sha recorded")
+    if status is None or status.group(1) != "0":
+        raise SuiteEvidenceError(
+            "merge-base collection did not complete "
+            f"(exit status {status.group(1) if status else 'unrecorded'})"
+        )
+    return sha.group(1)
+
+
+def evaluate_suite(root: Path, evidence_dir: Path, profile: str) -> SuiteVerdict:
+    verdict = SuiteVerdict()
+    if profile not in SUITE_PROFILES:
+        verdict.unknowns.append(
+            f"unknown suite profile {profile!r}; expected one of {SUITE_PROFILES}"
+        )
+        return verdict
+    verdict.facts.append(f"profile={profile}")
+
+    def attempt(load: Callable[[], _T]) -> _T | None:
+        try:
+            return load()
+        except SuiteEvidenceError as exc:
+            verdict.unknowns.append(str(exc))
+            return None
+
+    allowances = attempt(lambda: load_skip_allowlist(root / SKIP_ALLOWLIST))
+    removals = attempt(lambda: load_declared_removals(root / DECLARED_REMOVALS))
+    summary = attempt(
+        lambda: parse_terminal_summary(_read_input(evidence_dir / SUITE_SUMMARY_LOG, "pytest log"))
+    )
+    cases = attempt(lambda: parse_junit(evidence_dir / SUITE_JUNIT))
+    collected = attempt(
+        lambda: parse_collect_only(
+            _read_input(evidence_dir / SUITE_COLLECT, "collection log"), "collection log"
+        )
+    )
+
+    # 1. Zero failures and zero errors, in every view of the run.
+    if summary is not None:
+        for name in ("failed", "errors", "xpassed"):
+            if summary.get(name, 0):
+                verdict.violations.append(f"pytest summary reports {summary[name]} {name}")
+    if cases is not None:
+        bad = [f"{'::'.join(c.key)} {c.outcome}" for c in cases if c.outcome in {"failed", "error"}]
+        if bad:
+            verdict.violations.append(f"{len(bad)} failed or errored test cases: {_listed(bad)}")
+    if collected is not None and collected[1]:
+        verdict.violations.append(f"collection reported {collected[1]} errors")
+
+    # 2. Accounting closes: each collected test is reported exactly as passed
+    # or skipped by the same run, and the terminal summary agrees.
+    if cases is not None and collected is not None:
+        ids = collected[0]
+        if not ids:
+            verdict.violations.append("no tests collected")
+        keys = {junit_key(node_id): node_id for node_id in ids}
+        if len(keys) != len(ids):
+            verdict.unknowns.append("collected node ids do not map one-to-one onto JUnit names")
+        reported: dict[tuple[str, str], list[SuiteCase]] = {}
+        for case in cases:
+            reported.setdefault(case.key, []).append(case)
+        unreported = [node_id for key, node_id in keys.items() if key not in reported]
+        if unreported:
+            verdict.violations.append(
+                f"{len(unreported)} collected tests have no reported outcome: {_listed(unreported)}"
+            )
+        stray = ["::".join(c.key) for c in cases if c.key not in keys and not c.collection_skip]
+        if stray:
+            verdict.violations.append(
+                f"{len(stray)} reported tests were not collected: {_listed(stray)}"
+            )
+        tally = {
+            outcome: sum(1 for case in cases if case.outcome == outcome)
+            for outcome in ("passed", "skipped", "xfailed")
+        }
+        verdict.facts.append(
+            f"collected={len(ids)} passed={tally['passed']} skipped={tally['skipped']} "
+            f"xfailed={tally['xfailed']}"
+        )
+        if summary is not None:
+            disagree = [
+                f"{name} summary={summary.get(name, 0)} junit={tally[name]}"
+                for name in tally
+                if summary.get(name, 0) != tally[name]
+            ]
+            if disagree:
+                verdict.violations.append(
+                    f"pytest summary disagrees with the JUnit report: {_listed(disagree)}"
+                )
+
+    # 3. Every skip (and xfail) reason is on the declared allow-list for this
+    # profile.
+    if cases is not None and allowances is not None:
+        undeclared: dict[str, list[str]] = {}
+        for case in cases:
+            if case.outcome not in {"skipped", "xfailed"}:
+                continue
+            kind = "skip" if case.outcome == "skipped" else "xfail"
+            if not any(
+                allowance.kind == kind
+                and profile in allowance.profiles
+                and allowance.pattern.fullmatch(case.reason)
+                for allowance in allowances
+            ):
+                undeclared.setdefault(f"{kind}: {case.reason!r}", []).append("::".join(case.key))
+        if undeclared:
+            verdict.violations.append(
+                "undeclared skip reasons: "
+                + _listed(
+                    [
+                        f"{reason} ({len(nodes)}, e.g. {nodes[0]})"
+                        for reason, nodes in undeclared.items()
+                    ]
+                )
+            )
+
+    # 4. The collected set does not shrink against the merge-base, except by
+    # declared removal.
+    base_sha = attempt(lambda: _parse_base(_read_input(evidence_dir / SUITE_BASE, "base record")))
+    base = None
+    if base_sha is not None:
+        base = attempt(
+            lambda: parse_collect_only(
+                _read_input(evidence_dir / SUITE_BASE_COLLECT, "base collection log"),
+                "base collection log",
+            )
+        )
+    if base is not None:
+        if base[1]:
+            verdict.unknowns.append(f"base collection reported {base[1]} errors")
+        elif not base[0]:
+            verdict.unknowns.append("base collection is empty; the comparison is undeterminable")
+        elif collected is not None and removals is not None:
+            current = set(collected[0])
+            lost = sorted(set(base[0]) - current)
+            undeclared_loss = [node_id for node_id in lost if node_id not in removals]
+            verdict.facts.append(
+                f"base={base_sha[:12] if base_sha else '?'} base_collected={len(base[0])} "
+                f"removed={len(lost)} declared={len(lost) - len(undeclared_loss)}"
+            )
+            if undeclared_loss:
+                verdict.violations.append(
+                    f"{len(undeclared_loss)} tests collected at the merge-base are gone "
+                    f"without a declared removal: {_listed(undeclared_loss)}"
+                )
+    return verdict
+
+
+def _suite_profile() -> str:
+    return os.environ.get(SUITE_PROFILE_ENV, "").strip() or "ci"
+
+
+def _evaluate_suite_spec(root: Path, evidence_dir: Path, spec: CheckSpec) -> dict[str, object]:
+    verdict = evaluate_suite(root, evidence_dir, _suite_profile())
+    inputs = {
+        rel: (_sha256(evidence_dir / rel) if (evidence_dir / rel).is_file() else None)
+        for rel in (SUITE_SUMMARY_LOG, SUITE_JUNIT, SUITE_COLLECT, SUITE_BASE, SUITE_BASE_COLLECT)
+    }
+    for rel in (SKIP_ALLOWLIST, DECLARED_REMOVALS):
+        inputs[rel.as_posix()] = _sha256(root / rel) if (root / rel).is_file() else None
+    parts = verdict.facts + [f"FAIL: {item}" for item in verdict.violations]
+    parts += [f"UNKNOWN: {item}" for item in verdict.unknowns]
+    evidence_path = evidence_dir / spec.log_path
+    return {
+        "actual_result": "; ".join(parts) if parts else "no facts recorded",
+        "check_class": spec.check_class,
+        "check_id": spec.check_id,
+        "evidence": {
+            "inputs": inputs,
+            "path": _evidence_label(root, evidence_path),
+            "sha256": inputs[SUITE_SUMMARY_LOG],
+        },
+        "expected_result": spec.expected_result,
+        "method": spec.method,
+        "remediation_if_failed": (
+            "Fix the failing or errored tests; declare a new skip reason in "
+            f"{SKIP_ALLOWLIST.as_posix()} or a removed test in {DECLARED_REMOVALS.as_posix()} "
+            "with its justification; resolve the merge-base (fetch origin/main or set "
+            "L9_SUITE_BASE_REF) and rerun scripts/validate_release.sh (ADR-101)."
+        ),
+        "severity": spec.severity,
+        "status": verdict.status,
+        "target_artifact": spec.target_artifact,
+    }
+
+
 def _evaluate(root: Path, evidence_dir: Path, spec: CheckSpec) -> dict[str, object]:
+    if spec.derived_suite:
+        return _evaluate_suite_spec(root, evidence_dir, spec)
     evidence_path = evidence_dir / spec.log_path
     if not evidence_path.is_file():
         status = "UNKNOWN"

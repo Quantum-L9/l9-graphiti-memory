@@ -1,0 +1,91 @@
+{
+	"schema": "l9.suite-skip-allowlist/v1",
+	"authority": "docs/adr/ADR-101-derived-suite-count-validation.md",
+	"note": "Every skipped or xfailed test in the release run must match one entry whose kind matches and whose profiles include the active profile (L9_SUITE_PROFILE, default ci). pattern is a Python regular expression matched against the whole skip reason. ci entries are the skips CI's service-backed validate job is expected to produce; local entries are the additional skips of a machine without those services or extras. The entries were taken from the skip reasons of a CI-shaped run (PostgreSQL 16, Redis 7, the bound semantic authority, the validate job's extras) and, for local, of runs without those services.",
+	"entries": [
+		{
+			"id": "SKIP-001",
+			"kind": "skip",
+			"pattern": "could not import 'constellation_node_sdk': No module named 'constellation_node_sdk'",
+			"profiles": ["ci", "local"],
+			"justification": "The constellation SDK is not a locked extra of the validate job; the canonical TransportPacket path is external blocker B-001."
+		},
+		{
+			"id": "SKIP-002",
+			"kind": "skip",
+			"pattern": "Cursor-Governance checkout unavailable",
+			"profiles": ["ci", "local"],
+			"justification": "CI checks out only this repository; the cross-repo producer contract runs where a Cursor-Governance checkout is present."
+		},
+		{
+			"id": "SKIP-003",
+			"kind": "skip",
+			"pattern": "CURSOR_GOVERNANCE_ROOT is not configured",
+			"profiles": ["ci", "local"],
+			"justification": "The runtime-status protocol check runs only against an explicitly named Cursor-Governance checkout, which CI does not provide."
+		},
+		{
+			"id": "SKIP-004",
+			"kind": "skip",
+			"pattern": "[a-z_]+ is not writable on the agent lane",
+			"profiles": ["ci", "local"],
+			"justification": "Structural: the class-vocabulary matrix includes classes the agent lane must refuse; those parameters have no agent-lane round trip to assert."
+		},
+		{
+			"id": "SKIP-005",
+			"kind": "skip",
+			"pattern": "L9_MEMORY_TEST_NEO4J_URI is not set; live graph-intelligence (tests|checks) need Neo4j",
+			"profiles": ["ci", "local"],
+			"justification": "Live Neo4j suites run in the graph-live and full-capability-live jobs, not in the validate job, which has no Neo4j service."
+		},
+		{
+			"id": "SKIP-006",
+			"kind": "skip",
+			"pattern": "L9_MEMORY_TEST_REDIS_STOP_CMD is not set; the Redis outage case needs server control",
+			"profiles": ["ci", "local"],
+			"justification": "The Redis stop/start outage case needs server control; it runs in full-capability-live."
+		},
+		{
+			"id": "SKIP-007",
+			"kind": "skip",
+			"pattern": "L9_MEMORY_TEST_GRAPHITI_MCP_URL is not set; seam 2 needs a live Graphiti endpoint",
+			"profiles": ["ci", "local"],
+			"justification": "Projection seam 2 needs a live Graphiti endpoint and Neo4j, which the validate job does not run."
+		},
+		{
+			"id": "SKIP-008",
+			"kind": "skip",
+			"pattern": "qualification needs graphiti-core==0\\.30\\.2",
+			"profiles": ["ci", "local"],
+			"justification": "Live Graphiti qualification needs graphiti-core, which is not a locked extra of the validate job."
+		},
+		{
+			"id": "SKIP-101",
+			"kind": "skip",
+			"pattern": "L9_MEMORY_TEST_POSTGRES_DSN is not set; .*",
+			"profiles": ["local"],
+			"justification": "Local only: CI provides PostgreSQL, so a PostgreSQL skip in CI is a lost backend leg and must fail."
+		},
+		{
+			"id": "SKIP-102",
+			"kind": "skip",
+			"pattern": "L9_MEMORY_TEST_REDIS_URL is not set; .*",
+			"profiles": ["local"],
+			"justification": "Local only: CI provides Redis, so a Redis skip in CI is a lost backend leg and must fail."
+		},
+		{
+			"id": "SKIP-103",
+			"kind": "skip",
+			"pattern": "L9_SEMANTIC_AUTHORITY_ROOT (is not set; kind-exception law cannot be read|has no semantics/: .*)",
+			"profiles": ["local"],
+			"justification": "Local only: CI checks out the bound Quantum-L9/.github semantic authority, so the kind-exception law must run there."
+		},
+		{
+			"id": "SKIP-104",
+			"kind": "skip",
+			"pattern": "the manifest's Zep shadow target needs the zep extra",
+			"profiles": ["local"],
+			"justification": "Local only: CI installs the zep extra."
+		}
+	]
+}

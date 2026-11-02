@@ -164,7 +164,43 @@ candidate_integrity() {
 DIGEST_BEFORE="$(candidate_digest)"
 printf 'candidate digest before: %s\n' "$DIGEST_BEFORE" | tee "$OUT/logs/candidate_digest.txt"
 
-run pytest pytest -q
+# V-001 inputs (ADR-101). The suite is judged, not counted: the run's JUnit
+# report, the node ids collected here, and the node ids collected at the
+# merge-base with L9_SUITE_BASE_REF (default origin/main). The base tree is
+# exported read-only with git archive into the temporary root and collected in
+# this same environment. A base that cannot be determined (no git, unknown
+# ref, no merge-base, failed export) is recorded as UNRESOLVED rather than
+# skipped, so the evidence check fails closed instead of passing.
+suite_base_collection() {
+  local log="$OUT/logs/suite_base.txt" ref="${L9_SUITE_BASE_REF:-origin/main}"
+  local base="" status=0 tree="$TMP_ROOT/suite-base"
+  printf '== suite_base ==\n'
+  printf 'base ref: %s\n' "$ref" >"$log"
+  if ! command -v git >/dev/null 2>&1 || ! git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    printf 'UNRESOLVED: no git work tree; the merge-base with %s cannot be determined\n' "$ref" >>"$log"
+  elif ! git -C "$ROOT" rev-parse --verify --quiet "$ref^{commit}" >/dev/null; then
+    printf 'UNRESOLVED: base ref %s is not a commit here (fetch it, or set L9_SUITE_BASE_REF)\n' "$ref" >>"$log"
+  elif ! base="$(git -C "$ROOT" merge-base HEAD "$ref")"; then
+    printf 'UNRESOLVED: HEAD and %s have no merge-base in this history (shallow: %s)\n' \
+      "$ref" "$(git -C "$ROOT" rev-parse --is-shallow-repository)" >>"$log"
+  else
+    printf 'head sha: %s\nbase sha: %s\nshallow: %s\n' "$(git -C "$ROOT" rev-parse HEAD)" "$base" \
+      "$(git -C "$ROOT" rev-parse --is-shallow-repository)" >>"$log"
+    mkdir -p "$tree"
+    if git -C "$ROOT" archive --format=tar "$base" | tar -x -C "$tree"; then
+      (cd "$tree" && PYTHONPATH="$tree/src" pytest --collect-only -q) \
+        >"$OUT/logs/pytest_collect_base.txt" 2>&1 || status=$?
+      printf 'base collection exit status: %s\n' "$status" >>"$log"
+    else
+      printf 'UNRESOLVED: git archive of %s failed\n' "$base" >>"$log"
+    fi
+  fi
+  cat "$log"
+}
+
+run pytest pytest -q --junitxml="$OUT/logs/pytest_junit.xml"
+run pytest_collect pytest --collect-only -q
+suite_base_collection
 run compileall python3 -m compileall -q src tests tools scripts
 find "$ROOT" -path "$ROOT/.venv" -prune -o -type d -name "__pycache__" -prune -exec rm -rf {} +
 find "$ROOT" -path "$ROOT/.venv" -prune -o -type f -name '*.pyc' -exec rm -f {} +
