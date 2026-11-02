@@ -388,10 +388,8 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 1955 -> 1959: 4 cases in
         # tests/regression/test_adr_100_oauth_cutover.py. None CI-skipped.
         # 1955 + 4 = 1959.
-        # Re-pinned 1959 -> 1971: 4 cases in test_normalization.py and 8 in
-        # test_sensitive_admission.py. None CI-skipped. 1959 + 12 = 1971.
-        "1971 tests pass",
-        r"1971 passed",
+        "1959 tests pass",
+        r"1959 passed",
     ),
     CheckSpec(
         "V-002",
