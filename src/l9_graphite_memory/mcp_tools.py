@@ -575,6 +575,14 @@ def mcp_capabilities() -> ControlPlaneCapabilities:
     return build_capabilities(cli_commands=cli_command_names(), mcp_tools=canonical_tool_names())
 
 
+#: Declared input properties per canonical tool. A KeyError for one of these,
+#: absent from the call, is a missing argument; any other is internal.
+_TOOL_INPUT_PROPERTIES: dict[str, frozenset[str]] = {
+    item["name"]: frozenset(item["inputSchema"].get("properties", {}))
+    for item in (*CANONICAL_TOOLS, *GRAPH_TOOLS)
+}
+
+
 def tool_definitions() -> list[dict[str, Any]]:
     definitions = [*CANONICAL_TOOLS, *GRAPH_TOOLS]
     by_name = {item["name"]: item for item in CANONICAL_TOOLS}
@@ -680,6 +688,14 @@ class MCPToolApplication:
             return handler(principal, arguments)
         except ValidationError as exc:
             raise ValueError(f"invalid {canonical} arguments: {exc}") from exc
+        except KeyError as exc:
+            # The transport reports a KeyError as a missing argument (-32602).
+            # That is true only for a declared input the caller left out; any
+            # other KeyError is a server fault and must not blame the caller.
+            key = exc.args[0] if exc.args else None
+            if key in _TOOL_INPUT_PROPERTIES.get(canonical, frozenset()) and key not in arguments:
+                raise
+            raise RuntimeError(f"internal error in {canonical}") from exc
 
     def _ingest(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         return self.service.write(
