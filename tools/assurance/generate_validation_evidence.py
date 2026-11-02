@@ -418,7 +418,8 @@ _REPORT_LIMIT: Final = 10
 _SUMMARY_COUNT = re.compile(
     r"(\d+) (passed|failed|skipped|xfailed|xpassed|errors?|warnings?|deselected|rerun)"
 )
-_SUMMARY_LINE = re.compile(r"^=*\s*(?:\d+ [a-z]+(?:, )?)+ in [0-9.]+s\b")
+# One count, then ", count" repeats: linear, no nested optional quantifier.
+_SUMMARY_LINE = re.compile(r"^=*\s*\d+ [a-z]+(?:, \d+ [a-z]+)* in [0-9.]+s\b")
 _COLLECT_SUMMARY = re.compile(
     r"^(?:(?P<count>\d+) tests? collected|no tests collected)(?P<rest>.*?) in [0-9.]+s\b"
 )
