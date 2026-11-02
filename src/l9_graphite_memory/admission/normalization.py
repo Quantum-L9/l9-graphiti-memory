@@ -24,6 +24,9 @@ _ZERO_WIDTH = re.compile("[\u200b\u200c\u200d\ufeff]")
 _WHITESPACE = re.compile(r"[ \t]+")
 _BLANK_LINES = re.compile(r"\n{3,}")
 
+_PHONE_REPLACEMENT = "[PHONE_REDACTED]"
+_SSN_REPLACEMENT = "[SSN_REDACTED]"
+
 _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
     (
         "email",
@@ -50,7 +53,7 @@ _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
             r"|\d{3}[\s.\-]?\d{3}[\s.\-]\d{4}"
             r")(?!\d)"
         ),
-        "[PHONE_REDACTED]",
+        _PHONE_REPLACEMENT,
     ),
     (
         "phone",
@@ -60,14 +63,14 @@ _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
         # and is left intact, while ``call 12125551212`` is still redacted.
         # Forms with a separator, parentheses or ``+`` stay on the entry above.
         re.compile(r"(?<![0-9A-Za-z])1\d{10}(?![0-9A-Za-z])"),
-        "[PHONE_REDACTED]",
+        _PHONE_REPLACEMENT,
     ),
     (
         # Any 3-2-4 grouping with at least one separator. A bare 9-digit run
         # takes the ambiguous path, never the raw-storage path.
         "ssn",
         re.compile(r"(?<!\d)\d{3}(?:[\-\s]\d{2}[\-\s]?|\d{2}[\-\s])\d{4}(?!\d)"),
-        "[SSN_REDACTED]",
+        _SSN_REPLACEMENT,
     ),
     ("openai_key", re.compile(r"\bsk-[A-Za-z0-9_\-]{20,}\b"), "[SECRET_REDACTED]"),
     (
@@ -90,7 +93,7 @@ NUMERIC_DECLARATIONS_KEY = "numeric_declarations"
 AMBIGUOUS_NUMERIC_PII_TYPE = "ambiguous_numeric"
 _AMBIGUOUS_REPLACEMENT = "[AMBIGUOUS_NUMERIC_REDACTED]"
 _KEPT_NUMERIC = frozenset({"epoch", "identifier"})
-_DECLARED_PII_REPLACEMENT = {"phone": "[PHONE_REDACTED]", "ssn": "[SSN_REDACTED]"}
+_DECLARED_PII_REPLACEMENT = {"phone": _PHONE_REPLACEMENT, "ssn": _SSN_REPLACEMENT}
 
 _INJECTION_MARKERS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
