@@ -24,6 +24,11 @@ MCP_PROTOCOL_VERSION = "2024-11-05"
 # JSON-RPC batches, which this server does not accept; a request that carries
 # no MCP-Protocol-Version header is therefore refused rather than assumed.
 HTTP_MCP_PROTOCOL_VERSIONS: tuple[str, ...] = ("2025-11-25", "2025-06-18")
+# RFC 8707 resource indicator and Auth0 API audience for the hosted Memory
+# service (ADR-100). The path is part of the identifier: the host alone is
+# not the audience, and the Graphiti route on this host is a different
+# resource. Issuer domain and client ids are not part of this value.
+MEMORY_RESOURCE_IDENTIFIER = "https://memory.quantumaipartners.com/mcp"
 ADMISSION_POLICY_VERSION = "memory-admission/v2"
 RANKING_POLICY_VERSION = "memory-ranking/v2"
 AUTHORIZATION_POLICY_VERSION = "memory-authz/v1"
