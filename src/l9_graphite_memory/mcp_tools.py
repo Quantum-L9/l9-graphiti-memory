@@ -645,6 +645,12 @@ class MCPToolApplication:
         return self._graph
 
     def call(self, principal: MemoryPrincipal, name: str, arguments: dict[str, Any]) -> Any:
+        # Resolve the tool before anything reads the principal: an unknown
+        # name is a method error (-32601) whoever asks, and no handler runs.
+        canonical = ALIASES.get(name, name)
+        handler_name = _CANONICAL_HANDLER_METHODS.get(canonical)
+        if handler_name is None:
+            raise KeyError(f"unknown tool: {name}")
         supplied = caller_identity_argument(arguments)
         if supplied is not None:
             raise AuthorizationError(
@@ -656,10 +662,6 @@ class MCPToolApplication:
             is_global_admin=principal.is_global_admin,
         ):
             raise AuthorizationError("an OAuth grant is not an operator admin grant")
-        canonical = ALIASES.get(name, name)
-        handler_name = _CANONICAL_HANDLER_METHODS.get(canonical)
-        if handler_name is None:
-            raise KeyError(f"unknown tool: {name}")
         if handler_name in _CONSEQUENTIAL_WRITE_HANDLERS and principal.auth_method == "oauth":
             actor = oauth_actor_ref(
                 verified_actor_ref=principal.agent_id,
