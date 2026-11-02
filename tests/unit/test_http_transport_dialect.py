@@ -5,11 +5,14 @@
 #   layer: test
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-11-02
 
 from __future__ import annotations
 
+import pytest
+
+from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.transport import HttpMcpTransport
 
 
@@ -34,9 +37,19 @@ class FakeHttpTransport(HttpMcpTransport):
 
 def test_http_transport_prefers_official_add_memory_tool() -> None:
     transport = FakeHttpTransport()
-    transport.write("{}", "repo-a", uuid="00000000-0000-0000-0000-000000000001")
+    transport.write("{}", "repo-a")
     assert transport.calls[0][0] == "add_memory"
     assert transport.calls[0][1]["group_id"] == "repo-a"
+
+
+def test_http_transport_write_refuses_a_caller_supplied_uuid() -> None:
+    # Graphiti reads a supplied uuid as "update the existing episode", which
+    # fails silently for a new one; episodes are created without identity
+    # (ADR-091 decision 1). The refusal happens before any tool call.
+    transport = FakeHttpTransport()
+    with pytest.raises(ProjectionError, match="ADR-091"):
+        transport.write("{}", "repo-a", uuid="00000000-0000-0000-0000-000000000001")
+    assert [name for name, _ in transport.calls] == []
 
 
 def test_http_transport_uses_official_group_ids_search_shape() -> None:

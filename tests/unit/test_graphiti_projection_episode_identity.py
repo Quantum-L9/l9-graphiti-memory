@@ -36,7 +36,10 @@ class ScriptedTransport:
     def __init__(self, *, tools: list[str] | None = None, episodes=None, write_result=None):
         self.tools = TOOLS if tools is None else tools
         self.episodes: list[dict[str, Any]] = list(episodes or [])
-        self.write_result = write_result or {"message": "Episode queued"}
+        # The official v0.30.2 add_memory SuccessResponse text.
+        self.write_result = write_result or {
+            "message": "Episode 'memory:1' queued for processing in group 'group-1'"
+        }
         self.writes: list[dict[str, Any]] = []
         self.calls: list[tuple[str, dict[str, Any]]] = []
         self.facts: list[dict[str, Any]] = []
