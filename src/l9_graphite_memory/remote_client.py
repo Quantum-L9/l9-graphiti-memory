@@ -669,6 +669,11 @@ class RemoteMemoryClient:
 
     def _tool_payload(self, tool_name: str, arguments: dict[str, Any]) -> Any:
         result = self._request("tools/call", {"name": tool_name, "arguments": arguments})
+        if isinstance(result, dict) and result.get("isError") is True:
+            raise RemoteMemoryError(
+                RemoteFailureKind.TOOL_FAILURE,
+                f"{tool_name} reported isError",
+            )
         try:
             content = result["content"]
             text = next(

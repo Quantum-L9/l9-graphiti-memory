@@ -386,6 +386,17 @@ def test_only_lifecycle_and_agent_write_tools_are_reachable() -> None:
     assert client.sent == []
 
 
+def test_an_is_error_tool_result_is_not_a_successful_payload() -> None:
+    client = ScriptedClient(iter([]))
+    client._request = lambda *_args, **_kwargs: {  # type: ignore[method-assign]
+        "isError": True,
+        "content": [{"type": "text", "text": "Error: boom"}],
+    }
+    with pytest.raises(RemoteMemoryError, match="isError") as caught:
+        client._tool_payload("memory.write_agent", {})
+    assert caught.value.kind is RemoteFailureKind.TOOL_FAILURE
+
+
 def test_a_search_field_the_tool_lacks_is_refused_not_dropped() -> None:
     client = ScriptedClient(iter([]))
     request = MemorySearchRequest(query="x", namespaces=("repo-a",), token_budget=256)

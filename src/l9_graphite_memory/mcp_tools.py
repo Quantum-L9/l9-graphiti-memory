@@ -45,6 +45,11 @@ from l9_graphite_memory.contracts.class_vocabulary import (
     alias_summary,
     resolve_memory_class,
 )
+from l9_graphite_memory.contracts.identity import (
+    caller_identity_argument,
+    oauth_actor_ref,
+    oauth_grant_claims_operator,
+)
 from l9_graphite_memory.curation.procedural import (
     PatternProceduralSynthesizer,
     ProceduralSynthesisWorker,
@@ -496,6 +501,28 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     },
 )
 
+# Handlers that never persist canonical or lock state. Every other handler is
+# consequential and requires server-verified actor evidence from an OAuth
+# principal (ADR-100: an OAuth client is not an actor). The gate is an
+# allowlist of read-only handlers, so a handler added later is gated until it
+# is deliberately listed here. Graph operations are read-only (ADR-086).
+_READ_ONLY_HANDLERS = frozenset(
+    {
+        "_search",
+        "_hydrate",
+        "_get",
+        "_conflicts",
+        "_verify_phase_lock",
+        "_lineage",
+        "_health",
+        "_capabilities",
+        "_generated_data_capabilities",
+        "_graph_capabilities",
+        "_graph_operation",
+    }
+)
+
+
 _CANONICAL_HANDLER_METHODS: dict[str, str] = {
     "memory.ingest": "_ingest",
     WRITE_AGENT_TOOL: "_write_agent",
@@ -558,6 +585,14 @@ def mcp_capabilities() -> ControlPlaneCapabilities:
     from l9_graphite_memory.cli import cli_command_names
 
     return build_capabilities(cli_commands=cli_command_names(), mcp_tools=canonical_tool_names())
+
+
+#: Declared input properties per canonical tool. A KeyError for one of these,
+#: absent from the call, is a missing argument; any other is internal.
+_TOOL_INPUT_PROPERTIES: dict[str, frozenset[str]] = {
+    item["name"]: frozenset(item["inputSchema"].get("properties", {}))
+    for item in (*CANONICAL_TOOLS, *GRAPH_TOOLS)
+}
 
 
 def tool_definitions() -> list[dict[str, Any]]:
@@ -630,10 +665,34 @@ class MCPToolApplication:
         return self._graph
 
     def call(self, principal: MemoryPrincipal, name: str, arguments: dict[str, Any]) -> Any:
+        # Resolve the tool before anything reads the principal: an unknown
+        # name is a method error (-32601) whoever asks, and no handler runs.
         canonical = ALIASES.get(name, name)
         handler_name = _CANONICAL_HANDLER_METHODS.get(canonical)
         if handler_name is None:
             raise KeyError(f"unknown tool: {name}")
+        supplied = caller_identity_argument(arguments)
+        if supplied is not None:
+            raise AuthorizationError(
+                f"tool arguments cannot set {supplied}; actor and surface are server-derived"
+            )
+        if oauth_grant_claims_operator(
+            principal.auth_method,
+            is_admin=principal.is_admin,
+            is_global_admin=principal.is_global_admin,
+        ):
+            raise AuthorizationError("an OAuth grant is not an operator admin grant")
+        if handler_name not in _READ_ONLY_HANDLERS and principal.auth_method == "oauth":
+            actor = oauth_actor_ref(
+                verified_actor_ref=principal.agent_id,
+                evidence_refs=(),
+                oauth_client_id=principal.principal_id,
+            )
+            if actor is None:
+                raise AuthorizationError(
+                    "consequential write requires server-verified actor evidence; "
+                    "an OAuth client is not an actor"
+                )
         handler = getattr(self, handler_name)
         try:
             if handler_name == "_graph_operation":
@@ -641,6 +700,14 @@ class MCPToolApplication:
             return handler(principal, arguments)
         except ValidationError as exc:
             raise ValueError(f"invalid {canonical} arguments: {exc}") from exc
+        except KeyError as exc:
+            # The transport reports a KeyError as a missing argument (-32602).
+            # That is true only for a declared input the caller left out; any
+            # other KeyError is a server fault and must not blame the caller.
+            key = exc.args[0] if exc.args else None
+            if key in _TOOL_INPUT_PROPERTIES.get(canonical, frozenset()) and key not in arguments:
+                raise
+            raise RuntimeError(f"internal error in {canonical}") from exc
 
     def _ingest(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         return self.service.write(

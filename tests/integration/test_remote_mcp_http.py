@@ -585,6 +585,10 @@ def test_json_rpc_level_errors_keep_the_request_id(client) -> None:
     assert bad_params.json()["error"]["code"] == -32602
     unknown_tool = _post(client, tool("memory.no_such_tool", {}, request_id=9))
     assert unknown_tool.json()["error"]["code"] == -32601
+    missing_arg = _post(
+        client, tool("memory.write_agent", {"content": "no namespace"}, request_id=10)
+    )
+    assert missing_arg.json()["error"]["code"] == -32602
 
 
 def test_an_unsupported_protocol_version_header_is_refused(client) -> None:
