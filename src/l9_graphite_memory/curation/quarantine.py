@@ -25,6 +25,11 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Protocol, cast
 
+from l9_graphite_memory.admission.normalization import AMBIGUOUS_NUMERIC_PII_TYPE
+from l9_graphite_memory.admission.policy import (
+    EXPLICIT_EVIDENCE_CLASSES,
+    is_caller_asserted_explicit,
+)
 from l9_graphite_memory.contracts import (
     QUARANTINE_REVIEW_POLICY_VERSION,
     MemoryRecord,
@@ -196,8 +201,9 @@ def apply_policy(
 ) -> QuarantineReviewVerdict:
     """Turn a reviewer's opinion into what the policy allows.
 
-    - a credential-bearing record, or an exfiltration signal, escalates
-      whatever the reviewer said;
+    - a credential-bearing record, an exfiltration signal, an undeclared
+      ambiguous numeric value, or an identity/preference record resting on
+      caller-asserted explicit evidence escalates whatever the reviewer said;
     - a RELEASE below the confidence floor becomes a HOLD;
     - everything else stands.
     """
@@ -210,6 +216,16 @@ def apply_policy(
     for pii_type in metadata.get("pii_types", []):
         if pii_type in policy.blocker_pii_types:
             blockers.append(f"record carried a credential-shaped value ({pii_type})")
+        elif pii_type == AMBIGUOUS_NUMERIC_PII_TYPE:
+            # Admission held an undeclared 9/10-digit token redacted; only a
+            # person can say whether it was an SSN, a phone, or an identifier.
+            blockers.append(f"record carried an undeclared ambiguous numeric value ({pii_type})")
+    if record.memory_class in EXPLICIT_EVIDENCE_CLASSES and any(
+        is_caller_asserted_explicit(item) for item in record.evidence
+    ):
+        blockers.append(
+            f"{record.memory_class.value} memory rests on caller-asserted explicit evidence"
+        )
     for signal in metadata.get("safety_signals", []):
         if signal in policy.blocker_safety_signals:
             blockers.append(f"admission flagged {signal}")

@@ -22,12 +22,32 @@ from l9_graphite_memory.contracts import (
 )
 
 from .normalization import NormalizationResult
-from .policy import AdmissionPolicy
+from .policy import AdmissionPolicy, is_caller_asserted_explicit
 
 
 def _expected_purpose(request: MemoryWriteRequest) -> str | None:
     purpose = request.metadata.get("purpose")
     return purpose if isinstance(purpose, str) else None
+
+
+def _has_explicit_evidence(request: MemoryWriteRequest) -> bool:
+    return any(item.kind is EvidenceKind.EXPLICIT for item in request.evidence)
+
+
+def _missing_explicit_evidence(
+    request: MemoryWriteRequest, reason: str, reasons: list[str]
+) -> WriteStatus:
+    """A write lacking server-recognized explicit evidence is never admitted.
+
+    A caller's own claim of explicit evidence holds the record in quarantine
+    for a person; with no claim at all the write is rejected.
+    """
+
+    if any(is_caller_asserted_explicit(item) for item in request.evidence):
+        reasons.append(f"{reason}; caller-asserted explicit evidence is held for review")
+        return WriteStatus.QUARANTINED
+    reasons.append(reason)
+    return WriteStatus.REJECTED
 
 
 class AdmissionEngine:
@@ -81,27 +101,32 @@ class AdmissionEngine:
                     "consent does not authorize this subject, namespace, class, or validity time"
                 )
                 status = WriteStatus.REJECTED
-            elif not any(item.kind is EvidenceKind.EXPLICIT for item in request.evidence):
-                reasons.append(f"{request.memory_class.value} memory requires explicit evidence")
-                status = WriteStatus.REJECTED
+            elif not _has_explicit_evidence(request):
+                status = _missing_explicit_evidence(
+                    request,
+                    f"{request.memory_class.value} memory requires explicit evidence",
+                    reasons,
+                )
             else:
                 status = WriteStatus.ADMITTED
         elif (
             self.policy.identity_requires_explicit_evidence
             and request.memory_class is MemoryClass.IDENTITY
         ):
-            if not any(item.kind is EvidenceKind.EXPLICIT for item in request.evidence):
-                reasons.append("identity memory requires explicit evidence")
-                status = WriteStatus.REJECTED
+            if not _has_explicit_evidence(request):
+                status = _missing_explicit_evidence(
+                    request, "identity memory requires explicit evidence", reasons
+                )
             else:
                 status = WriteStatus.ADMITTED
         elif (
             self.policy.preference_requires_explicit_evidence
             and request.memory_class is MemoryClass.PREFERENCE
         ):
-            if not any(item.kind is EvidenceKind.EXPLICIT for item in request.evidence):
-                reasons.append("preference memory requires explicit evidence")
-                status = WriteStatus.REJECTED
+            if not _has_explicit_evidence(request):
+                status = _missing_explicit_evidence(
+                    request, "preference memory requires explicit evidence", reasons
+                )
             else:
                 status = WriteStatus.ADMITTED
         else:
@@ -112,9 +137,13 @@ class AdmissionEngine:
             and status is WriteStatus.ADMITTED
             and self.policy.quarantine_on_ambiguous_numeric
         ):
-            tokens = ", ".join(normalization.unresolved_ambiguous)
-            warnings.append(f"ambiguous numeric token: {tokens}")
-            reasons.append(f"ambiguous numeric token requires a declaration: {tokens}")
+            # Receipts persist reasons and warnings, so they name a count and
+            # never the token: a bare 9-digit run may be an SSN (ADR-080).
+            count = len(normalization.unresolved_ambiguous)
+            warnings.append(f"ambiguous numeric token redacted: {count}")
+            reasons.append(
+                f"{count} ambiguous numeric token(s) require a numeric_declarations entry"
+            )
             status = WriteStatus.QUARANTINED
         if normalization.pii_types:
             warnings.append(f"PII redacted: {', '.join(normalization.pii_types)}")

@@ -19,6 +19,8 @@ from uuid import UUID
 
 from pydantic import ValidationError
 
+from l9_graphite_memory.admission.normalization import NUMERIC_DECLARATIONS_KEY
+from l9_graphite_memory.admission.policy import caller_asserted_explicit
 from l9_graphite_memory.contracts import (
     AuthorizationAction,
     CloseRequest,
@@ -74,10 +76,46 @@ def _consent_schema() -> dict[str, Any]:
             "evidence_description": {"type": "string"},
             "source_id": {"type": "string"},
             "allowed_classes": {"type": "array", "items": {"type": "string"}},
+            "granted_at": {"type": "string", "format": "date-time"},
             "expires_at": {"type": "string", "format": "date-time"},
         },
-        ["subject_id", "purpose", "evidence_description"],
+        ["subject_id", "purpose", "evidence_description", "granted_at"],
     )
+
+
+def _evidence_schema() -> dict[str, Any]:
+    """Caller-supplied evidence. The server decides what counts as explicit.
+
+    An item sent with ``kind: explicit`` is recorded as a caller-asserted,
+    OBSERVATION-grade reference; it never satisfies a class that requires
+    explicit evidence (operator decision 2026-11-02).
+    """
+
+    return {
+        "type": "array",
+        "items": _object_schema(
+            {
+                "kind": {"enum": [kind.value for kind in EvidenceKind]},
+                "description": {"type": "string", "minLength": 1, "maxLength": 2_000},
+                "source_id": {"type": "string", "maxLength": 500},
+            },
+            ["kind", "description"],
+        ),
+    }
+
+
+#: What a caller may declare a bare 9- or 10-digit token to be. A declared
+#: epoch or identifier is kept verbatim; a declared phone or SSN is redacted;
+#: an undeclared token is stored redacted and held in quarantine.
+NUMERIC_DECLARATION_KINDS = ("epoch", "identifier", "phone", "ssn")
+
+
+def _numeric_declarations_schema() -> dict[str, Any]:
+    return {
+        "type": "object",
+        "propertyNames": {"pattern": "^[0-9]{9,10}$"},
+        "additionalProperties": {"enum": list(NUMERIC_DECLARATION_KINDS)},
+    }
 
 
 def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
@@ -112,6 +150,8 @@ def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
             "default": 1,
         },
         "consent": _consent_schema(),
+        "evidence": _evidence_schema(),
+        "numeric_declarations": _numeric_declarations_schema(),
         "tags": {"type": "array", "items": {"type": "string"}},
         "supersedes": {
             "type": "array",
@@ -620,6 +660,29 @@ def _required_granted_at(value: dict[str, Any]) -> datetime:
     return granted_at
 
 
+def _numeric_declarations_from_args(args: dict[str, Any]) -> dict[str, str]:
+    raw = args.get("numeric_declarations")
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise ValueError("numeric_declarations must be an object")  # noqa: TRY004
+    declarations: dict[str, str] = {}
+    for token, kind in raw.items():
+        if not (str(token).isdigit() and len(str(token)) in {9, 10}):
+            raise ValueError("numeric_declarations keys must be 9- or 10-digit tokens")
+        if str(kind) not in NUMERIC_DECLARATION_KINDS:
+            raise ValueError(
+                f"numeric_declarations values must be one of {', '.join(NUMERIC_DECLARATION_KINDS)}"
+            )
+        declarations[str(token)] = str(kind)
+    return declarations
+
+
+def _declaration_metadata(args: dict[str, Any]) -> dict[str, Any]:
+    declarations = _numeric_declarations_from_args(args)
+    return {NUMERIC_DECLARATIONS_KEY: declarations} if declarations else {}
+
+
 def _evidence_from_args(
     args: dict[str, Any], principal: MemoryPrincipal
 ) -> tuple[EvidenceRef, ...]:
@@ -630,13 +693,15 @@ def _evidence_from_args(
     for item in supplied:
         if not isinstance(item, dict):
             raise ValueError("evidence items must be objects")  # noqa: TRY004
-        refs.append(
-            EvidenceRef(
-                kind=EvidenceKind(str(item["kind"])),
-                description=str(item["description"]),
-                source_id=str(item["source_id"]) if item.get("source_id") else None,
-            )
-        )
+        kind = EvidenceKind(str(item["kind"]))
+        description = str(item["description"])
+        source_id = str(item["source_id"]) if item.get("source_id") else None
+        if kind is EvidenceKind.EXPLICIT:
+            # The server decides explicit evidence, never the caller: a claim
+            # is kept as a claim (operator decision 2026-11-02).
+            refs.append(caller_asserted_explicit(description, source_id=source_id))
+            continue
+        refs.append(EvidenceRef(kind=kind, description=description, source_id=source_id))
     refs.append(
         EvidenceRef(
             kind=EvidenceKind.OBSERVATION,
@@ -747,6 +812,7 @@ class MCPToolApplication:
             supersedes=tuple(UUID(str(value)) for value in args.get("supersedes", [])),
             references=tuple(UUID(str(value)) for value in args.get("references", [])),
             consent=consent,
+            metadata=_declaration_metadata(args),
             dry_run=bool(args.get("dry_run", False)),
         )
 
