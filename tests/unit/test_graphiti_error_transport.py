@@ -12,7 +12,12 @@
 
 from __future__ import annotations
 
+import email.message
+import http.client
+import io
+import json
 import threading
+import urllib.error
 from typing import Any
 from uuid import uuid4
 
@@ -274,3 +279,145 @@ def test_an_explicit_false_isError_with_a_locator_is_accepted() -> None:
     assert result["locator"] == "provider-7"
     assert result["pending_ingest"] is False
 
+
+# --- T16: transport faults reach the breaker; isError is breaker-neutral ----
+
+
+def _json_reply(body: dict[str, Any]) -> tuple[email.message.Message, bytes]:
+    headers = email.message.Message()
+    headers["Content-Type"] = "application/json"
+    return headers, json.dumps(body).encode("utf-8")
+
+
+_IS_ERROR_REPLY = {
+    "jsonrpc": "2.0",
+    "id": "l9-memory",
+    "result": {"isError": True, "content": [{"type": "text", "text": "Error: rejected"}]},
+}
+
+
+@pytest.mark.parametrize(
+    "fault",
+    [
+        # socket.timeout is an alias of TimeoutError on the supported Pythons.
+        pytest.param(TimeoutError("timed out"), id="TimeoutError"),
+        pytest.param(http.client.RemoteDisconnected("closed"), id="RemoteDisconnected"),
+        pytest.param(ConnectionResetError("reset"), id="ConnectionResetError"),
+    ],
+)
+def test_a_socket_fault_is_an_availability_failure(fault: BaseException) -> None:
+    transport = _transport()
+
+    def post(payload: dict, *, timeout: int | None = None) -> Any:
+        raise fault
+
+    transport._post = post  # type: ignore[method-assign]
+    with pytest.raises(ProjectionError, match="unreachable") as raised:
+        transport._rpc("tools/list", {})
+    assert raised.value.__cause__ is fault
+    assert transport.circuit.snapshot().failure_count == 1
+
+
+def test_three_consecutive_timeouts_open_the_breaker() -> None:
+    transport = _transport(CircuitBreaker(failure_threshold=3))
+
+    def post(payload: dict, *, timeout: int | None = None) -> Any:
+        raise TimeoutError("timed out")
+
+    transport._post = post  # type: ignore[method-assign]
+    for _ in range(3):
+        with pytest.raises(ProjectionError, match="unreachable"):
+            transport._rpc("tools/list", {})
+    snapshot = transport.circuit.snapshot()
+    assert snapshot.state is CircuitState.OPEN
+    assert snapshot.failure_count == 3
+    with pytest.raises(ProjectionError, match="circuit is open"):
+        transport._rpc("tools/list", {})
+
+
+def test_a_timeout_during_initialize_reaches_the_breaker() -> None:
+    transport = HttpMcpTransport(url="http://127.0.0.1:9", circuit_breaker=CircuitBreaker())
+
+    def post(payload: dict, *, timeout: int | None = None) -> Any:
+        raise TimeoutError("timed out")
+
+    transport._post = post  # type: ignore[method-assign]
+    with pytest.raises(ProjectionError, match="during initialize"):
+        transport._rpc("tools/list", {})
+    assert transport.circuit.snapshot().failure_count == 1
+
+
+def test_an_isError_reply_after_a_transport_failure_leaves_the_count() -> None:
+    transport = _transport()
+    replies: list[Any] = [TimeoutError("timed out"), _json_reply(_IS_ERROR_REPLY)]
+
+    def post(payload: dict, *, timeout: int | None = None) -> Any:
+        reply = replies.pop(0)
+        if isinstance(reply, BaseException):
+            raise reply
+        return reply
+
+    transport._post = post  # type: ignore[method-assign]
+    with pytest.raises(ProjectionError, match="unreachable"):
+        transport.call_tool("add_memory", {"name": "memory:1"})
+    assert transport.circuit.snapshot().failure_count == 1
+    with pytest.raises(ProjectionError, match="isError"):
+        transport.call_tool("add_memory", {"name": "memory:1"})
+    # Neither incremented (the provider answered) nor reset (the call failed).
+    assert transport.circuit.snapshot().failure_count == 1
+
+
+@pytest.mark.parametrize("flag", ["true", 1, None], ids=["string", "integer", "null"])
+def test_a_non_boolean_isError_is_refused_and_breaker_neutral(flag: Any) -> None:
+    transport = _transport()
+    transport.circuit.record_failure()
+    transport._rpc_once = lambda payload, timeout, retry_on_session_error: {  # type: ignore[method-assign]
+        "result": {"isError": flag, "content": [{"type": "text", "text": "ok?"}]}
+    }
+    with pytest.raises(ProjectionError, match="isError"):
+        transport.call_tool("add_memory", {"name": "memory:1"})
+    assert transport.circuit.snapshot().failure_count == 1
+
+
+def test_a_successful_reply_still_resets_prior_failures() -> None:
+    transport = _transport()
+    transport.circuit.record_failure()
+    transport._post = lambda payload, *, timeout=None: _json_reply(  # type: ignore[method-assign]
+        {"jsonrpc": "2.0", "id": "l9-memory", "result": {"tools": []}}
+    )
+    assert transport.list_tools() == []
+    assert transport.circuit.snapshot().failure_count == 0
+
+
+# --- T17: mutant kills -------------------------------------------------------
+
+
+def test_a_failed_rehandshake_after_an_expired_session_records_a_failure() -> None:
+    # The server dropped the session: the retry path re-handshakes once. When
+    # that handshake fails, the breaker must hear about it.
+    transport = _transport(CircuitBreaker(failure_threshold=1))
+
+    def post(payload: dict, *, timeout: int | None = None) -> Any:
+        raise urllib.error.HTTPError(
+            transport.url,
+            404,
+            "Not Found",
+            email.message.Message(),
+            io.BytesIO(b"Session not found"),
+        )
+
+    def handshake(**kwargs: Any) -> None:
+        raise ProjectionError("initialize failed")
+
+    transport._post = post  # type: ignore[method-assign]
+    transport._ensure_session = handshake  # type: ignore[method-assign]
+    with pytest.raises(ProjectionError, match="initialize failed"):
+        transport._rpc_once(
+            {"jsonrpc": "2.0", "id": "l9-memory", "method": "tools/list", "params": {}},
+            timeout=None,
+            retry_on_session_error=True,
+        )
+    assert transport._session_id is None
+    snapshot = transport.circuit.snapshot()
+    assert snapshot.failure_count == 1
+    assert snapshot.state is CircuitState.OPEN
