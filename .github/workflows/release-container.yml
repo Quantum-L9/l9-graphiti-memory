@@ -111,6 +111,10 @@ jobs:
         env:
           L9_MEMORY_TEST_CARRIER_IMAGE: l9-graphite-memory:carrier-smoke
           PYTHONPATH: src
+        # Explicit bash is `bash --noprofile --norc -eo pipefail {0}`; the
+        # unspecified default is `bash -e {0}`, under which `tee` would hide a
+        # failing carrier test and the job would pass.
+        shell: bash
         run: .venv/bin/python -m pytest -q -rs tests/deployment/carrier | tee carrier.log
       - name: Fail if any carrier test skipped
         run: |

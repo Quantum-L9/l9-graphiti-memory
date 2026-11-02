@@ -156,6 +156,23 @@ def test_the_carrier_proof_cannot_pass_by_skipping() -> None:
     assert "^SKIPPED" in _step("carrier-smoke", "Fail if any carrier test skipped")["run"]
 
 
+def test_every_piped_run_step_fails_when_any_command_in_the_pipe_fails() -> None:
+    # GitHub runs an unspecified Linux shell as `bash -e {0}`, which has no
+    # pipefail: `pytest ... | tee log` then exits with tee's status and a
+    # failing test passes the step. Only an explicit `shell: bash` runs
+    # `bash --noprofile --norc -eo pipefail {0}` (workflow syntax, "defaults.run.shell").
+    workflow = _workflow()
+    workflow_shell = workflow.get("defaults", {}).get("run", {}).get("shell")
+    piped = []
+    for name, job in _jobs().items():
+        job_shell = job.get("defaults", {}).get("run", {}).get("shell", workflow_shell)
+        for step in job.get("steps", []):
+            if "|" in str(step.get("run", "")):
+                piped.append((name, step.get("name")))
+                assert step.get("shell", job_shell) == "bash", (name, step.get("name"))
+    assert ("carrier-smoke", "Run the carrier suite against the image") in piped
+
+
 @pytest.mark.parametrize(
     ("tag", "source", "expected"),
     [
