@@ -98,8 +98,9 @@ jobs:
           L9_SEMANTIC_AUTHORITY_ROOT: build/semantic-authority
       # Release evidence (audit P2-03): a coverage report the release-analysis
       # tooling can map to new code. Collected as a separate run against the
-      # full suite so the evidence generator's exact "N passed" pin above is
-      # untouched; coverage.xml is uploaded next to the validation manifest.
+      # full suite so the release-validation run that V-001 derives its suite
+      # proof from (ADR-101) is untouched; coverage.xml is uploaded next to the
+      # validation manifest.
       - name: Collect coverage report
         run: >-
           PYTHONPATH=src pytest -q -p no:cacheprovider
@@ -218,7 +219,7 @@ jobs:
   #
   # A separate job for the same reasons as constellation-contract: a Neo4j or
   # GDS download outage fails a check that names the graph backend, and the
-  # V-001 execution count pinned for `validate` stays put.
+  # suite that V-001 derives its proof from for `validate` (ADR-101) stays put.
   graph-live:
     runs-on: ubuntu-latest
     services:

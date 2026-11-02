@@ -1,0 +1,6 @@
+{
+	"schema": "l9.suite-declared-removals/v1",
+	"authority": "docs/adr/ADR-101-derived-suite-count-validation.md",
+	"note": "A test node id collected at the merge-base with origin/main but absent from the candidate's collection fails V-001 unless it is listed here with the reason for its removal. Entries for ids already gone from origin/main are inert and may be dropped by any later change.",
+	"removals": []
+}

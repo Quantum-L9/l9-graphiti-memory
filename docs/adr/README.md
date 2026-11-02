@@ -124,6 +124,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-098 | [Remote MCP Transport and Signed-Agent HTTP Identity](ADR-098-remote-mcp-transport-and-signed-agent-http-identity.md) | Streamable HTTP retained; signed-agent identity superseded by ADR-100 |
 | ADR-099 | [Retire the Repository File Inventory and L9_META Enforcement](ADR-099-retire-repository-inventory-and-l9-meta-enforcement.md) | Accepted |
 | ADR-100 | [Native OAuth MCP Full Cutover](ADR-100-native-oauth-mcp-full-cutover.md) | Accepted |
+| ADR-101 | [Derived Suite Validation Replaces the V-001 Pass-Count Pin](ADR-101-derived-suite-count-validation.md) | Accepted |
 
 ## Pending target amendments (Memory 3.0.0)
 
@@ -170,4 +171,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-100 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-101 ledger and all mandatory sections.

@@ -6,6 +6,7 @@ points back. This test does not claim the old doors are unreachable.
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -51,13 +52,7 @@ def test_predecessors_point_at_adr_100_without_losing_original_status() -> None:
         assert "ADR-100" in status
 
 
-def test_index_lists_adr_100() -> None:
-    index = (ADR / "README.md").read_text(encoding="utf-8")
-    assert "ADR-100-native-oauth-mcp-full-cutover.md" in index
-    assert "ADR-001 through ADR-100" in index
-
-
-def test_adr_ledger_validates_through_100() -> None:
+def _validated_ledger_size() -> int:
     completed = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "assurance" / "validate_adrs.py")],
         cwd=ROOT,
@@ -66,7 +61,23 @@ def test_adr_ledger_validates_through_100() -> None:
         text=True,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
-    assert "PASS: 100 ADRs complete and indexed" in completed.stdout
+    match = re.search(r"PASS: (\d+) ADRs complete and indexed", completed.stdout)
+    assert match, completed.stdout
+    return int(match.group(1))
+
+
+def test_index_lists_adr_100() -> None:
+    # The index names the whole contiguous ledger, which reaches ADR-100 and
+    # may extend past it as later records are accepted (ADR-101 onward).
+    index = (ADR / "README.md").read_text(encoding="utf-8")
+    assert "ADR-100-native-oauth-mcp-full-cutover.md" in index
+    size = _validated_ledger_size()
+    assert size >= 100
+    assert f"ADR-001 through ADR-{size:03d}" in index
+
+
+def test_adr_ledger_validates_through_100() -> None:
+    assert _validated_ledger_size() >= 100
 
 
 def test_published_resource_identifier_is_the_memory_mcp_audience() -> None:
