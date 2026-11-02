@@ -14,10 +14,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import Any
 from uuid import UUID, uuid4
 
 from l9_graphite_memory.admission import AdmissionEngine, normalize_candidate
 from l9_graphite_memory.admission.normalization import (
+    NUMERIC_DECLARATIONS_KEY,
     NormalizationResult,
     canonical_json,
     sha256_text,
@@ -325,17 +327,19 @@ class MemoryService:
             action,
             request.namespace,
         )
-        normalization = normalize_candidate(
-            request.content,
-            context={
-                "namespace": request.namespace,
-                "memory_class": request.memory_class.value,
-                "assertion": request.assertion.model_dump(mode="json")
-                if request.assertion
-                else None,
-                "consent_id": str(request.consent.consent_id) if request.consent else None,
-            },
-        )
+        context: dict[str, Any] = {
+            "namespace": request.namespace,
+            "memory_class": request.memory_class.value,
+            "assertion": request.assertion.model_dump(mode="json") if request.assertion else None,
+            "consent_id": str(request.consent.consent_id) if request.consent else None,
+        }
+        # Present only when declared, so the digest of every other write is
+        # unchanged. The declarations name raw tokens (a declared SSN among
+        # them), so they reach normalization and never the persisted record.
+        declarations = request.metadata.get(NUMERIC_DECLARATIONS_KEY)
+        if declarations:
+            context[NUMERIC_DECLARATIONS_KEY] = declarations
+        normalization = normalize_candidate(request.content, context=context)
         idempotency_key = self._operation_identity(request)
         existing = (
             self.store.find_by_idempotency(
@@ -402,7 +406,11 @@ class MemoryService:
             state=state,
             tags=request.tags,
             metadata={
-                **request.metadata,
+                **{
+                    key: value
+                    for key, value in request.metadata.items()
+                    if key != NUMERIC_DECLARATIONS_KEY
+                },
                 "pii_redacted": bool(normalization.pii_types),
                 "pii_types": list(normalization.pii_types),
                 "safety_signals": list(normalization.safety_signals),
