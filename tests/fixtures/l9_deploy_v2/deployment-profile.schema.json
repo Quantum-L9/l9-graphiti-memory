@@ -1,0 +1,563 @@
+{
+  "x-l9-meta": {
+    "l9_schema": 1,
+    "origin": "l9-deployment-platform",
+    "layer": [
+      "repository"
+    ],
+    "tags": [
+      "L9_META",
+      "deployment-platform"
+    ],
+    "owner": "platform",
+    "status": "active"
+  },
+  "$id": "https://schemas.quantum-l9.invalid/l9/deployment-profile/v2",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "project": {
+            "properties": {
+              "runtime_profile": {
+                "const": "stateful-container"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "backup",
+          "storage",
+          "services"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "image": {
+          "pattern": "^ghcr\\.io/[a-z0-9._-]+/[a-z0-9._/-]+$",
+          "type": "string"
+        },
+        "registry": {
+          "const": "ghcr.io"
+        }
+      },
+      "required": [
+        "registry",
+        "image"
+      ],
+      "type": "object"
+    },
+    "backup": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "restore_test_command": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "timeout_seconds": {
+          "maximum": 7200,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "verify_command": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "command",
+        "verify_command",
+        "restore_test_command",
+        "timeout_seconds"
+      ],
+      "type": "object"
+    },
+    "health": {
+      "additionalProperties": false,
+      "properties": {
+        "post_deploy": {
+          "$ref": "https://schemas.quantum-l9.invalid/l9/health-probe/v1"
+        },
+        "startup": {
+          "$ref": "https://schemas.quantum-l9.invalid/l9/health-probe/v1"
+        }
+      },
+      "required": [
+        "startup",
+        "post_deploy"
+      ],
+      "type": "object"
+    },
+    "migrations": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "command",
+              "mode",
+              "use_release_image",
+              "timeout_seconds"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "backup_required": {
+          "type": "boolean"
+        },
+        "command": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "mode": {
+          "enum": [
+            "pre_start",
+            "post_start",
+            "manual"
+          ]
+        },
+        "rollback_safe": {
+          "default": false,
+          "type": "boolean"
+        },
+        "timeout_seconds": {
+          "maximum": 3600,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "use_release_image": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled",
+        "backup_required"
+      ],
+      "type": "object"
+    },
+    "project": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "type": "string"
+        },
+        "owner_team": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "repository": {
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
+          "type": "string"
+        },
+        "runtime_profile": {
+          "enum": [
+            "container-service",
+            "worker-service",
+            "stateful-container"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "repository",
+        "owner_team",
+        "runtime_profile"
+      ],
+      "type": "object"
+    },
+    "release": {
+      "additionalProperties": false,
+      "properties": {
+        "automatic_rollback": {
+          "type": "boolean"
+        },
+        "stabilization_seconds": {
+          "default": 30,
+          "maximum": 900,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "strategy": {
+          "const": "replace"
+        }
+      },
+      "required": [
+        "strategy",
+        "automatic_rollback"
+      ],
+      "type": "object"
+    },
+    "runtime": {
+      "additionalProperties": false,
+      "properties": {
+        "architecture": {
+          "enum": [
+            "linux/amd64",
+            "linux/arm64"
+          ]
+        },
+        "command": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "container_port": {
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "environment": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "read_only_root_filesystem": {
+          "default": false,
+          "type": "boolean"
+        },
+        "stop_grace_seconds": {
+          "maximum": 300,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "user": {
+          "enum": [
+            "non_root",
+            "image_defined"
+          ]
+        },
+        "volumes": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "read_only": {
+                "type": "boolean"
+              },
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "target"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "architecture",
+        "user",
+        "stop_grace_seconds"
+      ],
+      "type": "object"
+    },
+    "schema": {
+      "const": "l9.deployment-profile/v2"
+    },
+    "secrets": {
+      "additionalProperties": false,
+      "properties": {
+        "authority": {
+          "const": "infisical"
+        },
+        "project_slug": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "runtime_mode": {
+          "const": "deploy_render"
+        }
+      },
+      "required": [
+        "authority",
+        "runtime_mode",
+        "project_slug"
+      ],
+      "type": "object"
+    },
+    "services": {
+      "additionalProperties": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": [
+              "external",
+              "none"
+            ]
+          },
+          "probe": {
+            "$ref": "https://schemas.quantum-l9.invalid/l9/health-probe/v1"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mode",
+          "required"
+        ],
+        "type": "object"
+      },
+      "type": "object"
+    },
+    "storage": {
+      "additionalProperties": false,
+      "properties": {
+        "persistent_volumes": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "backup_policy": {
+                "enum": [
+                  "none",
+                  "before_deploy"
+                ]
+              },
+              "mount_path": {
+                "pattern": "^/",
+                "type": "string"
+              },
+              "name": {
+                "pattern": "^[a-z][a-z0-9-]{1,63}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "mount_path",
+              "backup_policy"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "targets": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]{1,31}$"
+      },
+      "additionalProperties": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "server",
+          "host",
+          "ingress",
+          "allowed_source_refs",
+          "secrets_environment"
+        ],
+        "properties": {
+          "server": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "address",
+              "ssh",
+              "host_key"
+            ],
+            "properties": {
+              "address": {
+                "minLength": 1,
+                "maxLength": 253,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9.:-]*$",
+                "type": "string"
+              },
+              "ssh": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "user",
+                  "port"
+                ],
+                "properties": {
+                  "user": {
+                    "pattern": "^[a-z_][a-z0-9_-]{0,31}$",
+                    "type": "string"
+                  },
+                  "port": {
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "type": "integer"
+                  }
+                }
+              },
+              "host_key": {
+                "pattern": "^(ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|ssh-rsa) [A-Za-z0-9+/]+={0,3}$",
+                "type": "string"
+              }
+            }
+          },
+          "host": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "docker",
+              "backup_tools"
+            ],
+            "properties": {
+              "docker": {
+                "enum": [
+                  "managed",
+                  "verify"
+                ]
+              },
+              "backup_tools": {
+                "enum": [
+                  "none",
+                  "postgres"
+                ]
+              }
+            }
+          },
+          "ingress": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "mode",
+              "hostnames"
+            ],
+            "properties": {
+              "mode": {
+                "enum": [
+                  "none",
+                  "caddy",
+                  "external"
+                ]
+              },
+              "hostnames": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array",
+                "uniqueItems": true
+              },
+              "host_port": {
+                "type": "integer",
+                "minimum": 1024,
+                "maximum": 65535
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "hostnames": {
+                      "maxItems": 0
+                    }
+                  },
+                  "not": {
+                    "required": [
+                      "host_port"
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "caddy",
+                        "external"
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "hostnames": {
+                      "minItems": 1
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "allowed_source_refs": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "secrets_environment": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "project",
+    "artifact",
+    "runtime",
+    "health",
+    "release",
+    "migrations",
+    "secrets",
+    "targets"
+  ],
+  "title": "L9 Deployment Profile",
+  "type": "object"
+}
