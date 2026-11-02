@@ -5,8 +5,8 @@
 #   layer: test
 #   owner: memory-control-plane
 #   status: active
-#   version: 1.0.0
-#   updated: 2026-10-27
+#   version: 1.1.0
+#   updated: 2026-11-02
 
 """Graphiti isError, breaker classification, and phantom-link refusal."""
 
@@ -23,8 +23,13 @@ from l9_graphite_memory.adapters.graphiti_projection import inventory_phantom_li
 from l9_graphite_memory.circuit_breaker import CircuitBreaker, CircuitState
 from l9_graphite_memory.contracts import ProjectionLink
 from l9_graphite_memory.errors import ProjectionError
+from l9_graphite_memory.graph import graph_group_id
 from l9_graphite_memory.transport import HttpMcpTransport, rpc_error_is_availability
 from tests.graph_fakes import seeded_memory
+
+# The official Graphiti MCP v0.30.2 add_memory SuccessResponse text
+# (mcp_server/src/graphiti_mcp_server.py:492-494).
+_OFFICIAL_QUEUED = "Episode 'memory:1' queued for processing in group 'group-1'"
 
 
 def _record():
@@ -70,7 +75,7 @@ def test_queued_acceptance_keeps_a_pending_name_locator() -> None:
 
     class Transport:
         def write(self, body: str, group_id: str, kind: str = "observation", **kwargs: Any) -> dict:
-            return {"message": "Episode 'memory:1' queued for processing in group"}
+            return {"message": _OFFICIAL_QUEUED}
 
     result = GraphitiProjection(Transport()).project(record)
     assert result["pending_ingest"] is True
@@ -99,7 +104,7 @@ def test_graphiti_add_memory_signature_translates_metadata() -> None:
     def call_tool(name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
         captured["name"] = name
         captured["arguments"] = arguments
-        return {"message": "Episode 'memory:1' queued for processing in group"}
+        return {"message": _OFFICIAL_QUEUED}
 
     transport.list_tools = list_tools  # type: ignore[method-assign]
     transport.call_tool = call_tool  # type: ignore[method-assign]
@@ -218,3 +223,54 @@ def test_phantom_link_reconciliation_dry_run() -> None:
     assert receipt["candidates"][0]["provider_confirmed"] is False
     assert receipt["candidates"][0]["locator"] == name_link.locator
     assert name_link.locator.startswith("graphiti-episode-name:")
+
+
+# --- T15: acceptance is positive -------------------------------------------
+
+
+def _projection_returning(reply: Any) -> GraphitiProjection:
+    class Transport:
+        def write(self, body: str, group_id: str, kind: str = "observation", **kwargs: Any) -> Any:
+            return reply
+
+    return GraphitiProjection(Transport())  # type: ignore[arg-type]
+
+
+def test_the_exact_official_queued_message_is_accepted_as_pending() -> None:
+    record = _record()
+    group = graph_group_id(record.tenant_id, record.namespace)
+    message = f"Episode 'memory:{record.record_id}' queued for processing in group '{group}'"
+    result = _projection_returning({"message": message}).project(record)
+    assert result["pending_ingest"] is True
+    assert result["locator"] == f"graphiti-episode-name:{group}:memory:{record.record_id}"
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        pytest.param({"message": "Episode was not queued: Neo4j unavailable"}, id="negated-queued"),
+        pytest.param({"message": "Error queuing episode: boom"}, id="error-text"),
+        pytest.param({"message": "queued"}, id="bare-queued-word"),
+        pytest.param(
+            {"message": _OFFICIAL_QUEUED + " but ingestion failed"}, id="official-prefix-only"
+        ),
+        pytest.param({"error": "boom", "episode_uuid": "provider-7"}, id="error-beside-locator"),
+        pytest.param({"result": {"error": "boom", "uuid": "x"}}, id="nested-error-beside-locator"),
+        pytest.param({"isError": "true", "episode_uuid": "provider-7"}, id="string-isError"),
+        pytest.param({"isError": 1, "message": _OFFICIAL_QUEUED}, id="integer-isError"),
+        pytest.param({"isError": None, "episode_uuid": "provider-7"}, id="null-isError"),
+        pytest.param({"result": {"isError": True, "uuid": "x"}}, id="nested-isError"),
+    ],
+)
+def test_a_refused_reply_shape_installs_no_link(reply: dict[str, Any]) -> None:
+    with pytest.raises(ProjectionError, match="not accepted"):
+        _projection_returning(reply).project(_record())
+
+
+def test_an_explicit_false_isError_with_a_locator_is_accepted() -> None:
+    result = _projection_returning({"isError": False, "episode_uuid": "provider-7"}).project(
+        _record()
+    )
+    assert result["locator"] == "provider-7"
+    assert result["pending_ingest"] is False
+

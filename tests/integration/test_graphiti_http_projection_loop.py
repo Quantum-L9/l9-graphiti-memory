@@ -84,7 +84,9 @@ class FakeGraphitiState:
 
     def add_memory(self, arguments: dict[str, Any]) -> dict[str, Any]:
         name = str(arguments.get("name"))
-        queued = {"message": f"Episode '{name}' queued for processing in group"}
+        group = arguments.get("group_id")
+        # The official v0.30.2 SuccessResponse text, verbatim.
+        queued = {"message": f"Episode '{name}' queued for processing in group '{group}'"}
         with self.lock:
             supplied = arguments.get("uuid")
             if supplied and not any(e["uuid"] == supplied for e in self.episodes.values()):

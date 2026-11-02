@@ -32,6 +32,14 @@ from l9_graphite_memory.transport import MemoryTransport
 # rendering's ``record_id="<uuid>"`` line, so hits from either delivery resolve.
 _RECORD_ID_PATTERN = re.compile(r'"?record_id"?\s*[:=]\s*"([0-9a-fA-F-]{36})"')
 
+# The official Graphiti MCP server's add_memory success reply (v0.30.2,
+# mcp_server/src/graphiti_mcp_server.py:492-494):
+#   SuccessResponse(message=f"Episode '{name}' queued for processing in group
+#   '{effective_group_id}'")
+# Acceptance matches this shape whole; a substring test for "queued" also
+# accepted "Episode was not queued: ..." (F-001).
+_QUEUED_SUCCESS = re.compile(r"Episode '.+' queued for processing in group '.*'", re.DOTALL)
+
 # Graphiti (v0.30.2) treats a caller-supplied episode uuid as "update the
 # existing episode" and fails when none exists; the official MCP server queues
 # that write and swallows the failure. Episodes are therefore created with a
@@ -149,22 +157,39 @@ class GraphitiProjection:
                     return nested
         return None
 
+    @classmethod
+    def _carries_error(cls, result: Any) -> bool:
+        """Whether a write reply, or any envelope a locator is read from, errs.
+
+        ``isError`` is a boolean in MCP; anything present and not ``False``
+        (``True``, ``"true"``, ``1``, ``None``) is refused rather than guessed
+        at. An ``error`` key with a value is an error even when a locator sits
+        beside it.
+        """
+
+        if not isinstance(result, dict):
+            return False
+        if "isError" in result and result["isError"] is not False:
+            return True
+        if result.get("error") is not None:
+            return True
+        return any(cls._carries_error(result.get(key)) for key in ("result", "data", "episode"))
+
     def _provider_accepted(self, result: dict[str, Any]) -> bool:
         """True only for a write the provider actually accepted.
 
-        A name locator is allowed for the official queued-message shape,
-        which means ingestion is still pending. An error string, an isError
-        envelope, or any other ambiguous body is not acceptance (F-001).
+        Acceptance is positive: a real locator, or the official queued-success
+        message (``_QUEUED_SUCCESS``), which means ingestion is still pending.
+        A negation such as "not queued", an error string, an error beside a
+        locator, a non-boolean isError, or any other body is not (F-001).
         """
 
-        if result.get("isError") is True or result.get("error"):
+        if self._carries_error(result):
             return False
         if self._extract_locator(result):
             return True
         message = result.get("message")
-        if isinstance(message, str) and "queued" in message.lower():
-            return not message.lower().startswith("error")
-        return False
+        return isinstance(message, str) and _QUEUED_SUCCESS.fullmatch(message) is not None
 
     def _settle_write(self, record: MemoryRecord, result: Any, group_id: str) -> dict[str, Any]:
         if not isinstance(result, dict):
