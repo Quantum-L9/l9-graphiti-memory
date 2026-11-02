@@ -559,3 +559,32 @@ def test_a_resolved_base_is_exported_and_collected(tmp_path: Path) -> None:
     ids, errors = MODULE.parse_collect_only(base_log.read_text(), "base")
     assert errors == 0
     assert "tests/test_sample.py::test_param[c::d]" in ids
+
+
+def test_every_workflow_running_release_validation_checks_out_full_history() -> None:
+    """V-001 rule 4 needs origin/main; a shallow checkout makes it UNKNOWN.
+
+    publish.yml once checked out the release tag shallowly, which would have
+    blocked every release (review finding on PR #109).
+    """
+    import yaml
+
+    workflows = sorted((REPO_ROOT / ".github" / "workflows").glob("*.yml"))
+    checked = []
+    for path in workflows:
+        doc = yaml.safe_load(path.read_text())
+        for name, job in (doc.get("jobs") or {}).items():
+            steps = job.get("steps") or []
+            if not any("validate_release.sh" in str(step.get("run", "")) for step in steps):
+                continue
+            checkouts = [
+                step
+                for step in steps
+                if str(step.get("uses", "")).startswith("actions/checkout@")
+                and not (step.get("with") or {}).get("repository")
+            ]
+            assert checkouts, f"{path.name}:{name} runs release validation without a checkout"
+            depth = (checkouts[0].get("with") or {}).get("fetch-depth")
+            assert depth == 0, f"{path.name}:{name} must check out with fetch-depth: 0 (ADR-101)"
+            checked.append(f"{path.name}:{name}")
+    assert checked, "no workflow runs scripts/validate_release.sh"

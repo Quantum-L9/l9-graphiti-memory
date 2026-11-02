@@ -25,9 +25,9 @@ jobs:
   validate-and-publish:
     runs-on: ubuntu-latest
     environment: release
-    # `validate_release.sh` records an exact test-count proof. Its expected
-    # count includes the PostgreSQL and Redis matrices, so a publish job must
-    # provision the same backends as CI.
+    # `validate_release.sh` derives the V-001 suite proof (ADR-101). Its `ci`
+    # skip profile refuses a lost PostgreSQL or Redis backend, so a publish
+    # job must provision the same backends as CI.
     services:
       postgres:
         image: postgres:16
@@ -71,6 +71,10 @@ jobs:
           # Manual dispatches run this workflow from the default branch. Check
           # out the immutable tag so validation and publication use its source.
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
+          # Full history: V-001 (ADR-101) compares the collected test set with
+          # its merge-base against origin/main. A shallow tag checkout has no
+          # origin/main, so the check would be UNKNOWN and block every release.
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
