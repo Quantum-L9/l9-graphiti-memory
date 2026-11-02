@@ -19,6 +19,8 @@ from uuid import UUID
 
 from pydantic import ValidationError
 
+from l9_graphite_memory.admission.normalization import NUMERIC_DECLARATIONS_KEY
+from l9_graphite_memory.admission.policy import caller_asserted_explicit
 from l9_graphite_memory.contracts import (
     AuthorizationAction,
     CloseRequest,
@@ -44,6 +46,11 @@ from l9_graphite_memory.contracts.class_vocabulary import (
     agent_writable_summary,
     alias_summary,
     resolve_memory_class,
+)
+from l9_graphite_memory.contracts.identity import (
+    caller_identity_argument,
+    oauth_actor_ref,
+    oauth_grant_claims_operator,
 )
 from l9_graphite_memory.curation.procedural import (
     PatternProceduralSynthesizer,
@@ -74,10 +81,46 @@ def _consent_schema() -> dict[str, Any]:
             "evidence_description": {"type": "string"},
             "source_id": {"type": "string"},
             "allowed_classes": {"type": "array", "items": {"type": "string"}},
+            "granted_at": {"type": "string", "format": "date-time"},
             "expires_at": {"type": "string", "format": "date-time"},
         },
-        ["subject_id", "purpose", "evidence_description"],
+        ["subject_id", "purpose", "evidence_description", "granted_at"],
     )
+
+
+def _evidence_schema() -> dict[str, Any]:
+    """Caller-supplied evidence. The server decides what counts as explicit.
+
+    An item sent with ``kind: explicit`` is recorded as a caller-asserted,
+    OBSERVATION-grade reference; it never satisfies a class that requires
+    explicit evidence (operator decision 2026-11-02).
+    """
+
+    return {
+        "type": "array",
+        "items": _object_schema(
+            {
+                "kind": {"enum": [kind.value for kind in EvidenceKind]},
+                "description": {"type": "string", "minLength": 1, "maxLength": 2_000},
+                "source_id": {"type": "string", "maxLength": 500},
+            },
+            ["kind", "description"],
+        ),
+    }
+
+
+#: What a caller may declare a bare 9- or 10-digit token to be. A declared
+#: epoch or identifier is kept verbatim; a declared phone or SSN is redacted;
+#: an undeclared token is stored redacted and held in quarantine.
+NUMERIC_DECLARATION_KINDS = ("epoch", "identifier", "phone", "ssn")
+
+
+def _numeric_declarations_schema() -> dict[str, Any]:
+    return {
+        "type": "object",
+        "propertyNames": {"pattern": "^[0-9]{9,10}$"},
+        "additionalProperties": {"enum": list(NUMERIC_DECLARATION_KINDS)},
+    }
 
 
 def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
@@ -112,6 +155,8 @@ def _write_properties(**extra: dict[str, Any]) -> dict[str, Any]:
             "default": 1,
         },
         "consent": _consent_schema(),
+        "evidence": _evidence_schema(),
+        "numeric_declarations": _numeric_declarations_schema(),
         "tags": {"type": "array", "items": {"type": "string"}},
         "supersedes": {
             "type": "array",
@@ -496,6 +541,28 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     },
 )
 
+# Handlers that never persist canonical or lock state. Every other handler is
+# consequential and requires server-verified actor evidence from an OAuth
+# principal (ADR-100: an OAuth client is not an actor). The gate is an
+# allowlist of read-only handlers, so a handler added later is gated until it
+# is deliberately listed here. Graph operations are read-only (ADR-086).
+_READ_ONLY_HANDLERS = frozenset(
+    {
+        "_search",
+        "_hydrate",
+        "_get",
+        "_conflicts",
+        "_verify_phase_lock",
+        "_lineage",
+        "_health",
+        "_capabilities",
+        "_generated_data_capabilities",
+        "_graph_capabilities",
+        "_graph_operation",
+    }
+)
+
+
 _CANONICAL_HANDLER_METHODS: dict[str, str] = {
     "memory.ingest": "_ingest",
     WRITE_AGENT_TOOL: "_write_agent",
@@ -560,6 +627,14 @@ def mcp_capabilities() -> ControlPlaneCapabilities:
     return build_capabilities(cli_commands=cli_command_names(), mcp_tools=canonical_tool_names())
 
 
+#: Declared input properties per canonical tool. A KeyError for one of these,
+#: absent from the call, is a missing argument; any other is internal.
+_TOOL_INPUT_PROPERTIES: dict[str, frozenset[str]] = {
+    item["name"]: frozenset(item["inputSchema"].get("properties", {}))
+    for item in (*CANONICAL_TOOLS, *GRAPH_TOOLS)
+}
+
+
 def tool_definitions() -> list[dict[str, Any]]:
     definitions = [*CANONICAL_TOOLS, *GRAPH_TOOLS]
     by_name = {item["name"]: item for item in CANONICAL_TOOLS}
@@ -602,12 +677,74 @@ def _consent_from_payload(
         ),
         purpose=str(value["purpose"]),
         evidence=EvidenceRef(
-            kind=EvidenceKind.EXPLICIT,
+            kind=EvidenceKind.OBSERVATION,
             description=str(value["evidence_description"]),
             source_id=str(value.get("source_id") or principal.audit_subject),
         ),
+        granted_at=_required_granted_at(value),
         expires_at=_dt(value.get("expires_at")),
     )
+
+
+def _required_granted_at(value: dict[str, Any]) -> datetime:
+    if "granted_at" not in value:
+        raise ValueError("consent.granted_at is required")
+    granted_at = _dt(value.get("granted_at"))
+    if granted_at is None:
+        raise ValueError("consent.granted_at is required")
+    return granted_at
+
+
+def _numeric_declarations_from_args(args: dict[str, Any]) -> dict[str, str]:
+    raw = args.get("numeric_declarations")
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise ValueError("numeric_declarations must be an object")  # noqa: TRY004
+    declarations: dict[str, str] = {}
+    for token, kind in raw.items():
+        if not (str(token).isdigit() and len(str(token)) in {9, 10}):
+            raise ValueError("numeric_declarations keys must be 9- or 10-digit tokens")
+        if str(kind) not in NUMERIC_DECLARATION_KINDS:
+            raise ValueError(
+                f"numeric_declarations values must be one of {', '.join(NUMERIC_DECLARATION_KINDS)}"
+            )
+        declarations[str(token)] = str(kind)
+    return declarations
+
+
+def _declaration_metadata(args: dict[str, Any]) -> dict[str, Any]:
+    declarations = _numeric_declarations_from_args(args)
+    return {NUMERIC_DECLARATIONS_KEY: declarations} if declarations else {}
+
+
+def _evidence_from_args(
+    args: dict[str, Any], principal: MemoryPrincipal
+) -> tuple[EvidenceRef, ...]:
+    supplied = args.get("evidence") or []
+    if not isinstance(supplied, list):
+        raise ValueError("evidence must be a list")  # noqa: TRY004
+    refs: list[EvidenceRef] = []
+    for item in supplied:
+        if not isinstance(item, dict):
+            raise ValueError("evidence items must be objects")  # noqa: TRY004
+        kind = EvidenceKind(str(item["kind"]))
+        description = str(item["description"])
+        source_id = str(item["source_id"]) if item.get("source_id") else None
+        if kind is EvidenceKind.EXPLICIT:
+            # The server decides explicit evidence, never the caller: a claim
+            # is kept as a claim (operator decision 2026-11-02).
+            refs.append(caller_asserted_explicit(description, source_id=source_id))
+            continue
+        refs.append(EvidenceRef(kind=kind, description=description, source_id=source_id))
+    refs.append(
+        EvidenceRef(
+            kind=EvidenceKind.OBSERVATION,
+            description="authenticated caller submitted this memory through MCP",
+            source_id=principal.audit_subject,
+        )
+    )
+    return tuple(refs)
 
 
 class MCPToolApplication:
@@ -630,10 +767,34 @@ class MCPToolApplication:
         return self._graph
 
     def call(self, principal: MemoryPrincipal, name: str, arguments: dict[str, Any]) -> Any:
+        # Resolve the tool before anything reads the principal: an unknown
+        # name is a method error (-32601) whoever asks, and no handler runs.
         canonical = ALIASES.get(name, name)
         handler_name = _CANONICAL_HANDLER_METHODS.get(canonical)
         if handler_name is None:
             raise KeyError(f"unknown tool: {name}")
+        supplied = caller_identity_argument(arguments)
+        if supplied is not None:
+            raise AuthorizationError(
+                f"tool arguments cannot set {supplied}; actor and surface are server-derived"
+            )
+        if oauth_grant_claims_operator(
+            principal.auth_method,
+            is_admin=principal.is_admin,
+            is_global_admin=principal.is_global_admin,
+        ):
+            raise AuthorizationError("an OAuth grant is not an operator admin grant")
+        if handler_name not in _READ_ONLY_HANDLERS and principal.auth_method == "oauth":
+            actor = oauth_actor_ref(
+                verified_actor_ref=principal.agent_id,
+                evidence_refs=(),
+                oauth_client_id=principal.principal_id,
+            )
+            if actor is None:
+                raise AuthorizationError(
+                    "consequential write requires server-verified actor evidence; "
+                    "an OAuth client is not an actor"
+                )
         handler = getattr(self, handler_name)
         try:
             if handler_name == "_graph_operation":
@@ -641,6 +802,14 @@ class MCPToolApplication:
             return handler(principal, arguments)
         except ValidationError as exc:
             raise ValueError(f"invalid {canonical} arguments: {exc}") from exc
+        except KeyError as exc:
+            # The transport reports a KeyError as a missing argument (-32602).
+            # That is true only for a declared input the caller left out; any
+            # other KeyError is a server fault and must not blame the caller.
+            key = exc.args[0] if exc.args else None
+            if key in _TOOL_INPUT_PROPERTIES.get(canonical, frozenset()) and key not in arguments:
+                raise
+            raise RuntimeError(f"internal error in {canonical}") from exc
 
     def _ingest(self, principal: MemoryPrincipal, args: dict[str, Any]) -> Any:
         return self.service.write(
@@ -699,13 +868,7 @@ class MCPToolApplication:
                 extraction_method="direct-mcp/v1",
                 source_trust=float(args.get("source_trust", 1.0)),
             ),
-            evidence=(
-                EvidenceRef(
-                    kind=EvidenceKind.EXPLICIT,
-                    description="authenticated caller submitted this memory through MCP",
-                    source_id=principal.audit_subject,
-                ),
-            ),
+            evidence=_evidence_from_args(args, principal),
             confidence=Confidence(score=float(args.get("confidence", 1.0)), evidence_count=1),
             valid_from=_dt(args.get("valid_from")) or datetime.now(timezone.utc),
             valid_to=_dt(args.get("valid_to")),
@@ -716,6 +879,7 @@ class MCPToolApplication:
             supersedes=tuple(UUID(str(value)) for value in args.get("supersedes", [])),
             references=tuple(UUID(str(value)) for value in args.get("references", [])),
             consent=consent,
+            metadata=_declaration_metadata(args),
             dry_run=bool(args.get("dry_run", False)),
         )
 

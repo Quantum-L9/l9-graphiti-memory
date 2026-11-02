@@ -78,3 +78,19 @@ def test_index_lists_adr_100() -> None:
 
 def test_adr_ledger_validates_through_100() -> None:
     assert _validated_ledger_size() >= 100
+
+
+def test_published_resource_identifier_is_the_memory_mcp_audience() -> None:
+    from l9_graphite_memory.version import MEMORY_RESOURCE_IDENTIFIER
+
+    identifier = "https://memory.quantumaipartners.com/mcp"
+    assert MEMORY_RESOURCE_IDENTIFIER == identifier
+    text = SUCCESSOR.read_text(encoding="utf-8")
+    assert identifier in text
+    assert "does not contain that receipt" in text
+    host, _, path = identifier.removeprefix("https://").partition("/")
+    assert host == host.lower()
+    assert host == "memory.quantumaipartners.com"
+    assert path == "mcp"
+    assert "?" not in identifier and "#" not in identifier and "@" not in identifier
+    assert "graphiti" not in host

@@ -17,7 +17,7 @@ import re
 from typing import Any
 from uuid import UUID
 
-from l9_graphite_memory.contracts import MemoryRecord, RetirementMode
+from l9_graphite_memory.contracts import MemoryRecord, ProjectionLink, RetirementMode
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.graph import (
     GRAPH_SCOPE_SCHEME,
@@ -31,6 +31,17 @@ from l9_graphite_memory.transport import MemoryTransport
 # Matches the legacy JSON payload (``"record_id": "<uuid>"``) and the compiled
 # rendering's ``record_id="<uuid>"`` line, so hits from either delivery resolve.
 _RECORD_ID_PATTERN = re.compile(r'"?record_id"?\s*[:=]\s*"([0-9a-fA-F-]{36})"')
+
+# The official Graphiti MCP server's add_memory success reply (v0.30.2,
+# mcp_server/src/graphiti_mcp_server.py:492-494):
+#   SuccessResponse(message=f"Episode '{name}' queued for processing in group
+#   '{effective_group_id}'")
+# Acceptance matches this shape whole; a substring test for "queued" also
+# accepted "Episode was not queued: ..." (F-001).
+# Quote-free segments keep the match linear on provider-supplied text (no
+# backtracking across quotes); episode names are ``memory:<uuid>`` and Graphiti
+# group ids are restricted identifiers, so neither contains a quote.
+_QUEUED_SUCCESS = re.compile(r"Episode '[^']+' queued for processing in group '[^']*'")
 
 # Graphiti (v0.30.2) treats a caller-supplied episode uuid as "update the
 # existing episode" and fails when none exists; the official MCP server queues
@@ -61,6 +72,35 @@ def parse_episode_name_locator(locator: str) -> tuple[str, str] | None:
     if not separator or not group_id or not name.startswith("memory:"):
         return None
     return group_id, name
+
+
+def inventory_phantom_links(links: list[ProjectionLink]) -> dict[str, Any]:
+    """Inventory name locators that still need provider confirmation.
+
+    A name locator can be a legitimate queued write or a link installed from
+    a failed tool result. This receipt does not delete anything and does not
+    claim the provider copy is absent. Repair waits on provider confirmation
+    and an operator grant.
+    """
+
+    candidates: list[dict[str, Any]] = []
+    for link in links:
+        if parse_episode_name_locator(link.locator) is None:
+            continue
+        candidates.append(
+            {
+                "record_id": str(link.record_id),
+                "target_identity": link.target_identity,
+                "locator": link.locator,
+                "provider_confirmed": False,
+            }
+        )
+    return {
+        "action": "inventory_only",
+        "provider_absence_proved": False,
+        "candidate_count": len(candidates),
+        "candidates": candidates,
+    }
 
 
 class GraphitiProjection:
@@ -120,15 +160,51 @@ class GraphitiProjection:
                     return nested
         return None
 
+    @classmethod
+    def _carries_error(cls, result: Any) -> bool:
+        """Whether a write reply, or any envelope a locator is read from, errs.
+
+        ``isError`` is a boolean in MCP; anything present and not ``False``
+        (``True``, ``"true"``, ``1``, ``None``) is refused rather than guessed
+        at. An ``error`` key with a value is an error even when a locator sits
+        beside it.
+        """
+
+        if not isinstance(result, dict):
+            return False
+        if "isError" in result and result["isError"] is not False:
+            return True
+        if result.get("error") is not None:
+            return True
+        return any(cls._carries_error(result.get(key)) for key in ("result", "data", "episode"))
+
+    def _provider_accepted(self, result: dict[str, Any]) -> bool:
+        """True only for a write the provider actually accepted.
+
+        Acceptance is positive: a real locator, or the official queued-success
+        message (``_QUEUED_SUCCESS``), which means ingestion is still pending.
+        A negation such as "not queued", an error string, an error beside a
+        locator, a non-boolean isError, or any other body is not (F-001).
+        """
+
+        if self._carries_error(result):
+            return False
+        if self._extract_locator(result):
+            return True
+        message = result.get("message")
+        return isinstance(message, str) and _QUEUED_SUCCESS.fullmatch(message) is not None
+
     def _settle_write(self, record: MemoryRecord, result: Any, group_id: str) -> dict[str, Any]:
         if not isinstance(result, dict):
             result = {"result": result}
-        if result.get("error"):
-            raise ProjectionError(f"projection write failed: {result['error']}")
-        locator = self._extract_locator(result) or episode_name_locator(group_id, record.record_id)
+        if not self._provider_accepted(result):
+            raise ProjectionError(f"projection write was not accepted: {result!r}")
+        extracted = self._extract_locator(result)
+        locator = extracted or episode_name_locator(group_id, record.record_id)
         return {
             **result,
             "locator": locator,
+            "pending_ingest": extracted is None,
             "record_id": str(record.record_id),
             "scope_scheme": GRAPH_SCOPE_SCHEME,
         }

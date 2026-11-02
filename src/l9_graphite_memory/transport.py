@@ -13,7 +13,9 @@
 from __future__ import annotations
 
 import email.message
+import http.client
 import json
+import socket
 import ssl
 import threading
 import urllib.error
@@ -24,6 +26,52 @@ from l9_graphite_memory.circuit_breaker import CircuitBreaker
 from l9_graphite_memory.errors import ProjectionError
 from l9_graphite_memory.rate_limiter import RateLimiter
 from l9_graphite_memory.version import PACKAGE_VERSION
+
+# JSON-RPC codes that describe the request, not the provider's availability.
+# Invalid params (-32602) must not open the circuit (F-019). Server errors
+# -32000..-32099 are availability faults.
+_SEMANTIC_RPC_CODES = frozenset({-32700, -32600, -32601, -32602})
+_ADD_MEMORY_ARGUMENTS = frozenset(
+    {"name", "episode_body", "source", "source_description", "group_id"}
+)
+# Socket-level faults that urllib does not wrap in URLError: a read timeout
+# (socket.timeout is TimeoutError since 3.10), a peer that closed without a
+# status line, and resets/refusals raised while reading the body. Each one is
+# an availability failure and must reach the breaker (F-002).
+_TRANSPORT_FAULTS: tuple[type[BaseException], ...] = (
+    TimeoutError,
+    socket.timeout,
+    http.client.RemoteDisconnected,
+    ConnectionError,
+)
+
+
+def tool_result_is_error(result: Any) -> bool:
+    """Whether an MCP tool result reports a tool-level error.
+
+    ``isError`` is a boolean in MCP. Any value present and not ``False`` is
+    an error rather than a guess, so ``"true"`` or ``1`` cannot pass as
+    success.
+    """
+
+    return isinstance(result, dict) and "isError" in result and result["isError"] is not False
+
+
+def rpc_error_is_availability(error: Any) -> bool:
+    """Whether a JSON-RPC error should count as a Graphiti circuit failure.
+
+    Parse, invalid-request, method-not-found, and invalid-params errors are
+    semantic. Every other integer code counts as an availability fault,
+    including server errors -32000 through -32099, as does any error without
+    an integer code.
+    """
+
+    if not isinstance(error, dict):
+        return True
+    code = error.get("code")
+    if not isinstance(code, int) or isinstance(code, bool):
+        return True
+    return code not in _SEMANTIC_RPC_CODES
 
 
 class MemoryTransport(Protocol):
@@ -163,6 +211,10 @@ class HttpMcpTransport:
                 raise ProjectionError(
                     f"Graphiti MCP unreachable during initialize: {exc.reason}"
                 ) from exc
+            except _TRANSPORT_FAULTS as exc:
+                raise ProjectionError(
+                    f"Graphiti MCP unreachable during initialize: {type(exc).__name__}: {exc}"
+                ) from exc
             session_id = headers.get("Mcp-Session-Id")
             if not session_id:
                 raise ProjectionError(
@@ -181,6 +233,11 @@ class HttpMcpTransport:
                 raise ProjectionError(
                     f"Graphiti MCP notifications/initialized failed: {exc}"
                 ) from exc
+            except _TRANSPORT_FAULTS as exc:
+                self._session_id = None
+                raise ProjectionError(
+                    f"Graphiti MCP notifications/initialized failed: {type(exc).__name__}: {exc}"
+                ) from exc
 
     def _rpc(
         self,
@@ -192,7 +249,14 @@ class HttpMcpTransport:
         if not self.circuit.can_execute():
             raise ProjectionError("Graphiti MCP circuit is open")
         if method != "initialize":
-            self._ensure_session(timeout=timeout)
+            try:
+                self._ensure_session(timeout=timeout)
+            except ProjectionError:
+                # A failed handshake must report the probe. Leaving HALF_OPEN
+                # without record_failure wedges the breaker (F-002).
+                self._session_id = None
+                self.circuit.record_failure()
+                raise
         payload = {
             "jsonrpc": "2.0",
             "id": "l9-memory",
@@ -201,10 +265,21 @@ class HttpMcpTransport:
         }
         decoded = self._rpc_once(payload, timeout=timeout, retry_on_session_error=True)
         if "error" in decoded:
-            self.circuit.record_failure()
+            if rpc_error_is_availability(decoded["error"]):
+                self.circuit.record_failure()
             raise ProjectionError(json.dumps(decoded["error"], sort_keys=True))
-        self.circuit.record_success()
         result = decoded.get("result", decoded)
+        if tool_result_is_error(result):
+            # A tool-level isError is breaker-neutral (operator decision
+            # 2026-11-02): the provider answered, so it is not an availability
+            # failure, but the call did not succeed either, so it must not
+            # reset failures recorded by earlier calls. Persistent tool errors
+            # are left to outbox retry and dead-letter. Reading content first
+            # would treat "Error: ..." text as a successful payload and install
+            # a link (F-001).
+            tool = (params or {}).get("name", method)
+            raise ProjectionError(f"Graphiti tool {tool} isError: {result.get('content')}")
+        self.circuit.record_success()
         if not isinstance(result, dict):
             return {"value": result}
         return result
@@ -225,18 +300,26 @@ class HttpMcpTransport:
                 # The server-side session expired or the process restarted;
                 # re-handshake once and retry this exact call.
                 self._session_id = None
-                self._ensure_session(timeout=timeout)
+                try:
+                    self._ensure_session(timeout=timeout)
+                except ProjectionError:
+                    self.circuit.record_failure()
+                    raise
                 return self._rpc_once(payload, timeout=timeout, retry_on_session_error=False)
             self.circuit.record_failure()
             raise ProjectionError(f"Graphiti MCP HTTP {exc.code}: {detail}") from exc
         except urllib.error.URLError as exc:
             self.circuit.record_failure()
             raise ProjectionError(f"Graphiti MCP unreachable: {exc.reason}") from exc
+        except _TRANSPORT_FAULTS as exc:
+            self.circuit.record_failure()
+            raise ProjectionError(f"Graphiti MCP unreachable: {type(exc).__name__}: {exc}") from exc
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             self.circuit.record_failure()
             raise ProjectionError(f"Graphiti MCP returned invalid JSON: {exc}") from exc
 
     def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
+        # _rpc refuses an isError result before recording success.
         result = self._rpc("tools/call", {"name": name, "arguments": arguments or {}})
         content = result.get("content")
         if isinstance(content, list) and content and isinstance(content[0], dict):
@@ -330,14 +413,32 @@ class HttpMcpTransport:
         )
         if not tool:
             raise ProjectionError("Graphiti MCP exposes neither add_memory nor add_episode")
-        arguments: dict[str, Any] = {
+        metadata = kwargs.pop("metadata", None)
+        source_description = str(kwargs.pop("source_description", f"l9-memory/{kind}"))
+        if metadata is not None:
+            # Official add_memory does not declare metadata (U-002). Translate
+            # it out of the tool arguments instead of forwarding an unknown key.
+            source_description = f"{source_description} [metadata translated]"
+        arguments = {
             "name": str(kwargs.pop("name", f"{kind}:{body[:80]}")),
             "episode_body": body,
             "source": str(kwargs.pop("source", "json")),
-            "source_description": str(kwargs.pop("source_description", f"l9-memory/{kind}")),
+            "source_description": source_description,
             "group_id": group_id,
-            **kwargs,
         }
+        if "uuid" in kwargs:
+            # Graphiti reads a caller-supplied uuid as "update the existing
+            # episode"; for a new one the queued write fails silently. Episodes
+            # are created without identity and located by name (ADR-091).
+            raise ProjectionError(
+                f"Graphiti {tool} rejected unsupported arguments: uuid "
+                "(ADR-091: episodes are created without a caller-supplied uuid)"
+            )
+        if kwargs:
+            rejected = ", ".join(sorted(kwargs))
+            raise ProjectionError(f"Graphiti {tool} rejected unsupported arguments: {rejected}")
+        if set(arguments) != _ADD_MEMORY_ARGUMENTS:
+            raise ProjectionError(f"Graphiti {tool} argument schema drifted: {sorted(arguments)}")
         result = self.call_tool(tool, arguments)
         if isinstance(result, dict) and result.get("error"):
             raise ProjectionError(str(result["error"]))

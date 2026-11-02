@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -150,3 +151,96 @@ class IdentityAssertion(BaseModel):
         lifted = dict(data)
         lifted["schema_name"] = lifted.pop("schema")
         return lifted
+
+
+#: Tool arguments a caller must not use to name an actor or a surface.
+#: The server derives those coordinates. A public OAuth client id is not one
+#: of them.
+CALLER_IDENTITY_ARGUMENT_KEYS = frozenset(
+    {
+        "actor",
+        "actor_identity",
+        "surface",
+        "surface_identity",
+        "client_id",
+    }
+)
+_CONSEQUENTIAL_OAUTH_METHODS = frozenset({"oauth"})
+
+
+class HostedIdentityCoordinates(BaseModel):
+    """Six hosted coordinates. Unknown is null. Constellation does not apply.
+
+    An OAuth principal is not an actor and not a surface. ``actor_ref`` is set
+    only from server-verified evidence that is not the client id.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    product_ref: str = Field(min_length=1)
+    release_digest: str | None = None
+    runtime_id: str | None = None
+    actor_ref: str | None = None
+    surface_ref: str | None = None
+    constellation: Literal["not_applicable"] = "not_applicable"
+
+
+def caller_identity_argument(arguments: Mapping[str, Any]) -> str | None:
+    """Return a tool argument that tries to supply actor or surface identity."""
+
+    for key in CALLER_IDENTITY_ARGUMENT_KEYS:
+        value = arguments.get(key)
+        if value not in (None, ""):
+            return key
+    return None
+
+
+def oauth_actor_ref(
+    *,
+    verified_actor_ref: str | None,
+    evidence_refs: tuple[str, ...],
+    oauth_client_id: str | None,
+) -> str | None:
+    """Actor coordinate for an OAuth caller. Client id alone does not resolve."""
+
+    if not verified_actor_ref or not evidence_refs:
+        return None
+    if oauth_client_id and verified_actor_ref == oauth_client_id:
+        return None
+    if oauth_client_id and oauth_client_id in evidence_refs:
+        return None
+    return verified_actor_ref
+
+
+def hosted_coordinates_from_oauth(
+    *,
+    product_ref: str,
+    release_digest: str | None,
+    runtime_id: str | None,
+    verified_actor_ref: str | None,
+    evidence_refs: tuple[str, ...],
+    oauth_client_id: str | None,
+    surface_evidence_ref: str | None,
+) -> HostedIdentityCoordinates:
+    """Build hosted coordinates. Surface stays unknown without its own evidence."""
+
+    surface = surface_evidence_ref
+    if not surface or surface == oauth_client_id:
+        surface = None
+    return HostedIdentityCoordinates(
+        product_ref=product_ref,
+        release_digest=release_digest,
+        runtime_id=runtime_id,
+        actor_ref=oauth_actor_ref(
+            verified_actor_ref=verified_actor_ref,
+            evidence_refs=evidence_refs,
+            oauth_client_id=oauth_client_id,
+        ),
+        surface_ref=surface,
+    )
+
+
+def oauth_grant_claims_operator(auth_method: str, *, is_admin: bool, is_global_admin: bool) -> bool:
+    """An ordinary OAuth grant must not arrive already marked as an operator."""
+
+    return auth_method in _CONSEQUENTIAL_OAUTH_METHODS and (is_admin or is_global_admin)

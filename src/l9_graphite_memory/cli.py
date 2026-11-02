@@ -169,6 +169,8 @@ def _consent_from_args(
             description=str(description),
             source_id=getattr(args, "consent_source_id", None) or principal.audit_subject,
         ),
+        granted_at=_parse_datetime(getattr(args, "consent_granted_at", None))
+        or datetime.now(timezone.utc),
         expires_at=_parse_datetime(getattr(args, "consent_expires_at", None)),
     )
 
@@ -1282,13 +1284,16 @@ def _remote_write(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
         raise L9MemoryError(
             "consent-subject-id, consent-purpose, and consent-evidence must be supplied together"
         )
+    # One instant for both defaults: consent issued by this invocation covers
+    # a fact valid from this invocation, and nothing earlier.
+    invoked_at = datetime.now(timezone.utc)
     arguments: dict[str, Any] = {
         "namespace": _remote_namespace(args, _remote_settings(args)),
         "content": args.body,
         "memory_class": args.kind.value,
         "confidence": args.confidence,
         "source_trust": args.source_trust,
-        "valid_from": (_parse_datetime(args.valid_from) or datetime.now(timezone.utc)).isoformat(),
+        "valid_from": (_parse_datetime(args.valid_from) or invoked_at).isoformat(),
         "tags": list(args.tag),
         "supersedes": [str(UUID(value)) for value in args.supersedes],
         "references": [str(UUID(value)) for value in args.references],
@@ -1309,6 +1314,11 @@ def _remote_write(args: argparse.Namespace, client: RemoteMemoryClient) -> int:
             "purpose": args.consent_purpose,
             "evidence_description": args.consent_evidence,
             "allowed_classes": [args.kind.value],
+            # The server requires the issue time (it never assumes one); a
+            # consent recorded without --consent-granted-at was granted now.
+            "granted_at": (
+                _parse_datetime(getattr(args, "consent_granted_at", None)) or invoked_at
+            ).isoformat(),
         }
         if args.consent_source_id:
             consent["source_id"] = args.consent_source_id
@@ -1415,6 +1425,7 @@ def build_parser() -> argparse.ArgumentParser:
     write.add_argument("--consent-purpose", default=None)
     write.add_argument("--consent-evidence", default=None)
     write.add_argument("--consent-source-id", default=None)
+    write.add_argument("--consent-granted-at", default=None)
     write.add_argument("--consent-expires-at", default=None)
     write.add_argument("--dry-run", action="store_true")
 
