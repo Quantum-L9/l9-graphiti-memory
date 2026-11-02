@@ -501,12 +501,24 @@ CANONICAL_TOOLS: tuple[dict[str, Any], ...] = (
     },
 )
 
-_CONSEQUENTIAL_WRITE_HANDLERS = frozenset(
+# Handlers that never persist canonical or lock state. Every other handler is
+# consequential and requires server-verified actor evidence from an OAuth
+# principal (ADR-100: an OAuth client is not an actor). The gate is an
+# allowlist of read-only handlers, so a handler added later is gated until it
+# is deliberately listed here. Graph operations are read-only (ADR-086).
+_READ_ONLY_HANDLERS = frozenset(
     {
-        "_ingest",
-        "_write_agent",
-        "_write_governed",
-        "_ingest_governed_candidate",
+        "_search",
+        "_hydrate",
+        "_get",
+        "_conflicts",
+        "_verify_phase_lock",
+        "_lineage",
+        "_health",
+        "_capabilities",
+        "_generated_data_capabilities",
+        "_graph_capabilities",
+        "_graph_operation",
     }
 )
 
@@ -670,7 +682,7 @@ class MCPToolApplication:
             is_global_admin=principal.is_global_admin,
         ):
             raise AuthorizationError("an OAuth grant is not an operator admin grant")
-        if handler_name in _CONSEQUENTIAL_WRITE_HANDLERS and principal.auth_method == "oauth":
+        if handler_name not in _READ_ONLY_HANDLERS and principal.auth_method == "oauth":
             actor = oauth_actor_ref(
                 verified_actor_ref=principal.agent_id,
                 evidence_refs=(),

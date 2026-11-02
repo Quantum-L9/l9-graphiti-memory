@@ -105,3 +105,56 @@ def test_a_top_level_client_id_argument_is_refused_before_a_tool_runs() -> None:
     )
     with pytest.raises(AuthorizationError, match="cannot set client_id"):
         tools.call(principal, "memory.health", {"client_id": "client-public"})
+
+
+def _consequential_tools() -> list[str]:
+    from l9_graphite_memory.mcp_tools import (
+        _CANONICAL_HANDLER_METHODS,
+        _READ_ONLY_HANDLERS,
+    )
+
+    return sorted(
+        name
+        for name, handler in _CANONICAL_HANDLER_METHODS.items()
+        if handler not in _READ_ONLY_HANDLERS
+    )
+
+
+def test_the_read_only_allowlist_names_only_real_handlers() -> None:
+    from l9_graphite_memory.mcp_tools import (
+        _CANONICAL_HANDLER_METHODS,
+        _READ_ONLY_HANDLERS,
+    )
+
+    # A stale or misspelled entry would silently gate nothing and hide a
+    # mutating handler that was meant to be listed as consequential.
+    assert set(_READ_ONLY_HANDLERS) <= set(_CANONICAL_HANDLER_METHODS.values())
+    for state_changing in (
+        "_close",
+        "_record_reuse",
+        "_invalidate_source",
+        "_phase_lock",
+        "_retention",
+        "_delete",
+        "_promote",
+        "_synthesize_procedures",
+    ):
+        assert state_changing not in _READ_ONLY_HANDLERS
+
+
+@pytest.mark.parametrize("tool", _consequential_tools())
+def test_every_consequential_tool_refuses_an_unproven_oauth_actor(tool: str) -> None:
+    class _NoService:
+        def __getattr__(self, name: str) -> object:
+            raise AssertionError(f"MemoryService.{name} must not be reached")
+
+    tools = MCPToolApplication(_NoService())  # type: ignore[arg-type]
+    principal = MemoryPrincipal(
+        principal_id="client-public",
+        tenant_id="tenant",
+        auth_method="oauth",
+        agent_id="client-public",
+        write_namespaces=("repo",),
+    )
+    with pytest.raises(AuthorizationError, match="not an actor"):
+        tools.call(principal, tool, {"namespace": "repo"})
