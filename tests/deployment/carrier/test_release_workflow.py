@@ -240,12 +240,26 @@ def test_the_dockerfile_is_the_profile_carrier() -> None:
         "L9_MEMORY_STORE_BACKEND must be postgres",
         "L9_MEMORY_POSTGRES_DSN is required",
         "L9_MEMORY_HTTP_AUTH_REQUIRED must be true",
-        "L9_MEMORY_HTTP_AUTH_MODE must be signed-agent",
+        "is not a hosted door (ADR-100)",
+        (
+            "L9_MEMORY_HTTP_AUTH_MODE must be the hosted OAuth mode, which this release"
+            " does not have (ADR-100, issue #108)"
+        ),
         "L9_MEMORY_PROJECTION_BACKEND must be none",
         "L9_MEMORY_PROJECTION_RUNTIME must be legacy",
         "L9_MEMORY_GRAPH_BACKEND must be none",
         "L9_MEMORY_ACTIVE_BACKEND must be none",
     ):
         assert refused in text
+    # ADR-100: neither retired door is pinned, and both are refused by name.
+    assert "L9_MEMORY_HTTP_AUTH_MODE=" not in text.replace("L9_MEMORY_HTTP_AUTH_MODE=${", "")
+    assert "signed-agent|bearer)" in text
+    guard = text[text.index("refuse() {") : text.index("exec l9-memory-server")]
+    # The door is decided last, after every store and backend check, and no arm
+    # of it reaches the server.
+    assert guard.rindex("L9_MEMORY_HTTP_AUTH_MODE") > guard.rindex("L9_MEMORY_ACTIVE_BACKEND")
+    door = guard[guard.index('case "${L9_MEMORY_HTTP_AUTH_MODE:-}" in') :]
+    arms = [arm for arm in door.split(";;") if ")" in arm and "esac" not in arm]
+    assert len(arms) == 2 and all("refuse " in arm for arm in arms), arms
     ignore = (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()
     assert "*" in ignore, "the build context is an allow-list"

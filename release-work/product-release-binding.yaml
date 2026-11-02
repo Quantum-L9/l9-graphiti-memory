@@ -127,7 +127,7 @@ proofs:
     - deployment/generated-data/verify_backup_restore.py
     - tests/deployment/generated_data/test_backup_restore.py
   hosted_carrier:
-    - tests/deployment/carrier/test_container_carrier.py (built image on PostgreSQL 16; runs when L9_MEMORY_TEST_CARRIER_IMAGE is set, and in full in release-container.yml)
+    - tests/deployment/carrier/test_container_carrier.py (built image on PostgreSQL 16; runs when L9_MEMORY_TEST_CARRIER_IMAGE is set, and in full in release-container.yml; proves the image refuses to start with no hosted door, signed-agent and bearer included, per ADR-100; the authenticated OAuth path is issue #108)
     - tests/deployment/carrier/test_deployment_profile.py
     - tests/deployment/carrier/test_release_workflow.py
   generated_data_invalidation:

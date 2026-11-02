@@ -12,8 +12,13 @@
 
 The l9-deploy v2 schema admits any target. The C1 Memory campaign admits one:
 the existing C1 host, the Memory hostname on external ingress, loopback 8200,
-signed-agent HTTP over one required external PostgreSQL. ``violations`` names
+authenticated HTTP over one required external PostgreSQL. ``violations`` names
 every departure from that, so a negative test can prove each one is caught.
+
+ADR-100: the hosted door is Auth0 OAuth only; signed-agent HMAC and static
+bearer are not hosted doors and not fallbacks. This release has no OAuth mode,
+so the profile names no ``L9_MEMORY_HTTP_AUTH_MODE`` and the carrier refuses to
+start; issue #108 pins the OAuth mode once it exists.
 
 The schema is a pinned, unmodified copy of Quantum-L9/l9-deploy@b1bdaac
 (``tests/fixtures/l9_deploy_v2``); l9-deploy remains its owner.
@@ -52,7 +57,6 @@ IMAGE = "ghcr.io/quantum-l9/l9-graphiti-memory"
 REQUIRED_ENVIRONMENT = {
     "L9_MEMORY_STORE_BACKEND": "postgres",
     "L9_MEMORY_HTTP_AUTH_REQUIRED": "true",
-    "L9_MEMORY_HTTP_AUTH_MODE": "signed-agent",
     # Compose lets these override runtime.env, so a stale secret-store entry
     # cannot turn on a backend the profile does not declare.
     "L9_MEMORY_PROJECTION_BACKEND": "none",
@@ -60,6 +64,9 @@ REQUIRED_ENVIRONMENT = {
     "L9_MEMORY_GRAPH_BACKEND": "none",
     "L9_MEMORY_ACTIVE_BACKEND": "none",
 }
+# ADR-100: neither is a hosted door. Until issue #108 adds the OAuth mode the
+# profile names no auth mode at all.
+RETIRED_HOSTED_AUTH_MODES = ("signed-agent", "bearer")
 # Credentials reach the container only through the Infisical-rendered runtime.env.
 SECRET_MARKERS = ("DSN", "KEY", "GRANT", "TOKEN", "PASSWORD", "SECRET", "ASSERTION")
 
@@ -100,6 +107,15 @@ def violations(profile: dict[str, Any]) -> list[str]:
     environment = runtime.get("environment", {})
     for name, value in REQUIRED_ENVIRONMENT.items():
         require(environment.get(name) == value, f"{name} must be {value}")
+    mode = environment.get("L9_MEMORY_HTTP_AUTH_MODE")
+    require(
+        mode not in RETIRED_HOSTED_AUTH_MODES,
+        f"L9_MEMORY_HTTP_AUTH_MODE={mode} is not a hosted door (ADR-100)",
+    )
+    require(
+        "L9_MEMORY_HTTP_AUTH_MODE" not in environment,
+        "L9_MEMORY_HTTP_AUTH_MODE stays unset until the OAuth mode exists (issue #108)",
+    )
     leaked = [name for name in environment if any(m in name.upper() for m in SECRET_MARKERS)]
     require(not leaked, f"secret-shaped settings in the profile: {leaked}")
     require(not runtime.get("volumes"), "no host volume may hold a local ledger")

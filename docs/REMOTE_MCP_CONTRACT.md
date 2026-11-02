@@ -33,6 +33,20 @@ carrier (`Dockerfile`, `.l9/deployment.yaml`,
 `.github/workflows/release-container.yml`) is a candidate too: no image is
 published and no deployment of it exists.
 
+**Hosted carrier door (2026-11-02).** ADR-100 (*Native OAuth MCP Full
+Cutover*, `docs/adr/ADR-100-native-oauth-mcp-full-cutover.md` on the default
+branch) makes the hosted service Auth0 OAuth only: the signed-agent
+authentication of §2 and the bearer mode below are not hosted doors and not
+fallbacks. This release has no OAuth mode, so the carrier pins no
+`L9_MEMORY_HTTP_AUTH_MODE`, refuses `signed-agent` and `bearer` by name from
+the profile or the rendered runtime.env, and refuses to start on any other
+value: the published image serves neither `/readyz` nor `/mcp`. Pinning the
+OAuth mode, and proving the image's authenticated path and its refusals of a
+wrong issuer, audience and resource, is
+[issue #108](https://github.com/Quantum-L9/l9-graphiti-memory/issues/108).
+§2 and the bearer mode remain the contract of the package's HTTP transport
+outside the hosted carrier until the change that removes them.
+
 ## 1. Transport
 
 | Item | Contract |

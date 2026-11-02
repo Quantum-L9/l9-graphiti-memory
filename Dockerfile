@@ -10,8 +10,11 @@
 #   updated: 2026-10-26
 #
 # The one OCI carrier for the hosted Memory 3.0 service (ADR-098): the existing
-# l9-memory-server, signed-agent Streamable HTTP on /mcp, over the canonical
-# PostgreSQL store. It adds no server, route or credential of its own.
+# l9-memory-server, Streamable HTTP on /mcp, over the canonical PostgreSQL
+# store. It adds no server, route or credential of its own. ADR-100 makes the
+# hosted door Auth0 OAuth only; signed-agent HMAC and static bearer are not
+# hosted doors. This release has no OAuth mode, so the carrier refuses to
+# start until issue #108 adds one.
 #
 # Publication is not done here. The l9-ci-core container-release action builds
 # this file once, pushes one immutable digest and requests the deployment
@@ -71,8 +74,12 @@ RUN groupadd --gid 10001 memory \
 COPY --from=builder /opt/venv /opt/venv
 
 # The hosted profile has exactly one canonical store. The guard refuses to start
-# on anything but signed-agent HTTP over PostgreSQL, so a missing or overridden
+# on anything but authenticated HTTP over PostgreSQL, so a missing or overridden
 # setting stops the container instead of serving from a local SQLite ledger.
+# The door is checked last: ADR-100 admits only Auth0 OAuth, which this release
+# does not implement, so no L9_MEMORY_HTTP_AUTH_MODE is admitted and the
+# container fails closed with no inbound credential. Issue #108 adds the OAuth
+# arm here once the resource server and its live PKCE receipt exist.
 COPY --chmod=0755 <<'EOF' /usr/local/bin/l9-memory-carrier
 #!/bin/sh
 set -eu
@@ -86,8 +93,6 @@ refuse() {
   || refuse "L9_MEMORY_POSTGRES_DSN is required"
 [ "${L9_MEMORY_HTTP_AUTH_REQUIRED:-}" = "true" ] \
   || refuse "L9_MEMORY_HTTP_AUTH_REQUIRED must be true"
-[ "${L9_MEMORY_HTTP_AUTH_MODE:-}" = "signed-agent" ] \
-  || refuse "L9_MEMORY_HTTP_AUTH_MODE must be signed-agent"
 # No other backend: an unset variable takes the package default, which is off.
 [ "${L9_MEMORY_PROJECTION_BACKEND:-none}" = "none" ] \
   || refuse "L9_MEMORY_PROJECTION_BACKEND must be none"
@@ -97,6 +102,12 @@ refuse() {
   || refuse "L9_MEMORY_GRAPH_BACKEND must be none"
 [ "${L9_MEMORY_ACTIVE_BACKEND:-none}" = "none" ] \
   || refuse "L9_MEMORY_ACTIVE_BACKEND must be none"
+case "${L9_MEMORY_HTTP_AUTH_MODE:-}" in
+  signed-agent|bearer)
+    refuse "L9_MEMORY_HTTP_AUTH_MODE=${L9_MEMORY_HTTP_AUTH_MODE} is not a hosted door (ADR-100)" ;;
+  *)
+    refuse "L9_MEMORY_HTTP_AUTH_MODE must be the hosted OAuth mode, which this release does not have (ADR-100, issue #108)" ;;
+esac
 exec l9-memory-server --transport http --host 0.0.0.0 --port 8200 "$@"
 EOF
 
@@ -109,7 +120,6 @@ ENV PATH="/opt/venv/bin:$PATH" \
     L9_SOURCE_REVISION="${L9_SOURCE_REVISION}" \
     L9_MEMORY_STORE_BACKEND=postgres \
     L9_MEMORY_HTTP_AUTH_REQUIRED=true \
-    L9_MEMORY_HTTP_AUTH_MODE=signed-agent \
     L9_MEMORY_PROJECTION_BACKEND=none \
     L9_MEMORY_PROJECTION_RUNTIME=legacy \
     L9_MEMORY_GRAPH_BACKEND=none \

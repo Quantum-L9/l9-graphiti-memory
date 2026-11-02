@@ -36,11 +36,14 @@ runtime:
   read_only_root_filesystem: true
   stop_grace_seconds: 30
   # Non-secret settings only. Compose gives these precedence over the rendered
-  # runtime.env, so a secret store entry cannot switch the backend or auth mode.
+  # runtime.env, so a secret store entry cannot switch the backend.
+  # No L9_MEMORY_HTTP_AUTH_MODE: ADR-100 admits only Auth0 OAuth as the hosted
+  # door and this release has no OAuth mode, so the carrier refuses every mode
+  # (signed-agent and bearer included, from here or from runtime.env) and does
+  # not start. Issue #108 pins the OAuth mode here.
   environment:
     L9_MEMORY_STORE_BACKEND: postgres
     L9_MEMORY_HTTP_AUTH_REQUIRED: "true"
-    L9_MEMORY_HTTP_AUTH_MODE: signed-agent
     # Every other backend is pinned off here, where a stale runtime.env entry
     # cannot reach it: the only external system this release talks to is
     # its PostgreSQL store.
