@@ -215,10 +215,34 @@ def _tool_executor() -> ThreadPoolExecutor:
 
 
 async def await_blocking(func: Any, /, *args: Any) -> Any:
-    """Run one synchronous MCP or health call on the bounded tool pool."""
+    """Run one synchronous MCP tool call on the bounded tool pool."""
 
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(_tool_executor(), func, *args)
+
+
+# /healthz and /readyz run on their own pool. Sharing the tool pool would queue
+# a liveness probe behind saturated tool calls and could restart the container
+# exactly when it is under load.
+HTTP_HEALTH_WORKERS = 2
+_http_health_executor: ThreadPoolExecutor | None = None
+
+
+def _health_executor() -> ThreadPoolExecutor:
+    global _http_health_executor
+    if _http_health_executor is None:
+        _http_health_executor = ThreadPoolExecutor(
+            max_workers=HTTP_HEALTH_WORKERS,
+            thread_name_prefix="l9-mcp-health",
+        )
+    return _http_health_executor
+
+
+async def await_health(func: Any, /, *args: Any) -> Any:
+    """Run one synchronous health call off the loop, independent of tool load."""
+
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(_health_executor(), func, *args)
 
 
 def _agents_door_env(name: str) -> str:
@@ -677,7 +701,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
 
     @app.get("/healthz")
     async def healthz() -> JSONResponse:
-        report = await await_blocking(runtime.service.health)
+        report = await await_health(runtime.service.health)
         code = 200 if report.status.value != "failed" else 503
         return JSONResponse(status_code=code, content=report.model_dump(mode="json"))
 
@@ -687,7 +711,7 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         # canonical and an enabled projection always gate; graph and active
         # memory gate only when the deployment marks them required.
         readiness = await runtime.readiness()
-        content = (await await_blocking(runtime.service.health)).model_dump(mode="json")
+        content = (await await_health(runtime.service.health)).model_dump(mode="json")
         if runtime.graph_service is not None:
             content["graph"] = readiness.family("graph").detail
         content["active_memory"] = {

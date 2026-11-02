@@ -28,3 +28,27 @@ def test_a_blocking_call_does_not_stall_the_loop() -> None:
 
     asyncio.run(run())
     assert order == ["health", "tool"]
+
+
+def test_health_answers_while_the_tool_pool_is_saturated() -> None:
+    import threading
+
+    from l9_graphite_memory.server import await_health
+
+    release = threading.Event()
+
+    def stuck_tool() -> None:
+        release.wait(5)
+
+    async def scenario() -> str:
+        stuck = [
+            asyncio.ensure_future(await_blocking(stuck_tool)) for _ in range(HTTP_TOOL_WORKERS)
+        ]
+        try:
+            await asyncio.sleep(0.05)  # every tool worker is now occupied
+            return await asyncio.wait_for(await_health(lambda: "ok"), timeout=1.0)
+        finally:
+            release.set()
+            await asyncio.gather(*stuck)
+
+    assert asyncio.run(scenario()) == "ok"
