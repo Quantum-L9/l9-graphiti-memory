@@ -38,7 +38,10 @@ _RECORD_ID_PATTERN = re.compile(r'"?record_id"?\s*[:=]\s*"([0-9a-fA-F-]{36})"')
 #   '{effective_group_id}'")
 # Acceptance matches this shape whole; a substring test for "queued" also
 # accepted "Episode was not queued: ..." (F-001).
-_QUEUED_SUCCESS = re.compile(r"Episode '.+' queued for processing in group '.*'", re.DOTALL)
+# Quote-free segments keep the match linear on provider-supplied text (no
+# backtracking across quotes); episode names are ``memory:<uuid>`` and Graphiti
+# group ids are restricted identifiers, so neither contains a quote.
+_QUEUED_SUCCESS = re.compile(r"Episode '[^']+' queued for processing in group '[^']*'")
 
 # Graphiti (v0.30.2) treats a caller-supplied episode uuid as "update the
 # existing episode" and fails when none exists; the official MCP server queues
