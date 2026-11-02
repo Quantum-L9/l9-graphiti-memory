@@ -148,3 +148,64 @@ def test_digits_inside_an_alphanumeric_token_are_not_ambiguous(text: str) -> Non
     assert result.redacted_content == text
     assert result.pii_types == ()
     assert result.unresolved_ambiguous == ()
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "record 491986554b12125551212f",
+        "id ab12125551212cd",
+        "uuid 465595df212125551212ab258679c523",
+    ],
+)
+def test_a_compact_leading_one_run_inside_an_identifier_is_not_a_phone(text: str) -> None:
+    # 1 + ten digits occurs inside hex digests and uuids; only a standalone
+    # token is a phone number (no separator means no other signal).
+    result = normalize_candidate(text)
+    assert result.redacted_content == text
+    assert result.pii_types == ()
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("tel:12125551212.", "tel:[PHONE_REDACTED]."),
+        ("(12125551212)", "([PHONE_REDACTED])"),
+        ("call 12125551212, thanks", "call [PHONE_REDACTED], thanks"),
+    ],
+)
+def test_a_standalone_compact_leading_one_run_is_still_a_phone(text: str, expected: str) -> None:
+    result = normalize_candidate(text)
+    assert result.redacted_content == expected
+    assert result.pii_types == ("phone",)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("x212-555-1212y", "x[PHONE_REDACTED]y"),
+        ("id1-212-555-1212z", "id[PHONE_REDACTED]z"),
+        ("ref+12125551212end", "ref[PHONE_REDACTED]end"),
+    ],
+)
+def test_separated_and_plus_forms_touching_letters_are_still_redacted(
+    text: str, expected: str
+) -> None:
+    # The identifier boundary applies only to the compact form; a separator
+    # or a leading + is phone evidence on its own.
+    result = normalize_candidate(text)
+    assert result.redacted_content == expected
+    assert result.pii_types == ("phone",)
+
+
+def test_uuid_hex_content_is_never_rewritten() -> None:
+    # Regression: tests/integration/test_remote_consumer_postgres.py writes
+    # uuid4().hex content and failed whenever the hex held a phone-shaped run.
+    import random
+    import uuid
+
+    rng = random.Random(20261102)
+    for _ in range(5000):
+        hexed = uuid.UUID(int=rng.getrandbits(128), version=4).hex
+        text = f"durable remote record {hexed}"
+        assert normalize_candidate(text).redacted_content == text, hexed

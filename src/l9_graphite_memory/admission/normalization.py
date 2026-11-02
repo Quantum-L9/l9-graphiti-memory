@@ -38,14 +38,28 @@ _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
         # unprefixed 10-digit run is deliberately absent: it is as likely an
         # epoch or an identifier, so it takes the ambiguous path below and is
         # held redacted until the caller declares what it is.
+        #
+        # The fully compact leading-1 form (``1`` and ten digits, no separator)
+        # is excluded here and handled by the next entry, because only that
+        # shape also occurs inside hex and other alphanumeric identifiers.
         re.compile(
             r"(?<!\d)(?:"
-            r"\+?1[\s.\-]?(?:\(\d{3}\)|\d{3})[\s.\-]?\d{3}[\s.\-]?\d{4}"
+            r"(?!1\d{10}(?!\d))\+?1[\s.\-]?(?:\(\d{3}\)|\d{3})[\s.\-]?\d{3}[\s.\-]?\d{4}"
             r"|\(\d{3}\)[\s.\-]?\d{3}[\s.\-]?\d{4}"
             r"|\d{3}[\s.\-]\d{3}[\s.\-]?\d{4}"
             r"|\d{3}[\s.\-]?\d{3}[\s.\-]\d{4}"
             r")(?!\d)"
         ),
+        "[PHONE_REDACTED]",
+    ),
+    (
+        "phone",
+        # The compact leading-1 form only when it stands as its own token.
+        # Boundaries are alphanumeric, like the ambiguous path below, so
+        # ``...5b12125551212c...`` inside a hex digest or uuid is an identifier
+        # and is left intact, while ``call 12125551212`` is still redacted.
+        # Forms with a separator, parentheses or ``+`` stay on the entry above.
+        re.compile(r"(?<![0-9A-Za-z])1\d{10}(?![0-9A-Za-z])"),
         "[PHONE_REDACTED]",
     ),
     (
