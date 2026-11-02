@@ -3,6 +3,8 @@
 **Task:** P03 native Streamable HTTP MCP error codes isError and bounded offload; P04 evidence-bound identity fail-closed
 **Tier:** RUNTIME
 
+> **Amended 2026-11-02 (integration remediation):** T4 and the Graphiti isError case of T8 were withdrawn from this PR. PR #105 owns the Graphiti error contract in `transport.py`; keeping both caused a textual conflict and duplicate ownership. The remote-client isError check (T3/T7) is unchanged. Unknown tools now resolve before principal checks, and an internal `KeyError` is no longer reported as a missing argument (`tests/unit/test_mcp_tool_key_error_mapping.py`).
+
 ## TODOs
 
 - T1: src/l9_graphite_memory/server.py REPLACE Distinguish missing tool arguments from unknown tools
