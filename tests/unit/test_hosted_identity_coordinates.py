@@ -89,3 +89,19 @@ def test_oauth_admin_principal_is_refused_before_a_tool_runs() -> None:
     )
     with pytest.raises(AuthorizationError, match="not an operator"):
         tools.call(principal, "memory.health", {})
+
+
+def test_a_top_level_client_id_argument_is_refused_before_a_tool_runs() -> None:
+    # A public OAuth client id is not an actor; a caller must not be able to
+    # name one in tool arguments. The principal here is not OAuth and not
+    # admin, so the only refusal available is the caller-identity argument.
+    assert caller_identity_argument({"client_id": "client-public"}) == "client_id"
+    service = MemoryService(InMemoryRecordStore(), NullProjection())
+    tools = MCPToolApplication(service)
+    principal = MemoryPrincipal(
+        principal_id="agent",
+        tenant_id="tenant",
+        auth_method="signed-agent",
+    )
+    with pytest.raises(AuthorizationError, match="cannot set client_id"):
+        tools.call(principal, "memory.health", {"client_id": "client-public"})
