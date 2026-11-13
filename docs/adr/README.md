@@ -125,6 +125,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-099 | [Retire the Repository File Inventory and L9_META Enforcement](ADR-099-retire-repository-inventory-and-l9-meta-enforcement.md) | Accepted |
 | ADR-100 | [Native OAuth MCP Full Cutover](ADR-100-native-oauth-mcp-full-cutover.md) | Accepted |
 | ADR-101 | [Derived Suite Validation Replaces the V-001 Pass-Count Pin](ADR-101-derived-suite-count-validation.md) | Accepted |
+| ADR-102 | [OAuth Resource Server for the Streamable HTTP Transport](ADR-102-oauth-resource-server-for-streamable-http.md) | Proposed; accepted when merged by the decision owner |
 
 ## Pending target amendments (Memory 3.0.0)
 
@@ -162,6 +163,7 @@ Auth0 tenant proof is not part of this record.
 | 2026-10-16 | ADR-098 | Administrator-only tools (`memory.distill`, `memory.bootstrap`) unreachable over HTTP for a signed agent; the client refuses them | restatement of existing invariants |
 | 2026-10-27 | ADR-100 | Supersede hosted Memory stdio, signed-agent HMAC, and static bearer; retain Streamable HTTP under Auth0 | decision accepted; code removal and Auth0 tenant proof are not in this record |
 | 2026-10-27 | ADR-100 | Publish the resource identifier `https://memory.quantumaipartners.com/mcp` as the Auth0 audience | identifier only; issuer domain, client ids, and the live PKCE receipt remain unbound |
+| 2026-11-13 | ADR-102 | `http_auth_mode=oauth` resource server: issuer-key signature, exact issuer, Memory audience, one `/mcp` endpoint, RFC 9728 metadata, subject-keyed grants; receipt tool added | implemented in source; live PKCE receipt owed; carrier not pinned; OAuth writes still refused (issue #108) |
 
 ## Validation
 
@@ -171,4 +173,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-101 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-102 ledger and all mandatory sections.

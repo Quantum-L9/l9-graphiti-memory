@@ -37,21 +37,28 @@ published and no deployment of it exists.
 Cutover*, `docs/adr/ADR-100-native-oauth-mcp-full-cutover.md` on the default
 branch) makes the hosted service Auth0 OAuth only: the signed-agent
 authentication of §2 and the bearer mode below are not hosted doors and not
-fallbacks. This release has no OAuth mode, so the carrier pins no
-`L9_MEMORY_HTTP_AUTH_MODE`, refuses `signed-agent` and `bearer` by name from
-the profile or the rendered runtime.env, and refuses to start on any other
-value: the published image serves neither `/readyz` nor `/mcp`. Pinning the
-OAuth mode, and proving the image's authenticated path and its refusals of a
-wrong issuer, audience and resource, is
+fallbacks. The carrier pins no `L9_MEMORY_HTTP_AUTH_MODE`, refuses
+`signed-agent` and `bearer` by name from the profile or the rendered
+runtime.env, and refuses to start on any other value: the published image
+serves neither `/readyz` nor `/mcp`. Pinning the OAuth mode, and proving the
+image's authenticated path and its refusals of a wrong issuer, audience and
+resource, is
 [issue #108](https://github.com/Quantum-L9/l9-graphiti-memory/issues/108).
 §2 and the bearer mode remain the contract of the package's HTTP transport
 outside the hosted carrier until the change that removes them.
+
+**OAuth mode in source (2026-11-13).** The package's HTTP transport now has an
+OAuth resource-server mode, described in §2a
+([ADR-102](adr/ADR-102-oauth-resource-server-for-streamable-http.md)). That
+does not change the paragraph above: the carrier does not select the mode and
+still refuses to start, and the live PKCE receipt ADR-100 requires does not
+exist yet. Tests against a local issuer are not that receipt.
 
 ## 1. Transport
 
 | Item | Contract |
 |---|---|
-| Endpoint | `POST https://<host>/mcp` (also `/mcp/`). TLS is terminated in front of the server. |
+| Endpoint | `POST https://<host>/mcp` (also `/mcp/`, except in OAuth mode, §2a). TLS is terminated in front of the server. |
 | Revisions | `2025-11-25`, `2025-06-18` (Streamable HTTP). stdio stays `2024-11-05`. |
 | Negotiation | `initialize.params.protocolVersion` is echoed when supported, otherwise the server answers `2025-11-25`. A client that cannot speak the answer must disconnect. |
 | Version header | `MCP-Protocol-Version: <negotiated>` on every request after `initialize` (notifications included). Absent ⇒ assumed `2025-03-26` ⇒ `400`. |
@@ -114,6 +121,65 @@ and there is no replay ledger. Clients mint a new one before then:
 token to configured service-principal claims (`L9_MEMORY_AUTH_TOKENS_JSON` /
 `_FILE`). It is not an agent identity.
 
+## 2a. OAuth resource-server mode (`L9_MEMORY_HTTP_AUTH_MODE=oauth`)
+
+Decision record: [ADR-102](adr/ADR-102-oauth-resource-server-for-streamable-http.md).
+The mode is additive to `memory-remote-mcp/v1`; §1, §2 and the bearer mode are
+unchanged by it.
+
+Sent on **every** request:
+
+| Header | Value |
+|---|---|
+| `Authorization` | `Bearer <access token>`: a JWT the configured issuer signed for the Memory resource |
+
+The server requires all of:
+
+| Check | Rule |
+|---|---|
+| Algorithm | `RS256`, `PS256` or `ES256`. `none` and HMAC algorithms are refused. |
+| Key | `kid` present and published in the configured issuer's key set. A key carried in the token is never used. |
+| Signature | Valid under that key; RSA keys of at least 2048 bits. |
+| `iss` | Equal to `L9_MEMORY_HTTP_OAUTH_ISSUER`, character for character. |
+| `aud` | Contains `https://memory.quantumaipartners.com/mcp` (`MEMORY_RESOURCE_IDENTIFIER`). |
+| `exp`, `nbf`, `iat` | Enforced with 30 s of clock skew. `exp` and `sub` are required. |
+
+Server-side only:
+
+| Variable | Content |
+|---|---|
+| `L9_MEMORY_HTTP_OAUTH_ISSUER` | The issuer URL, `https`, exactly as in the `iss` claim. No default. Missing or not `https` ⇒ the server refuses to start. |
+| `L9_MEMORY_OAUTH_GRANTS_JSON` | `{subject: {roles, read_namespaces, write_namespaces, promote_namespaces}}`, keyed by the token `sub`. Required; `{}` grants nobody. `is_admin` ⇒ the server refuses to start. |
+
+Behaviour:
+
+- **One endpoint.** Only `POST /mcp` is served. `/mcp/` answers `404` for
+  every method and is not redirected, so the service has one resource string.
+- **Challenge.** A `401` carries
+  `WWW-Authenticate: Bearer realm="l9-graphite-memory", resource_metadata="https://memory.quantumaipartners.com/.well-known/oauth-protected-resource/mcp"`,
+  plus `error="invalid_token"` when a credential was presented.
+- **Metadata.** `GET /.well-known/oauth-protected-resource/mcp` is
+  unauthenticated and returns the RFC 9728 document: `resource`,
+  `authorization_servers` (the configured issuer) and
+  `bearer_methods_supported`. The host-root well-known path is not served.
+  A deployment must route this path to the server as well as `/mcp`.
+- **Issuer keys.** Read from the `jwks_uri` of the issuer's
+  `/.well-known/openid-configuration`, over `https`, without redirects,
+  cached for 10 minutes. If they cannot be obtained the request gets `401`.
+  No other credential is consulted in this mode.
+- **Principal.** The token subject, with the namespaces of its grant and
+  `auth_method` `oauth`. It names no agent. A subject without a grant is
+  authenticated and holds no namespace. Token scopes and other claims grant
+  nothing.
+- **Writes.** Every tool that is not read-only is refused for an OAuth
+  principal (`-32010`, `AuthorizationError`), because a subject is not an
+  actor (ADR-100). Binding an actor is issue #108.
+- **Probes.** `/healthz` and `/readyz` stay unauthenticated and do not depend
+  on the issuer.
+
+The operator tool `tools/assurance/oauth_pkce_receipt.py` produces the live
+PKCE receipt for this mode. No receipt exists in this repository.
+
 ## 3. Refusals
 
 All refusal bodies are `{"jsonrpc": "2.0", "error": {"code", "message", "data"?}}`
@@ -124,6 +190,8 @@ with **no** `id`. Credentials are never echoed.
 | `Origin` present and not allowed | 403 | -32600 |
 | credential-shaped URL query parameter | 400 | -32600 |
 | missing / malformed / expired / over-ceiling / tampered / unknown-agent / other-actor credential (an unknown agent and a bad signature share one message) | 401 + `WWW-Authenticate: Bearer realm="l9-graphite-memory"[, error="invalid_token"]` | -32001 |
+| OAuth mode: missing token, or wrong issuer, wrong audience, expired, not yet valid, disallowed algorithm, missing or unknown `kid`, bad signature, malformed token, issuer keys unavailable | 401 + `WWW-Authenticate: Bearer realm="l9-graphite-memory", resource_metadata="…"[, error="invalid_token"]` | -32001 |
+| OAuth mode: any request to `/mcp/` | 404 | -32600 |
 | `Content-Type` not `application/json` | 415 | -32600 |
 | `Accept` lacks either media type | 406 | -32600 |
 | body over 4 MiB (checked while streaming, chunked included) | 413 | -32600 |
@@ -163,9 +231,12 @@ Cursor-Governance.
 - Deployment of a shared server, PostgreSQL as its canonical store, and TLS
   termination. The carrier that deploys one is described by
   `.l9/deployment.yaml` and owned by l9-deploy's contract, not by this one.
-- OAuth 2.1 / RFC 9728 discovery. No L9 authorization server exists; when one
-  is chosen, `WWW-Authenticate` can add `resource_metadata` in a new contract
-  version.
+- An authorization server. The package is a resource server only (§2a); it
+  issues no token, registers no client and proxies no authorization request.
+  Token lifetime, revocation, scopes and who may obtain a token for the
+  Memory audience are authorization-server settings.
+- A proven OAuth deployment. §2a describes source behaviour; the live PKCE
+  receipt and the carrier pin are issue #108.
 - Audience binding of the agent assertion to one deployment. Use
   per-deployment keys.
 - Admission of any running server. The classification is settled (ADR-094,

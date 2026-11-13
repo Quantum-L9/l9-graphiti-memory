@@ -106,8 +106,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # (retired repository inventory and L9_META enforcement).
         # Re-pinned 99 -> 100 for ADR-100 (native OAuth MCP full cutover).
         # Re-pinned 100 -> 101 for ADR-101 (derived V-001 suite validation).
-        "101 ADRs complete and indexed",
-        r"PASS: 101 ADRs",
+        # Re-pinned 101 -> 102 for ADR-102 (OAuth resource server).
+        "102 ADRs complete and indexed",
+        r"PASS: 102 ADRs",
     ),
     CheckSpec(
         "V-004",
