@@ -191,12 +191,29 @@ def test_reads_need_no_actor(issuer, service) -> None:
         {SUBJECT: {CLIENT_ID: {"actor_ref": f"l9.actor-registry/global@1#{CLIENT_ID}"}}},
         {SUBJECT: {CLIENT_ID: "claude-code"}},
         {SUBJECT: {}},
+        # The fragment becomes MemoryPrincipal.agent_id (200 max): a longer one
+        # must stop startup, not fail every request it is bound to.
+        {SUBJECT: {CLIENT_ID: {"actor_ref": "l9.actor-registry/global@1#" + "a" * 201}}},
+        # An OAuth client is not a surface either, under any prefix.
+        {
+            SUBJECT: {
+                CLIENT_ID: {
+                    "actor_ref": ACTOR_REF,
+                    "surface_ref": f"l9.surface-registry/global@1#{CLIENT_ID}",
+                }
+            }
+        },
         {f"{CLIENT_ID}@clients": {CLIENT_ID: {"actor_ref": ACTOR_REF}}},
     ],
 )
 def test_a_malformed_actor_binding_is_a_startup_refusal(actors: dict[str, Any]) -> None:
     with pytest.raises(ConfigurationError):
         actor_bindings_from_config(actors)
+
+
+def test_an_actor_id_at_the_principal_limit_is_accepted() -> None:
+    actors = {SUBJECT: {CLIENT_ID: {"actor_ref": "l9.actor-registry/global@1#" + "a" * 200}}}
+    assert actor_bindings_from_config(actors)[SUBJECT][CLIENT_ID].actor_id == "a" * 200
 
 
 def test_the_actor_map_loads_from_the_environment_and_is_optional(

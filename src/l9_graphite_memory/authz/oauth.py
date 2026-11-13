@@ -613,6 +613,10 @@ class OAuthActorBinding(BaseModel):
         return "sha256:" + hashlib.sha256(material).hexdigest()
 
 
+#: ``MemoryPrincipal.agent_id`` holds the actor fragment and is capped at this.
+MAX_ACTOR_ID_LENGTH = 200
+
+
 def _coordinate(value: str, prefix: str, field: str) -> str:
     fragment = value.removeprefix(prefix)
     if (
@@ -676,6 +680,19 @@ def actor_bindings_from_config(raw: Mapping[str, Any]) -> ActorBindings:
                 raise ConfigurationError(
                     f"{OAUTH_ACTORS_ENV} binding for {name}, {client} names the client "
                     "or the subject as the actor; an OAuth client is not an actor"
+                )
+            if len(binding.actor_id) > MAX_ACTOR_ID_LENGTH:
+                # The fragment becomes MemoryPrincipal.agent_id; a longer one
+                # would pass startup and fail every request it is bound to.
+                raise ConfigurationError(
+                    f"{OAUTH_ACTORS_ENV} binding for {name}, {client} names an actor id "
+                    f"longer than {MAX_ACTOR_ID_LENGTH} characters"
+                )
+            surface_id = (binding.surface_ref or "").removeprefix(SURFACE_REGISTRY_PREFIX)
+            if surface_id and surface_id in (client_id, subject):
+                raise ConfigurationError(
+                    f"{OAUTH_ACTORS_ENV} binding for {name}, {client} names the client "
+                    "or the subject as the surface; an OAuth client is not a surface"
                 )
             resolved[client_id] = binding
         bindings[subject] = resolved
