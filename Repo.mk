@@ -26,10 +26,29 @@
 #
 # This file implements no organization governance and no publication.
 
+# CI installs uv with astral-sh/setup-uv and pins no uv version (the action's
+# default resolves the latest release), so uv is installed only when absent,
+# unpinned the same way, into an untracked bootstrap environment under build/.
+# Set UV_VERSION to pin one.
+UV_VERSION ?=
+UV_BOOTSTRAP := $(CURDIR)/build/uv-bootstrap
+UV_REQUIREMENT := uv$(if $(UV_VERSION),==$(UV_VERSION))
+
 # The locked environment `uv sync` creates, put first on PATH for every recipe
 # the way CI's "Put uv venv on PATH" step does.
+#
+# setup-uv also leaves uv itself on PATH for every later step of CI's validate
+# job, and what runs there depends on it: the installed-wheel proofs
+# (tests/integration/remote_mcp_harness.py, scripts/validate_release.sh)
+# install the built wheel with `uv pip install --target`, and the venv
+# `uv sync` creates carries no pip to fall back on. Core runs each phase as its
+# own make process, so a uv that repo-setup had to bootstrap must be on PATH
+# here, for every phase, or validate runs in a different environment from the
+# one CI's job gives the same tests. It is appended, never prepended: a uv
+# already on PATH still wins, and the bootstrap's own python and pip never
+# shadow the locked environment's.
 VENV := $(CURDIR)/.venv
-export PATH := $(VENV)/bin:$(PATH)
+export PATH := $(VENV)/bin:$(PATH):$(UV_BOOTSTRAP)/bin
 export PYTHONPATH := $(CURDIR)/src
 
 # The extras CI's `validate` job syncs. Changing one here and not in ci.yml (or
@@ -46,14 +65,6 @@ UV_SYNC_EXTRAS := --extra dev --extra server --extra postgres --extra active --e
 # strict verdict through `make validate`.
 L9_SUITE_PROFILE ?= local
 export L9_SUITE_PROFILE
-
-# CI installs uv with astral-sh/setup-uv and pins no uv version (the action's
-# default resolves the latest release), so uv is installed only when absent,
-# unpinned the same way, into an untracked bootstrap environment under build/.
-# Set UV_VERSION to pin one.
-UV_VERSION ?=
-UV_BOOTSTRAP := $(CURDIR)/build/uv-bootstrap
-UV_REQUIREMENT := uv$(if $(UV_VERSION),==$(UV_VERSION))
 
 .PHONY: \
 	repo-setup \
