@@ -69,6 +69,7 @@ export L9_SUITE_PROFILE
 .PHONY: \
 	repo-setup \
 	repo-validate \
+	repo-suite-base \
 	repo-check \
 	repo-test \
 	repo-test-active
@@ -122,5 +123,55 @@ repo-test: ## Run the full pytest suite
 # repo-test. That is deliberate: Core runs the phases as separate processes and
 # a stamp that skipped a phase because another had passed would be the kind of
 # coverage claim l9.contract/validation-and-correctness@1 forbids.
-repo-validate: repo-check repo-test-active ## check, active-memory tests, scripts/validate_release.sh
+repo-validate: repo-suite-base repo-check repo-test-active ## base, check, active-memory tests, scripts/validate_release.sh
 	bash scripts/validate_release.sh
+
+# V-001 (ADR-101) compares the suite collected here with the suite collected at
+# the merge-base of HEAD and L9_SUITE_BASE_REF (default origin/main), and an
+# unresolvable base is UNRESOLVED, which fails the evidence check closed. CI's
+# validate job has that base because it checks out with fetch-depth: 0. Core's
+# repository execution checks out only the candidate revision, depth 1, with
+# no origin/main ref, so this makes the same base resolvable first:
+#
+#   - a caller-set L9_SUITE_BASE_REF is honoured as given: it must already
+#     resolve with a merge-base, or this fails (nothing here knows what to
+#     fetch for an arbitrary ref);
+#   - when the base already resolves and has a merge-base, nothing is fetched
+#     (a full clone stays offline);
+#   - otherwise refs/heads/main is fetched from origin into
+#     refs/remotes/origin/main, unshallowing a shallow checkout so the
+#     merge-base exists, and the result is re-checked;
+#   - a failed fetch, or a base still without a merge-base, fails with the
+#     reason. It never substitutes HEAD or skips the comparison.
+#
+# Without a git work tree (the release tarball) there is no base to make, and
+# scripts/validate_release.sh records that itself.
+SUITE_BASE_DEFAULT := origin/main
+
+repo-suite-base: ## Make the V-001 merge-base (L9_SUITE_BASE_REF, default origin/main) resolvable
+	@if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+		echo "suite base: no git work tree; scripts/validate_release.sh records the base as UNRESOLVED"; \
+		exit 0; \
+	fi; \
+	ref="$${L9_SUITE_BASE_REF:-$(SUITE_BASE_DEFAULT)}"; \
+	resolved() { git rev-parse --verify --quiet "$$ref^{commit}" >/dev/null && git merge-base HEAD "$$ref" >/dev/null 2>&1; }; \
+	if resolved; then \
+		echo "suite base: $$ref resolves; merge-base $$(git merge-base HEAD "$$ref")"; \
+		exit 0; \
+	fi; \
+	if [ "$$ref" != "$(SUITE_BASE_DEFAULT)" ]; then \
+		echo "suite base: L9_SUITE_BASE_REF=$$ref does not resolve to a commit with a merge-base with HEAD; fetch it or unset L9_SUITE_BASE_REF" >&2; \
+		exit 1; \
+	fi; \
+	unshallow=""; \
+	if [ "$$(git rev-parse --is-shallow-repository)" = "true" ]; then unshallow="--unshallow"; fi; \
+	echo "suite base: fetching refs/heads/main from origin into refs/remotes/origin/main $${unshallow:+(unshallowing)}"; \
+	if ! git fetch --no-tags $$unshallow origin "+refs/heads/main:refs/remotes/origin/main"; then \
+		echo "suite base: fetching main from origin failed; V-001 needs the merge-base with origin/main (ADR-101). Fetch it, or set L9_SUITE_BASE_REF to a resolvable base" >&2; \
+		exit 1; \
+	fi; \
+	if ! resolved; then \
+		echo "suite base: origin/main was fetched but has no merge-base with HEAD" >&2; \
+		exit 1; \
+	fi; \
+	echo "suite base: $$ref resolves; merge-base $$(git merge-base HEAD "$$ref")"
