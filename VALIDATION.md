@@ -16,6 +16,28 @@ updated: 2026-07-22
 > checks below no longer exist; current release validation is
 > `scripts/validate_release.sh` and its evidence under `build/release-validation`.
 
+## 3.0.0 release run — owed
+
+No 3.0.0 release validation run is recorded here. This page is written by
+hand; no tool generates it. `publish.yml` uploads it unchanged beside the
+generated evidence.
+
+The 3.0.0 record is produced at release time, from the tagged source, by:
+
+```bash
+bash scripts/validate_release.sh
+```
+
+That script writes `build/release-validation/` (logs, `SHA256SUMS`, and the
+report from `tools/assurance/generate_validation_evidence.py --evidence-dir`).
+In `publish.yml` it runs with `L9_RELEASE_EVIDENCE_DIR=build/release-validation`
+and `L9_RELEASE_ARTIFACT_DIR` set, so it validates the already-built wheel and
+sdist instead of building them. V-001 (ADR-101) needs full git history and
+`origin/main`; a shallow checkout makes it `UNKNOWN`.
+
+The tracked `validation/validation_report.yaml` reports release `2.5.0`, not
+3.0.0. The 2.2.0 record below is kept as produced.
+
 ## Outcome
 
 - Local deterministic outcome: **PASS**
