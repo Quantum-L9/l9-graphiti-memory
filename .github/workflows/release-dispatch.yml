@@ -1,0 +1,114 @@
+# L9_META
+#   l9_schema: 1
+#   repo: Quantum-L9/l9-graphiti-memory
+#   path: .github/workflows/release-dispatch.yml
+#   layer: ci
+#   owner: memory-control-plane
+#   status: active
+#   version: 3.0.1
+#   updated: 2026-11-13
+
+# Starts release-container.yml on a release tag as the repository's own bot.
+#
+# l9-deploy refuses a production deployment unless the approver of its
+# protected `production` environment differs from the requester, and the
+# requester is the actor of the release-container.yml run (Core's
+# container-release action writes `requested_by` from GITHUB_ACTOR). Run by
+# hand, that actor is the same human who approves, and the deployment can
+# never be approved. A workflow_dispatch created with this workflow's
+# GITHUB_TOKEN always creates a run (GitHub documents workflow_dispatch as an
+# exception to "events triggered by GITHUB_TOKEN do not create runs"), and that
+# run's actor is the GitHub App the token acts for, not the maintainer who
+# started this workflow. The human remains the only approver: the `release`
+# environment on the dispatched run, then `production` in l9-deploy.
+#
+# This file authorizes nothing. It checks only what is cheap and certain to be
+# rejected later anyway, then dispatches. The exact-release admission, the
+# carrier proof, the analysis gate and the `release` environment all stay in
+# release-container.yml.
+name: Release dispatch
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Annotated release tag v<MAJOR.MINOR.PATCH> to release
+        required: true
+        type: string
+      environment:
+        description: Deployment target named in .l9/deployment.yaml
+        required: true
+        type: choice
+        options:
+          - production
+
+permissions: {}
+
+concurrency:
+  group: release-dispatch-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    name: Dispatch release-container.yml on the tag
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      RELEASE_ENVIRONMENT: ${{ inputs.environment }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      TARGET_WORKFLOW: release-container.yml
+    steps:
+      - name: Require this dispatcher to run from the default branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH" ]]; then
+            echo "run release-dispatch from $DEFAULT_BRANCH, not $GITHUB_REF" >&2
+            exit 1
+          fi
+      - name: Require a release tag name
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "tag must match v<MAJOR.MINOR.PATCH>; refusing to dispatch" >&2
+            exit 1
+          fi
+      - name: Require an existing annotated tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A lightweight tag's ref points at a commit; an annotated tag's ref
+          # points at a tag object. release-container.yml rejects the former.
+          ref_type="$(gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object.type')"
+          if [[ "$ref_type" != tag ]]; then
+            echo "refs/tags/$RELEASE_TAG is not an annotated tag (object type: $ref_type)" >&2
+            exit 1
+          fi
+      - name: Require the release workflow at the tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A workflow_dispatch runs the workflow file as it exists at the ref.
+          gh api "repos/$GH_REPO/contents/.github/workflows/$TARGET_WORKFLOW?ref=refs/tags/$RELEASE_TAG" \
+            --jq '.path' >/dev/null
+      - name: Dispatch the release as the repository bot
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "dispatching $TARGET_WORKFLOW on refs/tags/$RELEASE_TAG (environment: $RELEASE_ENVIRONMENT)"
+          gh workflow run "$TARGET_WORKFLOW" --ref "refs/tags/$RELEASE_TAG" -f environment="$RELEASE_ENVIRONMENT"
+          {
+            echo "### Release dispatched"
+            echo
+            echo "- workflow: \`$TARGET_WORKFLOW\`"
+            echo "- ref: \`refs/tags/$RELEASE_TAG\`"
+            echo "- environment: \`$RELEASE_ENVIRONMENT\`"
+            echo
+            echo "Next: approve the \`release\` environment on the dispatched run, then \`production\` in Quantum-L9/l9-deploy."
+          } >> "$GITHUB_STEP_SUMMARY"
