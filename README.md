@@ -34,7 +34,7 @@ The repository name uses **Graphiti** because the project integrates with Graphi
 - Explicit complete, partial, failed, duplicate, rejected, quarantined, archived, and deleted outcomes
 - No plaintext secret persistence in generated agent configuration
 - Installed-wheel operation without a source checkout
-- A machine-validated 98-ADR ledger and 51-decision harvest coverage map
+- A machine-validated ADR ledger (`docs/adr/`) and 51-decision harvest coverage map
 
 ## L9 alignment boundary
 
@@ -130,17 +130,17 @@ The HTTP adapter discovers the live Graphiti tool inventory. It supports the cur
 Five states are kept apart throughout this repository. "Implemented",
 "supported", "verified", "released" and "deployed" are not interchangeable.
 
-| State | Identity (2026-10-14) | Agent transport |
+| State | Identity (2026-10-14; `main` and Target rows 2026-11-13) | Agent transport |
 |---|---|---|
 | Current operational release | **2.5.0** (operator-designated) | local stdio MCP |
 | Package release line | **2.6.0**: `v2.6.0` tag and a published 2.6.0 artifact (`846f283`) exist; not designated the operational release | local stdio MCP; HTTP present but not a conforming Streamable HTTP server and authenticated only by static bearer tokens |
-| `main` | `441b741`, source version 2.6.0 | as 2.6.0 |
-| Candidate | ADR-098 in the 3.0.0 release candidate (PRs #93-#95 integrated), source version **3.0.0**; unmerged and untagged; not an accepted release | adds stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) and per-request signed-agent identity; stdio unchanged (`2024-11-05`) |
-| Target | **Memory 3.0.0**: first live release of the consolidated remote architecture | one hosted `MemoryService` over authenticated HTTPS MCP |
+| `main` | source version **3.0.0** (`pyproject.toml`, `src/l9_graphite_memory/version.py`; observed at `ae6e2c0`). No `v3.0.0` tag, no 3.0.0 admission receipt under `docs/receipts/`, no 3.0.0 artifact on PyPI; not an admitted release | stateless Streamable HTTP (`2025-11-25`, `2025-06-18`, ADR-098) with `bearer` (default) and `signed-agent` modes; neither mode is a hosted door (ADR-100) and there is no OAuth mode yet (issue #108); stdio unchanged (`2024-11-05`) |
+| Target | **Memory 3.0.0**: first live release of the consolidated remote architecture | one hosted `MemoryService` over native MCP Streamable HTTP protected by Auth0 OAuth (ADR-100) |
 | Qualified deployment | **none** | no C1 deployment exists or is claimed |
 
-Memory 3.0.0 is bound to exact source and built-artifact identities only after
-the candidate is integrated and validated. A Git tag, a published package, a
+Memory 3.0.0 is bound to exact source and built-artifact identities only by a
+merged admission receipt for those exact bytes (ADR-022, ADR-094); none exists
+for 3.0.0. A Git tag, a published package, a
 deployment and operator acceptance are separate facts. The TypeScript client's
 package version 3.0.0 is an npm version, not Memory 3.0.0.
 
@@ -149,7 +149,7 @@ package version 3.0.0 is an npm version, not Memory 3.0.0.
 ```text
 Cursor agent(s) ──────┐
                       │
-Claude Code agent(s) ─┼── authenticated HTTPS MCP (Streamable HTTP)
+Claude Code agent(s) ─┼── OAuth-protected HTTPS MCP (Streamable HTTP)
                       │              │
 Other authorized ─────┘              ▼
 agents                     Hetzner C1 hosting boundary (TLS reverse proxy)
@@ -165,22 +165,30 @@ agents                     Hetzner C1 hosting boundary (TLS reverse proxy)
   operator-controlled Hetzner C1 environment. Agents on different machines
   will consume it; they are consumers, not canonical memory servers. The
   runtime will not depend on the operator's Mac.
-- Each agent carries its own identity evidence, verified on every request
-  (ADR-098, ADR-083). Shared storage does not imply shared authorization: a
-  namespace may be shared by explicitly authorized agents, tenant and
-  namespace authorization are enforced independently, and every write keeps
-  its source-agent attribution.
-- HTTP is an adapter. No second memory API, gateway, identity service or
-  `MemoryService` is introduced. Stdio, the CLI and the SDK stay supported;
-  stdio is not the multi-machine deployment.
+- The hosted credential is an Auth0 access token bound to the one Memory
+  resource; signed-agent HMAC, static bearer and Memory stdio are not hosted
+  doors and are not fallbacks (ADR-100, which supersedes the hosted
+  provisions of ADR-083 and ADR-098). A verified OAuth principal is not an
+  actor or a surface, and consequential actor attribution fails closed when
+  the actor is unproved. Shared storage does not imply shared authorization:
+  tenant and namespace authorization are enforced independently by
+  `MemoryService`.
+- HTTP is an adapter. No second memory API, gateway, authorization server or
+  `MemoryService` is introduced. The CLI stays the operator interface and the
+  SDK stays supported. The stdio, signed-agent and bearer code paths are
+  still in the tree as legacy code until a later change removes them; they
+  are not the hosted contract (ADR-100).
 - Hostname, address, certificate, process supervisor and operating-system
   configuration are unverified until deployment evidence exists.
 
-What stands between the candidate and a live 3.0.0: integration and release
-validation on exact bytes; the protocol suite and receipt shapes on PostgreSQL
-(cross-process sharing on PostgreSQL is proven by
-`tests/integration/test_remote_mcp_postgres_multiprocess.py`); durable per-agent
-keys and a server-side grant map; release and service admission (the product classification is settled by ADR-094, 2026-10-15); C1
+What stands between `main` and a live 3.0.0: the OAuth resource server, which
+this source does not have (`http_auth_mode` admits only `bearer` and
+`signed-agent`), and the live PKCE receipt ADR-100 requires before it is
+treated as proven; until then the hosted carrier image refuses every auth mode
+and does not start (`Dockerfile`, `.l9/deployment.yaml`, issue #108). Also:
+release validation on exact bytes; the protocol suite and receipt shapes on PostgreSQL
+(cross-process sharing on PostgreSQL is proven, under signed-agent identity, by
+`tests/integration/test_remote_mcp_postgres_multiprocess.py`); release and service admission (the product classification is settled by ADR-094, 2026-10-15); C1
 deployment evidence; and consumer adoption, which each consumer owns.
 Cursor-Governance currently seals the agent HTTP path, so the Cursor and
 Claude Code agents it governs need an authorized consumer campaign first. `config/mcp.json.example` stays the

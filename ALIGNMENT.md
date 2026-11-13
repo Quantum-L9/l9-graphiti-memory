@@ -15,7 +15,7 @@ updated: 2026-07-22
 
 - Artifact: dependency package with an SDK facade and optional service, provider, hook, and constellation adapters
 - Repository: `Quantum-L9/l9-graphiti-memory`
-- Release: `2.2.0`
+- Release: source version `3.0.0` on `main` (`pyproject.toml`), not tagged and not an admitted release; the newest release tag is `v2.6.0`. See "Release and transport status" in `README.md`.
 - Canonical state owner: `MemoryService` plus `RecordStore`
 - Inter-node authority: external canonical TransportPacket owner plus Gate
 - Provider state: rebuildable projection only
