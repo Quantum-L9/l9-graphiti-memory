@@ -16,9 +16,13 @@ authenticated HTTP over one required external PostgreSQL. ``violations`` names
 every departure from that, so a negative test can prove each one is caught.
 
 ADR-100: the hosted door is Auth0 OAuth only; signed-agent HMAC and static
-bearer are not hosted doors and not fallbacks. This release has no OAuth mode,
-so the profile names no ``L9_MEMORY_HTTP_AUTH_MODE`` and the carrier refuses to
-start; issue #108 pins the OAuth mode once it exists.
+bearer are not hosted doors and not fallbacks. The profile pins the package's
+OAuth mode (ADR-102) and the issuer where a stored value cannot override them;
+the subject grants and actor bindings (ADR-103) are operator data that arrive
+only in the rendered runtime.env (issue #108).
+
+The secret-store project is resolved by exact slug, and the deploy user is the
+non-root ``actions`` (operator decision 2026-11-13).
 
 The database is a dedicated PostgreSQL 16 container on C1's ``l9-runtime``
 Docker network with no published host port (operator decision 2026-11-13), so
@@ -64,9 +68,15 @@ HOSTNAME = "memory.quantumaipartners.com"
 HOST_PORT = 8200
 RESERVED_HOST_PORTS = {8100: "Graphiti /graphiti route", 18080: "Cognitive Runtime"}
 IMAGE = "ghcr.io/quantum-l9/l9-graphiti-memory"
+# ADR-102: the OAuth mode literal and the issuer the server compares with iss,
+# character for character (an Auth0 issuer ends with a slash).
+OAUTH_AUTH_MODE = "oauth"
+OAUTH_ISSUER = "https://quantum-ai-partners.us.auth0.com/"
 REQUIRED_ENVIRONMENT = {
     "L9_MEMORY_STORE_BACKEND": "postgres",
     "L9_MEMORY_HTTP_AUTH_REQUIRED": "true",
+    "L9_MEMORY_HTTP_AUTH_MODE": OAUTH_AUTH_MODE,
+    "L9_MEMORY_HTTP_OAUTH_ISSUER": OAUTH_ISSUER,
     # Compose lets these override runtime.env, so a stale secret-store entry
     # cannot turn on a backend the profile does not declare.
     "L9_MEMORY_PROJECTION_BACKEND": "none",
@@ -74,11 +84,19 @@ REQUIRED_ENVIRONMENT = {
     "L9_MEMORY_GRAPH_BACKEND": "none",
     "L9_MEMORY_ACTIVE_BACKEND": "none",
 }
-# ADR-100: neither is a hosted door. Until issue #108 adds the OAuth mode the
-# profile names no auth mode at all.
+# ADR-100: neither is a hosted door.
 RETIRED_HOSTED_AUTH_MODES = ("signed-agent", "bearer")
 # Credentials reach the container only through the Infisical-rendered runtime.env.
 SECRET_MARKERS = ("DSN", "KEY", "GRANT", "TOKEN", "PASSWORD", "SECRET", "ASSERTION")
+# Operator data (ADR-102, ADR-103): who may use which namespace and which actor
+# a person runs through which client. Rendered from the secret store, so the
+# operator changes it without a release; never pinned in the profile.
+OPERATOR_DATA_SETTINGS = ("L9_MEMORY_OAUTH_GRANTS_JSON", "L9_MEMORY_OAUTH_ACTORS_JSON")
+# The Infisical project is named l9-graphite-memory; l9-deploy resolves it by
+# exact slug, and no project has the slug l9-graphiti-memory.
+SECRETS_PROJECT_SLUG = "l9-graphite-memory-4b-bv"
+# Operator decision 2026-11-13: a non-root deploy user.
+DEPLOY_USER = "actions"
 
 # The data plane: one database container on the runtime network, no host port.
 RELEASE_CONTAINER = "l9-graphiti-memory-app-1"  # l9-deploy names it <project.id>-app-1
@@ -269,12 +287,12 @@ def violations(profile: dict[str, Any]) -> list[str]:
         mode not in RETIRED_HOSTED_AUTH_MODES,
         f"L9_MEMORY_HTTP_AUTH_MODE={mode} is not a hosted door (ADR-100)",
     )
-    require(
-        "L9_MEMORY_HTTP_AUTH_MODE" not in environment,
-        "L9_MEMORY_HTTP_AUTH_MODE stays unset until the OAuth mode exists (issue #108)",
-    )
     leaked = [name for name in environment if any(m in name.upper() for m in SECRET_MARKERS)]
     require(not leaked, f"secret-shaped settings in the profile: {leaked}")
+    pinned_data = [name for name in OPERATOR_DATA_SETTINGS if name in environment]
+    require(
+        not pinned_data, f"operator data belongs in runtime.env, not the profile: {pinned_data}"
+    )
     require(not runtime.get("volumes"), "no host volume may hold a local ledger")
     require(not profile.get("storage", {}).get("persistent_volumes"), "no persistent volume")
 
@@ -300,6 +318,10 @@ def violations(profile: dict[str, Any]) -> list[str]:
         (secrets.get("authority"), secrets.get("runtime_mode")) == ("infisical", "deploy_render"),
         "secrets must be Infisical-rendered at deploy",
     )
+    require(
+        secrets.get("project_slug") == SECRETS_PROJECT_SLUG,
+        f"secrets.project_slug must be the Infisical slug {SECRETS_PROJECT_SLUG}",
+    )
 
     targets = profile.get("targets", {})
     require(set(targets) == {"production"}, "exactly one target: production")
@@ -307,6 +329,9 @@ def violations(profile: dict[str, Any]) -> list[str]:
     server = target.get("server", {})
     require(server.get("address") == C1_ADDRESS, f"target must be C1 {C1_ADDRESS}")
     require(server.get("address") != L9_MEMORY_VM_ADDRESS, "target must not be the L9-Memory VM")
+    ssh_user = server.get("ssh", {}).get("user")
+    require(ssh_user != "root", "the deploy user must not be root")
+    require(ssh_user == DEPLOY_USER, f"the deploy user must be {DEPLOY_USER}")
     require(
         target.get("host", {}).get("docker") == "verify", "C1 Docker is verified, never managed"
     )

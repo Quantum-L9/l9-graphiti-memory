@@ -35,6 +35,7 @@ from tests.deployment.carrier.profile_contract import (
     HOST_PORT,
     HOSTNAME,
     L9_MEMORY_VM_ADDRESS,
+    OAUTH_ISSUER,
     POSTGRES_IMAGE,
     PROFILE,
     SCHEMA_DIGESTS,
@@ -83,6 +84,21 @@ def test_the_committed_profile_targets_only_the_c1_memory_endpoint() -> None:
         "hostnames": [HOSTNAME],
         "host_port": HOST_PORT,
     }
+
+
+def test_the_committed_profile_pins_the_oauth_door_and_no_retired_one() -> None:
+    """Issue #108: the hosted door is OAuth (ADR-102), pinned where runtime.env cannot reach."""
+
+    environment = _profile()["runtime"]["environment"]
+    assert environment["L9_MEMORY_HTTP_AUTH_MODE"] == "oauth"
+    assert environment["L9_MEMORY_HTTP_OAUTH_ISSUER"] == OAUTH_ISSUER
+    assert OAUTH_ISSUER.startswith("https://") and OAUTH_ISSUER.endswith("/")
+    pins = [
+        line
+        for line in PROFILE.read_text(encoding="utf-8").splitlines()
+        if not line.lstrip().startswith("#") and ("signed-agent" in line or "bearer" in line)
+    ]
+    assert pins == []
 
 
 def test_the_host_key_is_a_well_formed_public_key_line_not_a_placeholder() -> None:
@@ -134,6 +150,27 @@ MISTARGETED: dict[str, Mutation] = {
     ),
     "bearer-only auth": lambda p: p["runtime"]["environment"].update(
         L9_MEMORY_HTTP_AUTH_MODE="bearer"
+    ),
+    "signed-agent auth": lambda p: p["runtime"]["environment"].update(
+        L9_MEMORY_HTTP_AUTH_MODE="signed-agent"
+    ),
+    "no pinned auth mode": lambda p: p["runtime"]["environment"].pop("L9_MEMORY_HTTP_AUTH_MODE"),
+    "no pinned issuer": lambda p: p["runtime"]["environment"].pop("L9_MEMORY_HTTP_OAUTH_ISSUER"),
+    "another issuer": lambda p: p["runtime"]["environment"].update(
+        L9_MEMORY_HTTP_OAUTH_ISSUER="https://other-tenant.us.auth0.com/"
+    ),
+    "the issuer without its trailing slash": lambda p: p["runtime"]["environment"].update(
+        L9_MEMORY_HTTP_OAUTH_ISSUER=OAUTH_ISSUER.rstrip("/")
+    ),
+    "subject grants in the committed profile": lambda p: p["runtime"]["environment"].update(
+        L9_MEMORY_OAUTH_GRANTS_JSON="{}"
+    ),
+    "actor bindings in the committed profile": lambda p: p["runtime"]["environment"].update(
+        L9_MEMORY_OAUTH_ACTORS_JSON="{}"
+    ),
+    "the root deploy user": lambda p: _target(p)["server"]["ssh"].update(user="root"),
+    "a secret-store slug that resolves no project": lambda p: p["secrets"].update(
+        project_slug="l9-graphiti-memory"
     ),
     "auth disabled": lambda p: p["runtime"]["environment"].update(
         L9_MEMORY_HTTP_AUTH_REQUIRED="false"

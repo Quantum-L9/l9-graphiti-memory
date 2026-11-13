@@ -36,14 +36,24 @@ runtime:
   read_only_root_filesystem: true
   stop_grace_seconds: 30
   # Non-secret settings only. Compose gives these precedence over the rendered
-  # runtime.env, so a secret store entry cannot switch the backend.
-  # No L9_MEMORY_HTTP_AUTH_MODE: ADR-100 admits only Auth0 OAuth as the hosted
-  # door and this release has no OAuth mode, so the carrier refuses every mode
-  # (signed-agent and bearer included, from here or from runtime.env) and does
-  # not start. Issue #108 pins the OAuth mode here.
+  # runtime.env, so a secret store entry cannot switch the backend or the door.
+  #
+  # The door (ADR-100, ADR-102, ADR-103, issue #108): Auth0 OAuth, the only
+  # hosted door. The carrier refuses every other mode and refuses oauth without
+  # the issuer. The issuer is compared with the token's iss character for
+  # character, so it keeps its trailing slash.
+  #
+  # Operator data, never in this file: the rendered runtime.env carries
+  # L9_MEMORY_OAUTH_GRANTS_JSON (token subject -> namespaces; required, "{}"
+  # grants nobody), L9_MEMORY_OAUTH_ACTORS_JSON (token subject -> client id ->
+  # actor_ref and surface_ref; optional, absent means every OAuth write is
+  # refused), L9_MEMORY_LOCAL_TENANT_ID, L9_MEMORY_LOCAL_ORGANIZATION_ID,
+  # L9_MEMORY_LOCAL_WORKSPACE_ID and L9_MEMORY_POSTGRES_DSN (RUNBOOK.md).
   environment:
     L9_MEMORY_STORE_BACKEND: postgres
     L9_MEMORY_HTTP_AUTH_REQUIRED: "true"
+    L9_MEMORY_HTTP_AUTH_MODE: oauth
+    L9_MEMORY_HTTP_OAUTH_ISSUER: https://quantum-ai-partners.us.auth0.com/
     # Every other backend is pinned off here, where a stale runtime.env entry
     # cannot reach it: the only external system this release talks to is
     # its PostgreSQL store.
@@ -196,7 +206,9 @@ backup:
 secrets:
   authority: infisical
   runtime_mode: deploy_render
-  project_slug: l9-graphiti-memory
+  # The Infisical project is named l9-graphite-memory; l9-deploy resolves it by
+  # this exact slug (environments dev, staging, prod).
+  project_slug: l9-graphite-memory-4b-bv
 targets:
   # C1 (Hetzner server 114194366) is a shared, protected host
   # (Cursor-Governance rules/93-c1-server-protection). Not the separate L9-Memory
@@ -211,7 +223,10 @@ targets:
     server:
       address: 46.62.243.82
       ssh:
-        user: root
+        # A non-root deploy user (operator decision 2026-11-13). actions is in
+        # the docker and l9deploy groups and escalates with sudo; the host steps
+        # this needs are in RUNBOOK.md, "Deploy user".
+        user: actions
         port: 22
       # Evidence lead only: the key Quantum-L9/l9-cognitive-runtime@94348537
       # .l9/deployment.yaml pins for this same address. It must be re-verified

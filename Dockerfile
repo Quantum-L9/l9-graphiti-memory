@@ -7,14 +7,15 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 3.0.0
-#   updated: 2026-10-26
+#   updated: 2026-11-13
 #
 # The one OCI carrier for the hosted Memory 3.0 service (ADR-098): the existing
 # l9-memory-server, Streamable HTTP on /mcp, over the canonical PostgreSQL
 # store. It adds no server, route or credential of its own. ADR-100 makes the
 # hosted door Auth0 OAuth only; signed-agent HMAC and static bearer are not
-# hosted doors. This release has no OAuth mode, so the carrier refuses to
-# start until issue #108 adds one.
+# hosted doors. The door is the package's OAuth resource server (ADR-102,
+# http_auth_mode=oauth) with operator-bound actors (ADR-103); the carrier
+# starts on that mode and refuses every other (issue #108).
 #
 # Publication is not done here. The l9-ci-core container-release action builds
 # this file once, pushes one immutable digest and requests the deployment
@@ -76,10 +77,12 @@ COPY --from=builder /opt/venv /opt/venv
 # The hosted profile has exactly one canonical store. The guard refuses to start
 # on anything but authenticated HTTP over PostgreSQL, so a missing or overridden
 # setting stops the container instead of serving from a local SQLite ledger.
-# The door is checked last: ADR-100 admits only Auth0 OAuth, which this release
-# does not implement, so no L9_MEMORY_HTTP_AUTH_MODE is admitted and the
-# container fails closed with no inbound credential. Issue #108 adds the OAuth
-# arm here once the resource server and its live PKCE receipt exist.
+# The door is checked last: ADR-100 admits only Auth0 OAuth, so the one admitted
+# L9_MEMORY_HTTP_AUTH_MODE is oauth (ADR-102). Unset, signed-agent, bearer and
+# any other value refuse, and so does oauth without its issuer. The server
+# itself still refuses an issuer that is not https, a missing or administrator
+# grant map, and a malformed actor map. Overriding the entrypoint bypasses this
+# guard, so l9-deploy runs the image entrypoint (issue #108).
 COPY --chmod=0755 <<'EOF' /usr/local/bin/l9-memory-carrier
 #!/bin/sh
 set -eu
@@ -103,10 +106,13 @@ refuse() {
 [ "${L9_MEMORY_ACTIVE_BACKEND:-none}" = "none" ] \
   || refuse "L9_MEMORY_ACTIVE_BACKEND must be none"
 case "${L9_MEMORY_HTTP_AUTH_MODE:-}" in
+  oauth)
+    [ -n "${L9_MEMORY_HTTP_OAUTH_ISSUER:-}" ] \
+      || refuse "L9_MEMORY_HTTP_OAUTH_ISSUER is required by the hosted OAuth door (ADR-102)" ;;
   signed-agent|bearer)
     refuse "L9_MEMORY_HTTP_AUTH_MODE=${L9_MEMORY_HTTP_AUTH_MODE} is not a hosted door (ADR-100)" ;;
   *)
-    refuse "L9_MEMORY_HTTP_AUTH_MODE must be the hosted OAuth mode, which this release does not have (ADR-100, issue #108)" ;;
+    refuse "L9_MEMORY_HTTP_AUTH_MODE must be oauth, the hosted door (ADR-100, ADR-102)" ;;
 esac
 exec l9-memory-server --transport http --host 0.0.0.0 --port 8200 "$@"
 EOF
