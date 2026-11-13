@@ -378,11 +378,12 @@ history or on the terminal.
    `L9_MEMORY_POSTGRES_DSN` (project `l9-graphiti-memory`, environment `prod`).
    The value goes through a root-only file on tmpfs that the Infisical CLI
    reads (`NAME=@file`), so it is never an argument and never displayed. Do
-   not `cat` the file:
+   not `cat` the file. The DSN is written in libpq keyword form; the generated
+   password is hexadecimal, so it needs no quoting:
 
    ```bash
    install -m 600 /dev/null /run/l9-memory-dsn
-   printf 'postgresql://l9_memory:%s@l9-graphiti-memory-postgres:5432/l9_memory' "$APP_PASSWORD" > /run/l9-memory-dsn
+   printf 'host=l9-graphiti-memory-postgres port=5432 dbname=l9_memory user=l9_memory password=%s' "$APP_PASSWORD" > /run/l9-memory-dsn
    unset APP_PASSWORD
    infisical secrets set L9_MEMORY_POSTGRES_DSN=@/run/l9-memory-dsn --env=prod --projectId=<INFISICAL_PROJECT_ID>
    rm -f /run/l9-memory-dsn
