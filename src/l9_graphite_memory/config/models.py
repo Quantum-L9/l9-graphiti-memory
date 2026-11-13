@@ -140,8 +140,16 @@ class MemorySettings(BaseModel):
     # principals). "signed-agent" verifies, on every request, the same signed
     # agent assertion and canonical identity assertion the stdio agent door
     # verifies, then loads that agent's server-side grant. Only "signed-agent"
-    # establishes a remote agent identity.
-    http_auth_mode: Literal["bearer", "signed-agent"] = "bearer"
+    # establishes a remote agent identity. "oauth" is the resource server of
+    # ADR-100 and ADR-102: every request carries an access token issued by
+    # ``http_oauth_issuer`` for the Memory resource, validated against that
+    # issuer's published keys. An OAuth principal is a subject, never an actor.
+    http_auth_mode: Literal["bearer", "signed-agent", "oauth"] = "bearer"
+    # The authorization server whose access tokens "oauth" mode admits: an
+    # https URL, compared with the token's ``iss`` claim character for
+    # character. It has no default and is never derived; "oauth" mode refuses
+    # to start without it.
+    http_oauth_issuer: str | None = None
     # Browser origins allowed to reach /mcp. A request carrying any other
     # Origin header is refused with 403 (DNS-rebinding defence); a request
     # without one (a non-browser MCP client) is unaffected.

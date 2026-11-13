@@ -127,7 +127,11 @@ proofs:
     - deployment/generated-data/verify_backup_restore.py
     - tests/deployment/generated_data/test_backup_restore.py
   hosted_carrier:
-    - tests/deployment/carrier/test_container_carrier.py (built image on PostgreSQL 16; runs when L9_MEMORY_TEST_CARRIER_IMAGE is set, and in full in release-container.yml; proves the image refuses to start with no hosted door, signed-agent and bearer included, per ADR-100; the authenticated OAuth path is issue #108)
+    - tests/deployment/carrier/test_container_carrier.py (built image on PostgreSQL 16 with a local TLS issuer; runs when L9_MEMORY_TEST_CARRIER_IMAGE is set, and in full in release-container.yml, which fails on any skip; the OAuth door of ADR-100 and ADR-102 with ADR-103 actors, issue #108 section 2)
+    - "OAuth refusals, each 401 with a Bearer challenge: no credential, malformed token, wrong issuer, wrong audience, wrong resource (trailing-slash audience; /mcp/ is 404), expired token, foreign signature, client-credentials (user-less) token, valid signed-agent credential, static bearer token"
+    - "OAuth admissions: an audience-bound token initializes; a subject bound to an actor writes; another subject reads and searches the record; an ungranted namespace and a subject without an actor are refused"
+    - "Carrier proofs restored over OAuth: /readyz follows PostgreSQL; records survive a replaced container; no token, key or password in the serving log; startup refused on every mode but oauth (unset, signed-agent, bearer, other), without an issuer or with a non-https one, without the grant map, with an administrator grant, with an actor bound to its client id, without PostgreSQL, on SQLite, with auth disabled, against an unreachable database, with stale graph or active backends"
+    - "Live PKCE receipt (start condition 2, not a test here): https://github.com/Quantum-L9/l9-graphiti-memory/issues/108#issuecomment-6862806068, produced 2026-11-13T19:25:56Z by tools/assurance/oauth_pkce_receipt.py, status passed, six of six checks, receipt_sha256 sha256:8e0eeb4ed9cb8853b71e448cc38b0ea0fd801372eddc04b2d3f39e6f671b02ad; digests and claim metadata only"
     - tests/deployment/carrier/test_deployment_profile.py
     - tests/deployment/carrier/test_release_workflow.py
   generated_data_invalidation:

@@ -37,6 +37,11 @@ except ModuleNotFoundError:  # [server] extra not installed; create_http_app() w
     Response = None  # type: ignore[assignment,misc]
 
 from l9_graphite_memory.authz import TokenAuthenticator
+from l9_graphite_memory.authz.oauth import (
+    PROTECTED_RESOURCE_METADATA_PATH,
+    PROTECTED_RESOURCE_METADATA_URL,
+    OAuthResourceServer,
+)
 from l9_graphite_memory.authz.remote_agent import (
     IDENTITY_ASSERTION_HEADER,
     IDENTITY_ASSERTION_HMAC_HEADER,
@@ -55,6 +60,7 @@ from l9_graphite_memory.authz.signed_assertion import (
 )
 from l9_graphite_memory.config import MemorySettings
 from l9_graphite_memory.contracts import MemoryPrincipal
+from l9_graphite_memory.contracts.identity import OAUTH_AUTH_METHOD
 from l9_graphite_memory.errors import (
     AuthenticationError,
     ConfigurationError,
@@ -71,6 +77,7 @@ from l9_graphite_memory.secrets import load_secrets_sync
 from l9_graphite_memory.version import (
     HTTP_MCP_PROTOCOL_VERSIONS,
     MCP_PROTOCOL_VERSION,
+    MEMORY_RESOURCE_IDENTIFIER,
     PACKAGE_VERSION,
 )
 
@@ -243,6 +250,31 @@ async def await_health(func: Any, /, *args: Any) -> Any:
 
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(_health_executor(), func, *args)
+
+
+# OAuth access-token validation runs on its own pool. Verifying a signature is
+# quick, but the first token, an unknown key id and an expired key cache each
+# read the issuer's keys over the network, and that wait must stall neither
+# the event loop nor a tool call. A full pool queues; it does not grow.
+HTTP_AUTH_WORKERS = 4
+_http_auth_executor: ThreadPoolExecutor | None = None
+
+
+def _auth_executor() -> ThreadPoolExecutor:
+    global _http_auth_executor
+    if _http_auth_executor is None:
+        _http_auth_executor = ThreadPoolExecutor(
+            max_workers=HTTP_AUTH_WORKERS,
+            thread_name_prefix="l9-mcp-auth",
+        )
+    return _http_auth_executor
+
+
+async def await_authentication(func: Any, /, *args: Any) -> Any:
+    """Run one synchronous access-token validation off the event loop."""
+
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(_auth_executor(), func, *args)
 
 
 def _agents_door_env(name: str) -> str:
@@ -453,6 +485,11 @@ def run_stdio(runtime: MemoryRuntime) -> int:
 # server-initiated SSE stream and no MCP-Session-Id.
 
 MCP_ENDPOINT_PATHS = ("/mcp", "/mcp/")
+# The one endpoint an OAuth deployment serves (ADR-102). A token is bound to
+# the resource a client derives from the URL it connects to, so two spellings
+# of the endpoint would be two resources. The canonical one is the path of
+# MEMORY_RESOURCE_IDENTIFIER, without a trailing slash; "/mcp/" is refused.
+MCP_CANONICAL_ENDPOINT_PATH = MCP_ENDPOINT_PATHS[0]
 # What a server must assume when MCP-Protocol-Version is absent and nothing
 # else identifies the revision. It is not in HTTP_MCP_PROTOCOL_VERSIONS, so
 # such a request is refused with 400 instead of being served unversioned.
@@ -574,6 +611,19 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
             "http_auth_mode=signed-agent requires http_auth_required=true; "
             "an unauthenticated transport cannot establish an agent identity"
         )
+    if settings.http_auth_mode == OAUTH_AUTH_METHOD and not settings.http_auth_required:
+        raise ConfigurationError(
+            f"http_auth_mode={OAUTH_AUTH_METHOD} requires http_auth_required=true; "
+            "an unauthenticated transport validates no access token"
+        )
+    # OAuth mode reads the issuer and the subject grants once, so a missing
+    # issuer, a non-https issuer or a malformed grant stops the server before
+    # it serves. The issuer's keys are read on the first token, not here.
+    oauth_server = (
+        OAuthResourceServer.from_environment(settings)
+        if settings.http_auth_mode == OAUTH_AUTH_METHOD
+        else None
+    )
     authenticator = TokenAuthenticator(settings.auth_tokens)
     # Signed-agent mode loads the agent key and grant registry once, so a
     # missing or malformed registry stops the server before it serves.
@@ -596,11 +646,18 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
     )
     app = FastAPI(title="L9 Graphite Memory", version=PACKAGE_VERSION)
 
-    def principal_for(request: Request) -> MemoryPrincipal:
+    async def principal_for(request: Request) -> MemoryPrincipal:
         """Authenticate this request on its own evidence; nothing carries over."""
 
         if local_principal is not None:
             return local_principal
+        if oauth_server is not None:
+            # The only door in OAuth mode: a refusal here is the answer, and
+            # neither the signed-agent nor the bearer verifier is consulted.
+            principal: MemoryPrincipal = await await_authentication(
+                oauth_server.authenticate, request.headers.get("Authorization")
+            )
+            return principal
         if agent_authenticator is not None:
             return agent_authenticator.authenticate(
                 authorization=request.headers.get("Authorization"),
@@ -650,9 +707,13 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         if CREDENTIAL_QUERY_PARAMETERS & {key.lower() for key in request.query_params}:
             return _transport_error(400, -32600, "credentials must not be sent in the URL")
         try:
-            principal = principal_for(request)
+            principal = await principal_for(request)
         except AuthenticationError as exc:
             challenge = WWW_AUTHENTICATE_REALM
+            if oauth_server is not None:
+                # RFC 9728 section 5.1: where the client finds the
+                # authorization server for this resource.
+                challenge += f', resource_metadata="{PROTECTED_RESOURCE_METADATA_URL}"'
             if request.headers.get("Authorization"):
                 challenge += ', error="invalid_token"'
             return _transport_error(401, -32001, str(exc), headers={"WWW-Authenticate": challenge})
@@ -695,9 +756,35 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
             return Response(status_code=202)
         return JSONResponse(content=await await_blocking(server.handle, body, principal))
 
-    for path in MCP_ENDPOINT_PATHS:
+    def noncanonical_endpoint(request: Request) -> Any:
+        refused = refuse_origin(request)
+        if refused is not None:
+            return refused
+        return _transport_error(
+            404,
+            -32600,
+            f"not an MCP endpoint; connect to {MCP_CANONICAL_ENDPOINT_PATH} without a "
+            f"trailing slash (resource {MEMORY_RESOURCE_IDENTIFIER})",
+        )
+
+    served_paths = MCP_ENDPOINT_PATHS if oauth_server is None else (MCP_CANONICAL_ENDPOINT_PATH,)
+    for path in served_paths:
         app.add_api_route(path, mcp_endpoint, methods=["POST"])
         app.add_api_route(path, method_not_allowed, methods=["GET", "DELETE"])
+    if oauth_server is not None:
+        for path in MCP_ENDPOINT_PATHS:
+            if path not in served_paths:
+                app.add_api_route(path, noncanonical_endpoint, methods=["POST", "GET", "DELETE"])
+        resource_metadata = oauth_server.metadata
+
+        def protected_resource_metadata() -> Any:
+            # Unauthenticated by design: a client reads it to learn where to
+            # obtain the token it does not have yet (RFC 9728).
+            return JSONResponse(content=resource_metadata)
+
+        app.add_api_route(
+            PROTECTED_RESOURCE_METADATA_PATH, protected_resource_metadata, methods=["GET"]
+        )
 
     @app.get("/healthz")
     async def healthz() -> JSONResponse:

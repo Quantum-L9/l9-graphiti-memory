@@ -81,6 +81,7 @@ _ENV_TO_FIELD = {
     "L9_MEMORY_ACTIVE_HEARTBEAT_FAILURE_THRESHOLD": "active_heartbeat_failure_threshold",
     "L9_MEMORY_HTTP_AUTH_REQUIRED": "http_auth_required",
     "L9_MEMORY_HTTP_AUTH_MODE": "http_auth_mode",
+    "L9_MEMORY_HTTP_OAUTH_ISSUER": "http_oauth_issuer",
     "L9_MEMORY_HTTP_ALLOWED_ORIGINS": "http_allowed_origins",
     "L9_MEMORY_HTTP_AGENT_ASSERTION_MAX_TTL_SECONDS": "http_agent_assertion_max_ttl_seconds",
     "L9_MEMORY_LOCAL_PRINCIPAL_ID": "local_principal_id",

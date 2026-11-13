@@ -241,25 +241,30 @@ def test_the_dockerfile_is_the_profile_carrier() -> None:
         "L9_MEMORY_POSTGRES_DSN is required",
         "L9_MEMORY_HTTP_AUTH_REQUIRED must be true",
         "is not a hosted door (ADR-100)",
-        (
-            "L9_MEMORY_HTTP_AUTH_MODE must be the hosted OAuth mode, which this release"
-            " does not have (ADR-100, issue #108)"
-        ),
+        "L9_MEMORY_HTTP_AUTH_MODE must be oauth, the hosted door (ADR-100, ADR-102)",
+        "L9_MEMORY_HTTP_OAUTH_ISSUER is required by the hosted OAuth door (ADR-102)",
         "L9_MEMORY_PROJECTION_BACKEND must be none",
         "L9_MEMORY_PROJECTION_RUNTIME must be legacy",
         "L9_MEMORY_GRAPH_BACKEND must be none",
         "L9_MEMORY_ACTIVE_BACKEND must be none",
     ):
         assert refused in text
-    # ADR-100: neither retired door is pinned, and both are refused by name.
+    # ADR-100: no door is baked into the image (the profile pins it), and both
+    # retired doors are refused by name.
     assert "L9_MEMORY_HTTP_AUTH_MODE=" not in text.replace("L9_MEMORY_HTTP_AUTH_MODE=${", "")
     assert "signed-agent|bearer)" in text
     guard = text[text.index("refuse() {") : text.index("exec l9-memory-server")]
-    # The door is decided last, after every store and backend check, and no arm
-    # of it reaches the server.
+    # The door is decided last, after every store and backend check.
     assert guard.rindex("L9_MEMORY_HTTP_AUTH_MODE") > guard.rindex("L9_MEMORY_ACTIVE_BACKEND")
-    door = guard[guard.index('case "${L9_MEMORY_HTTP_AUTH_MODE:-}" in') :]
+    head = 'case "${L9_MEMORY_HTTP_AUTH_MODE:-}" in'
+    door = guard[guard.index(head) + len(head) :]
     arms = [arm for arm in door.split(";;") if ")" in arm and "esac" not in arm]
-    assert len(arms) == 2 and all("refuse " in arm for arm in arms), arms
+    # Exactly one arm admits, the literal oauth, and only with an issuer; every
+    # other value (unset included, through *) refuses (ADR-102, issue #108).
+    assert [arm.split(")", 1)[0].strip() for arm in arms] == ["oauth", "signed-agent|bearer", "*"]
+    admitted, *refused = arms
+    assert '[ -n "${L9_MEMORY_HTTP_OAUTH_ISSUER:-}" ]' in admitted
+    assert "|| refuse " in admitted
+    assert all("refuse " in arm for arm in refused), refused
     ignore = (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()
     assert "*" in ignore, "the build context is an allow-list"

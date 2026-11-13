@@ -106,8 +106,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # (retired repository inventory and L9_META enforcement).
         # Re-pinned 99 -> 100 for ADR-100 (native OAuth MCP full cutover).
         # Re-pinned 100 -> 101 for ADR-101 (derived V-001 suite validation).
-        "101 ADRs complete and indexed",
-        r"PASS: 101 ADRs",
+        # Re-pinned 101 -> 102 for ADR-102 (OAuth resource server).
+        # Re-pinned 102 -> 103 for ADR-103 (OAuth actor binding).
+        "103 ADRs complete and indexed",
+        r"PASS: 103 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -201,8 +203,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 142 -> 143 for ADR-098: authz/remote_agent.py.
         # Re-pinned 143 -> 144 for the ADR-082 2026-10-16 amendment:
         # remote_client.py.
-        "144 production files pass",
-        r"PASS: 144 production Python files",
+        # Re-pinned 144 -> 145 for ADR-102: authz/oauth.py.
+        "145 production files pass",
+        r"PASS: 145 production Python files",
     ),
     CheckSpec(
         "V-012",
