@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-10-14
+updated: 2026-11-13
 /L9_META -->
 
 # Runbook
@@ -222,49 +222,407 @@ server does not accept bearer tokens, so bearer clients such as the
 TypeScript client cannot use it. Roll back with
 `L9_MEMORY_HTTP_AUTH_MODE=bearer`, or stop the HTTP transport.
 
-### C1 deployment prerequisites (3.0.0 target)
+### Hosted Memory on C1: operator procedure (3.0.0 target)
 
-This is the checklist the deployment campaign owns. It is not an installation
-procedure, and nothing here has been run on C1.
+**Nothing in this section has been run on C1.** It is written for the operator
+to run later; Docker on C1 was out of reach when it was written (2026-11-13).
+Each step carries one mark for the strongest evidence behind it:
 
-1. **Release.** A validated 3.0.0 artifact bound to exact source and
-   wheel/sdist digests; not the unmerged candidate.
-2. **Classification.** Settled (ADR-094, 2026-10-15): the topology claims
-   `l9.product-kind-exception/memory-hosted-service@1`. Its `service_admitted`
-   requirement is met only by the applicable target-class authority admitting
-   the exact running deployment; deploying does not admit it.
-3. **Canonical store.** `store_backend: postgres` against a new, empty
-   database, with the server installed with the `postgres` extra
-   (`l9-graphite-memory[server,postgres]`); projection, graph intelligence and active memory at `none` unless
-   separately qualified. No ledger, graph, Redis state or backup is imported,
-   and no migration runs.
-4. **Identity.** `http_auth_mode=signed-agent`; one durable, deployment-specific
-   signing key per agent, never shared between agents and never reused by a
-   local stdio door or another deployment; a grant map rendered for the server
-   from the authorized agent registry, with no `is_admin` grants; tenant,
-   organization and workspace set by `L9_MEMORY_LOCAL_*_ID` on the server.
-5. **Secrets.** The signing-key map, grant map and PostgreSQL connection
-   string (`L9_MEMORY_POSTGRES_DSN`) are runtime secrets from the operator's existing secret path. None
-   is tracked, written into generated client configuration, or logged.
-6. **Network.** TLS terminated at a trusted reverse proxy; the service bound
-   where only that proxy reaches it; `L9_MEMORY_HTTP_ALLOWED_ORIGINS` set if
-   any browser can reach the host; an explicit decision on whether `/docs`,
-   `/redoc`, `/openapi.json`, `/healthz` and `/readyz` are reachable from
-   outside the host.
-7. **Lifecycle.** A process supervisor that restarts the service, readiness
-   gated on `/readyz` and the `canonical` family, and PostgreSQL backup and
-   restore proven. "Backup and restore" below is written for the SQLite
-   ledger; the PostgreSQL procedure for the shared store is owed by the
-   deployment campaign.
-8. **Credential lifetime.** The shortest
-   `L9_MEMORY_HTTP_AGENT_ASSERTION_MAX_TTL_SECONDS` the clients can refresh.
+- **[repo]** — the fact the step relies on is verified in this repository
+  (file named in the step).
+- **[l9-deploy]** — the step relies on l9-deploy behaviour as verified by the
+  campaign coordinator in `Quantum-L9/l9-deploy@c89be89`; not re-verified here.
+- **[not run on C1]** — written from documentation and from a rehearsal on a
+  throwaway local Docker 29.9.2 engine (2026-11-13); no evidence from C1.
 
-**Recovery.** A failed MemoryService or proxy affects every connected agent;
-agents can fall back to their local stdio entry, which writes to its own local
-store, not the shared one, so those records are not in the shared memory.
-Restoring the shared store uses the deployment's proven PostgreSQL procedure
-(owed; see item 7). Rotating a compromised agent key means removing it from the
-key map and restarting; credentials minted under it then fail with `401`.
+No mark means the step ran on C1. Placeholders in `<ANGLE_BRACKETS>` are values
+this repository does not record; they are collected under
+[Operator must confirm](#operator-must-confirm). No command below contains or
+prints a secret value.
+
+Fixed names used throughout:
+
+| Thing | Name | Source |
+|---|---|---|
+| Host | C1, `46.62.243.82`, SSH as `root` | `.l9/deployment.yaml` |
+| Docker network | `l9-runtime` (external, shared) | l9-deploy |
+| Release container | `l9-graphiti-memory-app-1` | l9-deploy: `<project.id>-app-1` |
+| Service port | `127.0.0.1:8200` on the host, `8200` in the container | `.l9/deployment.yaml` |
+| Database container | `l9-graphiti-memory-postgres` | chosen here |
+| Database volume | `l9-graphiti-memory-postgres-data` | chosen here |
+| Database role and database | `l9_memory` / `l9_memory` | chosen here |
+| Database image | `postgres:16@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97` | `.l9/deployment.yaml` (the image the backup and restore test run) |
+| Secret store | Infisical project `l9-graphiti-memory`, environment `prod` | `.l9/deployment.yaml` |
+| Backups | `/srv/l9/backups/l9-graphiti-memory/<ENVIRONMENT>/<request_id>.sql.gz` | `.l9/deployment.yaml` |
+
+The database is a dedicated PostgreSQL 16 container on `l9-runtime` with a named
+volume and **no published host port**. It is not C1's existing loopback database
+on `127.0.0.1:5432`, which a container cannot reach. Its host name resolves only
+on `l9-runtime`, so every command that talks to it runs inside a container on
+that network or through `docker exec` into the database container; a client on
+the host with the service's DSN cannot resolve the name. l9-deploy does not
+provision it (`services.postgres.mode: external`).
+
+Nothing is imported: the database starts empty (ADR-100), and no ledger, graph,
+Redis state or older backup is loaded into it.
+
+#### Before you start
+
+The hosted door is Auth0 OAuth only (ADR-100). The 3.0.0 carrier in this
+repository has no OAuth mode yet, so its entrypoint exits with status 64 on
+every start (`Dockerfile`, `l9-memory-carrier`); issue #108 adds the mode and
+the `v3.0.0` tag is not cut before it lands. **Sections A and B can be done at
+any time. Do not start section C until the tag exists and issue #108 is
+closed**: C stops the legacy service, and a carrier that cannot start would
+leave the port empty.
+
+#### A. Preconditions on C1
+
+Run on C1 as `root`. Stop at the first check that fails.
+
+1. **[not run on C1]** Docker answers:
+
+   ```bash
+   docker info --format '{{.ServerVersion}} {{.DockerRootDir}}'
+   ```
+
+2. **[l9-deploy]** Compose is 2.30.0 or newer. l9-deploy refuses the host
+   otherwise, and with `host.docker: verify` it never installs or upgrades
+   Docker, so an older Compose must be upgraded by the operator first:
+
+   ```bash
+   docker compose version --short
+   ```
+
+3. **[not run on C1]** Free disk for the image (about 650 MB), the data volume
+   and the dumps. Use the `DockerRootDir` printed in step 1:
+
+   ```bash
+   df -h <DOCKER_ROOT_DIR> /srv
+   ```
+
+4. **[l9-deploy]** The shared network exists. l9-deploy creates it at deploy
+   time if it is missing, but the database must join it before the first
+   deploy:
+
+   ```bash
+   docker network inspect l9-runtime --format '{{.Name}} {{.Driver}} {{.Scope}}'
+   ```
+
+   If it is missing, see "Operator must confirm" before creating it with
+   `docker network create l9-runtime`.
+
+5. **[not run on C1]** The names this procedure creates are free. Both commands
+   must print nothing:
+
+   ```bash
+   docker ps -a --filter 'name=^l9-graphiti-memory-postgres$' --format '{{.Names}}'
+   docker volume ls --filter 'name=^l9-graphiti-memory-postgres-data$' --format '{{.Name}}'
+   ```
+
+#### B. Provision the PostgreSQL 16 container (once)
+
+Run on C1 as `root`, in one interactive `bash` session. The two passwords are
+generated into shell variables by command substitution, passed on by variable
+name or on standard input, and never appear on a command line, in shell
+history or on the terminal.
+
+1. **[not run on C1]** Keep this session out of shell history and make new
+   files private:
+
+   ```bash
+   set +o history
+   umask 077
+   IMAGE='postgres:16@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97'
+   docker pull "$IMAGE"
+   ```
+
+2. **[not run on C1]** Start the container: pinned image, on `l9-runtime`,
+   named volume at the image's data path, restart policy, and no `-p` or
+   `--publish`. `-e POSTGRES_PASSWORD` without a value forwards the variable
+   from the shell. It is the bootstrap superuser password and is removed in
+   step 4:
+
+   ```bash
+   POSTGRES_PASSWORD="$(openssl rand -hex 32)"
+   export POSTGRES_PASSWORD
+   docker run -d \
+     --name l9-graphiti-memory-postgres \
+     --network l9-runtime \
+     --restart unless-stopped \
+     --volume l9-graphiti-memory-postgres-data:/var/lib/postgresql/data \
+     -e POSTGRES_PASSWORD \
+     "$IMAGE"
+   unset POSTGRES_PASSWORD
+   ```
+
+3. **[not run on C1]** Wait until it accepts connections:
+
+   ```bash
+   until docker exec l9-graphiti-memory-postgres pg_isready -U postgres -q; do sleep 1; done
+   ```
+
+4. **[not run on C1]** Create the service's own role and database, and remove
+   the superuser's password. Administration from here on goes through
+   `docker exec` and the container's local socket, which the image trusts; no
+   superuser can log in over the network. The SQL travels on standard input
+   (`printf` is a shell builtin), not on a command line:
+
+   ```bash
+   APP_PASSWORD="$(openssl rand -hex 32)"
+   printf "CREATE ROLE l9_memory LOGIN PASSWORD '%s';\nCREATE DATABASE l9_memory OWNER l9_memory;\nALTER ROLE postgres PASSWORD NULL;\n" "$APP_PASSWORD" \
+     | docker exec -i l9-graphiti-memory-postgres psql -v ON_ERROR_STOP=1 -q -U postgres -d postgres
+   ```
+
+5. **[not run on C1]** Put the DSN straight into Infisical as
+   `L9_MEMORY_POSTGRES_DSN` (project `l9-graphiti-memory`, environment `prod`).
+   The value goes through a root-only file on tmpfs that the Infisical CLI
+   reads (`NAME=@file`), so it is never an argument and never displayed. Do
+   not `cat` the file:
+
+   ```bash
+   install -m 600 /dev/null /run/l9-memory-dsn
+   printf 'postgresql://l9_memory:%s@l9-graphiti-memory-postgres:5432/l9_memory' "$APP_PASSWORD" > /run/l9-memory-dsn
+   unset APP_PASSWORD
+   infisical secrets set L9_MEMORY_POSTGRES_DSN=@/run/l9-memory-dsn --env=prod --projectId=<INFISICAL_PROJECT_ID>
+   rm -f /run/l9-memory-dsn
+   set -o history
+   ```
+
+   The DSN carries no `sslmode=require`: the image starts without a server
+   certificate, and the connection never leaves the `l9-runtime` bridge on this
+   host. That differs from the general "TLS required" guidance for a shared
+   store elsewhere in this runbook, which is written for a database reached
+   over a network; see "Operator must confirm".
+
+6. **[not run on C1]** Verify it is up, restarts by policy, sits only on
+   `l9-runtime` and publishes nothing:
+
+   ```bash
+   docker inspect l9-graphiti-memory-postgres --format \
+     '{{.State.Status}} restart={{.HostConfig.RestartPolicy.Name}} ports={{json .HostConfig.PortBindings}} networks={{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+   docker port l9-graphiti-memory-postgres
+   docker exec l9-graphiti-memory-postgres psql -U postgres -d l9_memory -tAc 'select version()'
+   ```
+
+   Expected: `running restart=unless-stopped ports={} networks=l9-runtime`, no
+   output from `docker port`, and a `PostgreSQL 16.` version line.
+
+7. **[repo]** There is no schema step. The database stays empty until the
+   service first starts: `PostgresStore` creates its tables, `memory_records`
+   included, with `CREATE TABLE IF NOT EXISTS` under an advisory lock and
+   records the schema version in `schema_migrations`
+   (`src/l9_graphite_memory/adapters/postgres_store.py`). The profile declares
+   `migrations.enabled: false` for that reason.
+
+#### C. Cut over from the legacy service
+
+Port 8200 on C1 is held by the legacy 2.2.0 systemd service
+(`.l9/deployment.yaml`). This repository does not record that unit's name.
+The order matters: the new container cannot bind `127.0.0.1:8200` while the
+legacy unit holds it, and from step 3 until step 6 passes, agents have no
+hosted memory.
+
+1. **[not run on C1]** Name the legacy unit from the process that holds the
+   port, and keep its definition for the rollback:
+
+   ```bash
+   ss -ltnp 'sport = :8200'
+   systemctl status <PID_FROM_SS> --no-pager
+   systemctl cat <LEGACY_MEMORY_UNIT> > /root/<LEGACY_MEMORY_UNIT>.before-cutover
+   ```
+
+2. **[repo]** Confirm the release can be requested: sections A and B are done,
+   `L9_MEMORY_POSTGRES_DSN` and the OAuth settings issue #108 names are in
+   Infisical `prod`, the `v3.0.0` tag exists, and the host key in
+   `.l9/deployment.yaml` has been re-verified against C1 over a trusted channel
+   (the profile records it as an evidence lead only).
+
+3. **[not run on C1]** Stop and disable the legacy unit:
+
+   ```bash
+   systemctl disable --now <LEGACY_MEMORY_UNIT>
+   systemctl is-active <LEGACY_MEMORY_UNIT>
+   systemctl is-enabled <LEGACY_MEMORY_UNIT>
+   ```
+
+   Expected: `inactive` and `disabled`.
+
+4. **[not run on C1]** Confirm the port is free. This must print no listener:
+
+   ```bash
+   ss -ltn 'sport = :8200'
+   ```
+
+5. **[repo]** Request the release: dispatch the release workflow on the tag,
+   then approve the protected environment in l9-deploy when it asks
+   (`.github/workflows/release-container.yml` accepts only a `v<MAJOR.MINOR.PATCH>`
+   tag run and the `production` target):
+
+   ```bash
+   gh workflow run release-container.yml --repo Quantum-L9/l9-graphiti-memory --ref v3.0.0 -f environment=production
+   ```
+
+6. **[not run on C1]** Confirm the new service is the one answering. All four
+   must hold:
+
+   ```bash
+   docker ps --filter 'name=^l9-graphiti-memory-app-1$' --format '{{.Names}} {{.Status}} {{.Ports}}'
+   ss -ltnp 'sport = :8200'
+   curl -fsS http://127.0.0.1:8200/readyz | python3 -c 'import json, sys; d = json.load(sys.stdin); print(d["package_version"], d["status"])'
+   docker inspect l9-graphiti-memory-app-1 --format '{{index .Config.Labels "org.opencontainers.image.revision"}}'
+   ```
+
+   Expected: the container is `Up` and healthy with `127.0.0.1:8200->8200/tcp`;
+   the listener on 8200 belongs to Docker, not to the legacy process;
+   `/readyz` answers 200 with `package_version` `3.0.0` (the legacy service is
+   2.2.0); and the revision label equals the commit of the tag
+   (`git rev-parse 'v3.0.0^{commit}'` in a checkout). Then check the public
+   route through the host's existing proxy:
+
+   ```bash
+   curl -fsS https://memory.quantumaipartners.com/readyz >/dev/null && echo ok
+   ```
+
+**Manual rollback of a failed first deploy.** **[l9-deploy]** A first release
+has no previous release, so l9-deploy has nothing to roll back to and leaves
+the new container in place even with `release.automatic_rollback: true`.
+**[not run on C1]** Restore the legacy service by hand:
+
+```bash
+docker logs --tail 200 l9-graphiti-memory-app-1 > /root/l9-graphiti-memory-first-deploy.log 2>&1
+docker rm -f l9-graphiti-memory-app-1
+ss -ltn 'sport = :8200'
+systemctl enable --now <LEGACY_MEMORY_UNIT>
+systemctl is-active <LEGACY_MEMORY_UNIT>
+ss -ltnp 'sport = :8200'
+curl -fsS http://127.0.0.1:8200/<LEGACY_HEALTH_PATH>
+```
+
+Expected: after `docker rm`, no listener on 8200; after `enable --now`,
+`active`, with the legacy process holding the port again. Only the one named
+container is removed. The database container and its volume stay; anything
+written to PostgreSQL during the window is not visible to the legacy service,
+which keeps its own store. Leave `l9-graphiti-memory-postgres` running for the
+next attempt.
+
+#### D. Backup, verify and restore test
+
+**[repo]** The three commands are `backup.command`, `backup.verify_command` and
+`backup.restore_test_command` in `.l9/deployment.yaml`, pinned by
+`tests/deployment/carrier/test_deployment_profile.py`:
+
+- **Backup.** The release container splits its own DSN into libpq variables;
+  a `pg_dump` from the pinned PostgreSQL 16 image runs on `l9-runtime` with
+  those variables forwarded by name; the gzip dump and its `.sha256` are
+  written under `/srv/l9/backups/`. The host's `l9-postgres-backup` and its
+  unpinned `pg_dump` are not used. The release container must be running: it
+  is the only place the DSN is read from.
+- **Verify.** `/usr/local/sbin/l9-backup-verify` on the newest dump (non-empty,
+  checksum matches, gzip intact).
+- **Restore test.** The newest verified dump is loaded into a throwaway
+  PostgreSQL 16 container with `--network none` and must contain the
+  `memory_records` table. It never connects to the live database.
+
+**[l9-deploy]** They run on C1 over SSH from l9-deploy's backup-verify
+workflow, not from a deployment: this profile has migrations off and no
+persistent volume, so a deployment plan contains no pre-deploy backup step.
+Invoke `<L9_DEPLOY_BACKUP_VERIFY_WORKFLOW>` for project `l9-graphiti-memory`.
+
+**[not run on C1]** A pass looks like this:
+
+- backup exits 0 and prints the dump's path,
+  `/srv/l9/backups/l9-graphiti-memory/<ENVIRONMENT>/<request_id>.sql.gz`;
+- verify exits 0 and prints `<that path>: OK`;
+- the restore test exits 0, prints the same `OK` line, and leaves no container
+  named `l9-restore-l9-graphiti-memory-<ENVIRONMENT>` behind;
+- on C1, both files exist and are readable by `root` only:
+
+  ```bash
+  ls -l /srv/l9/backups/l9-graphiti-memory/<ENVIRONMENT>/
+  ```
+
+A backup that fails leaves no `.sql.gz` for that request: a wrong password, a
+stopped release container or an interrupted dump each end the command non-zero
+before the file is moved into place.
+
+**Recovery point.** Nothing in this repository schedules a backup, and a
+deployment does not take one. The recovery point is the last time the
+operator ran the backup-verify workflow; until the operator schedules it, it
+is unbounded. There is no WAL archiving and no point-in-time recovery. The
+dumps sit on the same host as the database, so losing C1 loses both unless the
+operator copies them elsewhere. Nothing here prunes old dumps.
+
+**Restoring the live database** (**[not run on C1]**; every agent loses hosted
+memory from the `docker stop` until `/readyz` passes). The current database is
+renamed, not dropped, so the step can be undone:
+
+```bash
+f=/srv/l9/backups/l9-graphiti-memory/<ENVIRONMENT>/<request_id>.sql.gz
+/usr/local/sbin/l9-backup-verify "$f"
+docker stop l9-graphiti-memory-app-1
+docker exec l9-graphiti-memory-postgres psql -v ON_ERROR_STOP=1 -q -U postgres -d postgres \
+  -c 'ALTER DATABASE l9_memory RENAME TO l9_memory_before_restore' \
+  -c 'CREATE DATABASE l9_memory OWNER l9_memory'
+gzip -dc "$f" | docker exec -i l9-graphiti-memory-postgres psql -v ON_ERROR_STOP=1 -q -U l9_memory -d l9_memory >/dev/null
+docker start l9-graphiti-memory-app-1
+curl -fsS http://127.0.0.1:8200/readyz >/dev/null && echo ready
+```
+
+Dumps are taken with `--no-owner`, so loading as `l9_memory` makes the service
+role the owner of every table. Drop `l9_memory_before_restore` only after the
+restored service has been checked, by its exact name.
+
+**If the service fails.** A failed MemoryService or proxy affects every
+connected agent. Agents can fall back to their local stdio entry, which writes
+to its own local store, not the shared one, so those records are not in the
+shared memory.
+
+#### E. The older database on C1 (optional, not part of this deployment)
+
+The operator has stated (2026-11-13) that an older database on C1 is stale and
+already backed up. Removing it is optional housekeeping. No step above depends
+on it, and nothing is imported from it. This repository does not record its
+container or volume name, so name both exactly before removing anything:
+
+```bash
+docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+docker inspect <OLD_DB_CONTAINER> --format '{{range .Mounts}}{{.Type}} {{.Name}} {{.Destination}}{{"\n"}}{{end}}'
+docker ps -a --filter 'volume=<OLD_DB_VOLUME>' --format '{{.Names}}'
+```
+
+**[not run on C1]** Proceed only if `<OLD_DB_CONTAINER>` is not
+`l9-graphiti-memory-postgres`, is not the database other services on C1 use
+through `127.0.0.1:5432`, and the last command lists that container alone:
+
+```bash
+docker stop <OLD_DB_CONTAINER>
+docker rm <OLD_DB_CONTAINER>
+docker volume rm <OLD_DB_VOLUME>
+```
+
+`docker volume rm` refuses a volume that a container still uses; treat a
+refusal as a stop, not as something to force. Never use `docker system prune`,
+`docker volume prune`, `-f` or a wildcard here: C1 is shared, and those remove
+other services' state.
+
+#### Operator must confirm
+
+| Placeholder or assumption | What to confirm |
+|---|---|
+| `<LEGACY_MEMORY_UNIT>` | The systemd unit of the legacy 2.2.0 service holding port 8200 (found in C step 1). |
+| `<LEGACY_HEALTH_PATH>` | A path the legacy service answers, to confirm a rollback. |
+| `<INFISICAL_PROJECT_ID>` | The id of Infisical project `l9-graphiti-memory`; that the Infisical CLI is installed and authenticated where step B5 runs, and that its version accepts `NAME=@file` (newer CLIs spell the command `infisical sm secrets set`). Without it, set the secret by another route that does not display it. |
+| `<ENVIRONMENT>` | The environment name l9-deploy substitutes into backup paths and the restore container name (`production`, the target name, is expected). |
+| `<L9_DEPLOY_BACKUP_VERIFY_WORKFLOW>` | The exact l9-deploy workflow and inputs that run backup, verify and restore test, and who schedules it. |
+| `<OLD_DB_CONTAINER>`, `<OLD_DB_VOLUME>` | The stale database's exact container and volume, if it is removed at all. |
+| `<DOCKER_ROOT_DIR>` | Printed by A step 1. |
+| `l9-runtime` created by hand | That a plain `docker network create l9-runtime` is the network l9-deploy expects, if it does not exist yet. |
+| No TLS to the database | That an unencrypted connection on the host's `l9-runtime` bridge is acceptable; other containers on that shared network can reach port 5432 and are held off by the role password alone. |
+| l9-deploy argument quoting | That l9-deploy passes each command argument to the remote shell intact; `backup.command` is a multi-line script. |
+| `l9-backup-verify` checksum path | That it accepts a `.sha256` recording the dump's absolute path, as `backup.command` writes it. |
+| Proxy route | That the host's existing Caddy already routes `memory.quantumaipartners.com` to `127.0.0.1:8200`; l9-deploy never edits it (`ingress.mode: external`). |
+| After a manual rollback | That l9-deploy accepts a new first release after the container was removed by hand. |
 
 ### Client adoption
 
@@ -424,6 +782,10 @@ l9-memory drain-legacy-write-queue --limit 100
 Drained requests still pass authorization, consent, admission, idempotency, and canonical persistence. The command exits non-zero while any item remains unreadable or undeliverable, and preserves those files rather than dropping them.
 
 ## Backup and restore
+
+This section is for a local SQLite ledger. The hosted store on C1 is PostgreSQL;
+its backup, verification, restore test and live restore are in
+[Hosted Memory on C1, section D](#d-backup-verify-and-restore-test).
 
 Back up:
 
