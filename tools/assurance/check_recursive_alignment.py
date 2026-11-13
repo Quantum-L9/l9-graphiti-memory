@@ -67,7 +67,12 @@ ALLOWED_TOP_LEVEL = {
     "CONTRIBUTING.md",
     "deployment",
     "LICENSE",
+    # Core Repository Execution V2 (l9-ci-core run-repository-verification,
+    # required mode): Makefile is Core's generated make-v1 facade, byte-for-byte;
+    # Repo.mk is the repository-owned leaf implementation it includes.
+    "Makefile",
     "MANIFEST.in",
+    "Repo.mk",
     "MIGRATION.md",
     "QUICKSTART.md",
     "README.md",
