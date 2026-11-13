@@ -123,7 +123,8 @@ token to configured service-principal claims (`L9_MEMORY_AUTH_TOKENS_JSON` /
 
 ## 2a. OAuth resource-server mode (`L9_MEMORY_HTTP_AUTH_MODE=oauth`)
 
-Decision record: [ADR-102](adr/ADR-102-oauth-resource-server-for-streamable-http.md).
+Decision records: [ADR-102](adr/ADR-102-oauth-resource-server-for-streamable-http.md),
+[ADR-103](adr/ADR-103-oauth-actor-binding-and-user-subjects.md) (actor binding).
 The mode is additive to `memory-remote-mcp/v1`; §1, §2 and the bearer mode are
 unchanged by it.
 
@@ -143,6 +144,7 @@ The server requires all of:
 | `iss` | Equal to `L9_MEMORY_HTTP_OAUTH_ISSUER`, character for character. |
 | `aud` | Contains `https://memory.quantumaipartners.com/mcp` (`MEMORY_RESOURCE_IDENTIFIER`). |
 | `exp`, `nbf`, `iat` | Enforced with 30 s of clock skew. `exp` and `sub` are required. |
+| End user | The token stands for a person. Refused when `gty` or `grant_type` names client credentials, `sub` ends in `@clients`, `sub` equals the `azp` or `client_id` the token names, or `sub_profile` is present and is not `user`. |
 
 Server-side only:
 
@@ -150,6 +152,7 @@ Server-side only:
 |---|---|
 | `L9_MEMORY_HTTP_OAUTH_ISSUER` | The issuer URL, `https`, exactly as in the `iss` claim. No default. Missing or not `https` ⇒ the server refuses to start. |
 | `L9_MEMORY_OAUTH_GRANTS_JSON` | `{subject: {roles, read_namespaces, write_namespaces, promote_namespaces}}`, keyed by the token `sub`. Required; `{}` grants nobody. `is_admin` ⇒ the server refuses to start. |
+| `L9_MEMORY_OAUTH_ACTORS_JSON` | `{subject: {client_id: {actor_ref, surface_ref?}}}`: the actor the operator binds to one verified (`sub`, `azp`/`client_id`) pair, as `l9.actor-registry/global@1#<id>` and optionally `l9.surface-registry/global@1#<id>`. Optional; absent or `{}` binds nobody. A malformed binding, an actor equal to the client or the subject, or an `@clients` subject ⇒ the server refuses to start. |
 
 Behaviour:
 
@@ -167,13 +170,23 @@ Behaviour:
   `/.well-known/openid-configuration`, over `https`, without redirects,
   cached for 10 minutes. If they cannot be obtained the request gets `401`.
   No other credential is consulted in this mode.
-- **Principal.** The token subject, with the namespaces of its grant and
-  `auth_method` `oauth`. It names no agent. A subject without a grant is
-  authenticated and holds no namespace. Token scopes and other claims grant
-  nothing.
+- **Principal.** The token subject, with the namespaces of its grant,
+  `auth_method` `oauth`, and the token's client id as `oauth_client_id`. It
+  names an agent only when `L9_MEMORY_OAUTH_ACTORS_JSON` binds that exact
+  (subject, client id) pair; then `agent_id` is the actor id and the server
+  records a reference to the binding. A subject without a grant is
+  authenticated and holds no namespace. Token scopes and other claims,
+  including `agent_id` and `act`, grant nothing.
 - **Writes.** Every tool that is not read-only is refused for an OAuth
-  principal (`-32010`, `AuthorizationError`), because a subject is not an
-  actor (ADR-100). Binding an actor is issue #108.
+  principal without a bound actor (`-32010`, `AuthorizationError`), because
+  a subject is not an actor and a client id is never one (ADR-100). With a
+  bound actor, writes go through ordinary admission and are attributed to
+  that actor.
+- **Explicit evidence.** Purpose-bound `consent` whose `subject_id` equals
+  the token subject is explicit evidence the server adds itself, so an
+  identity or preference write about the authenticated person can admit.
+  Any other consent adds nothing; a caller's own `kind: explicit` stays a
+  claim and is quarantined.
 - **Probes.** `/healthz` and `/readyz` stay unauthenticated and do not depend
   on the issuer.
 
@@ -190,7 +203,7 @@ with **no** `id`. Credentials are never echoed.
 | `Origin` present and not allowed | 403 | -32600 |
 | credential-shaped URL query parameter | 400 | -32600 |
 | missing / malformed / expired / over-ceiling / tampered / unknown-agent / other-actor credential (an unknown agent and a bad signature share one message) | 401 + `WWW-Authenticate: Bearer realm="l9-graphite-memory"[, error="invalid_token"]` | -32001 |
-| OAuth mode: missing token, or wrong issuer, wrong audience, expired, not yet valid, disallowed algorithm, missing or unknown `kid`, bad signature, malformed token, issuer keys unavailable | 401 + `WWW-Authenticate: Bearer realm="l9-graphite-memory", resource_metadata="…"[, error="invalid_token"]` | -32001 |
+| OAuth mode: missing token, or wrong issuer, wrong audience, expired, not yet valid, disallowed algorithm, missing or unknown `kid`, bad signature, malformed token, issuer keys unavailable, token without an end user (client credentials) | 401 + `WWW-Authenticate: Bearer realm="l9-graphite-memory", resource_metadata="…"[, error="invalid_token"]` | -32001 |
 | OAuth mode: any request to `/mcp/` | 404 | -32600 |
 | `Content-Type` not `application/json` | 415 | -32600 |
 | `Accept` lacks either media type | 406 | -32600 |

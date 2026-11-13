@@ -107,8 +107,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 99 -> 100 for ADR-100 (native OAuth MCP full cutover).
         # Re-pinned 100 -> 101 for ADR-101 (derived V-001 suite validation).
         # Re-pinned 101 -> 102 for ADR-102 (OAuth resource server).
-        "102 ADRs complete and indexed",
-        r"PASS: 102 ADRs",
+        # Re-pinned 102 -> 103 for ADR-103 (OAuth actor binding).
+        "103 ADRs complete and indexed",
+        r"PASS: 103 ADRs",
     ),
     CheckSpec(
         "V-004",
