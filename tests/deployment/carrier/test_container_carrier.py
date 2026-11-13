@@ -730,6 +730,12 @@ REFUSED_STARTS: dict[str, tuple[dict[str, str] | None, dict[str, str | None], st
         {},
         "L9_MEMORY_HTTP_AUTH_MODE=bearer is not a hosted door (ADR-100)",
     ),
+    # runtime.env already carries the static bearer token map.
+    "bearer auth from runtime.env alone": (
+        _without(PROFILE_ENVIRONMENT, "L9_MEMORY_HTTP_AUTH_MODE"),
+        {"L9_MEMORY_HTTP_AUTH_MODE": "bearer"},
+        "L9_MEMORY_HTTP_AUTH_MODE=bearer is not a hosted door (ADR-100)",
+    ),
     "another auth mode": (
         {**PROFILE_ENVIRONMENT, "L9_MEMORY_HTTP_AUTH_MODE": "oauth2"},
         {},
