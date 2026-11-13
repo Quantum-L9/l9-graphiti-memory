@@ -48,6 +48,7 @@ from l9_graphite_memory.contracts.class_vocabulary import (
     resolve_memory_class,
 )
 from l9_graphite_memory.contracts.identity import (
+    OAUTH_AUTH_METHOD,
     caller_identity_argument,
     oauth_actor_ref,
     oauth_grant_claims_operator,
@@ -784,7 +785,7 @@ class MCPToolApplication:
             is_global_admin=principal.is_global_admin,
         ):
             raise AuthorizationError("an OAuth grant is not an operator admin grant")
-        if handler_name not in _READ_ONLY_HANDLERS and principal.auth_method == "oauth":
+        if handler_name not in _READ_ONLY_HANDLERS and principal.auth_method == OAUTH_AUTH_METHOD:
             actor = oauth_actor_ref(
                 verified_actor_ref=principal.agent_id,
                 evidence_refs=(),

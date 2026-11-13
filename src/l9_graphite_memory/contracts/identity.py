@@ -165,7 +165,11 @@ CALLER_IDENTITY_ARGUMENT_KEYS = frozenset(
         "client_id",
     }
 )
-_CONSEQUENTIAL_OAUTH_METHODS = frozenset({"oauth"})
+#: The one spelling of the OAuth door. It is the ``auth_method`` of a principal
+#: built from a validated access token and the ``http_auth_mode`` value that
+#: selects the resource server (ADR-102). Every comparison reads this name.
+OAUTH_AUTH_METHOD = "oauth"
+_CONSEQUENTIAL_OAUTH_METHODS = frozenset({OAUTH_AUTH_METHOD})
 
 
 class HostedIdentityCoordinates(BaseModel):
