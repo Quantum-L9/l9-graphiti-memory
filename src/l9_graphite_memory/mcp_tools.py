@@ -48,9 +48,12 @@ from l9_graphite_memory.contracts.class_vocabulary import (
     resolve_memory_class,
 )
 from l9_graphite_memory.contracts.identity import (
+    ACTOR_REGISTRY_PREFIX,
+    MEMORY_PRODUCT_REF,
     OAUTH_AUTH_METHOD,
+    HostedIdentityCoordinates,
     caller_identity_argument,
-    oauth_actor_ref,
+    hosted_coordinates_from_oauth,
     oauth_grant_claims_operator,
 )
 from l9_graphite_memory.curation.procedural import (
@@ -719,8 +722,64 @@ def _declaration_metadata(args: dict[str, Any]) -> dict[str, Any]:
     return {NUMERIC_DECLARATIONS_KEY: declarations} if declarations else {}
 
 
+#: Description of the explicit evidence the server adds when an OAuth caller's
+#: purpose-bound consent names the caller's own verified subject (ADR-103).
+OAUTH_SUBJECT_CONSENT_EVIDENCE = (
+    "purpose-bound consent granted by the verified OAuth subject for this write"
+)
+
+
+def oauth_hosted_coordinates(principal: MemoryPrincipal) -> HostedIdentityCoordinates:
+    """Hosted coordinates of an OAuth principal, built only from server evidence.
+
+    The actor and surface come from the operator binding the resource server
+    matched for the token's (subject, client id) pair; the client id is passed
+    so that it can never resolve as either. Release and runtime are unknown at
+    this layer and stay null.
+    """
+
+    actor_ref = f"{ACTOR_REGISTRY_PREFIX}{principal.agent_id}" if principal.agent_id else None
+    return hosted_coordinates_from_oauth(
+        product_ref=MEMORY_PRODUCT_REF,
+        release_digest=None,
+        runtime_id=None,
+        verified_actor_ref=actor_ref,
+        evidence_refs=principal.actor_evidence_refs,
+        oauth_client_id=principal.oauth_client_id,
+        surface_evidence_ref=principal.surface_ref,
+    )
+
+
+def _server_explicit_evidence(
+    principal: MemoryPrincipal, consent: ConsentGrant | None
+) -> EvidenceRef | None:
+    """Explicit evidence the server itself establishes, or ``None``.
+
+    Over MCP the server decides explicit evidence, never the caller (operator
+    decision 2026-11-02). On the OAuth door it has one source: purpose-bound
+    consent whose ``subject_id`` is the subject the validated token proves,
+    supplied by a caller the server resolved to an actor. Any other consent,
+    and every other door, adds nothing here.
+    """
+
+    if (
+        consent is None
+        or principal.auth_method != OAUTH_AUTH_METHOD
+        or oauth_hosted_coordinates(principal).actor_ref is None
+        or consent.subject_id != principal.principal_id
+    ):
+        return None
+    return EvidenceRef(
+        kind=EvidenceKind.EXPLICIT,
+        description=OAUTH_SUBJECT_CONSENT_EVIDENCE,
+        source_id=principal.audit_subject,
+    )
+
+
 def _evidence_from_args(
-    args: dict[str, Any], principal: MemoryPrincipal
+    args: dict[str, Any],
+    principal: MemoryPrincipal,
+    consent: ConsentGrant | None = None,
 ) -> tuple[EvidenceRef, ...]:
     supplied = args.get("evidence") or []
     if not isinstance(supplied, list):
@@ -745,6 +804,9 @@ def _evidence_from_args(
             source_id=principal.audit_subject,
         )
     )
+    server_explicit = _server_explicit_evidence(principal, consent)
+    if server_explicit is not None:
+        refs.append(server_explicit)
     return tuple(refs)
 
 
@@ -785,17 +847,18 @@ class MCPToolApplication:
             is_global_admin=principal.is_global_admin,
         ):
             raise AuthorizationError("an OAuth grant is not an operator admin grant")
-        if handler_name not in _READ_ONLY_HANDLERS and principal.auth_method == OAUTH_AUTH_METHOD:
-            actor = oauth_actor_ref(
-                verified_actor_ref=principal.agent_id,
-                evidence_refs=(),
-                oauth_client_id=principal.principal_id,
+        # The actor is the one the resource server bound, from operator
+        # configuration, to the token's verified (subject, client id) pair
+        # (ADR-103). Without that binding there is no actor.
+        if (
+            handler_name not in _READ_ONLY_HANDLERS
+            and principal.auth_method == OAUTH_AUTH_METHOD
+            and oauth_hosted_coordinates(principal).actor_ref is None
+        ):
+            raise AuthorizationError(
+                "consequential write requires server-verified actor evidence; "
+                "an OAuth client is not an actor"
             )
-            if actor is None:
-                raise AuthorizationError(
-                    "consequential write requires server-verified actor evidence; "
-                    "an OAuth client is not an actor"
-                )
         handler = getattr(self, handler_name)
         try:
             if handler_name == "_graph_operation":
@@ -869,7 +932,7 @@ class MCPToolApplication:
                 extraction_method="direct-mcp/v1",
                 source_trust=float(args.get("source_trust", 1.0)),
             ),
-            evidence=_evidence_from_args(args, principal),
+            evidence=_evidence_from_args(args, principal, consent),
             confidence=Confidence(score=float(args.get("confidence", 1.0)), evidence_count=1),
             valid_from=_dt(args.get("valid_from")) or datetime.now(timezone.utc),
             valid_to=_dt(args.get("valid_to")),

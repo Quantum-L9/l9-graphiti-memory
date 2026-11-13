@@ -11,6 +11,7 @@ import json
 import time
 from collections.abc import Iterator
 from typing import Any
+from uuid import UUID
 
 import pytest
 
@@ -22,6 +23,7 @@ httpx2 = pytest.importorskip("httpx2", reason="the HTTP proof needs an HTTP clie
 from l9_graphite_memory.adapters import InMemoryRecordStore, NullProjection
 from l9_graphite_memory.authz import oauth
 from l9_graphite_memory.authz.oauth import (
+    OAUTH_ACTORS_ENV,
     OAUTH_GRANTS_ENV,
     PROTECTED_RESOURCE_METADATA_PATH,
     PROTECTED_RESOURCE_METADATA_URL,
@@ -52,6 +54,7 @@ from tests.integration.remote_mcp_harness import (
     tool_payload,
 )
 from tests.oauth_fakes import (
+    CLIENT_ID,
     ISSUER,
     OTHER_ISSUER,
     OTHER_RESOURCE,
@@ -497,3 +500,71 @@ def test_signed_agent_mode_keeps_both_paths_and_refuses_an_access_token(issuer) 
             assert issuer.fetches == []
     finally:
         runtime.close()
+
+
+# --- the actor path (ADR-103) ------------------------------------------------
+
+ACTORS = {
+    SUBJECT: {
+        CLIENT_ID: {
+            "actor_ref": "l9.actor-registry/global@1#claude-code",
+            "surface_ref": "l9.surface-registry/global@1#claude-code-cli",
+        }
+    }
+}
+
+
+@pytest.fixture
+def bound_client(
+    issuer: FakeIssuer, service: MemoryService, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[Any]:
+    """A server whose operator bound SUBJECT through CLIENT_ID to an actor."""
+
+    monkeypatch.setenv(OAUTH_ACTORS_ENV, json.dumps(ACTORS))
+    runtime = MemoryRuntime(settings=_settings(), service=service)
+    try:
+        with (
+            serve(create_http_app(runtime)) as url,
+            httpx2.Client(base_url=url, timeout=10) as http,
+        ):
+            yield http
+    finally:
+        runtime.close()
+
+
+def test_a_bound_subject_and_client_write_is_admitted_over_the_wire(
+    bound_client, issuer, service
+) -> None:
+    response = _post(
+        bound_client,
+        tool("memory.write_agent", {"namespace": HOME_NAMESPACE, "content": "bound write"}),
+        token=issuer.access_token(),
+    )
+    assert response.status_code == 200, response.text
+    receipt = tool_payload(response.json())
+    assert receipt["status"] == "admitted", receipt
+    record = service.store.get_record(UUID(receipt["record_id"]))
+    assert record is not None and record.provenance.source_agent_id == "claude-code"
+
+
+def test_an_unbound_pair_is_still_refused_over_the_wire(bound_client, issuer) -> None:
+    response = _post(
+        bound_client,
+        tool("memory.write_agent", {"namespace": HOME_NAMESPACE, "content": "x"}),
+        token=issuer.access_token(azp="another-public-client"),
+    )
+    error = response.json()["error"]
+    assert error["data"]["type"] == "AuthorizationError" and "not an actor" in error["message"]
+
+
+@pytest.mark.parametrize(
+    "claims",
+    [{"gty": "client-credentials"}, {"sub": f"{CLIENT_ID}@clients"}, {"sub": CLIENT_ID}],
+    ids=["gty", "clients-subject", "subject-is-client"],
+)
+def test_a_client_credentials_token_is_refused_with_401(
+    bound_client, issuer, claims: dict[str, Any]
+) -> None:
+    token = issuer.access_token(**claims)
+    response = _post(bound_client, rpc("tools/list"), token=token)
+    _assert_unauthorized(response, presented=token)

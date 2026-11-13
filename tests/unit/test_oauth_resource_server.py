@@ -481,7 +481,11 @@ def test_the_principal_is_the_subject_and_names_no_actor(issuer: FakeIssuer) -> 
     assert principal.write_namespaces == ("repo-a",)
     assert not principal.is_admin and not principal.is_global_admin
     assert (principal.tenant_id, principal.organization_id) == ("l9", "quantum-l9")
-    assert CLIENT_ID not in principal.model_dump_json()
+    # The client id rides beside the subject (ADR-103) and is never the
+    # principal, the user or the actor.
+    assert principal.oauth_client_id == CLIENT_ID
+    assert CLIENT_ID not in (principal.principal_id, principal.user_id, principal.agent_id)
+    assert principal.actor_evidence_refs == ()
 
 
 def test_claims_in_the_token_never_widen_the_grant(issuer: FakeIssuer) -> None:
