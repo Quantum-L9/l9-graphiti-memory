@@ -258,7 +258,7 @@ Fixed names used throughout:
 
 | Thing | Name | Source |
 |---|---|---|
-| Host | C1, `46.62.243.82`, SSH as `root` | `.l9/deployment.yaml` |
+| Host | C1, `46.62.243.82`; l9-deploy connects as `actions` (non-root, escalates with sudo); the operator steps below run as `root` | `.l9/deployment.yaml` |
 | Docker network | `l9-runtime` (external, shared) | l9-deploy |
 | Release container | `l9-graphiti-memory-app-1` | l9-deploy: `<project.id>-app-1` |
 | Service port | `127.0.0.1:8200` on the host, `8200` in the container | `.l9/deployment.yaml` |
@@ -266,7 +266,7 @@ Fixed names used throughout:
 | Database volume | `l9-graphiti-memory-postgres-data` | chosen here |
 | Database role and database | `l9_memory` / `l9_memory` | chosen here |
 | Database image | `postgres:16@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97` | `.l9/deployment.yaml` (the image the backup and restore test run) |
-| Secret store | Infisical project `l9-graphiti-memory`, environment `prod` | `.l9/deployment.yaml` |
+| Secret store | Infisical project named `l9-graphite-memory`, slug `l9-graphite-memory-4b-bv` (l9-deploy resolves the exact slug), environment `prod` | `.l9/deployment.yaml` |
 | Backups | `/srv/l9/backups/l9-graphiti-memory/<ENVIRONMENT>/<request_id>.sql.gz` | `.l9/deployment.yaml` |
 
 The database is a dedicated PostgreSQL 16 container on `l9-runtime` with a named
@@ -282,13 +282,138 @@ Redis state or older backup is loaded into it.
 
 #### Before you start
 
-The hosted door is Auth0 OAuth only (ADR-100). The 3.0.0 carrier in this
-repository has no OAuth mode yet, so its entrypoint exits with status 64 on
-every start (`Dockerfile`, `l9-memory-carrier`); issue #108 adds the mode and
-the `v3.0.0` tag is not cut before it lands. **Sections A and B can be done at
-any time. Do not start section C until the tag exists and issue #108 is
-closed**: C stops the legacy service, and a carrier that cannot start would
-leave the port empty.
+The hosted door is Auth0 OAuth only (ADR-100). The carrier serves the package's
+OAuth resource-server mode (ADR-102) with operator-bound actors (ADR-103):
+`.l9/deployment.yaml` pins `L9_MEMORY_HTTP_AUTH_MODE=oauth` and the issuer, and
+the image entrypoint (`l9-memory-carrier` in `Dockerfile`) exits with status 64
+on any other mode or without the issuer. **Sections A and B can be done at any
+time. Do not start section C until the `v3.0.0` tag exists and the OAuth
+configuration below is in Infisical `prod`**: C stops the legacy service, and a
+carrier that cannot start would leave the port empty.
+
+#### OAuth configuration the operator supplies
+
+**[repo]** The profile pins the non-secret door settings where a stored value
+cannot override them (`runtime.environment` in `.l9/deployment.yaml`):
+`L9_MEMORY_HTTP_AUTH_MODE=oauth` and `L9_MEMORY_HTTP_OAUTH_ISSUER`, the Auth0
+tenant's issuer with its trailing slash (compared with the token's `iss`
+character for character). Do not put either in Infisical.
+
+**[repo]** Operator data, rendered from Infisical `prod` into `runtime.env`,
+never committed and never in the profile (names only; `docs/REMOTE_MCP_CONTRACT.md`
+§2a gives the shapes):
+
+| Variable | Required | What it is |
+|---|---|---|
+| `L9_MEMORY_POSTGRES_DSN` | yes | Section B step 5. |
+| `L9_MEMORY_OAUTH_GRANTS_JSON` | yes | Token subject (`sub`) to `read_namespaces`, `write_namespaces`, `promote_namespaces`, `roles`. `{}` grants nobody; an `is_admin` grant stops startup. |
+| `L9_MEMORY_OAUTH_ACTORS_JSON` | no | Token subject to client id to `actor_ref` (and optional `surface_ref`) in the organization's canonical coordinates. Absent, every OAuth write is refused and reads still work. A client id is never an actor. |
+| `L9_MEMORY_LOCAL_TENANT_ID`, `L9_MEMORY_LOCAL_ORGANIZATION_ID`, `L9_MEMORY_LOCAL_WORKSPACE_ID` | tenant yes | The tenant, organization and workspace every OAuth principal carries. |
+
+A subject or client id is an account identifier, not a secret, but it is still
+kept out of this repository. Changing grants or actors is an Infisical change
+followed by a redeploy, not a release.
+
+**[not run on C1]** Auth0 tenant settings the door depends on, each confirmed
+by the live PKCE receipt on issue #108 (2026-11-13T19:25:56Z, `receipt_sha256`
+`sha256:8e0eeb4ed9cb8853b71e448cc38b0ea0fd801372eddc04b2d3f39e6f671b02ad`):
+
+- The tenant's `resource_parameter_profile` must be `compatibility`. With
+  `audience`, Auth0 ignores the RFC 8707 `resource` parameter MCP clients send
+  and returns an opaque token; the first receipt run failed for exactly that
+  reason.
+- An API is registered with the identifier
+  `https://memory.quantumaipartners.com/mcp`, signing with an asymmetric
+  algorithm (RS256), and no default audience points at it.
+
+**[not run on C1]** The reverse proxy must pass both `/mcp` and
+`/.well-known/oauth-protected-resource/mcp` to `127.0.0.1:8200`: MCP clients
+read the second, unauthenticated, to find the issuer. Observed 2026-11-13: the
+host's Caddy sends every path of `memory.quantumaipartners.com` except
+`/graphiti/*` to `127.0.0.1:8200`, so it does. Check after the cutover:
+
+```bash
+curl -fsS https://memory.quantumaipartners.com/.well-known/oauth-protected-resource/mcp | python3 -c 'import json, sys; d = json.load(sys.stdin); print(d["resource"], d["authorization_servers"])'
+curl -s -o /dev/null -w '%{http_code}\n' -X POST https://memory.quantumaipartners.com/mcp
+```
+
+Expected: the Memory resource and the issuer; then `401`.
+
+#### Deploy user
+
+**[repo]** l9-deploy connects as `actions` (`targets.production.server.ssh.user`),
+a non-root user (operator decision 2026-11-13), and runs its target
+configuration with privilege escalation. Observed on C1 2026-11-13: the
+deployment runner runs as `actions` on C1 itself; `actions` is in the groups
+`docker` and `l9deploy` and has passwordless sudo; `/srv/l9` is
+`root:l9deploy`, mode 750; no user named `l9deploy` exists; the group
+`l9backup` does not exist.
+
+**[not run on C1]** Host steps, as `root`, before the first release request.
+Each is a check first; change only what the check shows missing.
+
+1. The runner's SSH public key is authorised for `actions`. Compare the key the
+   l9-deploy runner presents with the file, and append it only if absent:
+
+   ```bash
+   ls -l /home/actions/.ssh/authorized_keys
+   ssh-keygen -lf /home/actions/.ssh/authorized_keys
+   ```
+
+   The file must be owned by `actions` and mode 600, its directory 700.
+
+2. `actions` escalates without a password, which l9-deploy's configure step
+   needs:
+
+   ```bash
+   sudo -l -U actions
+   id actions
+   ```
+
+   Expected: `(ALL) NOPASSWD: ALL` (or the narrower set l9-deploy documents),
+   and the groups `docker` and `l9deploy`.
+
+3. The deploy user can write under `/srv/l9`, or l9-deploy's configure step
+   (which escalates) creates what it needs. Group `l9deploy` has no write bit
+   on `/srv/l9` today (mode 750). Either leave it and let the escalated step
+   create `/srv/l9/<project>`, or give the group write on the directory:
+
+   ```bash
+   stat -c '%U:%G %a' /srv/l9
+   chmod 2770 /srv/l9   # only if the operator chooses group write
+   ```
+
+4. The backup commands write `/srv/l9/backups/l9-graphiti-memory/...` and run
+   `docker`, which `actions` can do through the `docker` group. If the operator
+   wants backups readable by a separate group, `l9backup` must be created first
+   (`groupadd l9backup`); nothing in this repository requires it.
+
+#### Docker log rotation
+
+**[not run on C1]** Observed 2026-11-13: C1's Docker uses the `json-file` log
+driver with no rotation, and the Compose file l9-deploy renders sets no
+`logging` (the pinned v2 profile schema has no logging field). The release
+container's log then grows without bound. The service logs no token, key or
+password (carrier proof), but an unbounded log can fill the Docker root.
+
+Check the daemon setting:
+
+```bash
+docker info --format '{{.LoggingDriver}}'
+cat /etc/docker/daemon.json 2>/dev/null
+```
+
+To bound it, add to `/etc/docker/daemon.json` (merge with what is there):
+
+```json
+{ "log-driver": "json-file", "log-opts": { "max-size": "50m", "max-file": "5" } }
+```
+
+A daemon setting applies only to containers created after it, and applying it
+needs `systemctl restart docker`, which restarts every container on the shared
+host. That is an operator decision with its own window; it is not part of this
+release. Until then, watch `docker inspect --format '{{.LogPath}}' l9-graphiti-memory-app-1`
+with `du -h`.
 
 #### A. Preconditions on C1
 
@@ -457,8 +582,9 @@ hosted memory.
    ```
 
 2. **[repo]** Confirm the release can be requested: sections A and B are done,
-   `L9_MEMORY_POSTGRES_DSN` and the OAuth settings issue #108 names are in
-   Infisical `prod`, the `v3.0.0` tag exists, and the host key in
+   `L9_MEMORY_POSTGRES_DSN` and the OAuth operator data ("OAuth configuration
+   the operator supplies") are in Infisical `prod`, the deploy-user host steps
+   are done, the `v3.0.0` tag exists, and the host key in
    `.l9/deployment.yaml` has been re-verified against C1 over a trusted channel
    (the profile records it as an evidence lead only).
 
@@ -640,7 +766,7 @@ other services' state.
 |---|---|
 | `<LEGACY_MEMORY_UNIT>` | The systemd unit of the legacy 2.2.0 service holding port 8200 (found in C step 1). |
 | `<LEGACY_HEALTH_PATH>` | A path the legacy service answers, to confirm a rollback. |
-| `<INFISICAL_PROJECT_ID>` | The id of Infisical project `l9-graphiti-memory`; that the Infisical CLI is installed and authenticated where step B5 runs, and that its version accepts `NAME=@file` (newer CLIs spell the command `infisical sm secrets set`). Without it, set the secret by another route that does not display it. |
+| `<INFISICAL_PROJECT_ID>` | The id of the Infisical project named `l9-graphite-memory` (slug `l9-graphite-memory-4b-bv`); that the Infisical CLI is installed and authenticated where step B5 runs, and that its version accepts `NAME=@file` (newer CLIs spell the command `infisical sm secrets set`). Without it, set the secret by another route that does not display it. |
 | `<ENVIRONMENT>` | The environment name l9-deploy substitutes into backup paths and the restore container name (`production`, the target name, is expected). |
 | `<L9_DEPLOY_BACKUP_VERIFY_WORKFLOW>` | The exact l9-deploy workflow and inputs that run backup, verify and restore test, and who schedules it. |
 | `<OLD_DB_CONTAINER>`, `<OLD_DB_VOLUME>` | The stale database's exact container and volume, if it is removed at all. |
@@ -648,6 +774,9 @@ other services' state.
 | `l9-runtime` created by hand | That a plain `docker network create l9-runtime` is the network l9-deploy expects, if it does not exist yet. |
 | Network alias | That no other project's container is attached to `l9-runtime` under the name `l9-graphiti-memory-postgres` (B step 6). The connection has no TLS; the role password is the only control. |
 | Proxy route | That the host's existing Caddy already routes `memory.quantumaipartners.com` to `127.0.0.1:8200`; l9-deploy never edits it (`ingress.mode: external`). |
+| Auth0 tenant | That `resource_parameter_profile` is still `compatibility` and the Memory API identifier is unchanged since the 2026-11-13 PKCE receipt. |
+| Deploy user | That the l9-deploy runner's key is authorised for `actions` and that l9-deploy's escalation works for it ("Deploy user"). |
+| Log rotation | Whether and when to bound C1's Docker logs ("Docker log rotation"). |
 | After a manual rollback | That l9-deploy accepts a new first release after the container was removed by hand. |
 
 ### Client adoption

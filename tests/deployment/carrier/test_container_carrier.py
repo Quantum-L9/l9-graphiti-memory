@@ -568,7 +568,10 @@ def test_readiness_follows_the_canonical_postgres_store(tmp_path, database, issu
         assert httpx2.get(f"{c.url}/healthz", timeout=10).json()["store"]["name"] == "postgres"
         # Serving wrote nothing to the container filesystem: no ledger, no state.
         _written(c, issuer, "a write that must land in PostgreSQL, not on local disk")
-        assert _docker("diff", c.container).stdout.strip() == ""
+        # The one entry Docker itself makes is the mount point of the run's
+        # trust store; anything else would be a write by the service.
+        changed = set(_docker("diff", c.container).stdout.split("\n")) - {""}
+        assert changed <= {"C /run", f"A {ISSUER_MOUNT}"}, changed
         _docker("stop", database.container)
         try:
             # Not ready while the store is gone: never 200, which is what the

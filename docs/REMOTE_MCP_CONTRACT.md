@@ -6,7 +6,7 @@ layer: documentation
 owner: memory-control-plane
 status: active
 version: 2.7.0
-updated: 2026-10-26
+updated: 2026-11-13
 /L9_META -->
 
 # Remote MCP Contract — `memory-remote-mcp/v1`
@@ -33,26 +33,44 @@ carrier (`Dockerfile`, `.l9/deployment.yaml`,
 `.github/workflows/release-container.yml`) is a candidate too: no image is
 published and no deployment of it exists.
 
-**Hosted carrier door (2026-11-02).** ADR-100 (*Native OAuth MCP Full
-Cutover*, `docs/adr/ADR-100-native-oauth-mcp-full-cutover.md` on the default
-branch) makes the hosted service Auth0 OAuth only: the signed-agent
-authentication of §2 and the bearer mode below are not hosted doors and not
-fallbacks. The carrier pins no `L9_MEMORY_HTTP_AUTH_MODE`, refuses
-`signed-agent` and `bearer` by name from the profile or the rendered
-runtime.env, and refuses to start on any other value: the published image
-serves neither `/readyz` nor `/mcp`. Pinning the OAuth mode, and proving the
-image's authenticated path and its refusals of a wrong issuer, audience and
-resource, is
-[issue #108](https://github.com/Quantum-L9/l9-graphiti-memory/issues/108).
-§2 and the bearer mode remain the contract of the package's HTTP transport
-outside the hosted carrier until the change that removes them.
+**Hosted carrier door (2026-11-13; supersedes the 2026-11-02 paragraph).**
+ADR-100 (*Native OAuth MCP Full Cutover*,
+[ADR-100](adr/ADR-100-native-oauth-mcp-full-cutover.md)) makes the hosted
+service Auth0 OAuth only: the signed-agent authentication of §2 and the bearer
+mode below are not hosted doors and not fallbacks. The hosted carrier
+(`Dockerfile`, `.l9/deployment.yaml`) serves the OAuth resource-server mode of
+§2a ([ADR-102](adr/ADR-102-oauth-resource-server-for-streamable-http.md)), with
+actors bound by the operator
+([ADR-103](adr/ADR-103-oauth-actor-binding-and-user-subjects.md)):
 
-**OAuth mode in source (2026-11-13).** The package's HTTP transport now has an
-OAuth resource-server mode, described in §2a
-([ADR-102](adr/ADR-102-oauth-resource-server-for-streamable-http.md)). That
-does not change the paragraph above: the carrier does not select the mode and
-still refuses to start, and the live PKCE receipt ADR-100 requires does not
-exist yet. Tests against a local issuer are not that receipt.
+- The profile pins `L9_MEMORY_HTTP_AUTH_MODE=oauth` and
+  `L9_MEMORY_HTTP_OAUTH_ISSUER` (the Auth0 tenant's issuer, with its trailing
+  slash) in `runtime.environment`, where a rendered runtime.env entry cannot
+  override them. The image bakes in no mode.
+- The image entrypoint (`l9-memory-carrier`) starts the server only for
+  `oauth` with an issuer. It refuses unset, `signed-agent`, `bearer` and every
+  other value by name, before the server starts. The server then refuses an
+  issuer that is not `https`, a missing grant map, an administrator grant and a
+  malformed actor map.
+- `L9_MEMORY_OAUTH_GRANTS_JSON` and `L9_MEMORY_OAUTH_ACTORS_JSON` are operator
+  data in the rendered runtime.env, never in the profile.
+- The reverse proxy must pass both `/mcp` and
+  `/.well-known/oauth-protected-resource/mcp` to the service (§2a).
+
+The carrier proof (`tests/deployment/carrier/test_container_carrier.py`, run in
+full and with no skip by `.github/workflows/release-container.yml`) drives the
+built image against PostgreSQL 16 and a local TLS issuer: an audience-bound
+token is admitted, a bound subject writes and another reads; wrong issuer,
+wrong audience, wrong resource, expired, foreign-signed and client-credentials
+tokens, a signed-agent credential and a static bearer token are each refused
+with `401`. That issuer is not the live tenant. The live PKCE receipt ADR-100
+requires is recorded on
+[issue #108](https://github.com/Quantum-L9/l9-graphiti-memory/issues/108#issuecomment-6862806068)
+(2026-11-13T19:25:56Z, six of six checks passed, `receipt_sha256`
+`sha256:8e0eeb4ed9cb8853b71e448cc38b0ea0fd801372eddc04b2d3f39e6f671b02ad`).
+No image is published and no deployment of it exists yet. §2 and the bearer
+mode remain the contract of the package's HTTP transport outside the hosted
+carrier until the change that removes them.
 
 ## 1. Transport
 
@@ -248,8 +266,9 @@ Cursor-Governance.
   issues no token, registers no client and proxies no authorization request.
   Token lifetime, revocation, scopes and who may obtain a token for the
   Memory audience are authorization-server settings.
-- A proven OAuth deployment. §2a describes source behaviour; the live PKCE
-  receipt and the carrier pin are issue #108.
+- A proven OAuth deployment. §2a describes source behaviour and the hosted
+  carrier pins it; the live PKCE receipt proves the tenant against a local
+  server, not a deployed service.
 - Audience binding of the agent assertion to one deployment. Use
   per-deployment keys.
 - Admission of any running server. The classification is settled (ADR-094,
