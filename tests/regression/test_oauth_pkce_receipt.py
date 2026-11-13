@@ -247,6 +247,53 @@ def test_an_endpoint_that_admits_everything_fails_the_receipt(issuer: FakeIssuer
     assert receipt["checks"]["unauthenticated_request_refused"]["http_status"] == 200
 
 
+class _MisroutedChallenge(Transport):
+    """A Memory endpoint whose 401 names some other resource's metadata."""
+
+    def post_mcp(self, url: str, message: dict[str, Any], token: str | None) -> Any:
+        response = super().post_mcp(url, message, token)
+        if token is not None or response.status != 401:
+            return response
+        headers = {
+            name: value.replace(
+                oauth.PROTECTED_RESOURCE_METADATA_URL,
+                "https://other.example.test/.well-known/oauth-protected-resource/mcp",
+            )
+            for name, value in response.headers.items()
+        }
+        return tool.HttpResponse(response.status, headers, response.body)
+
+
+def test_a_challenge_naming_another_resources_metadata_fails_the_receipt(
+    issuer: FakeIssuer, memory_url: str
+) -> None:
+    # A 401 that carries *a* resource_metadata URL is not enough: a client
+    # follows it, so it must be this resource's document, exactly.
+    request = tool.ReceiptRequest(
+        issuer=ISSUER, client_id=CLIENT_ID, memory_url=memory_url, redirect_port=0,
+        timeout_seconds=20,
+    )  # fmt: skip
+    receipt = tool.run_receipt(
+        request, transport=_MisroutedChallenge(issuer), open_browser=_browser(issuer)
+    )
+    check = receipt["checks"]["unauthenticated_request_refused"]
+    assert check["http_status"] == 401
+    assert check["challenge_names_resource_metadata"] is True
+    assert check["resource_metadata_is_this_resource"] is False
+    assert check["passed"] is False
+    assert receipt["status"] == "failed"
+    assert "unauthenticated_request_refused" in receipt["failed_checks"]
+
+
+def test_the_real_challenge_names_this_resources_metadata(
+    issuer: FakeIssuer, memory_url: str
+) -> None:
+    receipt, _ = _run(issuer, memory_url)
+    check = receipt["checks"]["unauthenticated_request_refused"]
+    assert check["resource_metadata_is_this_resource"] is True
+    assert check["passed"] is True
+
+
 def test_an_unanswered_authorization_is_not_evaluated_and_never_passes(
     issuer: FakeIssuer, memory_url: str
 ) -> None:

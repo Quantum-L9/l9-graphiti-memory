@@ -360,6 +360,16 @@ def test_the_canonical_endpoint_is_the_path_of_the_resource_identifier() -> None
     assert not MEMORY_RESOURCE_IDENTIFIER.endswith("/")
 
 
+@pytest.mark.parametrize("method", ["PUT", "PATCH", "OPTIONS", "HEAD"])
+def test_no_verb_answers_405_on_the_trailing_slash_spelling(client, issuer, method: str) -> None:
+    # A 405 would say the path exists and another verb works. It does not.
+    response = client.request(method, "/mcp/", follow_redirects=False)
+    assert response.status_code == 404, response.text
+    assert "Allow" not in response.headers
+    assert "Location" not in response.headers
+    assert issuer.fetches == []
+
+
 @pytest.mark.parametrize("method", ["POST", "GET", "DELETE"])
 def test_the_trailing_slash_spelling_is_not_an_endpoint_in_oauth_mode(
     client, issuer, method: str

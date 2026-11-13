@@ -54,6 +54,7 @@ if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
 from l9_graphite_memory.authz.oauth import (
+    PROTECTED_RESOURCE_METADATA_URL,
     AccessTokenValidator,
     https_get,
     validated_issuer,
@@ -355,6 +356,18 @@ def _initialize(endpoint: str, transport: Http, token: str | None) -> HttpRespon
     return transport.post_mcp(endpoint, message, token)
 
 
+def _challenged_resource_metadata(challenge: str) -> str | None:
+    """The ``resource_metadata`` URL of a Bearer challenge, or None when absent."""
+
+    marker = 'resource_metadata="'
+    start = challenge.find(marker)
+    if start < 0:
+        return None
+    start += len(marker)
+    end = challenge.find('"', start)
+    return challenge[start:end] if end > start else None
+
+
 def _challenge(response: HttpResponse) -> str:
     for name, value in response.headers.items():
         if name.lower() == "www-authenticate":
@@ -440,13 +453,18 @@ def run_receipt(
     # 1. An endpoint that admits no credential proves nothing about a token.
     bare = _initialize(endpoint, transport, None)
     challenge = _challenge(bare)
+    challenged_metadata = _challenged_resource_metadata(challenge)
+    # The challenge must name THIS resource's metadata document, exactly. Any
+    # other URL sends a client to a different resource or authorization server.
+    names_this_resource = challenged_metadata == PROTECTED_RESOURCE_METADATA_URL
     checks["unauthenticated_request_refused"] = {
         "passed": bare.status == 401
         and challenge.lower().startswith("bearer")
-        and "resource_metadata=" in challenge,
+        and names_this_resource,
         "http_status": bare.status,
         "bearer_challenge": challenge.lower().startswith("bearer"),
-        "challenge_names_resource_metadata": "resource_metadata=" in challenge,
+        "challenge_names_resource_metadata": challenged_metadata is not None,
+        "resource_metadata_is_this_resource": names_this_resource,
     }
 
     # 2-4. The Memory resource.
