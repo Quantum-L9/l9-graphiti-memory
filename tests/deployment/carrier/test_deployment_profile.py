@@ -6,7 +6,7 @@
 #   owner: memory-control-plane
 #   status: active
 #   version: 3.0.0
-#   updated: 2026-10-26
+#   updated: 2026-11-13
 
 """The committed .l9/deployment.yaml is a valid v2 profile for exactly the C1 Memory target.
 
@@ -19,6 +19,9 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import os
+import subprocess
+import sys
 from collections.abc import Callable
 from typing import Any
 
@@ -26,13 +29,17 @@ import pytest
 import yaml
 
 from tests.deployment.carrier.profile_contract import (
+    BACKUP_COMMANDS,
     C1_ADDRESS,
+    DSN_SETTING,
     HOST_PORT,
     HOSTNAME,
     L9_MEMORY_VM_ADDRESS,
+    POSTGRES_IMAGE,
     PROFILE,
     SCHEMA_DIGESTS,
     SCHEMAS,
+    rendered,
     schema_errors,
     violations,
 )
@@ -156,6 +163,260 @@ MISTARGETED: dict[str, Mutation] = {
 @pytest.mark.parametrize("mutate", MISTARGETED.values(), ids=MISTARGETED.keys())
 def test_a_mistargeted_profile_is_caught(mutate: Mutation) -> None:
     assert violations(_mutated(mutate)) != []
+
+
+# The data plane: PostgreSQL 16 in a container on l9-runtime with no host port.
+# Each entry is a way the probe, dump, verification or restore test could stop
+# matching that placement, paired with the violation that must name it.
+
+
+def _edit(command: str, old: str, new: str) -> Mutation:
+    """Replace ``old`` in the script of ``backup.<command>``; ``old`` must be there."""
+
+    def mutate(profile: dict[str, Any]) -> None:
+        arguments: list[str] = profile["backup"][command]
+        assert old in arguments[-1], f"{old!r} is not in backup.{command}"
+        arguments[-1] = arguments[-1].replace(old, new)
+
+    return mutate
+
+
+def _replace(command: str, arguments: list[str]) -> Mutation:
+    return lambda p: p["backup"].update({command: arguments})
+
+
+# backup.command as committed before the database moved onto l9-runtime.
+HOST_TOOL_BACKUP = [
+    "sh",
+    "-c",
+    (
+        'DATABASE_URL="$(docker exec l9-graphiti-memory-app-1 printenv L9_MEMORY_POSTGRES_DSN)"'
+        " && export DATABASE_URL"
+        " && exec /usr/local/sbin/l9-postgres-backup {project} {environment} {request_id}"
+    ),
+]
+OTHER_DIGEST = "postgres:16@sha256:" + "0" * 64
+
+OFF_THE_DATA_PLANE: dict[str, tuple[Mutation, str]] = {
+    "the host backup tool, as the profile had it": (
+        _replace("command", HOST_TOOL_BACKUP),
+        "the dump must not use the host's unpinned pg_dump tool",
+    ),
+    "a pg_dump from the host's own client": (
+        _edit("command", "docker run --rm --network l9-runtime", "pg_dump >/dev/null; docker run"),
+        "pg_dump must run once, inside the pinned PostgreSQL 16 image",
+    ),
+    "a dump that never runs pg_dump in the image": (
+        _edit("command", "pg_dump --format=plain", "cat /dev/null"),
+        "pg_dump must run once, inside the pinned PostgreSQL 16 image",
+    ),
+    "an unpinned dump image": (
+        _edit("command", POSTGRES_IMAGE, "postgres:16"),
+        "backup command runs a PostgreSQL image other than the pinned one: ['postgres:16']",
+    ),
+    "a dump image that is not the restore test's": (
+        _edit("command", POSTGRES_IMAGE, OTHER_DIGEST),
+        f"backup command runs a PostgreSQL image other than the pinned one: ['{OTHER_DIGEST}']",
+    ),
+    "an unpinned restore image": (
+        _edit("restore_test_command", POSTGRES_IMAGE, "postgres:latest"),
+        "the restore test must use the pinned PostgreSQL 16 image",
+    ),
+    "a dump off the runtime network": (
+        _edit("command", "--network l9-runtime", "--network bridge"),
+        "the dump must run on the l9-runtime network, where the database resolves",
+    ),
+    "a dump on the host network": (
+        _edit("command", "--network l9-runtime", "--network host"),
+        "backup command publishes a port or joins the host network",
+    ),
+    "a published database port": (
+        _edit("command", "docker run --rm", "docker run --rm -p 5432:5432"),
+        "backup command publishes a port or joins the host network",
+    ),
+    "a published port on the restore container": (
+        _edit("restore_test_command", "--network none", "--network none --publish 5433:5432"),
+        "backup restore_test_command publishes a port or joins the host network",
+    ),
+    "a DSN literal in the dump": (
+        _edit("command", "-e PGHOST", "-e PGHOST -e DSN postgresql://memory@db/memory"),
+        "backup command carries a DSN or password literal",
+    ),
+    "a password literal in the dump": (
+        _edit("command", "pg_dump --format=plain", "pg_dump 'host=db password=x' --format=plain"),
+        "backup command carries a DSN or password literal",
+    ),
+    "a credential given a value on the command line": (
+        _edit("command", "-e PGPASSWORD", '-e PGPASSWORD="$PGPASSWORD"'),
+        "backup command puts a credential on a command line",
+    ),
+    "the DSN as a pg_dump argument": (
+        _edit(
+            "command", "pg_dump --format=plain", 'pg_dump --dbname="$DATABASE_URL" --format=plain'
+        ),
+        "backup command puts a credential on a command line",
+    ),
+    "a traced shell that prints the credentials": (
+        _edit("command", "set -eu", "set -eux"),
+        "backup command may print the environment that holds the DSN",
+    ),
+    "a DSN that does not come from the release container": (
+        _edit("command", "docker exec l9-graphiti-memory-app-1 python", "python3"),
+        "the dump must read the DSN from the running release container",
+    ),
+    "a dump whose failure is masked by gzip": (
+        _edit("command", "bash -o pipefail -c", "bash -c"),
+        "a failed pg_dump must fail the backup command",
+    ),
+    "a dump outside the canonical backup directory": (
+        _edit("command", "dir=/srv/l9/backups/", "dir=/var/tmp/"),
+        "the dump must land at /srv/l9/backups/{project}/{environment}/{request_id}.sql.gz",
+    ),
+    "a dump with no checksum beside it": (
+        _edit("command", 'sha256sum "$out" > "$out.sha256"', "true"),
+        "the dump needs its .sha256 beside it for l9-backup-verify",
+    ),
+    "a literal brace that str.format_map rejects": (
+        _edit("command", 'test -n "$PGHOST"', 'test -n "${PGHOST}"'),
+        "backup command is not valid under str.format_map: KeyError('PGHOST')",
+    ),
+    "verification that skips l9-backup-verify": (
+        _replace("verify_command", ["sh", "-c", "ls /srv/l9/backups/{project}/{environment}"]),
+        "verification must use /usr/local/sbin/l9-backup-verify",
+    ),
+    "a restore test on the runtime network": (
+        _edit("restore_test_command", "--network none", "--network l9-runtime"),
+        "the restore test must be isolated from any network",
+    ),
+    "a restore test that queries the release container": (
+        _edit(
+            "restore_test_command",
+            'docker exec "$c" psql -U',
+            "docker exec l9-graphiti-memory-app-1 psql -U",
+        ),
+        "the restore test must not reach the live database",
+    ),
+    "a restore test of an unverified dump": (
+        _edit("restore_test_command", '/usr/local/sbin/l9-backup-verify "$f";', ""),
+        "the restore test must verify the dump first",
+    ),
+    "a restore test that proves no table": (
+        _edit("restore_test_command", "memory_records", "pg_class"),
+        "the restore test must prove the canonical memory_records table",
+    ),
+    "a probe from the host": (
+        lambda p: p["services"]["postgres"]["probe"].update(
+            command=["pg_isready", "-h", "127.0.0.1", "-p", "5432"]
+        ),
+        "the postgres probe must run inside the release container",
+    ),
+    "a probe that prints the DSN": (
+        lambda p: p["services"]["postgres"]["probe"].update(
+            command=["docker", "exec", "l9-graphiti-memory-app-1", "printenv", DSN_SETTING]
+        ),
+        "postgres probe may print the environment that holds the DSN",
+    ),
+    "no backup tools on the host": (
+        lambda p: _target(p)["host"].update(backup_tools="none"),
+        "host.backup_tools must stay postgres: it installs /usr/local/sbin/l9-backup-verify",
+    ),
+}
+
+
+@pytest.mark.parametrize(
+    ("mutate", "violation"), OFF_THE_DATA_PLANE.values(), ids=OFF_THE_DATA_PLANE.keys()
+)
+def test_a_profile_off_the_data_plane_is_caught_by_name(mutate: Mutation, violation: str) -> None:
+    profile = _mutated(mutate)
+    # Still a schema-valid profile: only the carrier contract can refuse it.
+    assert schema_errors(profile) == []
+    assert violation in violations(profile)
+
+
+@pytest.mark.parametrize("command", BACKUP_COMMANDS)
+def test_each_backup_command_renders_to_a_script_the_shell_parses(command: str) -> None:
+    # What l9-deploy runs after str.format_map: sh -c <script>. Parsed, not run.
+    shell, flag, script = rendered(_profile()["backup"][command])
+    assert (shell, flag) == ("sh", "-c")
+    assert "{" not in script and "}" not in script
+    parsed = subprocess.run(["sh", "-n", "-c", script], capture_output=True, text=True, check=False)
+    assert parsed.returncode == 0, parsed.stderr
+
+
+def _dsn_splitter() -> str:
+    """The Python the dump runs inside the release container, cut from the profile."""
+
+    script = rendered(_profile()["backup"]["command"])[-1]
+    start = script.index("python -c '") + len("python -c '")
+    return script[start : script.index("')\"", start)]
+
+
+def _split(dsn: str | None) -> subprocess.CompletedProcess[str]:
+    environment = {k: v for k, v in os.environ.items() if k != DSN_SETTING}
+    if dsn is not None:
+        environment[DSN_SETTING] = dsn
+    return subprocess.run(
+        [sys.executable, "-c", _dsn_splitter()],
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+AWKWARD_PASSWORD = "p w'\"$(id)`x`;&"
+
+DSN_FORMS = {
+    "url": (
+        "postgresql://l9_memory:s3cr3t-value@l9-graphiti-memory-postgres:5432/l9_memory",
+        "s3cr3t-value",
+        "",
+    ),
+    "keyword": (
+        (
+            "host=l9-graphiti-memory-postgres port=5432 user=l9_memory dbname=l9_memory"
+            " password='p w\\'\"$(id)`x`;&' sslmode=disable"
+        ),
+        AWKWARD_PASSWORD,
+        "disable",
+    ),
+}
+
+
+@pytest.mark.parametrize(("dsn", "password", "sslmode"), DSN_FORMS.values(), ids=DSN_FORMS.keys())
+def test_the_dump_splits_the_dsn_into_libpq_variables_the_shell_can_eval(
+    dsn: str, password: str, sslmode: str
+) -> None:
+    split = _split(dsn)
+    assert split.returncode == 0, split.stderr
+    # The profile evals this output; a value must survive the shell unchanged
+    # and must not be run by it.
+    show = 'eval "$1"; printf "%s\\n" "$PGHOST" "$PGPORT" "$PGUSER" "$PGPASSWORD" "$PGDATABASE"'
+    show += ' "${PGSSLMODE-}"'
+    shown = subprocess.run(
+        ["sh", "-c", show, "sh", split.stdout], capture_output=True, text=True, check=False
+    )
+    assert shown.returncode == 0, shown.stderr
+    assert shown.stdout.split("\n")[:-1] == [
+        "l9-graphiti-memory-postgres",
+        "5432",
+        "l9_memory",
+        password,
+        "l9_memory",
+        sslmode,
+    ]
+
+
+@pytest.mark.parametrize(
+    "dsn",
+    ["hunter2-secret no-equals-sign", None],
+    ids=["a DSN that does not parse", "no DSN"],
+)
+def test_a_dsn_the_dump_cannot_split_fails_without_printing_it(dsn: str | None) -> None:
+    split = _split(dsn)
+    assert split.returncode != 0
+    assert split.stdout == ""
+    assert split.stderr.strip() == f"{DSN_SETTING} is missing or does not parse"
 
 
 def test_the_release_tag_ref_moves_with_the_package_version(monkeypatch) -> None:

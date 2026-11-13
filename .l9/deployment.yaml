@@ -6,7 +6,7 @@
 # owner: memory-control-plane
 # status: candidate
 # version: 3.0.0
-# updated: 2026-10-26
+# updated: 2026-11-13
 # --- /L9_META ---
 #
 # The hosted Memory 3.0 service's deployment contract (l9.deployment-profile/v2,
@@ -78,12 +78,26 @@ migrations:
   enabled: false
   backup_required: false
 storage:
+  # The release itself holds no durable state. The database's data lives in a
+  # named Docker volume the operator provisions once with the database
+  # container (RUNBOOK.md, "Hosted Memory on C1"); l9-deploy neither creates nor
+  # mounts it, so it is not declared here. Consequence: no volume carries
+  # backup_policy before_deploy and migrations are off, so a deployment plan has
+  # no pre-deploy backup step. Backups run from l9-deploy's backup-verify
+  # workflow, on the operator's schedule.
   persistent_volumes: []
 services:
-  # The one canonical store: an isolated PostgreSQL 16 database outside this
-  # release. Its DSN arrives only in the rendered runtime.env
-  # (L9_MEMORY_POSTGRES_DSN). The probe runs on the target, inside the release
-  # container (Compose names it <project>-app-1), and prints nothing.
+  # The one canonical store: a dedicated PostgreSQL 16 container on C1, attached
+  # to the external Docker network l9-runtime with a named volume and no
+  # published host port. The operator provisions it once from the runbook;
+  # mode external means l9-deploy never does. It is not C1's loopback database
+  # (127.0.0.1:5432), which a container cannot reach.
+  #
+  # Its DSN arrives only in the rendered runtime.env (L9_MEMORY_POSTGRES_DSN)
+  # and names the database by container name, which resolves only on
+  # l9-runtime. So the probe runs inside the release container (Compose names
+  # it <project>-app-1), which is on that network, and prints nothing; a client
+  # on the host could not resolve the name.
   postgres:
     mode: external
     required: true
@@ -100,16 +114,58 @@ services:
       interval_seconds: 5
       attempts: 6
 backup:
-  # Canonical l9-deploy tooling (host.backup_tools: postgres installs
-  # l9-postgres-backup and l9-backup-verify). The DSN is read from the running
-  # release container, never from this file or the command line.
+  # Each command is an argument vector l9-deploy runs on C1 over SSH, after
+  # str.format_map with project, environment and request_id: a literal brace in
+  # an argument would have to be doubled, so these scripts use none.
+  #
+  # The dump does not use /usr/local/sbin/l9-postgres-backup: that runs the
+  # host's pg_dump (distribution package, version unpinned, possibly older than
+  # the server) against a DSN whose host name does not resolve on the host.
+  # Instead:
+  # - the release container, which holds the DSN, splits it into libpq PG*
+  #   variables. They are captured by the shell, never printed, and a DSN that
+  #   does not parse is reported without its text;
+  # - a pinned PostgreSQL 16 image (the digest the restore test uses) runs
+  #   pg_dump on l9-runtime. docker run -e NAME forwards each variable by name,
+  #   so no credential is on a command line that ps shows, here or in the
+  #   container. Only host, port, user, password, dbname and sslmode are carried;
+  # - the dump lands where l9-postgres-backup would put it, with the .sha256
+  #   beside it, so /usr/local/sbin/l9-backup-verify verifies it unchanged.
   command:
     - sh
     - -c
-    - >-
-      DATABASE_URL="$(docker exec l9-graphiti-memory-app-1 printenv L9_MEMORY_POSTGRES_DSN)"
-      && export DATABASE_URL
-      && exec /usr/local/sbin/l9-postgres-backup {project} {environment} {request_id}
+    - |-
+      set -eu
+      umask 077
+      unset PGHOST PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE
+      eval "$(docker exec l9-graphiti-memory-app-1 python -c '
+      import os, shlex, sys
+      from psycopg2.extensions import parse_dsn
+      try:
+          dsn = parse_dsn(os.environ["L9_MEMORY_POSTGRES_DSN"])
+      except Exception:
+          sys.exit("L9_MEMORY_POSTGRES_DSN is missing or does not parse")
+      pairs = (("PGHOST", "host"), ("PGPORT", "port"), ("PGUSER", "user"),
+               ("PGPASSWORD", "password"), ("PGDATABASE", "dbname"), ("PGSSLMODE", "sslmode"))
+      for name, key in pairs:
+          if dsn.get(key):
+              print("export %s=%s" % (name, shlex.quote(str(dsn[key]))))
+      ')"
+      test -n "$PGHOST"
+      test -n "$PGDATABASE"
+      dir=/srv/l9/backups/{project}/{environment}
+      out="$dir/{request_id}.sql.gz"
+      mkdir -p "$dir"
+      trap 'rm -f "$out.tmp"' EXIT
+      docker run --rm --network l9-runtime \
+        -e PGHOST -e PGPORT -e PGUSER -e PGPASSWORD -e PGDATABASE -e PGSSLMODE \
+        postgres:16@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97 \
+        bash -o pipefail -c 'pg_dump --format=plain --no-owner --no-privileges | gzip' > "$out.tmp"
+      test -s "$out.tmp"
+      gzip -dc "$out.tmp" | tail -n 5 | grep -q 'PostgreSQL database dump complete'
+      mv "$out.tmp" "$out"
+      sha256sum "$out" > "$out.sha256"
+      printf '%s\n' "$out"
   verify_command:
     - sh
     - -c
@@ -162,7 +218,14 @@ targets:
       # against the host over a trusted channel before any release is requested.
       host_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICMwpLXB2J962/OrrUqXNGwiHb39e7f9jSKixo97xJxU
     host:
+      # verify: l9-deploy checks the existing Docker runtime and refuses the host
+      # if it does not meet its floor (docker compose 2.30.0 or newer); it never
+      # installs or upgrades Docker here.
       docker: verify
+      # Stays postgres for /usr/local/sbin/l9-backup-verify, which the verify and
+      # restore-test commands call. The same setting also installs
+      # l9-postgres-backup and the distribution's postgresql-client; this
+      # profile calls neither (see backup above).
       backup_tools: postgres
     ingress:
       mode: external
