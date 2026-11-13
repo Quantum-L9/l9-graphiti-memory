@@ -31,7 +31,9 @@ A SQLite file is authoritative only for processes that can open it. Any deployme
 ```bash
 export L9_MEMORY_STORE_BACKEND=postgres
 # Resolve the DSN from the runtime secret path; never write it into a file in
-# this repository. Require TLS with sslmode=require in the DSN.
+# this repository. Require TLS with sslmode=require in the DSN whenever the
+# database is reached over a network (the on-host C1 container is the stated
+# exception; see "Hosted Memory on C1").
 export L9_MEMORY_POSTGRES_DSN="$(read_secret l9/memory/postgres_dsn)"
 l9-memory health
 ```
@@ -167,22 +169,30 @@ Use `l9-memory client cursor install` for Cursor (with `inspect`, `verify`, `sta
 
 ## Remote HTTP MCP
 
-**Status (2026-10-14).** The target is Memory 3.0.0: one `MemoryService`
+**Status (2026-11-13).** The target is Memory 3.0.0: one `MemoryService`
 hosted on the operator's Hetzner C1 environment, reached by authorized agents
-over authenticated HTTPS MCP, backed by a new, empty PostgreSQL database
-(ADR-038). It is **not deployed**, and no consumer is bound to it. What exists
-depends on the code you run:
+over authenticated HTTPS MCP, backed by a new, empty PostgreSQL 16 database
+(ADR-038, ADR-100). It is **not deployed**, and no consumer is bound to it.
+
+The hosted door is Auth0 OAuth only (ADR-100, 2026-10-27). Signed-agent HMAC
+and static bearer are not hosted doors and are not fallbacks, and Memory stdio
+is not a rollback of the hosted service. The OAuth mode does not exist in this
+repository yet (issue #108), so the hosted carrier refuses to start in every
+auth mode. The two modes described below remain in the package for local use;
+neither is how C1 is reached. What exists depends on the code you run:
 
 | Code | HTTP server |
 |---|---|
 | 2.5.0, 2.6.0, `main@441b741` | not qualified for remote agents: one JSON object per `POST /mcp`; `initialize` always answers `2024-11-05`; no negotiation, `MCP-Protocol-Version`, `Origin` or `Accept` handling; `notifications/initialized` gets `200 {"status":"ok"}` instead of `202`; static bearer tokens only. With authentication disabled, loopback HTTP serves the stdio principal, which is the administrator when `L9_MEMORY_HUMAN_DOOR_SECRET` is set, so never disable authentication there. |
-| ADR-098 in the 3.0.0 release candidate (source 3.0.0; unmerged, untagged) | stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) with `bearer` (default) or `signed-agent` authentication; contract in `docs/REMOTE_MCP_CONTRACT.md`; not an accepted release |
+| ADR-098 in the 3.0.0 release candidate (source 3.0.0; untagged) | stateless Streamable HTTP (`2025-11-25`, `2025-06-18`) with `bearer` (default) or `signed-agent` authentication; contract in `docs/REMOTE_MCP_CONTRACT.md`; not an accepted release, and neither mode is a hosted door (ADR-100) |
 
 On every version, `GET /healthz`, `GET /readyz` and FastAPI's default `/docs`,
 `/redoc` and `/openapi.json` are served without authentication, and there is no
 TLS in process.
 
 ### Bearer mode (local development and service principals)
+
+Not a hosted door (ADR-100); the hosted carrier refuses it.
 
 1. Create a JSON token-to-principal mapping outside the repository
    (`config/auth_tokens.json.example` shows the shape).
@@ -200,6 +210,10 @@ agent identity, and a token's principal can carry `is_admin` and
 `is_global_admin`. Do not use bearer mode for remote agents.
 
 ### Signed-agent mode (ADR-098 candidate only)
+
+ADR-100 retired this as the hosted door: it is not how C1 is reached, the
+hosted carrier refuses it, and it is not a fallback for OAuth. What follows
+describes the mode as the package implements it.
 
 Remote agents authenticate with the same signed evidence the stdio agent door
 verifies, re-verified on every request (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`):
@@ -390,11 +404,13 @@ history or on the terminal.
    set -o history
    ```
 
-   The DSN carries no `sslmode=require`: the image starts without a server
-   certificate, and the connection never leaves the `l9-runtime` bridge on this
-   host. That differs from the general "TLS required" guidance for a shared
-   store elsewhere in this runbook, which is written for a database reached
-   over a network; see "Operator must confirm".
+   **Known limitation, accepted for this release by the campaign coordinator
+   (2026-11-13):** the DSN carries no `sslmode=require`. The image starts
+   without a server certificate, and the connection never leaves the
+   `l9-runtime` bridge on this host. `l9-runtime` is shared, so other
+   containers on it can reach port 5432; the role password is the only
+   control. No other project should be attached to the database container's
+   network alias (checked in step 6).
 
 6. **[not run on C1]** Verify it is up, restarts by policy, sits only on
    `l9-runtime` and publishes nothing:
@@ -407,7 +423,14 @@ history or on the terminal.
    ```
 
    Expected: `running restart=unless-stopped ports={} networks=l9-runtime`, no
-   output from `docker port`, and a `PostgreSQL 16.` version line.
+   output from `docker port`, and a `PostgreSQL 16.` version line. Then list
+   what else is on the network, and confirm no other container answers to the
+   name `l9-graphiti-memory-postgres`:
+
+   ```bash
+   docker network inspect l9-runtime --format '{{range .Containers}}{{.Name}}{{"\n"}}{{end}}'
+   docker ps -a --filter 'network=l9-runtime' --format '{{.Names}}\t{{.Image}}'
+   ```
 
 7. **[repo]** There is no schema step. The database stays empty until the
    service first starts: `PostgresStore` creates its tables, `memory_records`
@@ -526,8 +549,12 @@ next attempt.
   `memory_records` table. It never connects to the live database.
 
 **[l9-deploy]** They run on C1 over SSH from l9-deploy's backup-verify
-workflow, not from a deployment: this profile has migrations off and no
-persistent volume, so a deployment plan contains no pre-deploy backup step.
+workflow, not from a deployment. The executor joins each argument with
+`shlex.join`, so the multi-line backup script arrives intact, and
+`l9-backup-verify` checks a `.sha256` that records the dump's absolute path,
+which is the form `backup.command` writes. A deployment does not run them:
+this profile has migrations off and no persistent volume, so a deployment plan
+contains no pre-deploy backup step.
 Invoke `<L9_DEPLOY_BACKUP_VERIFY_WORKFLOW>` for project `l9-graphiti-memory`.
 
 **[not run on C1]** A pass looks like this:
@@ -575,9 +602,9 @@ role the owner of every table. Drop `l9_memory_before_restore` only after the
 restored service has been checked, by its exact name.
 
 **If the service fails.** A failed MemoryService or proxy affects every
-connected agent. Agents can fall back to their local stdio entry, which writes
-to its own local store, not the shared one, so those records are not in the
-shared memory.
+connected agent, and there is no fallback door: Memory stdio is not a rollback
+of the hosted service (ADR-100). A local stdio entry writes to its own local
+store, so nothing written there is in the shared memory.
 
 #### E. The older database on C1 (optional, not part of this deployment)
 
@@ -619,9 +646,7 @@ other services' state.
 | `<OLD_DB_CONTAINER>`, `<OLD_DB_VOLUME>` | The stale database's exact container and volume, if it is removed at all. |
 | `<DOCKER_ROOT_DIR>` | Printed by A step 1. |
 | `l9-runtime` created by hand | That a plain `docker network create l9-runtime` is the network l9-deploy expects, if it does not exist yet. |
-| No TLS to the database | That an unencrypted connection on the host's `l9-runtime` bridge is acceptable; other containers on that shared network can reach port 5432 and are held off by the role password alone. |
-| l9-deploy argument quoting | That l9-deploy passes each command argument to the remote shell intact; `backup.command` is a multi-line script. |
-| `l9-backup-verify` checksum path | That it accepts a `.sha256` recording the dump's absolute path, as `backup.command` writes it. |
+| Network alias | That no other project's container is attached to `l9-runtime` under the name `l9-graphiti-memory-postgres` (B step 6). The connection has no TLS; the role password is the only control. |
 | Proxy route | That the host's existing Caddy already routes `memory.quantumaipartners.com` to `127.0.0.1:8200`; l9-deploy never edits it (`ingress.mode: external`). |
 | After a manual rollback | That l9-deploy accepts a new first release after the container was removed by hand. |
 
@@ -746,7 +771,7 @@ Configure before enabling:
 
 | Setting | Kind | Purpose |
 |---|---|---|
-| `L9_MEMORY_POSTGRES_DSN` | environment secret | shared canonical store, TLS required |
+| `L9_MEMORY_POSTGRES_DSN` | environment secret | shared canonical store; TLS required when reached over a network (on-host C1 container excepted, see "Hosted Memory on C1") |
 | `L9_MEMORY_TENANT_ID` | environment variable | tenant the run operates in |
 | `L9_MEMORY_MAINTENANCE_NAMESPACES` | environment variable | comma-separated namespaces to maintain |
 
