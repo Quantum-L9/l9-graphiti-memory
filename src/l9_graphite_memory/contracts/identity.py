@@ -75,6 +75,17 @@ class MemoryPrincipal(BaseModel):
     is_admin: bool = False
     is_global_admin: bool = False
     auth_method: str = "local"
+    #: OAuth door only (ADR-103). The client id the validated access token
+    #: names in its authorized-party claim. It identifies the client
+    #: application, never an actor; ``principal_id`` is the token subject.
+    oauth_client_id: str | None = Field(default=None, max_length=200)
+    #: OAuth door only (ADR-103). Server-built references to the operator
+    #: binding that admitted ``agent_id`` for this (subject, client) pair.
+    #: Empty whenever no binding matched; a caller can never supply one.
+    actor_evidence_refs: tuple[str, ...] = ()
+    #: OAuth door only (ADR-103). Surface coordinate from the same binding,
+    #: or ``None`` when the operator did not bind one (unknown stays null).
+    surface_ref: str | None = Field(default=None, max_length=300)
 
     @property
     def can_cross_tenant(self) -> bool:
@@ -165,7 +176,11 @@ CALLER_IDENTITY_ARGUMENT_KEYS = frozenset(
         "client_id",
     }
 )
-_CONSEQUENTIAL_OAUTH_METHODS = frozenset({"oauth"})
+#: The one spelling of the OAuth door. It is the ``auth_method`` of a principal
+#: built from a validated access token and the ``http_auth_mode`` value that
+#: selects the resource server (ADR-102). Every comparison reads this name.
+OAUTH_AUTH_METHOD = "oauth"
+_CONSEQUENTIAL_OAUTH_METHODS = frozenset({OAUTH_AUTH_METHOD})
 
 
 class HostedIdentityCoordinates(BaseModel):
@@ -205,7 +220,10 @@ def oauth_actor_ref(
 
     if not verified_actor_ref or not evidence_refs:
         return None
-    if oauth_client_id and verified_actor_ref == oauth_client_id:
+    if oauth_client_id and oauth_client_id in (
+        verified_actor_ref,
+        verified_actor_ref.removeprefix(ACTOR_REGISTRY_PREFIX),
+    ):
         return None
     if oauth_client_id and oauth_client_id in evidence_refs:
         return None

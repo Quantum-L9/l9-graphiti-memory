@@ -44,7 +44,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-server = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1"]
+# PyJWT and cryptography validate OAuth access tokens in http_auth_mode=oauth
+# (ADR-102). They ship with the server because the hosted image installs this
+# extra and OAuth is the only hosted door (ADR-100).
+server = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+  "cryptography>=46.0,<47",
+  "PyJWT>=2.13,<3",
+]
 active = ["redis>=5,<7"]
 postgres = ["psycopg2-binary>=2.9,<3"]
 zep = ["zep-cloud>=3.0,<4"]
@@ -60,6 +68,8 @@ graph-intelligence = ["neo4j>=5.26,<7"]
 all = [
   "fastapi>=0.115,<1",
   "uvicorn>=0.30,<1",
+  "cryptography>=46.0,<47",
+  "PyJWT>=2.13,<3",
   "psycopg2-binary>=2.9,<3",
   "redis>=5,<7",
   "zep-cloud>=3.0,<4",

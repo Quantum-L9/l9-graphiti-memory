@@ -961,10 +961,12 @@ active = [
     { name = "redis" },
 ]
 all = [
+    { name = "cryptography" },
     { name = "fastapi" },
     { name = "infisical-python" },
     { name = "neo4j" },
     { name = "psycopg2-binary" },
+    { name = "pyjwt" },
     { name = "redis" },
     { name = "uvicorn" },
     { name = "zep-cloud" },
@@ -1001,7 +1003,9 @@ postgres = [
     { name = "psycopg2-binary" },
 ]
 server = [
+    { name = "cryptography" },
     { name = "fastapi" },
+    { name = "pyjwt" },
     { name = "uvicorn" },
 ]
 zep = [
@@ -1020,8 +1024,10 @@ qualification = [
 [package.metadata]
 requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2,<2" },
+    { name = "cryptography", marker = "extra == 'all'", specifier = ">=46.0,<47" },
     { name = "cryptography", marker = "extra == 'dev'", specifier = ">=46.0,<47" },
     { name = "cryptography", marker = "extra == 'phase6'", specifier = ">=46.0,<47" },
+    { name = "cryptography", marker = "extra == 'server'", specifier = ">=46.0,<47" },
     { name = "fastapi", marker = "extra == 'all'", specifier = ">=0.115,<1" },
     { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.115,<1" },
     { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.115,<1" },
@@ -1038,8 +1044,10 @@ requires-dist = [
     { name = "psycopg2-binary", marker = "extra == 'dev'", specifier = ">=2.9,<3" },
     { name = "psycopg2-binary", marker = "extra == 'postgres'", specifier = ">=2.9,<3" },
     { name = "pydantic", specifier = ">=2.7,<3" },
+    { name = "pyjwt", marker = "extra == 'all'", specifier = ">=2.13,<3" },
     { name = "pyjwt", marker = "extra == 'dev'", specifier = ">=2.13,<3" },
     { name = "pyjwt", marker = "extra == 'phase6'", specifier = ">=2.13,<3" },
+    { name = "pyjwt", marker = "extra == 'server'", specifier = ">=2.13,<3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3,<10" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23,<1" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5,<7" },
