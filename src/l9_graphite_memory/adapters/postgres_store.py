@@ -517,11 +517,12 @@ class PostgresRecordStore:
         )
         primary = tx.fetchone()
         if primary is not None:
-            tx.execute(
-                sql.SQL("ALTER TABLE projection_links DROP CONSTRAINT {}").format(
-                    sql.Identifier(str(primary["conname"]))
-                )
+            # The constraint name is read from pg_constraint and composed only as a
+            # quoted psycopg2 Identifier; it is never spliced in as raw text.
+            drop_primary = sql.SQL("ALTER TABLE projection_links DROP CONSTRAINT {}").format(
+                sql.Identifier(str(primary["conname"]))
             )
+            tx.execute(drop_primary)
         tx.execute("ALTER TABLE projection_links ADD PRIMARY KEY (record_id, target_identity)")
         tx.execute(
             "SELECT COUNT(*) AS count FROM projection_links "
