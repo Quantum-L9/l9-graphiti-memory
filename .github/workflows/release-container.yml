@@ -5,8 +5,8 @@
 #   layer: ci
 #   owner: memory-control-plane
 #   status: active
-#   version: 3.0.0
-#   updated: 2026-10-26
+#   version: 3.0.1
+#   updated: 2026-11-13
 
 # Thin caller: the hosted Memory service's one OCI image and one deployment
 # request come from Quantum-L9/l9-ci-core's container-release action. This file
@@ -54,6 +54,16 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
+      # actions/checkout stores a tag run's ref as a lightweight ref to the
+      # commit (refspec `+<sha>:refs/tags/<tag>`, at any fetch depth), so the
+      # annotated tag object is not in the clone and `git cat-file -t` would
+      # print `commit` for every tag. Fetch the tag object itself so the check
+      # below observes what the remote holds.
+      - name: Fetch the release tag object
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "+${GITHUB_REF}:${GITHUB_REF}"
       - name: Require an annotated tag on the run's exact commit
         shell: bash
         run: |
@@ -79,7 +89,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(PYTHONPATH=src python3 -c 'from l9_graphite_memory.version import PACKAGE_VERSION; print(PACKAGE_VERSION)')"
+          # The locked venv: importing the package imports its dependencies
+          # (pydantic), which the runner's system python3 does not have.
+          VERSION="$(PYTHONPATH=src .venv/bin/python -c 'from l9_graphite_memory.version import PACKAGE_VERSION; print(PACKAGE_VERSION)')"
           python3 tools/assurance/verify_release_admission.py \
             --admission-root build/release-admission \
             --artifact-dir dist \

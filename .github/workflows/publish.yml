@@ -5,8 +5,8 @@
 #   layer: ci
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.5.0
-#   updated: 2026-10-02
+#   version: 2.5.1
+#   updated: 2026-11-13
 
 name: Publish
 on:
@@ -66,7 +66,7 @@ jobs:
       L9_RELEASE_ARTIFACT_DIR: dist
       L9_RELEASE_EVIDENCE_DIR: build/release-validation
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           # Manual dispatches run this workflow from the default branch. Check
           # out the immutable tag so validation and publication use its source.
@@ -122,7 +122,7 @@ jobs:
             cat build-digests.txt
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-artifacts
           path: |
@@ -162,7 +162,7 @@ jobs:
             --version "$VERSION" \
             --source-revision "$(git rev-parse HEAD)" \
             --tag "$RELEASE_TAG"
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3 (release/v1)
         if: >-
           startsWith(github.ref, 'refs/tags/v') ||
           (github.event_name == 'workflow_dispatch' && startsWith(inputs.release_tag, 'v'))
