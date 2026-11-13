@@ -122,6 +122,7 @@ def test_checks_fail_closed_before_the_dispatch() -> None:
         "Require a release tag name",
         "Require an existing annotated tag",
         "Require the release workflow at the tag",
+        "Require that no branch shares the tag's name",
         "Dispatch the release as the repository bot",
     ]
     branch = _step("Require this dispatcher to run from the default branch")["run"]
@@ -141,9 +142,19 @@ def test_the_only_dispatch_is_release_container_on_the_tag() -> None:
     assert _job()["env"]["TARGET_WORKFLOW"] == RELEASE.name
     dispatch = _step("Dispatch the release as the repository bot")["run"]
     assert (
-        'gh workflow run "$TARGET_WORKFLOW" --ref "refs/tags/$RELEASE_TAG" '
+        'gh workflow run "$TARGET_WORKFLOW" --ref "$RELEASE_TAG" '
         '-f environment="$RELEASE_ENVIRONMENT"'
     ) in dispatch
+    # The dispatch API takes a branch or tag name, never a qualified ref, so a
+    # branch sharing the tag's name must be refused before the dispatch.
+    assert '--ref "refs/' not in dispatch
+    unambiguous = _step("Require that no branch shares the tag's name")["run"]
+    assert "repos/$GH_REPO/git/ref/heads/$RELEASE_TAG" in unambiguous
+    assert "exit 1" in unambiguous
+    names = [s["name"] for s in _steps()]
+    assert names.index("Require that no branch shares the tag's name") < names.index(
+        "Dispatch the release as the repository bot"
+    )
     dispatching_steps = [s["name"] for s in _steps() if DISPATCHING.search(str(s.get("run", "")))]
     assert dispatching_steps == ["Dispatch the release as the repository bot"]
     # No other workflow dispatches a workflow run.

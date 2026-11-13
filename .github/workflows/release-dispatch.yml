@@ -97,17 +97,28 @@ jobs:
           # A workflow_dispatch runs the workflow file as it exists at the ref.
           gh api "repos/$GH_REPO/contents/.github/workflows/$TARGET_WORKFLOW?ref=refs/tags/$RELEASE_TAG" \
             --jq '.path' >/dev/null
+      - name: Require that no branch shares the tag's name
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The dispatch API takes a branch or tag NAME, not a qualified ref. A
+          # branch with the same name would make that name ambiguous, and the
+          # release must run on the tag.
+          if gh api "repos/$GH_REPO/git/ref/heads/$RELEASE_TAG" --jq '.ref' >/dev/null 2>&1; then
+            echo "a branch named $RELEASE_TAG exists; the dispatch ref would be ambiguous" >&2
+            exit 1
+          fi
       - name: Dispatch the release as the repository bot
         shell: bash
         run: |
           set -euo pipefail
-          echo "dispatching $TARGET_WORKFLOW on refs/tags/$RELEASE_TAG (environment: $RELEASE_ENVIRONMENT)"
-          gh workflow run "$TARGET_WORKFLOW" --ref "refs/tags/$RELEASE_TAG" -f environment="$RELEASE_ENVIRONMENT"
+          echo "dispatching $TARGET_WORKFLOW on tag $RELEASE_TAG (environment: $RELEASE_ENVIRONMENT)"
+          gh workflow run "$TARGET_WORKFLOW" --ref "$RELEASE_TAG" -f environment="$RELEASE_ENVIRONMENT"
           {
             echo "### Release dispatched"
             echo
             echo "- workflow: \`$TARGET_WORKFLOW\`"
-            echo "- ref: \`refs/tags/$RELEASE_TAG\`"
+            echo "- tag: \`$RELEASE_TAG\`"
             echo "- environment: \`$RELEASE_ENVIRONMENT\`"
             echo
             echo "Next: approve the \`release\` environment on the dispatched run, then \`production\` in Quantum-L9/l9-deploy."
