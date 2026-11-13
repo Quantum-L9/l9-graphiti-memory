@@ -100,7 +100,11 @@ def _walk(node: Any, path: str = "") -> Iterator[tuple[str, Any]]:
 def blob_id(data: bytes) -> str:
     """Git object id of ``data`` as a blob, computed without invoking git."""
 
-    return hashlib.sha1(b"blob %d\0" % len(data) + data, usedforsecurity=False).hexdigest()
+    # Git defines a blob id as SHA-1 over this header and content; the digest is
+    # compared with ids git recorded, so the algorithm is fixed by that format.
+    blob = b"blob %d\0" % len(data) + data
+    # nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1 -- Git blob id format
+    return hashlib.sha1(blob, usedforsecurity=False).hexdigest()
 
 
 def head_revision(checkout: Path) -> str:
