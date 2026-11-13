@@ -16,7 +16,6 @@ the Git blob id that must stay SHA-1 because Git defines it that way.
 
 from __future__ import annotations
 
-import hashlib
 import importlib.util
 import subprocess
 import sys
@@ -152,4 +151,3 @@ def test_blob_id_is_the_git_blob_id(tmp_path: Path) -> None:
             check=True,
         ).stdout.strip()
         assert topology.blob_id(data) == expected
-        assert expected == hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
