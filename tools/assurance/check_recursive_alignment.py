@@ -6,8 +6,8 @@
 #   layer: assurance
 #   owner: memory-control-plane
 #   status: active
-#   version: 2.2.0
-#   updated: 2026-07-22
+#   version: 2.3.0
+#   updated: 2026-11-13
 
 """Deterministic checks for the active L9 recursive-alignment contract."""
 
@@ -32,6 +32,12 @@ _DEPRECATED_ENVELOPE = "Packet" + "Envelope"
 # tests/regression/test_phase6_operator.py); repository style-level alignment
 # rules are not enforced on their sources.
 VENDORED_PREFIXES = ("tools/phase6/",)
+# Core repository execution V2 (l9-ci-core) materializes its own runtime under
+# .l9/runtime/ on the runner (the l9-ci SDK source and wheel, provider
+# capabilities, toolchain alignment, org-governance policy). Those bytes belong
+# to Core, not to this repository, so the alignment contract does not judge
+# them. The exclusion is this exact directory, never a pattern on finding text.
+INJECTED_RUNTIME_PREFIX = ".l9/runtime/"
 EXCLUDED_PARTS = {
     ".git",
     ".pytest_cache",
@@ -140,9 +146,72 @@ def _walk(root: Path) -> list[Path]:
     return paths
 
 
+def _is_work_tree_root(root: Path) -> bool:
+    """True when ``root`` is the top level of a git work tree.
+
+    A directory nested inside some other repository's work tree (an unpacked
+    release tarball under a checkout, say) is not one: that index describes a
+    different repository, so it is not asked.
+    """
+
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+    except OSError:
+        return False
+    if result.returncode != 0 or not result.stdout.strip():
+        return False
+    return Path(result.stdout.strip()).resolve() == root.resolve()
+
+
+def _repository_files(root: Path) -> list[Path]:
+    """The repository's own files: what this repository tracks or would track.
+
+    In a git work tree that is ``git ls-files --cached --others
+    --exclude-standard`` (tracked files plus untracked files the repository's
+    ignore rules do not exclude, so a new file is judged before it is
+    committed). An untracked file under Core's injected ``.l9/runtime`` is not
+    content of this repository even where no ignore rule names it, as on the
+    Core runner; a file the repository tracks there is still judged. A git
+    failure inside a work tree raises rather than silently judging nothing.
+
+    Without a work tree (the release tarball case) there is no index to ask,
+    so the tree is walked, pruning the same excluded directories and the
+    injected ``.l9/runtime`` directory.
+    """
+
+    if _is_work_tree_root(root):
+
+        def listed(*selection: str) -> set[str]:
+            result = subprocess.run(
+                ["git", "-C", str(root), "ls-files", "-z", *selection],
+                capture_output=True,
+                check=True,
+                text=True,
+            )
+            return {entry for entry in result.stdout.split("\0") if entry}
+
+        tracked = listed("--cached")
+        untracked = {
+            entry
+            for entry in listed("--others", "--exclude-standard")
+            if not entry.startswith(INJECTED_RUNTIME_PREFIX)
+        }
+        return [root / entry for entry in sorted(tracked | untracked)]
+    return [
+        path
+        for path in _walk(root)
+        if not path.relative_to(root).as_posix().startswith(INJECTED_RUNTIME_PREFIX)
+    ]
+
+
 def _text_files(root: Path) -> tuple[Path, ...]:
     result: list[Path] = []
-    for path in _walk(root):
+    for path in _repository_files(root):
         if not path.is_file():
             continue
         relative = path.relative_to(root)
