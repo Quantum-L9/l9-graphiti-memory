@@ -36,6 +36,17 @@ export PYTHONPATH := $(CURDIR)/src
 # the reverse) is drift.
 UV_SYNC_EXTRAS := --extra dev --extra server --extra postgres --extra active --extra zep
 
+# V-001 (ADR-101, tools/assurance/generate_validation_evidence.py) admits only
+# the skip reasons declared in tools/assurance/suite_skip_allowlist.json for the
+# selected profile. CI's validate job provides PostgreSQL, Redis and the pinned
+# semantic authority and runs the strict default `ci` profile; Core runs these
+# phases on a runner with none of them, which is what the repository's declared
+# `local` profile (SKIP-101..104) exists for. No skip is added by this choice.
+# A caller that provides CI's services sets L9_SUITE_PROFILE=ci to get the
+# strict verdict through `make validate`.
+L9_SUITE_PROFILE ?= local
+export L9_SUITE_PROFILE
+
 # CI installs uv with astral-sh/setup-uv and pins no uv version (the action's
 # default resolves the latest release), so uv is installed only when absent,
 # unpinned the same way, into an untracked bootstrap environment under build/.
