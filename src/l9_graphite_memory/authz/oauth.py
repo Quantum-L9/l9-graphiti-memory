@@ -21,8 +21,11 @@ request is refused: there is no second door behind this one.
 
 An OAuth subject is not an actor and not a surface (ADR-100). The principal
 built here carries the verified subject, the namespaces a server-side grant
-gives that subject, and no agent identity. ``MemoryService`` remains the only
-authorization decision.
+gives that subject, the client id the token names, and an agent identity only
+when the operator bound that exact (subject, client id) pair to an actor in
+``L9_MEMORY_OAUTH_ACTORS_JSON`` (ADR-103). A token issued without an end user
+(the client-credentials grant) is refused: it has no subject a person stands
+behind. ``MemoryService`` remains the only authorization decision.
 """
 
 from __future__ import annotations
@@ -40,11 +43,15 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
 from l9_graphite_memory.authz.signed_assertion import decode_json_object
 from l9_graphite_memory.contracts import MemoryPrincipal
-from l9_graphite_memory.contracts.identity import OAUTH_AUTH_METHOD
+from l9_graphite_memory.contracts.identity import (
+    ACTOR_REGISTRY_PREFIX,
+    OAUTH_AUTH_METHOD,
+    SURFACE_REGISTRY_PREFIX,
+)
 from l9_graphite_memory.errors import AuthenticationError, ConfigurationError
 from l9_graphite_memory.observability import get_logger
 from l9_graphite_memory.version import MEMORY_RESOURCE_IDENTIFIER, PACKAGE_VERSION
@@ -56,6 +63,7 @@ log = get_logger("l9.memory.oauth")
 
 OAUTH_ISSUER_ENV = "L9_MEMORY_HTTP_OAUTH_ISSUER"
 OAUTH_GRANTS_ENV = "L9_MEMORY_OAUTH_GRANTS_JSON"
+OAUTH_ACTORS_ENV = "L9_MEMORY_OAUTH_ACTORS_JSON"
 
 # Asymmetric signatures only. "none" and every HMAC algorithm are absent, so a
 # token cannot be verified with material a client can know: an HS256 token
@@ -102,6 +110,20 @@ PROTECTED_RESOURCE_METADATA_URL = (
 _UNKNOWN_SIGNING_KEY = "access token signing key is not published by the configured issuer"
 _KEYS_UNAVAILABLE = "issuer signing keys are unavailable; the access token cannot be validated"
 _MALFORMED = "access token is not a well-formed JWT"
+_USERLESS = (
+    "access token was issued without an end user (client credentials); "
+    "a hosted Memory principal must be a user"
+)
+# Grant-type values that mean "no end user". Auth0 names the grant in ``gty``
+# (``client-credentials``); the RFC spelling is ``client_credentials``.
+_USERLESS_GRANT_TYPES = frozenset({"client-credentials", "client_credentials"})
+# Auth0 appends this to the client id when the subject of a client-credentials
+# token is the application itself. It is the platform's convention, not a
+# tenant's naming.
+_CLIENT_SUBJECT_SUFFIX = "@clients"
+# Auth0's subject profile for a token whose subject is a person.
+_USER_SUBJECT_PROFILE = "user"
+MAX_COORDINATE_LENGTH = 300
 
 Fetch = Callable[[str], bytes]
 Clock = Callable[[], float]
@@ -406,9 +428,16 @@ class AccessTokenValidator:
         if not isinstance(subject, str) or not subject or len(subject) > MAX_SUBJECT_LENGTH:
             raise AuthenticationError("access token subject is not usable")
         client_id = claims.get("azp", claims.get("client_id"))
+        client_id = client_id if isinstance(client_id, str) and client_id else None
+        if _is_userless(claims, subject=subject, client_id=client_id):
+            log.warning(
+                "user-less access token refused",
+                extra={"subject_fingerprint": _fingerprint(subject)},
+            )
+            raise AuthenticationError(_USERLESS)
         return VerifiedAccessToken(
             subject=subject,
-            client_id=client_id if isinstance(client_id, str) and client_id else None,
+            client_id=client_id,
             algorithm=algorithm,
             key_id=key_id,
             claims=claims,
@@ -456,6 +485,39 @@ class AccessTokenValidator:
         except jwt.PyJWTError as exc:
             raise AuthenticationError(f"access token is not valid: {type(exc).__name__}") from exc
         return dict(claims)
+
+
+def _is_userless(claims: Mapping[str, Any], *, subject: str, client_id: str | None) -> bool:
+    """Whether a validated token stands for no end user.
+
+    Any one signal is enough, so a token that drops one of them is still
+    caught by another:
+
+    - a grant-type claim (``gty``, or ``grant_type``) naming client
+      credentials, as a string or in a list;
+    - a subject ending in ``@clients``, Auth0's subject for an application;
+    - a subject equal to a client id the token names (``azp`` or
+      ``client_id``): RFC 9068 section 2.2 makes the client the subject when
+      no resource owner is involved, and Auth0 does the same for an API with
+      agent subject claims;
+    - a subject profile (``sub_profile``) other than ``user``, such as Auth0's
+      ``ai_agent`` for an agent authenticated as itself.
+
+    A token with none of them is a user token as far as this server can tell.
+    """
+
+    for name in ("gty", "grant_type"):
+        value = claims.get(name)
+        values = value if isinstance(value, list) else [value]
+        if any(isinstance(item, str) and item in _USERLESS_GRANT_TYPES for item in values):
+            return True
+    if subject.endswith(_CLIENT_SUBJECT_SUFFIX):
+        return True
+    named_clients = {client_id, claims.get("azp"), claims.get("client_id")}
+    if subject in {value for value in named_clients if isinstance(value, str) and value}:
+        return True
+    profile = claims.get("sub_profile")
+    return profile is not None and profile != _USER_SUBJECT_PROFILE
 
 
 class OAuthSubjectGrant(BaseModel):
@@ -509,6 +571,134 @@ def subject_grants_from_config(raw: Mapping[str, Any]) -> dict[str, OAuthSubject
     return grants
 
 
+class OAuthActorBinding(BaseModel):
+    """One operator-declared actor for one verified (subject, client id) pair.
+
+    Read from ``L9_MEMORY_OAUTH_ACTORS_JSON`` as
+    ``{"<subject>": {"<client id>": {"actor_ref": ..., "surface_ref": ...}}}``.
+    The token proves the subject and the client; the operator, in server-side
+    configuration, states which actor that person runs through that client.
+    The client id selects among the subject's bindings and resolves nothing
+    on its own (ADR-100, ADR-103).
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    actor_ref: str
+    surface_ref: str | None = None
+
+    @field_validator("actor_ref")
+    @classmethod
+    def _actor_coordinate(cls, value: str) -> str:
+        return _coordinate(value, ACTOR_REGISTRY_PREFIX, "actor_ref")
+
+    @field_validator("surface_ref")
+    @classmethod
+    def _surface_coordinate(cls, value: str | None) -> str | None:
+        return None if value is None else _coordinate(value, SURFACE_REGISTRY_PREFIX, "surface_ref")
+
+    @property
+    def actor_id(self) -> str:
+        """The actor fragment, the same spelling a signed agent's ``agent_id`` has."""
+
+        return self.actor_ref.removeprefix(ACTOR_REGISTRY_PREFIX)
+
+    def digest(self, subject: str, client_id: str) -> str:
+        """A digest binding this declaration to the pair it was declared for."""
+
+        material = json.dumps(
+            [subject, client_id, self.actor_ref, self.surface_ref],
+            separators=(",", ":"),
+        ).encode("utf-8")
+        return "sha256:" + hashlib.sha256(material).hexdigest()
+
+
+#: ``MemoryPrincipal.agent_id`` holds the actor fragment and is capped at this.
+MAX_ACTOR_ID_LENGTH = 200
+
+
+def _coordinate(value: str, prefix: str, field: str) -> str:
+    fragment = value.removeprefix(prefix)
+    if (
+        not value.startswith(prefix)
+        or not fragment
+        or len(value) > MAX_COORDINATE_LENGTH
+        or not fragment.isascii()
+        or any(character.isspace() or character in "#/" for character in fragment)
+    ):
+        raise ValueError(f"{field} must be a {prefix}<id> coordinate")
+    return value
+
+
+ActorBindings = dict[str, dict[str, OAuthActorBinding]]
+
+
+def actor_bindings_from_config(raw: Mapping[str, Any]) -> ActorBindings:
+    """Validate the decoded actor map, or refuse to start.
+
+    A binding whose actor fragment is the client id it is keyed under is
+    refused: that would make a client id an actor by another name.
+    """
+
+    bindings: ActorBindings = {}
+    for subject, clients in raw.items():
+        if not isinstance(subject, str) or not subject or len(subject) > MAX_SUBJECT_LENGTH:
+            raise ConfigurationError(f"{OAUTH_ACTORS_ENV} keys must be non-empty token subjects")
+        name = f"subject fingerprint={_fingerprint(subject)}"
+        if subject.endswith(_CLIENT_SUBJECT_SUFFIX):
+            raise ConfigurationError(
+                f"{OAUTH_ACTORS_ENV} binds {name}, an application subject; "
+                "a hosted Memory principal must be a user"
+            )
+        if not isinstance(clients, dict) or not clients:
+            raise ConfigurationError(
+                f"{OAUTH_ACTORS_ENV} entry for {name} must map client ids to bindings"
+            )
+        resolved: dict[str, OAuthActorBinding] = {}
+        for client_id, value in clients.items():
+            if not isinstance(client_id, str) or not client_id or len(client_id) > 200:
+                raise ConfigurationError(
+                    f"{OAUTH_ACTORS_ENV} entry for {name} has an unusable client id"
+                )
+            client = f"client fingerprint={_fingerprint(client_id)}"
+            if not isinstance(value, dict):
+                raise ConfigurationError(
+                    f"{OAUTH_ACTORS_ENV} binding for {name}, {client} must be a JSON object"
+                )
+            try:
+                binding = OAuthActorBinding.model_validate(value)
+            except ValidationError as exc:
+                details = "; ".join(
+                    f"{'.'.join(str(part) for part in error['loc']) or '<root>'}: {error['msg']}"
+                    for error in exc.errors()
+                )
+                raise ConfigurationError(
+                    f"malformed OAuth actor binding for {name}, {client} in "
+                    f"{OAUTH_ACTORS_ENV}: {details}"
+                ) from exc
+            if binding.actor_id == client_id or binding.actor_id == subject:
+                raise ConfigurationError(
+                    f"{OAUTH_ACTORS_ENV} binding for {name}, {client} names the client "
+                    "or the subject as the actor; an OAuth client is not an actor"
+                )
+            if len(binding.actor_id) > MAX_ACTOR_ID_LENGTH:
+                # The fragment becomes MemoryPrincipal.agent_id; a longer one
+                # would pass startup and fail every request it is bound to.
+                raise ConfigurationError(
+                    f"{OAUTH_ACTORS_ENV} binding for {name}, {client} names an actor id "
+                    f"longer than {MAX_ACTOR_ID_LENGTH} characters"
+                )
+            surface_id = (binding.surface_ref or "").removeprefix(SURFACE_REGISTRY_PREFIX)
+            if surface_id and surface_id in (client_id, subject):
+                raise ConfigurationError(
+                    f"{OAUTH_ACTORS_ENV} binding for {name}, {client} names the client "
+                    "or the subject as the surface; an OAuth client is not a surface"
+                )
+            resolved[client_id] = binding
+        bindings[subject] = resolved
+    return bindings
+
+
 def _bearer(authorization: str | None) -> str:
     if not authorization:
         raise AuthenticationError("missing Authorization header")
@@ -527,6 +717,7 @@ class OAuthResourceServer:
         settings: MemorySettings,
         *,
         grants: Mapping[str, Any],
+        actors: Mapping[str, Any] | None = None,
         fetch: Fetch | None = None,
         clock: Clock | None = None,
     ) -> None:
@@ -535,6 +726,7 @@ class OAuthResourceServer:
             validated_issuer(settings.http_oauth_issuer), fetch=fetch, clock=clock
         )
         self._grants = subject_grants_from_config(grants)
+        self._actors = actor_bindings_from_config(actors or {})
 
     @classmethod
     def from_environment(
@@ -554,7 +746,16 @@ class OAuthResourceServer:
             grants = decode_json_object(raw, OAUTH_GRANTS_ENV)
         except AuthenticationError as exc:
             raise ConfigurationError(str(exc)) from exc
-        return cls(settings, grants=grants, fetch=fetch)
+        # The actor map is optional: absent, no (subject, client) pair has an
+        # actor, so every consequential write is refused and reads still work.
+        raw_actors = os.environ.get(OAUTH_ACTORS_ENV, "").strip()
+        actors: Mapping[str, Any] = {}
+        if raw_actors:
+            try:
+                actors = decode_json_object(raw_actors, OAUTH_ACTORS_ENV)
+            except AuthenticationError as exc:
+                raise ConfigurationError(str(exc)) from exc
+        return cls(settings, grants=grants, actors=actors, fetch=fetch)
 
     @property
     def issuer(self) -> str:
@@ -567,14 +768,34 @@ class OAuthResourceServer:
     def authenticate(self, authorization: str | None) -> MemoryPrincipal:
         """Return the principal for a valid access token, or raise.
 
-        The subject is the principal. ``agent_id`` and ``user_id`` stay unset:
+        The subject is the principal and the client id rides alongside it as
+        ``oauth_client_id``. ``agent_id`` is set only from an operator binding
+        for this exact (subject, client id) pair, with the server-built
+        evidence reference for that binding; otherwise it stays unset, because
         a validated token proves which subject the issuer authenticated, not
-        which actor is calling, and the client id it carries is never one.
-        A subject without a grant is authenticated and holds no namespace.
+        which actor is calling. ``user_id`` stays unset. A subject without a
+        grant is authenticated and holds no namespace.
         """
 
         verified = self._validator.verify(_bearer(authorization))
         grant = self._grants.get(verified.subject) or OAuthSubjectGrant()
+        binding = (
+            self._actors.get(verified.subject, {}).get(verified.client_id)
+            if verified.client_id
+            else None
+        )
+        actor_fields: dict[str, Any] = {}
+        if binding is not None and verified.client_id is not None:
+            actor_fields = {
+                "agent_id": binding.actor_id,
+                "surface_ref": binding.surface_ref,
+                "actor_evidence_refs": (
+                    (
+                        f"oauth-actor-binding:{OAUTH_ACTORS_ENV}:"
+                        f"{binding.digest(verified.subject, verified.client_id)}"
+                    ),
+                ),
+            }
         return MemoryPrincipal(
             principal_id=verified.subject,
             tenant_id=self._settings.local_tenant_id,
@@ -585,20 +806,25 @@ class OAuthResourceServer:
             write_namespaces=grant.write_namespaces,
             promote_namespaces=grant.promote_namespaces,
             auth_method=OAUTH_AUTH_METHOD,
+            oauth_client_id=verified.client_id,
+            **actor_fields,
         )
 
 
 __all__ = [
     "ALLOWED_SIGNING_ALGORITHMS",
+    "OAUTH_ACTORS_ENV",
     "OAUTH_GRANTS_ENV",
     "OAUTH_ISSUER_ENV",
     "PROTECTED_RESOURCE_METADATA_PATH",
     "PROTECTED_RESOURCE_METADATA_URL",
     "AccessTokenValidator",
     "IssuerUnavailableError",
+    "OAuthActorBinding",
     "OAuthResourceServer",
     "OAuthSubjectGrant",
     "VerifiedAccessToken",
+    "actor_bindings_from_config",
     "https_get",
     "protected_resource_metadata",
     "validated_issuer",

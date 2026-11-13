@@ -107,8 +107,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 99 -> 100 for ADR-100 (native OAuth MCP full cutover).
         # Re-pinned 100 -> 101 for ADR-101 (derived V-001 suite validation).
         # Re-pinned 101 -> 102 for ADR-102 (OAuth resource server).
-        "102 ADRs complete and indexed",
-        r"PASS: 102 ADRs",
+        # Re-pinned 102 -> 103 for ADR-103 (OAuth actor binding).
+        "103 ADRs complete and indexed",
+        r"PASS: 103 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -613,15 +614,29 @@ def _collection_skip_reason(text: str) -> str:
     return value[2].removeprefix("Skipped: ")
 
 
+class _DoctypeRefusingBuilder(ElementTree.TreeBuilder):
+    """Tree builder that refuses any DOCTYPE before its internal subset is read.
+
+    Entity expansion (XXE, "billion laughs") needs a DTD, and a pytest JUnit
+    report never declares one, so a report that does is refused outright: the
+    same protection defusedxml's ``forbid_dtd`` gives, without the dependency.
+    """
+
+    def doctype(self, name: str, pubid: str | None, system: str | None) -> None:
+        raise SuiteEvidenceError(f"JUnit report declares a DOCTYPE ({name!r}); refused")
+
+
 def parse_junit(path: Path) -> tuple[SuiteCase, ...]:
-    _read_input(path, "JUnit report")
+    report = _read_input(path, "JUnit report")
+    parser = ElementTree.XMLParser(target=_DoctypeRefusingBuilder())
     try:
-        # The report is this run's own pytest output, not foreign input.
-        tree = ElementTree.parse(path)
+        # The report is this run's own pytest output; a DTD is refused anyway.
+        parser.feed(report)
+        root = parser.close()
     except ElementTree.ParseError as exc:
         raise SuiteEvidenceError(f"JUnit report is not well-formed XML: {exc}") from exc
     cases: list[SuiteCase] = []
-    for case in tree.getroot().iter("testcase"):
+    for case in root.iter("testcase"):
         key = (case.get("classname") or "", case.get("name") or "")
         children = {child.tag: child for child in case}
         if "failure" in children:

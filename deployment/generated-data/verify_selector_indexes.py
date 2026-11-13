@@ -37,7 +37,15 @@ def inventories(
             """
         ):
             name = row[0]
-            columns = {column[1] for column in connection.execute(f'PRAGMA table_info("{name}")')}
+            # The table name comes from the inspected database file, so it is bound
+            # as a parameter of the pragma table-valued function, never quoted in.
+            columns = {
+                column[0]
+                for column in connection.execute(
+                    "SELECT name FROM pragma_table_info(?)",
+                    (name,),
+                )
+            }
             tables[name] = columns
 
         indexes = {
