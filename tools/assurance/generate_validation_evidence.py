@@ -106,8 +106,10 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # (retired repository inventory and L9_META enforcement).
         # Re-pinned 99 -> 100 for ADR-100 (native OAuth MCP full cutover).
         # Re-pinned 100 -> 101 for ADR-101 (derived V-001 suite validation).
-        "101 ADRs complete and indexed",
-        r"PASS: 101 ADRs",
+        # Re-pinned 101 -> 102 for ADR-102 (OAuth resource server).
+        # Re-pinned 102 -> 103 for ADR-103 (OAuth actor binding).
+        "103 ADRs complete and indexed",
+        r"PASS: 103 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -201,8 +203,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 142 -> 143 for ADR-098: authz/remote_agent.py.
         # Re-pinned 143 -> 144 for the ADR-082 2026-10-16 amendment:
         # remote_client.py.
-        "144 production files pass",
-        r"PASS: 144 production Python files",
+        # Re-pinned 144 -> 145 for ADR-102: authz/oauth.py.
+        "145 production files pass",
+        r"PASS: 145 production Python files",
     ),
     CheckSpec(
         "V-012",
@@ -418,8 +421,16 @@ _REPORT_LIMIT: Final = 10
 _SUMMARY_COUNT = re.compile(
     r"(\d+) (passed|failed|skipped|xfailed|xpassed|errors?|warnings?|deselected|rerun)"
 )
-# One count, then ", count" repeats: linear, no nested optional quantifier.
-_SUMMARY_LINE = re.compile(r"^=*\s*\d+ [a-z]+(?:, \d+ [a-z]+)* in [0-9.]+s\b")
+# pytest 9 reports unittest ``subTest`` and ``subtests`` results as their own
+# summary items ("11 subtests passed"). They are counted under a separate
+# "subtests <outcome>" key, never folded into the test-case counts that rule 2
+# compares with JUnit.
+_SUBTEST_COUNT = re.compile(r"(\d+) subtests (passed|failed|skipped|xfailed|xpassed)")
+# One count, then ", count" repeats: linear, no nested optional quantifier. A
+# count's label is one word, or "subtests" and one word (pytest 9).
+_SUMMARY_LINE = re.compile(
+    r"^=*\s*\d+ (?:subtests )?[a-z]+(?:, \d+ (?:subtests )?[a-z]+)* in [0-9.]+s\b"
+)
 _COLLECT_SUMMARY = re.compile(
     r"^(?:(?P<count>\d+) tests? collected|no tests collected)(?P<rest>.*?) in [0-9.]+s\b"
 )
@@ -665,6 +676,9 @@ def parse_terminal_summary(text: str) -> dict[str, int]:
             for number, word in _SUMMARY_COUNT.findall(stripped):
                 name = {"error": "errors", "warning": "warnings"}.get(word, word)
                 counts[name] = counts.get(name, 0) + int(number)
+            for number, word in _SUBTEST_COUNT.findall(stripped):
+                name = f"subtests {word}"
+                counts[name] = counts.get(name, 0) + int(number)
             return counts
     raise SuiteEvidenceError("pytest log has no final summary line")
 
@@ -721,7 +735,7 @@ def evaluate_suite(root: Path, evidence_dir: Path, profile: str) -> SuiteVerdict
 
     # 1. Zero failures and zero errors, in every view of the run.
     if summary is not None:
-        for name in ("failed", "errors", "xpassed"):
+        for name in ("failed", "errors", "xpassed", "subtests failed", "subtests xpassed"):
             if summary.get(name, 0):
                 verdict.violations.append(f"pytest summary reports {summary[name]} {name}")
     if cases is not None:
