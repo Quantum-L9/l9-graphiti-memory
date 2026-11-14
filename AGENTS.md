@@ -41,7 +41,7 @@ Every material change includes:
 - ADR update when a decision changes
 - rollback condition
 
-Run `bash scripts/validate_release.sh` before proposing a merge.
+Run `bash scripts/validate_release.sh` before proposing a merge. `make validate` runs it after `make check` and the active-memory tests, as CI's `validate` job does; `make setup` syncs the locked environment first. The root `Makefile` is Core's generated `make-v1` facade (`Quantum-L9/l9-ci-core`), byte-for-byte; repository recipes belong in `Repo.mk`.
 
 <!-- BEGIN L9 FORMATTER OWNERSHIP (generated — do not edit) -->
 

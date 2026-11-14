@@ -15,7 +15,10 @@ updated: 2026-07-22
 2. Read the ADRs touching your change.
 3. Keep adapters thin and route behavior through MemoryService.
 4. Add deterministic tests before live-provider tests.
-5. Run `bash scripts/validate_release.sh`.
+5. Run `bash scripts/validate_release.sh`. The root `Makefile` is Core's generated
+   `make-v1` facade (never edit it); `make setup`, `make check`, `make test` and
+   `make validate` run the `Repo.mk` leaves that mirror CI's `validate` job, and
+   `make validate` includes `scripts/validate_release.sh`.
 6. Include migration and rollback notes in the pull request.
 
 Direct canonical-store writes outside approved storage internals are rejected by CI. New public modules must have a consumer, entrypoint, or explicit design status.
