@@ -1,0 +1,171 @@
+{
+  "schema": "l9.working-plan-dashboard/v1",
+  "status": "candidate_not_admitted",
+  "source_main_sha": "eb0bcbed1e1652529675af52584185d2f09dd737",
+  "decisions": {
+    "transport": "oauth_mcp_streamable_http_only",
+    "historical_compatibility": "none",
+    "canonical_store": "one_fresh_PostgreSQL_16"
+  },
+  "milestones": {
+    "core_hosted": "CUT-13",
+    "full_audit_remediated": "CUT-14",
+    "final_admission": "CUT-15"
+  },
+  "node_count": 143,
+  "must_precede_edge_count": 293,
+  "findings_covered": {
+    "confirmed": 20,
+    "unresolved": 9,
+    "mapped_confirmed": 20,
+    "mapped_unresolved": 9,
+    "runtime_test_proof": "NOT_RUN"
+  },
+  "streams": [
+    {
+      "name": "AUTH",
+      "nodes": 17
+    },
+    {
+      "name": "CONS",
+      "nodes": 10
+    },
+    {
+      "name": "CUT",
+      "nodes": 15
+    },
+    {
+      "name": "DATA",
+      "nodes": 10
+    },
+    {
+      "name": "GOV",
+      "nodes": 12
+    },
+    {
+      "name": "HYG",
+      "nodes": 3
+    },
+    {
+      "name": "LIFE",
+      "nodes": 12
+    },
+    {
+      "name": "MCP",
+      "nodes": 12
+    },
+    {
+      "name": "OPS",
+      "nodes": 11
+    },
+    {
+      "name": "PROJ",
+      "nodes": 14
+    },
+    {
+      "name": "QA",
+      "nodes": 12
+    },
+    {
+      "name": "RET",
+      "nodes": 6
+    },
+    {
+      "name": "STOR",
+      "nodes": 9
+    }
+  ],
+  "slices": [
+    {
+      "id": "P00",
+      "nodes": 10,
+      "status": "not_dispatched",
+      "kind": "Separate architecture PR"
+    },
+    {
+      "id": "P01",
+      "nodes": 6,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P02",
+      "nodes": 15,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P03",
+      "nodes": 9,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P04",
+      "nodes": 7,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P05",
+      "nodes": 8,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P06",
+      "nodes": 14,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P07",
+      "nodes": 9,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P08",
+      "nodes": 8,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P09",
+      "nodes": 11,
+      "status": "not_dispatched",
+      "kind": "New bounded PR"
+    },
+    {
+      "id": "P10",
+      "nodes": 14,
+      "status": "not_dispatched",
+      "kind": "Amend existing open PR #101, not a parallel carrier PR"
+    },
+    {
+      "id": "C784",
+      "nodes": 11,
+      "status": "not_dispatched",
+      "kind": "Amend existing open PR #784 in separate repo"
+    },
+    {
+      "id": "P12",
+      "nodes": 21,
+      "status": "not_dispatched",
+      "kind": "Operation/acceptance stage, NOT a coding PR"
+    }
+  ],
+  "blockers": [
+    "Auth0 real tenant resource/PKCE client interoperability unproven",
+    "ActorIdentity assurance from account-managed OAuth cannot be inferred from public client_id",
+    "Claude Code Mobile actual hosted connector access unproven separately from generic Claude mobile app",
+    "PR101 signed-agent-only carrier conflicts with full cutover",
+    "PR784 native consumer has not been integrated against OAuth service",
+    "20 findings and nine concerns not remediated or tested on new head",
+    "Original whole-source audit 36 full / 8 partial / 100 not read; source_coverage.yaml not attached",
+    "No exact release admission, C1 OAuth deployment, or new PG backup/restore receipt."
+  ],
+  "next_falsifiable_proof": "AUTH-01: Real Auth0 resource-parameter and PKCE audience handshake with intended native client; simultaneously GOV-03 contract and DATA-01/DATA-04 non-destructive negative tests.",
+  "publish_policy": "No mutation dispatched; publish code via canonical make pr and one bounded PR at a time.",
+  "operational_status": "NOT_DEPLOYED_IN_THIS_TURN"
+}

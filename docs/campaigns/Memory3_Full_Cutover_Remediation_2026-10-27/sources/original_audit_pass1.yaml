@@ -1,0 +1,382 @@
+audit: Deep Source Code Correctness Audit
+repository: https://github.com/Quantum-L9/l9-graphiti-memory
+revision: eb0bcbed1e1652529675af52584185d2f09dd737
+authority:
+  governing_system: AGENTS.md v2.3.0 + docs/adr (ADRs referenced in code comments; ADR texts not read)
+  exact_revision_binding: eb0bcbed1e1652529675af52584185d2f09dd737
+  mutation_authority: UNKNOWN
+  publication_authority: UNKNOWN
+  compliance_claims: Limited to invariants quoted verbatim in AGENTS.md and ADR intent restated in source docstrings
+coverage:
+  revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  default_branch: main (inferred from list_commits default)
+  production_files_declared: 144
+  access_limits:
+  - 'Private repository: raw.githubusercontent.com unavailable; all reads via GitHub MCP connector which truncates
+    files above ~30 KB.'
+  - 'Truncated (partially read): services/memory_service.py (85 KB), adapters/sqlite_store.py (76 KB), server.py
+    tail (run_http), mcp_tools.py tail (handlers after _write_governed), services/outbox_worker.py tail (CLI/main).'
+  - 'Not read: adapters/postgres_store.py, adapters/in_memory_store.py, adapters/neo4j_graph_intelligence.py, cli.py,
+    remote_client.py, zep_transport.py, secrets.py, config/, active/, graph/, retrieval/, curation/, admission/,
+    migration/, ingestion/, extraction/, projections/, lineage/, integrity/, maintenance/, schema/.'
+  - 'Runtime verification: repository test suite NOT_EXECUTED (no clone capability). Two findings reproduced by
+    re-implementing the exact logic in a sandbox.'
+  fully_read:
+  - AGENTS.md
+  - authz/signed_assertion.py
+  - authz/remote_agent.py
+  - authz/authenticator.py
+  - ports/service_capability.py
+  - contracts/temporal.py
+  - transport.py
+  - adapters/graphiti_projection.py
+  - circuit_breaker.py
+  - rate_limiter.py
+  - runtime.py
+  - server.py (to run_http)
+  - mcp_tools.py (to _write_governed)
+  - services/outbox_worker.py (run_once complete)
+  - sqlite_store.py (through commit_write)
+  - memory_service.py (through _plan_lifecycle_transition head)
+  dismissed_suspicions:
+  - 'Naive datetimes via MCP _dt(): rejected upstream by contracts.requests require_utc validators (ADR-029) ->
+    ValidationError -> -32602.'
+  - 'ISO-text lexical comparison in SQLite with/without microseconds: ordering is correct because ''+'' < ''.''
+    < digits.'
+  - 'AgentDoorGrant bool coercion: handled by pydantic (documented prior fix).'
+  - 'Supersession TOCTOU: _insert_status_event re-validates previous_state inside BEGIN IMMEDIATE.'
+confirmed_findings:
+- id: F-001
+  severity: HIGH
+  status: CONFIRMED
+  title: Graphiti tool failures flagged with MCP isError are recorded as successful projections with a durable link
+  source_location:
+  - 'src/l9_graphite_memory/transport.py :: HttpMcpTransport.call_tool (content[0].text parsed; result[''isError'']
+    never read)'
+  - 'src/l9_graphite_memory/transport.py :: HttpMcpTransport.write (str result wrapped as {''result'': text}, no
+    ''error'' key)'
+  - 'src/l9_graphite_memory/adapters/graphiti_projection.py :: GraphitiProjection._settle_write (checks only result.get(''error'');
+    falls back to episode_name_locator)'
+  - 'src/l9_graphite_memory/services/outbox_worker.py :: OutboxWorker.run_once project branch (any non-empty locator
+    => _install_link + DELIVERED)'
+  violated_contract: AGENTS.md invariant 3 (canonical persistence is evidence-bearing) / ADR-074 (provider must
+    reflect canonical state) / MCP tools/call result contract (isError)
+  preconditions: 'Graphiti MCP server answers tools/call add_memory|add_episode with {content:[{type:''text'',text:''Error:
+    ...''}], isError:true} (FastMCP''s representation for raised tool exceptions and argument-validation failures)
+    instead of a JSON body carrying an ''error'' key.'
+  expected_behavior: call_tool raises ProjectionError; outbox event is RETRY/DEAD; no projection link is written.
+  actual_behavior: 'call_tool returns the error text as a str; write() returns {''result'': ''Error: ...''}; _settle_write
+    finds no ''error'' key, synthesizes the name locator; worker installs a ProjectionLink and settles the event
+    DELIVERED. Canonical state now asserts a copy that the provider never accepted.'
+  evidence:
+  - Source trace above at revision eb0bcbed1e1652529675af52584185d2f09dd737
+  - Same repository's TypeScript client (clients/typescript/src/index.ts) explicitly throws on result.isError, demonstrating
+    the project knows the contract; the Python production transport does not implement it.
+  - search_code for 'isError' under src/ returns no handling in transport.py, graphiti_projection.py, or remote_client.py.
+  root_cause: HttpMcpTransport.call_tool unwraps content text without consulting the tools/call result envelope's
+    isError flag; downstream success detection relies solely on an 'error' key in the parsed JSON.
+  affected_components:
+  - transport.HttpMcpTransport
+  - adapters.GraphitiProjection
+  - services.OutboxWorker
+  - verified deletion / retirement lifecycle
+  impact: Silent projection loss (retrieval misses records while canonical state says projected). Later retire/erase
+    fail closed in _resolve_episode_uuids ('not found'), retry to DEAD; verified deletion stays DELETION_PENDING
+    indefinitely because the phantom link is never removed.
+  reproduction: NOT_EXECUTED (requires Graphiti MCP fixture emitting isError:true; deterministic from source)
+  existing_validation_gap: tests/integration/test_graphiti_http_projection_loop.py fakes a Graphiti server; no fixture
+    returns isError:true. No unit test on call_tool error-envelope handling.
+  recommended_correction: 'In call_tool: if result.get(''isError'') is truthy, raise ProjectionError with the content
+    text and record a circuit failure. Add defensive check in _settle_write for non-dict/str results that look like
+    errors only as secondary guard.'
+  regression_requirements:
+  - 'Unit: call_tool raises ProjectionError on isError:true (text and JSON content).'
+  - 'Integration: fake Graphiti returning isError on add_memory => outbox event RETRY, no projection_links row,
+    no DELIVERED settle.'
+  - 'Integration: retire/erase on such a record is a no-op/completes rather than dead-lettering.'
+- id: F-002
+  severity: MEDIUM
+  status: CONFIRMED
+  title: Circuit breaker wedges permanently in HALF_OPEN when the probe's outcome is never reported
+  source_location:
+  - 'src/l9_graphite_memory/circuit_breaker.py :: CircuitBreaker.can_execute (HALF_OPEN branch returns False; only
+    record_success/record_failure exit the state)'
+  - 'src/l9_graphite_memory/transport.py :: HttpMcpTransport._rpc (can_execute() then _ensure_session(); _ensure_session
+    raises ProjectionError without record_failure)'
+  - 'src/l9_graphite_memory/transport.py :: HttpMcpTransport._rpc_once (session-retry path calls _ensure_session
+    inside except; failure there also bypasses record_failure)'
+  violated_contract: UNKNOWN (no ADR located for breaker semantics); violates the module's own stated purpose of
+    recovering after recovery_timeout
+  preconditions: Circuit OPEN; recovery_timeout elapses; next _rpc call's probe fails inside _ensure_session (initialize
+    or notifications/initialized HTTP/URL error).
+  expected_behavior: Failed probe re-opens the circuit with a fresh last_failure so a later probe is admitted after
+    recovery_timeout.
+  actual_behavior: State stays HALF_OPEN; every later can_execute() returns False forever; every projection write/search/health
+    raises 'Graphiti MCP circuit is open' until process restart.
+  evidence:
+  - 'Reproduced in sandbox with verbatim breaker logic and a fake clock: probe_allowed=True, state=half_open, subsequent
+    can_execute=[False, False, False] even 10^7 s later.'
+  - 'Source trace: _ensure_session''s except branches raise ProjectionError and never touch self.circuit.'
+  root_cause: HALF_OPEN admits exactly one probe and depends on the caller to report an outcome; the transport has
+    code paths that raise before reporting.
+  affected_components:
+  - circuit_breaker.CircuitBreaker
+  - transport.HttpMcpTransport
+  - OutboxWorker (all projection events retry/dead)
+  - GraphitiProjection.health
+  impact: Permanent projection outage after one unlucky probe; outbox backlog grows and events dead-letter; /readyz
+    reports projection unhealthy with no self-healing.
+  reproduction: VERIFIED (breaker state machine reproduced deterministically; transport path confirmed by source
+    trace)
+  existing_validation_gap: 'No test references HALF_OPEN/half_open under tests/ (search_code: 0 hits).'
+  recommended_correction: 'Either (a) in CircuitBreaker, make HALF_OPEN re-arm: if HALF_OPEN and clock - last_failure
+    >= recovery_timeout, allow another probe; or (b) wrap _ensure_session failures in _rpc/_rpc_once with circuit.record_failure().
+    Prefer (a)+(b).'
+  regression_requirements:
+  - 'Unit: OPEN -> HALF_OPEN -> probe raises without outcome -> after recovery_timeout can_execute() is True again.'
+  - 'Unit: _rpc with failing initialize records a failure (circuit.failure_count increments).'
+- id: F-003
+  severity: MEDIUM
+  status: CONFIRMED
+  title: Missing required tool arguments are reported as JSON-RPC -32601 'method not found' and misclassified by
+    the remote client as a contract mismatch
+  source_location:
+  - 'src/l9_graphite_memory/server.py :: MCPServer.handle (except KeyError => error(-32601))'
+  - 'src/l9_graphite_memory/mcp_tools.py :: MCPToolApplication._write_request (args[''namespace''], args[''content'']);
+    _consent_from_payload (value[''subject_id''], value[''purpose''], value[''evidence_description''])'
+  - 'src/l9_graphite_memory/remote_client.py (per tests/unit/test_remote_client.py: -32601 => RemoteFailureKind.CONTRACT_MISMATCH
+    / RemoteContractMismatch)'
+  violated_contract: JSON-RPC 2.0 error semantics (-32602 Invalid params vs -32601 Method not found); remote client
+    contract classification
+  preconditions: tools/call for memory.ingest / memory.write_agent / memory.write_governed / memory.close etc. with
+    a required field absent (e.g. no 'namespace'), or consent object missing 'purpose'.
+  expected_behavior: -32602 invalid params naming the missing field.
+  actual_behavior: -32601 with message "'namespace'". remote_client maps -32601 to CONTRACT_MISMATCH, so a caller
+    bug is surfaced as 'server lacks this tool'.
+  evidence:
+  - 'Source: handle() uses KeyError exclusively to signal unknown tool (MCPToolApplication.call raises KeyError(''unknown
+    tool'')), but handler bodies also raise KeyError on dict lookups.'
+  - tests/integration/test_remote_mcp_http.py pins -32601 only for unknown tool; tests/unit/test_remote_client.py
+    pins -32601 => CONTRACT_MISMATCH.
+  root_cause: 'Exception-type overloading: KeyError is used both as the ''unknown tool'' sentinel and arises naturally
+    from argument access.'
+  affected_components:
+  - server.MCPServer
+  - mcp_tools.MCPToolApplication
+  - remote_client (RemoteFailureKind classification)
+  impact: Wrong error code to every MCP client; remote_client consumers may trigger contract-mismatch handling (e.g.
+    refuse to bind) on a mere missing argument.
+  reproduction: NOT_EXECUTED (deterministic from source)
+  existing_validation_gap: No test posts a tools/call with a missing required argument and asserts the error code.
+  recommended_correction: 'Raise a dedicated UnknownTool exception from MCPToolApplication.call and map only that
+    to -32601; validate required arguments explicitly (or catch KeyError inside call() and re-raise ValueError(''missing
+    argument: ...'')).'
+  regression_requirements:
+  - 'Integration: tools/call memory.ingest without namespace => -32602.'
+  - 'Unit: remote_client classifies that response as INVALID_REQUEST, not CONTRACT_MISMATCH.'
+- id: F-004
+  severity: MEDIUM
+  status: CONFIRMED
+  title: HTTP transport runs synchronous blocking I/O inside async handlers, stalling the event loop
+  source_location:
+  - 'src/l9_graphite_memory/server.py :: create_http_app.mcp_endpoint (async def; calls server.handle(...) synchronously)'
+  - 'src/l9_graphite_memory/server.py :: healthz (async; runtime.service.health() sync)'
+  - 'src/l9_graphite_memory/runtime.py :: MemoryRuntime.readiness (async; service.health(), graph_service.capability_report(refresh=True)
+    sync)'
+  - src/l9_graphite_memory/adapters/sqlite_store.py (sqlite3, threading.RLock, busy_timeout 30000 ms)
+  - src/l9_graphite_memory/transport.py (urllib.request.urlopen, timeout_seconds=30)
+  violated_contract: UNKNOWN (no explicit concurrency contract located); operational readiness contract ADR-097
+    is undermined
+  preconditions: HTTP mode under uvicorn with concurrent requests; any request whose path performs provider I/O
+    (projection search via retrieval planner, graph capability report) or waits on the SQLite write lock.
+  expected_behavior: Independent requests and /healthz,/readyz progress while one request waits on I/O.
+  actual_behavior: Coroutine blocks the loop for the duration of the sync call (up to 30 s per Graphiti call; up
+    to 30 s SQLite busy wait); all other requests, including liveness/readiness probes, are frozen.
+  evidence:
+  - 'Source-level proof: Python coroutines cannot yield during a synchronous call; the handlers contain no run_in_executor/threadpool
+    offload.'
+  - FastAPI only offloads *sync* def endpoints to a threadpool; these endpoints are declared async.
+  root_cause: Endpoints declared async while the entire service stack is synchronous.
+  affected_components:
+  - server.create_http_app
+  - runtime.MemoryRuntime.readiness
+  - all HTTP clients
+  - orchestrator liveness probes
+  impact: Head-of-line blocking; false liveness failures and restarts under load or provider latency; readiness
+    probe itself can be the blocker.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: tests/integration/test_remote_mcp_http.py uses TestClient sequentially; no concurrency
+    test.
+  recommended_correction: Declare mcp_endpoint/healthz/readyz as plain def (FastAPI threadpool) or wrap server.handle
+    / health calls in anyio.to_thread.run_sync; keep body streaming async.
+  regression_requirements:
+  - 'Integration: with a projection transport that sleeps 2 s, /healthz answers in <500 ms during an in-flight tools/call.'
+- id: F-005
+  severity: LOW
+  status: CONFIRMED
+  title: SQLite _transaction masks the real failure when BEGIN IMMEDIATE itself fails
+  source_location:
+  - 'src/l9_graphite_memory/adapters/sqlite_store.py :: SQLiteRecordStore._transaction (except Exception: connection.execute(''ROLLBACK'');
+    raise)'
+  violated_contract: UNKNOWN
+  preconditions: BEGIN IMMEDIATE raises (e.g. 'database is locked' after the 30 s busy timeout, or connection error).
+  expected_behavior: 'Original sqlite3.OperationalError propagates (wrapped as StoreError ''atomic memory write
+    failed: database is locked'').'
+  actual_behavior: ROLLBACK raises 'cannot rollback - no transaction is active', which becomes the surfaced StoreError
+    message; the lock-contention cause is hidden in __context__.
+  evidence:
+  - 'Reproduced in sandbox: original=OperationalError(''database is locked''); surfaced=OperationalError(''cannot
+    rollback - no transaction is active'').'
+  root_cause: Rollback is attempted regardless of whether a transaction was opened.
+  affected_components:
+  - SQLiteRecordStore (all canonical mutations)
+  impact: Misleading diagnostics for write-lock contention; operators chase a phantom transaction-state bug.
+  reproduction: VERIFIED
+  existing_validation_gap: No test for BEGIN failure path.
+  recommended_correction: Only ROLLBACK if connection.in_transaction; guard ROLLBACK itself with try/except that
+    preserves the original exception.
+  regression_requirements:
+  - 'Unit: concurrent lock holder + short timeout => StoreError message contains ''database is locked''.'
+- id: F-006
+  severity: LOW
+  status: CONFIRMED
+  title: Stdio agent door omits the assertion-lifetime ceiling the HTTP door enforces
+  source_location:
+  - 'src/l9_graphite_memory/server.py :: _agent_door_principal (verify_assertion only)'
+  - 'src/l9_graphite_memory/authz/remote_agent.py :: SignedAgentAuthenticator.authenticate (expires_at - now > max_ttl
+    + CLOCK_SKEW => refuse)'
+  - 'src/l9_graphite_memory/authz/signed_assertion.py :: _EXP_RE = \d{1,12} (exp up to year ~33658); nonce is never
+    persisted or checked for reuse'
+  violated_contract: 'ADR-098 as stated in remote_agent.py docstring: ''The HTTP door verifies the same evidence
+    the stdio agent door verifies'''
+  preconditions: Agent assertion minted with arbitrarily long TTL presented via L9_MEMORY_AGENT_ASSERTION.
+  expected_behavior: Both doors refuse an assertion whose lifetime exceeds http_agent_assertion_max_ttl_seconds
+    (or an equivalent stdio ceiling).
+  actual_behavior: Stdio accepts an effectively non-expiring token; the only check is time.time() > exp.
+  evidence:
+  - Source comparison of the two door implementations at eb0bcbed1e1652529675af52584185d2f09dd737
+  root_cause: Ceiling implemented only in SignedAgentAuthenticator; shared verify_assertion has no max-lifetime
+    parameter.
+  affected_components:
+  - server._agent_door_principal
+  - authz.signed_assertion.verify_assertion
+  impact: A leaked stdio assertion is a permanent credential for that agent's grant; inconsistent trust model across
+    transports.
+  reproduction: NOT_EXECUTED (deterministic from source)
+  existing_validation_gap: UNKNOWN (tests for stdio door TTL ceiling not located).
+  recommended_correction: Add max_ttl_seconds to verify_assertion (or a shared helper) and apply in both doors.
+  regression_requirements:
+  - 'Unit: stdio door refuses exp beyond ceiling + skew.'
+- id: F-007
+  severity: LOW
+  status: CONFIRMED
+  title: SQLiteRecordStore.close() closes only the calling thread's connection and flips the shared initialized
+    flag
+  source_location:
+  - 'src/l9_graphite_memory/adapters/sqlite_store.py :: close (self._local.connection only; self._initialized=False)'
+  - 'src/l9_graphite_memory/adapters/sqlite_store.py :: health (healthy=self._initialized)'
+  violated_contract: UNKNOWN
+  preconditions: Multi-threaded use (FastAPI threadpool, worker threads) then close() from one thread.
+  expected_behavior: All connections released; health reflects actual state.
+  actual_behavior: Other threads' sqlite3 connections leak (and keep WAL readers open); health() reports unhealthy
+    while connections are live, or stays 'healthy' per-object semantics only.
+  evidence:
+  - Source inspection
+  root_cause: Thread-local connection registry without a tracked set of connections.
+  affected_components:
+  - SQLiteRecordStore
+  impact: Resource leak at shutdown; WAL checkpoint starvation in long-lived processes that recycle stores.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: UNKNOWN
+  recommended_correction: Track connections in a lock-protected set; close all in close().
+  regression_requirements:
+  - 'Unit: connections opened from two threads are both closed after close().'
+- id: F-008
+  severity: LOW
+  status: CONFIRMED
+  title: Retirement drops the live link and writes the retirement receipt in two separate store operations
+  source_location:
+  - 'src/l9_graphite_memory/services/outbox_worker.py :: run_once retire branch (_drop_live_copy(...) then store.save_projection_retirement(...))'
+  violated_contract: ADR-076 (retirement distinction must be recorded in canonical state)
+  preconditions: Crash or StoreError between the two calls.
+  expected_behavior: Link removal and retirement receipt commit together, or the retry performs both.
+  actual_behavior: On retry link is None => 'projection_retire_noop' and the event is DELIVERED; no ProjectionRetirementReceipt
+    is ever written.
+  evidence:
+  - Source inspection of the retry branch semantics
+  root_cause: No store primitive combining link mutation and retirement receipt in one transaction.
+  affected_components:
+  - OutboxWorker
+  - RecordStore ports
+  impact: Loss of ADR-076 evidence for the affected record; no data loss.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: No fault-injection test between the two calls.
+  recommended_correction: Add store.retire_projection_link(link, receipt) performing both in one transaction, or
+    write the receipt first and make it idempotent.
+  regression_requirements:
+  - 'Unit with fault injection after _drop_live_copy: retry still records the receipt.'
+unverified_concerns:
+- id: U-001
+  severity: UNVERIFIED
+  title: Lease expiry mid-provider-call can leave an orphaned provider episode if the installed link's locator is
+    a provider uuid
+  source_location:
+  - services/outbox_worker.py run_once project branch; graphiti_projection._extract_locator prefers result uuid/id
+    keys over the name locator
+  concern: Two workers project the same record; CAS in _install_link keeps one link. If that link's locator is a
+    provider uuid, the other copy is unreachable by retire/erase. If it is a name locator, _resolve_episode_uuids
+    deletes all same-named episodes, which mitigates. Depends on claim_outbox/update_outbox lease SQL (truncated,
+    not fully inspected) and on Graphiti's add_memory response shape.
+  verification_needed: Read claim_outbox/update_outbox in sqlite_store.py & postgres_store.py; test with lease_seconds
+    shorter than provider latency.
+- id: U-002
+  severity: UNVERIFIED
+  title: write() forwards a 'metadata' argument the official Graphiti add_memory tool does not declare
+  source_location:
+  - adapters/graphiti_projection.py project/project_rendered -> transport.write(**kwargs) -> arguments['metadata']
+  concern: If the server ignores unknown args the record_id metadata silently never lands (hits then depend on episode
+    naming/regex); if it rejects via isError, F-001 converts the rejection into a phantom success.
+  verification_needed: Check the pinned Graphiti MCP server's add_memory signature and FastMCP extra-argument policy;
+    add a contract test.
+- id: U-003
+  severity: UNVERIFIED
+  title: Admin restore SUPERSEDED/ARCHIVED -> ACTIVE leaves temporal.superseded_at populated
+  source_location:
+  - adapters/sqlite_store.py _insert_status_event (superseded_at preserved unless new_state is SUPERSEDED)
+  concern: An ACTIVE record carrying superseded_at may be filtered or rendered as superseded by retrieval/projection
+    code not inspected.
+  verification_needed: Inspect retrieval planner and render templates for superseded_at usage; decide whether restore
+    must clear it.
+- id: U-004
+  severity: UNVERIFIED
+  title: Two erase events for different targets may both observe an empty remaining-links set and call complete_deletion
+    twice
+  source_location:
+  - services/outbox_worker.py erase branch; store.complete_deletion (not inspected)
+  concern: Idempotency of complete_deletion unknown; a raise would retry an already-complete erase to DEAD.
+  verification_needed: Inspect complete_deletion in both stores; concurrency test with two workers.
+- id: U-005
+  severity: UNVERIFIED
+  title: local_is_admin is honored on the auth-disabled HTTP Tier-3 principal while signed-agent admin is refused
+  source_location:
+  - runtime.local_principal_for_resolution (is_admin=settings.local_is_admin); server._http_local_principal refuses
+    admin only for the agent-door principal
+  concern: create_http_app comments say auth-disabled HTTP is 'never the human door', yet an operator setting makes
+    every loopback process an administrator. Whether ADR-098 intends to exclude this is UNKNOWN.
+  verification_needed: Read ADR-098 and ADR-006; decide policy.
+- id: U-006
+  severity: UNVERIFIED
+  title: Any JSON-RPC error (including tool-level invalid params) counts as a circuit failure
+  source_location:
+  - transport.HttpMcpTransport._rpc ('error' in decoded => record_failure)
+  concern: Five malformed calls can open the circuit for healthy infrastructure; combined with F-002 this becomes
+    a permanent outage.
+  verification_needed: Confirm intended breaker semantics (ADR?).
+- id: U-007
+  severity: UNVERIFIED
+  title: _run_sync schedules teardown with loop.create_task without retaining the task
+  source_location:
+  - runtime._run_sync
+  concern: asyncio holds tasks weakly; teardown may be garbage-collected before completion when close() is called
+    inside a running loop.
+  verification_needed: Runtime test under a running loop.

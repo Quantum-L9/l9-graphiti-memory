@@ -1,0 +1,37 @@
+{
+  "original_zip_sha256": "7cb2736e64d3d5ed892f9f34346b9b626653253cad634e61afcdf46089a500c2",
+  "predecessor_files": [
+    {
+      "path": "C1_RECON_EVIDENCE.md",
+      "sha256": "b7900bf72825287f38f0db190a8670c29c388e5d57b6ec39c90022bd0a51b288",
+      "preserved_unchanged": true,
+      "superseded_reason": null
+    },
+    {
+      "path": "CAMPAIGN.md",
+      "sha256": "f79452de439a632752ed141af4c6dbf6f170e36400ef86469420eccf126ddaa4",
+      "preserved_unchanged": false,
+      "superseded_reason": "No compatibility architecture target"
+    },
+    {
+      "path": "MANIFEST.sha256",
+      "sha256": "234cc1a97a36c51ad29432a33cf78f35d923f1a8be2f48361484a6655f91dc25",
+      "preserved_unchanged": false,
+      "superseded_reason": "Regenerated current manifest"
+    },
+    {
+      "path": "OPERATOR_DECISION_2026-10-26.md",
+      "sha256": "8d16170b3e01d413a3e12f5fdb2ddb2cb88a5eb3b46f117c9fcf37e552226357",
+      "preserved_unchanged": true,
+      "superseded_reason": null
+    },
+    {
+      "path": "campaign_graph.yaml",
+      "sha256": "a417ff3d1c3b9fce0c689a5bb10e3e14cc5bc9492b9c0cdd87c8d368b243c3ce",
+      "preserved_unchanged": false,
+      "superseded_reason": "No compatibility architecture target"
+    }
+  ],
+  "operator_history_preserved_as_original_zip": true,
+  "mutation_scope": "only generated working planning artifacts; no GitHub or C1 operations"
+}

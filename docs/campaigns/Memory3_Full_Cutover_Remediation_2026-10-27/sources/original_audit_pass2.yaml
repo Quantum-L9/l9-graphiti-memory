@@ -1,0 +1,640 @@
+audit: Deep Source Code Correctness Audit (converged pass 2)
+repository: https://github.com/Quantum-L9/l9-graphiti-memory
+revision: eb0bcbed1e1652529675af52584185d2f09dd737
+authority:
+  governing_system: AGENTS.md v2.3.0 + docs/adr (ADR texts NOT read; ADR intent taken only from verbatim docstrings)
+  mutation_authority: UNKNOWN
+  publication_authority: UNKNOWN
+coverage_summary:
+  FULLY_READ: 36
+  PARTIALLY_READ: 8
+  NOT_READ: 100
+coverage_ledger: source_coverage.yaml
+confirmed_findings:
+- id: F-001
+  severity: HIGH
+  status: CONFIRMED
+  title: Graphiti tool failures flagged with MCP isError are recorded as successful projections with a durable link
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/transport.py :: HttpMcpTransport.call_tool (content[0].text parsed; isError never read)'
+  - 'src/l9_graphite_memory/transport.py :: write (str result wrapped as {''result'': text})'
+  - 'src/l9_graphite_memory/adapters/graphiti_projection.py :: _settle_write (checks only ''error'' key; falls back to episode_name_locator)'
+  - 'src/l9_graphite_memory/services/outbox_worker.py :: run_once project branch'
+  violated_contract: AGENTS.md invariant 3 / ADR-074 / MCP tools/call result contract (isError)
+  preconditions: 'Graphiti answers tools/call with {content:[{type:''text'',text:''Error: ...''}], isError:true}.'
+  expected_behavior: call_tool raises ProjectionError; event RETRY/DEAD; no link.
+  actual_behavior: 'Error text returned as str -> {''result'': ...} -> no ''error'' key -> name locator synthesized -> link
+    installed, event DELIVERED.'
+  evidence:
+  - Source trace at eb0bcbed1e1652529675af52584185d2f09dd737
+  - clients/typescript/src/index.ts throws on result.isError; Python transport does not
+  - 'search_code ''isError'' under src: no handling'
+  root_cause: call_tool unwraps content without consulting the result envelope's isError flag.
+  affected_components:
+  - transport.HttpMcpTransport
+  - GraphitiProjection
+  - OutboxWorker
+  - deletion/retirement lifecycle
+  impact: Silent projection loss; later erase fails closed and dead-letters; verified deletion stays DELETION_PENDING indefinitely.
+  reproduction: NOT_EXECUTED (needs fixture emitting isError)
+  existing_validation_gap: test_graphiti_http_projection_loop.py fake never returns isError.
+  recommended_correction: Raise ProjectionError when result.get('isError'); record circuit failure.
+  regression_requirements:
+  - 'Unit: isError => ProjectionError'
+  - 'Integration: isError on add_memory => RETRY, no projection_links row'
+  reconciliation: 'Revalidated pass 2: remote_client.py also lacks isError handling; Zep path unaffected. HIGH retained.'
+- id: F-002
+  severity: MEDIUM
+  status: CONFIRMED
+  title: Circuit breaker wedges permanently in HALF_OPEN when the probe's outcome is never reported
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/circuit_breaker.py :: can_execute HALF_OPEN branch returns False'
+  - 'src/l9_graphite_memory/transport.py :: _rpc (_ensure_session after probe admitted; raises without record_failure)'
+  - 'src/l9_graphite_memory/transport.py :: _rpc_once session-retry path'
+  violated_contract: UNKNOWN; violates module's own recovery intent
+  preconditions: OPEN -> recovery_timeout elapses -> probe fails inside _ensure_session.
+  expected_behavior: Failed probe re-opens with fresh last_failure.
+  actual_behavior: State stays HALF_OPEN; can_execute() False forever until restart.
+  evidence:
+  - 'Reproduced: probe_allowed=True, state=half_open, subsequent=[False,False,False] after 1e7 s'
+  root_cause: HALF_OPEN admits one probe and relies on caller reporting; transport has non-reporting raise paths.
+  affected_components:
+  - CircuitBreaker
+  - HttpMcpTransport
+  - OutboxWorker
+  - GraphitiProjection.health
+  impact: Permanent projection outage after one failed probe.
+  reproduction: VERIFIED
+  existing_validation_gap: No test mentions half_open (search_code 0 hits).
+  recommended_correction: Re-arm HALF_OPEN after recovery_timeout and/or record_failure around _ensure_session.
+  regression_requirements:
+  - 'Unit: unreported probe -> later probe admitted'
+  - 'Unit: failing initialize increments failure_count'
+  reconciliation: 'Revalidated: U-006 (now F-019) compounds this.'
+- id: F-003
+  severity: MEDIUM
+  status: CONFIRMED
+  title: Missing required tool arguments are reported as -32601 'method not found' and misclassified by remote_client as CONTRACT_MISMATCH
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/server.py :: MCPServer.handle except KeyError => -32601'
+  - 'src/l9_graphite_memory/mcp_tools.py :: _write_request args[''namespace''], _consent_from_payload value[''purpose'']'
+  - 'src/l9_graphite_memory/remote_client.py :: _rpc_failure (-32601 => CONTRACT_MISMATCH)'
+  violated_contract: JSON-RPC 2.0 error semantics; remote client classification
+  preconditions: tools/call with a required field absent.
+  expected_behavior: -32602 naming the field.
+  actual_behavior: -32601 with message "'namespace'"; remote client reports 'remote memory does not serve tools/call'.
+  evidence:
+  - Source; tests pin -32601 only for unknown tool
+  root_cause: KeyError overloaded as unknown-tool sentinel.
+  affected_components:
+  - MCPServer
+  - MCPToolApplication
+  - remote_client
+  impact: Wrong error code; contract-mismatch handling triggered by caller typo.
+  reproduction: NOT_EXECUTED (deterministic)
+  existing_validation_gap: No test posts a tools/call with a missing argument.
+  recommended_correction: Dedicated UnknownTool exception; map KeyError inside call() to ValueError.
+  regression_requirements:
+  - 'Integration: missing namespace => -32602'
+  - 'Unit: remote_client => INVALID_REQUEST'
+  reconciliation: Revalidated against remote_client._rpc_failure source.
+- id: F-004
+  severity: MEDIUM
+  status: CONFIRMED
+  title: HTTP transport runs synchronous blocking I/O inside async handlers
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/server.py :: mcp_endpoint/healthz/readyz (async def; sync server.handle, service.health)'
+  - 'src/l9_graphite_memory/runtime.py :: readiness (sync health, capability_report)'
+  - src/l9_graphite_memory/adapters/sqlite_store.py (sqlite3, 30 s busy)
+  - src/l9_graphite_memory/transport.py (urllib, 30 s)
+  violated_contract: UNKNOWN; undermines ADR-097 readiness
+  preconditions: Concurrent HTTP requests; any slow provider/store wait.
+  expected_behavior: Other requests and probes progress.
+  actual_behavior: Event loop blocked for the duration of the sync call.
+  evidence:
+  - 'Source-level proof: no executor offload; endpoints declared async'
+  root_cause: Async edge over fully synchronous stack.
+  affected_components:
+  - create_http_app
+  - MemoryRuntime.readiness
+  impact: Head-of-line blocking; false liveness failures.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: Sequential TestClient only.
+  recommended_correction: Plain def endpoints or anyio.to_thread.run_sync around handle()/health().
+  regression_requirements:
+  - 'Integration: /healthz <500 ms during a 2 s tools/call'
+  reconciliation: 'Revalidated: graph service offloads to a pool but execute() still blocks the caller; unchanged.'
+- id: F-005
+  severity: LOW
+  status: CONFIRMED
+  title: SQLite _transaction masks the real failure when BEGIN IMMEDIATE itself fails
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/adapters/sqlite_store.py :: _transaction'
+  violated_contract: UNKNOWN
+  preconditions: BEGIN IMMEDIATE raises (database is locked).
+  expected_behavior: Original error surfaces.
+  actual_behavior: ROLLBACK raises 'cannot rollback - no transaction is active' and replaces it.
+  evidence:
+  - Reproduced in sandbox
+  root_cause: Unconditional ROLLBACK.
+  affected_components:
+  - SQLiteRecordStore
+  impact: Misleading diagnostics.
+  reproduction: VERIFIED
+  existing_validation_gap: None.
+  recommended_correction: Only ROLLBACK if connection.in_transaction; guard it.
+  regression_requirements:
+  - 'Unit: message contains ''database is locked'''
+  reconciliation: Unchanged (reproduced).
+- id: F-006
+  severity: LOW
+  status: CONFIRMED
+  title: Stdio agent door omits the assertion-lifetime ceiling the HTTP door enforces
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/server.py :: _agent_door_principal'
+  - 'src/l9_graphite_memory/authz/remote_agent.py :: authenticate (max_ttl + skew)'
+  - 'src/l9_graphite_memory/authz/signed_assertion.py :: _EXP_RE \d{1,12}; nonce never checked for reuse'
+  violated_contract: 'ADR-098 docstring: both doors verify the same evidence; config/models.py: TTL is the replay bound'
+  preconditions: Long-TTL assertion via L9_MEMORY_AGENT_ASSERTION.
+  expected_behavior: Both doors refuse lifetimes beyond ceiling.
+  actual_behavior: Stdio accepts an effectively non-expiring token.
+  evidence:
+  - Source comparison
+  root_cause: Ceiling implemented only in SignedAgentAuthenticator.
+  affected_components:
+  - server._agent_door_principal
+  - verify_assertion
+  impact: Leaked stdio assertion is a permanent credential.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: UNKNOWN
+  recommended_correction: Shared max-lifetime check in verify_assertion.
+  regression_requirements:
+  - 'Unit: stdio refuses exp beyond ceiling'
+  reconciliation: Revalidated with config/models.py comment.
+- id: F-007
+  severity: LOW
+  status: CONFIRMED
+  title: SQLiteRecordStore.close() closes only the calling thread's connection and flips the shared initialized flag
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/adapters/sqlite_store.py :: close, health'
+  violated_contract: UNKNOWN
+  preconditions: Multi-threaded use then close().
+  expected_behavior: All connections released.
+  actual_behavior: Other threads' connections leak; health reports per-flag.
+  evidence:
+  - Source
+  root_cause: Thread-local registry without tracking.
+  affected_components:
+  - SQLiteRecordStore
+  impact: Resource leak; WAL checkpoint starvation.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: UNKNOWN
+  recommended_correction: Track and close all connections.
+  regression_requirements:
+  - 'Unit: two-thread connections both closed'
+  reconciliation: Unchanged.
+- id: F-008
+  severity: LOW
+  status: CONFIRMED
+  title: Retirement drops the live link and writes the ADR-076 receipt in two separate store operations
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/services/outbox_worker.py :: run_once retire branch'
+  violated_contract: ADR-076
+  preconditions: Crash between _drop_live_copy and save_projection_retirement.
+  expected_behavior: Both commit or retry performs both.
+  actual_behavior: Retry sees link None => noop => DELIVERED; receipt never written.
+  evidence:
+  - Source
+  root_cause: No combined store primitive.
+  affected_components:
+  - OutboxWorker
+  - RecordStore
+  impact: Loss of retirement evidence.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: No fault injection.
+  recommended_correction: Combined store.retire_projection_link(link, receipt).
+  regression_requirements:
+  - Fault-injection unit test
+  reconciliation: Unchanged.
+- id: F-009
+  severity: MEDIUM
+  status: CONFIRMED
+  title: Canonical lifecycle mutation complete_deletion (and link/retirement writes) bypass the ServiceWriteCapability gate
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/ports/record_store.py :: complete_deletion, update_outbox, save_projection_link, save_projection_link_if_active,
+    delete_projection_link, save_projection_retirement, save_maintenance_run (no capability parameter)'
+  - 'src/l9_graphite_memory/services/outbox_worker.py :: run_once erase branch calls store.complete_deletion(...) directly;
+    maintenance/service.py :: store.save_maintenance_run'
+  violated_contract: 'AGENTS.md invariant 6: ''Canonical store mutations require the MemoryService-issued write capability
+    at run time''; ports/service_capability.py docstring lists verified deletion among gated mutations'
+  preconditions: Any in-process caller holding a RecordStore reference.
+  expected_behavior: DELETION_PENDING->DELETED transition and its status event are only reachable through a capability-bearing
+    call.
+  actual_behavior: complete_deletion appends a DELETED status event and flips record state with no capability; OutboxWorker
+    performs it outside MemoryService.
+  evidence:
+  - Port signatures at eb0bcbed1e1652529675af52584185d2f09dd737
+  - outbox_worker.run_once source
+  root_cause: Capability gate was applied to commit_* methods only; completion of deletion was treated as worker plumbing.
+  affected_components:
+  - ports.RecordStore
+  - OutboxWorker
+  - all three store adapters
+  impact: Invariant 6 is false as stated; bypass scanner cannot catch direct complete_deletion calls; defense-in-depth gap.
+  reproduction: NOT_EXECUTED (contract/source comparison)
+  existing_validation_gap: 'None: no test asserts capability on complete_deletion.'
+  recommended_correction: Either add the capability parameter to complete_deletion (worker obtains it via a MemoryService
+    method) or amend invariant 6/ADR-036 to enumerate worker-owned mutations explicitly.
+  regression_requirements:
+  - 'Unit: complete_deletion without capability raises PermissionError (if option 1).'
+  - 'Docs: invariant text matches implementation (if option 2).'
+- id: F-010
+  severity: MEDIUM
+  status: CONFIRMED
+  title: PII regexes irreversibly redact non-PII numerics (Unix epochs, 9-digit identifiers); only redacted content is persisted
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/admission/normalization.py :: _PII_PATTERNS phone/ssn'
+  - 'src/l9_graphite_memory/services/memory_service.py :: _admit (content=normalization.redacted_content)'
+  violated_contract: UNKNOWN (no ADR located); contradicts 'content-immutable canonical record' intent — original content
+    is never stored
+  preconditions: Content containing a 10-digit number (e.g. epoch 1761573600) or 9-digit number.
+  expected_behavior: Only genuine phone/SSN values redacted; or original retained alongside.
+  actual_behavior: '''deploy finished at 1761573600'' -> ''deploy finished at [PHONE_REDACTED]''; ''Jira ticket 123456789''
+    -> ''[SSN_REDACTED]''. Record carries pii_types=[''phone''] and the normalized digest collides across different epochs.'
+  evidence:
+  - Reproduced in sandbox with the verbatim patterns.
+  root_cause: Over-broad regexes with no context check; redaction applied before persistence with no original copy.
+  affected_components:
+  - admission.normalization
+  - MemoryService._admit
+  - quarantine review payload (pii_redacted)
+  impact: Silent canonical data loss for operational memories (timestamps, ticket ids); dedupe digest collisions.
+  reproduction: VERIFIED
+  existing_validation_gap: No negative tests for false positives.
+  recommended_correction: Tighten patterns (require separators/plus for phone; reject pure 10-digit integers), or store original_content
+    encrypted/sealed; at minimum warn rather than mutate for low-confidence matches.
+  regression_requirements:
+  - 'Unit: epoch and 9-digit ids are not redacted; real phone/SSN still are.'
+- id: F-011
+  severity: LOW
+  status: CONFIRMED
+  title: memory_guard read-only shell classifier accepts mutating commands
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/memory_guard.py :: _READ_ONLY_SHELL'
+  violated_contract: 'Module intent: allow only read-only shell commands without hydration evidence'
+  preconditions: Guard enabled; command uses $(...), newline, 'git log --output=', or 'find -fprint'.
+  expected_behavior: Classified as mutating -> deny without evidence.
+  actual_behavior: '''ls $(rm -rf ~/project)'', ''ls\nrm -rf ~/project'', ''git log --output=/tmp/x'', ''find . -fprint /etc/cron.d/x''
+    all classified read-only.'
+  evidence:
+  - Reproduced in sandbox.
+  root_cause: Character class excludes only ; & | > < ; no exclusion of $ ` newline or write-capable flags.
+  affected_components:
+  - memory_guard hooks
+  impact: Advisory guard can be bypassed by an agent; local-only impact.
+  reproduction: VERIFIED
+  existing_validation_gap: No adversarial tests for the regex.
+  recommended_correction: Exclude $ ` and newlines; blocklist write flags; or default-deny shell without evidence.
+  regression_requirements:
+  - 'Unit: the four counterexamples are denied.'
+- id: F-012
+  severity: LOW
+  status: CONFIRMED
+  title: MCP write path stamps EXPLICIT evidence on every write, making the identity/preference 'requires explicit evidence'
+    rules vacuous
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/mcp_tools.py :: _write_request evidence=(EvidenceRef(kind=EXPLICIT,...),)'
+  - 'src/l9_graphite_memory/admission/engine.py :: explicit-evidence checks'
+  - 'src/l9_graphite_memory/services/generated_data.py :: same pattern'
+  violated_contract: AdmissionPolicy.identity_requires_explicit_evidence / preference_requires_explicit_evidence
+  preconditions: Any MCP write of class identity/preference.
+  expected_behavior: Explicit evidence must be supplied by the caller for sensitive classes.
+  actual_behavior: Server fabricates EXPLICIT evidence 'authenticated caller submitted this memory through MCP'; the policy
+    check can never fail on this path. Consent object is likewise caller-asserted.
+  evidence:
+  - Source comparison.
+  root_cause: Transport-level provenance conflated with evidence kind.
+  affected_components:
+  - mcp_tools
+  - admission.engine
+  impact: Policy controls for sensitive classes are not effective over MCP.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: Tests exercise the engine with hand-built requests, not through mcp_tools.
+  recommended_correction: Use EvidenceKind appropriate to transport provenance (not EXPLICIT) or require caller-supplied evidence
+    for sensitive classes.
+  regression_requirements:
+  - 'Integration: MCP identity write without explicit evidence is REJECTED.'
+- id: F-013
+  severity: LOW
+  status: CONFIRMED
+  title: 'Store parity: in-memory candidate window is limit*10 while SQLite/Postgres use limit*20'
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/adapters/in_memory_store.py :: search_records [: request.limit * 10]'
+  - 'src/l9_graphite_memory/adapters/sqlite_store.py / postgres_store.py :: LIMIT request.limit*20'
+  - src/l9_graphite_memory/retrieval/planner.py docstring 'limit * 20'
+  violated_contract: Store conformance expectation (planner docstring)
+  preconditions: Namespaces with >10*limit recent records.
+  expected_behavior: Identical candidate sets across adapters.
+  actual_behavior: In-memory returns half the window; tests on the in-memory store do not represent SQL behaviour.
+  evidence:
+  - search_code results across three adapters.
+  root_cause: Hard-coded multiplier duplicated.
+  affected_components:
+  - adapters
+  - retrieval.planner
+  impact: Conformance tests can pass while SQL behaviour differs.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: Conformance suite does not pin the multiplier.
+  recommended_correction: Single constant in retrieval shared by adapters.
+  regression_requirements:
+  - Conformance test pins candidate window.
+- id: F-014
+  severity: MEDIUM
+  status: CONFIRMED
+  title: Zep-backed active projection target reports unhealthy until the first successful call, so /readyz stays 503 until
+    traffic arrives
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/zep_transport.py :: health (healthy only if _last_connectivity_ok is True)'
+  - 'src/l9_graphite_memory/projections/runtime.py :: health (active target unhealthy => healthy=False)'
+  - 'src/l9_graphite_memory/runtime.py :: readiness (projection selected => required; ready=selected and healthy)'
+  - 'src/l9_graphite_memory/adapters/factory.py :: zep wiring'
+  violated_contract: ADR-097 readiness semantics as implemented in runtime.readiness
+  preconditions: projection_backend=zep (or manifest zep target in ACTIVE mode).
+  expected_behavior: Readiness reflects a probe, not prior traffic.
+  actual_behavior: Server process performs no Zep writes (outbox worker does); until a search succeeds, readiness=false. If
+    readiness gates traffic, it never becomes ready.
+  evidence:
+  - Source composition across four files.
+  root_cause: Zep health is a cached last-outcome flag rather than a probe.
+  affected_components:
+  - zep_transport
+  - ProjectionRuntime.health
+  - MemoryRuntime.readiness
+  impact: Deployment deadlock under readiness-gated routing; false 503s.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: No readiness test with a Zep transport fresh instance.
+  recommended_correction: Implement an actual probe in ZepCloudTransport.health (e.g. graph.search limit 1 on a probe graph,
+    or SDK ping).
+  regression_requirements:
+  - 'Unit: fresh ZepCloudTransport.health() performs a probe and reports healthy on success.'
+- id: F-015
+  severity: LOW
+  status: CONFIRMED
+  title: generated_data_capabilities() hard-codes store_ready/ready=True without probing
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/services/generated_data.py :: generated_data_capabilities'
+  violated_contract: AGENTS.md invariants 8 and 10 (no claims without executable validation / probe receipt)
+  preconditions: Any call to memory.generated_data_capabilities.
+  expected_behavior: Readiness derived from store health.
+  actual_behavior: Constant True regardless of store state.
+  evidence:
+  - Source.
+  root_cause: Static capability stub.
+  affected_components:
+  - GeneratedDataService
+  - mcp_tools._generated_data_capabilities
+  impact: Misleading success response to consumers.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: Test likely asserts the constant.
+  recommended_correction: Derive store_ready from service.health().
+  regression_requirements:
+  - 'Unit: unhealthy store => store_ready False.'
+- id: F-016
+  severity: LOW
+  status: CONFIRMED
+  title: Legacy write-queue drain treats a REJECTED receipt as delivered and removes the pending file; record+unlink is not
+    atomic
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/migration/legacy_write_queue.py :: drain, _record_drain'
+  violated_contract: 'Module docstring: ''Files that cannot be ... delivered are preserved and reported'''
+  preconditions: Queued request now fails admission (REJECTED).
+  expected_behavior: Retained and reported as not delivered.
+  actual_behavior: Counted in delivered, status 'drained', pending file deleted; drained_cleanly True.
+  evidence:
+  - Source.
+  root_cause: Status not inspected after service.write.
+  affected_components:
+  - LegacyWriteQueueDrain
+  impact: Operator report overstates recovery; a rejected queued write is no longer pending.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: UNKNOWN
+  recommended_correction: Treat REJECTED as retained; write drained record before unlink (already) and make replay idempotent.
+  regression_requirements:
+  - 'Unit: rejected receipt => retained.'
+- id: F-017
+  severity: MEDIUM
+  status: CONFIRMED
+  title: Zep write silently truncates the episode body to 10,000 chars while the projection link attests the full content
+    digest
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/zep_transport.py :: write data=body[:10_000]'
+  - 'src/l9_graphite_memory/adapters/graphiti_projection.py :: project_rendered (content_digest of full normalized_text recorded
+    on link)'
+  - 'src/l9_graphite_memory/services/outbox_worker.py :: link_metadata render_content_digest'
+  violated_contract: 'ADR-063/ADR-084 as stated in project_rendered docstring: provider holds exactly what render_contract_digest
+    attests'
+  preconditions: Record content > 10,000 chars (contract allows 64,000) projected to Zep.
+  expected_behavior: Refuse or chunk; never attest a digest of bytes the provider does not hold.
+  actual_behavior: Truncated body delivered; link metadata claims the full digest; legacy JSON payload becomes invalid JSON.
+  evidence:
+  - Source.
+  root_cause: Provider limit handled by silent slicing.
+  affected_components:
+  - zep_transport
+  - GraphitiProjection
+  - OutboxWorker links
+  impact: False integrity attestation; corrupted JSON episodes.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: No test with >10k content on Zep.
+  recommended_correction: Raise ProjectionError above the limit (fail closed) or record truncated=True and the delivered digest.
+  regression_requirements:
+  - 'Unit: >10k body => ProjectionError or truncated digest recorded.'
+- id: F-018
+  severity: MEDIUM
+  status: CONFIRMED
+  title: Reference-aware retention only counts references inside the loaded record window, so referenced expired records can
+    be archived
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/curation/retention.py :: reference_counts (known = passed records only)'
+  - 'src/l9_graphite_memory/maintenance/service.py :: _load (ACTIVE only, limit=max_records, recorded_at<=watermark)'
+  - 'src/l9_graphite_memory/maintenance/planner.py :: _plan_archive (candidates = eligible - consumed)'
+  violated_contract: 'RetentionEngine contract: ''record remains referenced; exclude from active retrieval but preserve linkage''
+    (soft-expire)'
+  preconditions: 'Expired record referenced by a record that is outside the window: newer than watermark, beyond max_records,
+    non-ACTIVE, or in another namespace.'
+  expected_behavior: soft-expire
+  actual_behavior: archive (reference_count=0).
+  evidence:
+  - Source trace across three files.
+  root_cause: Reference graph evaluated over a bounded slice instead of a store query.
+  affected_components:
+  - RetentionEngine
+  - MaintenancePlanner
+  - MaintenanceService
+  - MemoryService.retention (limit 100_000, states unknown)
+  impact: Archival of still-referenced memory; lineage targets leave active retrieval.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: Retention tests use small in-window fixtures.
+  recommended_correction: Add store.count_incoming_references(record_ids) and use it in retention; or load referencing records
+    explicitly.
+  regression_requirements:
+  - 'Integration: record referenced by out-of-window record is soft-expired, not archived.'
+- id: F-019
+  severity: LOW
+  status: CONFIRMED
+  title: Every JSON-RPC error from Graphiti counts as a circuit failure (promoted from U-006)
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/transport.py :: _rpc (''error'' in decoded => record_failure)'
+  violated_contract: UNKNOWN
+  preconditions: Five tool-level errors (e.g. invalid params) within recovery window.
+  expected_behavior: Only transport/availability failures trip the breaker.
+  actual_behavior: Semantic errors open the circuit; combined with F-002 may wedge it.
+  evidence:
+  - Source.
+  root_cause: No error-class discrimination.
+  affected_components:
+  - transport
+  - OutboxWorker
+  impact: Healthy provider marked unavailable.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: UNKNOWN
+  recommended_correction: Record failure only for HTTP/URL/parse errors and JSON-RPC server-error codes (-32000..-32099 excluding
+    tool-level), not -32602.
+  regression_requirements:
+  - 'Unit: -32602 error does not increment failure_count.'
+- id: F-020
+  severity: LOW
+  status: CONFIRMED
+  title: _run_sync schedules teardown with create_task without retaining the task (promoted from U-007)
+  repository_revision: eb0bcbed1e1652529675af52584185d2f09dd737
+  source_location:
+  - 'src/l9_graphite_memory/runtime.py :: _run_sync'
+  violated_contract: UNKNOWN
+  preconditions: close() called inside a running loop.
+  expected_behavior: Teardown completes or is awaited by caller.
+  actual_behavior: Task may be garbage-collected before completion (asyncio keeps weak refs).
+  evidence:
+  - Source; asyncio documented behaviour.
+  root_cause: Fire-and-forget without reference.
+  affected_components:
+  - MemoryRuntime.close
+  - active memory Redis connections
+  impact: Leaked Redis connections at shutdown.
+  reproduction: NOT_EXECUTED
+  existing_validation_gap: UNKNOWN
+  recommended_correction: Retain task in a set with done-callback discard; or require aclose() in async contexts.
+  regression_requirements:
+  - 'Unit under running loop: task completes.'
+unverified_dispositions:
+  U-001:
+    disposition: BLOCKED_WITH_EXACT_MISSING_EVIDENCE
+    detail: 'Needs claim_outbox/update_outbox bodies in sqlite_store.py and postgres_store.py (beyond connector cap) and the
+      Graphiti add_memory response shape. Partial mitigation confirmed: name locators resolve to ALL same-named episodes in
+      _resolve_episode_uuids, so orphans are covered when the locator is name-based.'
+  U-002:
+    disposition: BLOCKED_WITH_EXACT_MISSING_EVIDENCE
+    detail: 'Requires the pinned Graphiti MCP server''s add_memory signature (external). Confirmed in-repo: zep_transport.write
+      pops ''metadata'' explicitly; HttpMcpTransport.write forwards it verbatim.'
+  U-003:
+    disposition: DISPROVEN
+    detail: 'No consumer filters on temporal.superseded_at (search_code over src excluding adapters: only schema/upcasters
+      and contracts). In-memory and SQLite adapters behave identically. Residual: cosmetic stale field on restored records.'
+  U-004:
+    disposition: BLOCKED_WITH_EXACT_MISSING_EVIDENCE
+    detail: ports/record_store.py REQUIRES complete_deletion to be idempotent for an already-DELETED record; adapter bodies
+      not retrievable. tests/security/test_legacy_projection_erasure.py exercises retry idempotency for the legacy-release
+      path only.
+  U-005:
+    disposition: BLOCKED_WITH_EXACT_MISSING_EVIDENCE
+    detail: 'Policy question; requires docs/adr ADR-098 and ADR-006 text (not read). Implementation confirmed: runtime.local_principal_for_resolution
+      applies settings.local_is_admin to the HTTP auth-disabled Tier-3 principal.'
+  U-006:
+    disposition: CONFIRMED
+    detail: Promoted to F-019.
+  U-007:
+    disposition: CONFIRMED
+    detail: Promoted to F-020.
+unverified_concerns:
+- id: U-001
+  severity: UNVERIFIED
+  title: Lease expiry mid-provider-call may orphan a provider episode when the surviving link locator is a provider uuid
+- id: U-002
+  severity: UNVERIFIED
+  title: write() forwards 'metadata' to Graphiti add_memory, which the official tool may not declare
+- id: U-004
+  severity: UNVERIFIED
+  title: Concurrent erase events may double-call complete_deletion
+- id: U-005
+  severity: UNVERIFIED
+  title: local_is_admin honored on HTTP auth-disabled Tier-3 principal
+- id: U-008
+  severity: UNVERIFIED
+  title: Secret refresh (SIGHUP / interval) never reaches already-constructed authenticators or settings
+  source_location:
+  - 'src/l9_graphite_memory/secrets.py :: refresh_secrets/install_sighup_reload (overwrite os.environ)'
+  - 'src/l9_graphite_memory/server.py :: SignedAgentAuthenticator.from_environment read once at create_http_app'
+  concern: Rotated keys/grants are not picked up unless on_refresh rebuilds the app; run_http tail (unread) may wire this.
+  verification_needed: Read server.run_http tail and cli serve path.
+- id: U-010
+  severity: UNVERIFIED
+  title: Tier-3 local principal namespace is settable from L9_MEMORY_NAMESPACE / GRAPHITI_GROUP_ID env with write authority
+  source_location:
+  - 'src/l9_graphite_memory/group_resolver.py :: resolve_group explicit branch'
+  - 'src/l9_graphite_memory/runtime.py :: local_principal_for_resolution'
+  concern: Server docstrings describe Tier 3 as cwd/registry-derived with local_*_namespaces as the ceiling; env override
+    grants write to any non-forbidden namespace. Whether ADR-006 permits this is UNKNOWN.
+  verification_needed: ADR-006 text.
+- id: U-011
+  severity: UNVERIFIED
+  title: MemorySettings exposes graphiti_mcp_token, zep_api_key and postgres_dsn in repr/model_dump (only graph_neo4j_password
+    has repr=False)
+  source_location:
+  - src/l9_graphite_memory/config/models.py
+  concern: Any settings dump/log (cli 'config show', error contexts) would leak credentials; cli.py unread.
+  verification_needed: grep cli.py/observability for settings dumps.
+- id: U-012
+  severity: UNVERIFIED
+  title: MCP consent granted_at defaults to now, so identity/preference writes with a past valid_from are always REJECTED
+  source_location:
+  - 'src/l9_graphite_memory/mcp_tools.py :: _consent_from_payload'
+  - 'src/l9_graphite_memory/contracts/privacy.py :: permits (granted_at > at)'
+  concern: Policy intent unknown; may be deliberate.
+  verification_needed: ADR on consent semantics.
+- id: U-013
+  severity: UNVERIFIED
+  title: Deferred supersession of a quarantined record may never be applied on release
+  source_location:
+  - 'src/l9_graphite_memory/services/memory_service.py :: _admit (effective_supersedes=() when QUARANTINED; warning promises
+    deferral)'
+  - lifecycle QUARANTINED->ACTIVE path (unread tail)
+  concern: If release does not honor record.supersedes, released consolidations coexist with their sources forever (maintenance
+    re-plan returns DUPLICATE and never supersedes).
+  verification_needed: memory_service.py bytes 30000-85535; test for release-after-quarantine supersession.
+- id: U-014
+  severity: DISPROVEN
+  title: NaN/inf reviewer confidence could pass the release floor
+  source_location:
+  - src/l9_graphite_memory/curation/quarantine.py
+  - src/l9_graphite_memory/contracts/review.py
+  concern: Pydantic ge/le rejects NaN and inf (verified in sandbox, pydantic 2.11); ValidationError is a ValueError => ESCALATE.
+    Fail-closed.
+  verification_needed: none

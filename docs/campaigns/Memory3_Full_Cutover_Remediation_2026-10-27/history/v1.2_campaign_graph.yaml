@@ -1,0 +1,382 @@
+artifact_type: working_campaign_graph
+artifact_status: candidate_noncanonical
+campaign_id: c1-shared-memory-2026-10-26
+observed_at: '2026-10-26'
+mode: GAR_Architect_and_Strategic_Planner
+mission: Provide one centrally hosted, PostgreSQL-backed L9 MemoryService on C1, accessible by independent authorized
+  agents over authenticated MCP Streamable HTTP, with durable shared memory and bounded operational proof.
+change_policy:
+  repositories_in_scope:
+  - Quantum-L9/l9-graphiti-memory
+  - Quantum-L9/.github
+  - Quantum-L9/l9-semantic-compiler-engine
+  - Quantum-L9/l9-deploy
+  explicitly_read_only:
+  - Quantum-L9/l9-cognitive-runtime
+  current_authorization: explicit_operator_approval_to_retire_and_replace_only_legacy_Memory_2_2_0_service_and_its_local_SQLite_store_on_existing_C1_after_replacement_is_ready;
+    other_actions_remain_at_their_normal_gates
+  forbidden_without_separate_authorization:
+  - repository_mutation
+  - PR_publication
+  - deployment
+  - unrelated_or_out_of_scope_C1_host_mutation
+  - product_or_service_admission
+  non_goals:
+  - introducing_a_second_memory_service_or_database_authority
+  - creating_a_new_OAuth_or_identity_authority
+  - redeploying_or_modifying_l9_cognitive_runtime
+  - requiring_Gate_routing_for_ordinary_agent_to_Memory_MCP
+  - mandatory_Graphiti_Zep_Neo4j_or_Redis_for_canonical_Memory
+  operator_approval_2026_10_26:
+    scope: Legacy C1 l9-memory-server 2.2.0 and its local SQLite canonical store ONLY
+    user_authorized: delete and replace with fresh Memory 3.0 backed by PostgreSQL
+    old_store_backup: operator_reports_completed_and_verified
+    repeat_old_backup_validation: not_required
+    execution_boundary: no premature deletion; stop old service after new image/database/credentials/deployment readiness,
+      then activate new service and verify before deleting obsolete local SQLite
+    not_authorized: Graphiti/Neo4j data, other C1 tenants, Cognitive Runtime, arbitrary infrastructure changes, release
+      publication, semantic admission
+    evidence_type: user_direct_operator_attestation_in_current_conversation_not_independently_inspected_backup_metadata
+revision_lock:
+  Quantum-L9/l9-graphiti-memory: eb0bcbed1e1652529675af52584185d2f09dd737
+  Quantum-L9/.github: 3dcdeaae355b6de08562993f705084d7a3714bfd
+  Quantum-L9/l9-semantic-compiler-engine: e07a143a7c1c642c8c3c4cba57897292a40a78f7
+  Quantum-L9/l9-deploy: b1bdaac50e22ddda526bd99203f498b6b4afd437
+  Quantum-L9/l9-cognitive-runtime: 94348537bb775d7fa1eb06f950d04dbde2442875
+architectural_decisions:
+  product_kind: dependency_with_admitted_hosted_memory_exception
+  product_kind_exception: l9.product-kind-exception/memory-hosted-service@1
+  earliest_eligible_release: 3.0.0
+  transport: authenticated_mcp_streamable_http
+  shared_canonical_store: postgresql
+  number_of_canonical_memory_services: 1
+  signed_agent_identity: server_verified_per_request_keys_and_grants
+  remote_client: l9_graphite_memory.remote_client.RemoteMemoryClient
+  deployment_owner: Quantum-L9/l9-deploy
+  candidate_deployment_profile_owner: Quantum-L9/l9-graphiti-memory
+  reserved_read_only_neighbor:
+    repository: Quantum-L9/l9-cognitive-runtime
+    staging_host_port: 18080
+    staging_hostname: mcp-staging.quantumaipartners.com
+    constraint: do_not_reuse_or_modify_without_explicit_authorization
+  memory_hostname: reuse memory.quantumaipartners.com after current DNS/TLS/Caddy path verification
+  memory_host_port: reuse existing loopback 8200 after controlled stop of legacy Memory service; only one Memory listener
+    at a time
+  database_name: not_selected_new_isolated_PostgreSQL_required
+  deployment_environment: staging_first
+  c1_server_id_observed: 114194366
+  c1_ipv4_observed: 46.62.243.82
+  c1_network_at_2026_10_13: no Hetzner private NIC
+  legacy_c1_memory: 2.2.0 / SQLite / loopback 8200; retirement and store deletion explicitly authorized; backup completed
+    and verified by operator
+  legacy_graphiti: loopback port 8100, preserve Neo4j and Graphiti episodes
+  c1_vm_snapshot_observed: 443133337
+  not_c1_l9_memory_server_id: 119722208
+  not_c1_l9_memory_ipv4: 89.167.34.78
+  legacy_memory_backup_status: operator_verified_2026_10_26; backup_retained_off_service_not_deleted
+  memory_cutover_strategy: in_place_replacement_same_C1_same_memory_hostname_and_loopback_port_8200; preserve_graphiti_route_8100_and_cog_18080
+success_criteria:
+- one_memory_service_on_C1_with_version_and_digest_bound_deployment_evidence
+- shared_postgresql_is_canonical_no_local_fallback
+- two_distinct_remote_agent_identities_can_authenticate_from_separate_clients
+- authorized_agent_A_write_is_readable_by_agent_B_in_authorized_shared_namespace
+- unauthorized_namespace_write_and_read_are_refused_with_evidence
+- persisted_record_survives_memory_service_restart_and_reconnection
+- source_agent_attribution_and_idempotency_are_preserved
+- TLS_readiness_and_deployment_rollback_are_observed
+- backup_restore_rehearsal_passes_before_real_data_is_admitted
+- legacy_Memory_2_2_0_is_retired_and_its_local_SQLite_removed_only_after_new_PostgreSQL_service_healthy; operator_verified_legacy_backup_retained
+nodes:
+- id: A0
+  title: Resolve canonical semantics and owner boundaries
+  kind: authority_resolution
+  owner: Quantum-L9/.github
+  state: source_observed
+  result: Hosted Memory exception admitted for dependency from 3.0.0; Memory product owns semantics, compiler generates
+    derived proofs, deploy owns hosting. No new global law indicated.
+  acceptance: exact_revision_authority_and_kind_exception_verified
+  evidence:
+  - https://github.com/Quantum-L9/.github/blob/3dcdeaae355b6de08562993f705084d7a3714bfd/semantics/product_kinds.yaml
+  - https://github.com/Quantum-L9/.github/blob/3dcdeaae355b6de08562993f705084d7a3714bfd/semantics/authority_model.yaml
+- id: A1
+  title: Freeze and validate Memory 3.0 candidate
+  kind: product_release_preparation
+  owner: Quantum-L9/l9-graphiti-memory
+  state: source_present_release_unadmitted
+  result: PRs 96 and 100 merged; version and remote client 3.0.0 exist; main CI passed, but no v3.0.0 tag or exact 3.0
+    release admission found.
+  acceptance: exact_source_wheel_sdist_test_and_product_manifest_receipts
+  evidence:
+  - https://github.com/Quantum-L9/l9-graphiti-memory/pull/96
+  - https://github.com/Quantum-L9/l9-graphiti-memory/pull/100
+  - https://github.com/Quantum-L9/l9-graphiti-memory/actions/runs/39333387195
+  - https://github.com/Quantum-L9/l9-graphiti-memory/blob/eb0bcbed1e1652529675af52584185d2f09dd737/release-work/product-release-binding.yaml
+- id: A2
+  title: Provide Memory-owned OCI and v2 deployment carrier
+  kind: implementation_candidate
+  owner: Quantum-L9/l9-graphiti-memory
+  state: not_present_on_main
+  result: Reuse existing Memory 3.0 HTTP server; add minimal OCI image, source-owned v2 profile and thin Core release
+    caller. Configure Memory to replace the legacy 2.2.0 listener on C1 loopback 8200 after it is stopped, preserving
+    Caddy's existing memory.quantumaipartners.com route and /graphiti/* loopback 8100. No duplicate permanent Memory
+    service or new hostname. Confirm actual route ownership first.
+  acceptance: image_boots_and_readyz_works_with_new_PostgreSQL; signed_auth; v2_profile_valid; existing_Caddy_Memory_endpoint_and_port_8200_reused_safely_after_old_service_stop;
+    image_digest_attested; Graphiti_and_Cog_unmodified
+  evidence:
+  - https://github.com/Quantum-L9/l9-deploy/blob/b1bdaac50e22ddda526bd99203f498b6b4afd437/docs/runbooks/onboard-consumer.md
+  - https://github.com/Quantum-L9/l9-graphiti-memory/blob/eb0bcbed1e1652529675af52584185d2f09dd737/docs/REMOTE_MCP_CONTRACT.md
+- id: A3
+  title: Verify C1 host and isolate Memory persistence and credentials
+  kind: deployment_preflight
+  owner: Quantum-L9/l9-deploy
+  state: C1_recon_resolved_legacy_backup_operator_verified_current_ssh_pg_secrets_checks_pending
+  result: October 13 C1 recon establishes exact C1 identity, Caddy, 2.2.0 Memory/SQLite at loopback 8200, Graphiti/Neo4j
+    on 8100, and host backups. Operator confirmed on October 26 that the old SQLite store has been backed up and verified
+    and authorized deleting/replacing it. Therefore legacy preservation/backup-validation is no longer an unknown or
+    gating task. Still check current trusted SSH key, runner reach, Caddy import/8200 ownership, fresh PostgreSQL role
+    and secrets; preserve separate Graphiti/Neo4j and Cog tenants.
+  acceptance: operator_attested_legacy_backup_verified; current_C1_key_runner_route_Caddy_8200_current_services_new_PG_secrets_and_preserved_Graphiti_verified
+  evidence:
+  - https://www.dropbox.com/scl/fi/051ob10wo07xb8pl5qyz9
+  - https://github.com/Quantum-L9/l9-cognitive-runtime/blob/94348537bb775d7fa1eb06f950d04dbde2442875/.l9/deployment.yaml
+  - https://github.com/Quantum-L9/l9-deploy/blob/b1bdaac50e22ddda526bd99203f498b6b4afd437/docs/architecture/network-topology.md
+  - https://www.dropbox.com/scl/fi/ljitcgii8p641soe074xe
+- id: A4
+  title: Restore deployment runner and state-secret preflight
+  kind: deployment_control_plane
+  owner: Quantum-L9/l9-deploy
+  state: verified_failures_require_resolution
+  result: Runner conformance fails because expected management CIDR is absent from observed nft rules. Infrastructure
+    drift cannot parse an Infisical secret key as environment name. Inspect true ownership before modifying host or code;
+    prove deployment-specific requirements with an isolated dry run. Host-target identification is resolved by C1 recon;
+    do not infer runner failure is caused by C1.
+  acceptance: runner_conformance_pass_or_explained_false_alarm, required_Infisical_OIDC_and_C1_SSH_preflight_pass
+  evidence:
+  - https://github.com/Quantum-L9/l9-deploy/actions/runs/40315689453
+  - https://github.com/Quantum-L9/l9-deploy/actions/runs/40304987574
+- id: A5
+  title: Dispatch verified staging deployment to C1
+  kind: deployment_execution
+  owner: Quantum-L9/l9-deploy
+  state: not_executed_for_Memory
+  result: Perform the already authorized *scoped* legacy Memory cutover after release/artifact/deployment prerequisites.
+    Under the approved deployment method, stop/disable C1 l9-memory-server 2.2.0, bind Memory 3.0 to the freed loopback
+    8200, reuse the existing memory.quantumaipartners.com TLS route, test /readyz and signed /mcp. Remove the obsolete
+    local SQLite only after new hosted service has proven healthy; keep the verified backup. Existing /graphiti/* on
+    8100, Neo4j and Cog remain untouched. Source/release/deployment gates still apply; staging independent-review gate
+    was already removed.
+  acceptance: exact_qualified_release_deploy_receipt; no_concurrent_Memory_listeners; new_Postgres_readyz_signed_mcp_pass;
+    legacy_2_2_0_retired; Graphiti_and_Cog_unchanged
+  evidence:
+  - https://github.com/Quantum-L9/l9-deploy/blob/b1bdaac50e22ddda526bd99203f498b6b4afd437/.github/workflows/deploy-dispatch.yml
+  - https://github.com/Quantum-L9/l9-deploy/pull/61
+- id: A6
+  title: Prove two-agent cross-machine shared memory
+  kind: hosted_behavior_proof
+  owner: Quantum-L9/l9-graphiti-memory
+  state: not_run_on_C1
+  result: Independently authenticated agents write, read, reject unauthorized access, replay an idempotent operation,
+    and read after server restart. Preserve server receipts and source attribution; no local fallback.
+  acceptance: every_success_criterion_about_cross_agent_is_observed_on_C1
+  evidence:
+  - https://github.com/Quantum-L9/l9-graphiti-memory/pull/96
+  - https://github.com/Quantum-L9/l9-graphiti-memory/pull/100
+- id: A7
+  title: Validate backup restore and safe rollback
+  kind: operational_proof
+  owner: Quantum-L9/l9-deploy
+  state: legacy_backup_verified_by_operator; new_PostgreSQL_restore_and_application_rollback_not_yet_run
+  result: Legacy 2.2.0 SQLite backup is completed and verified by the operator. Do NOT require another old-store backup
+    verification or old-data migration; the user approves deleting and replacing it. For the *new* PostgreSQL service,
+    separately demonstrate backup/isolated restore and deployment rollback readiness before accepting valuable shared
+    records. The existing VM snapshot is supplemental, not new PostgreSQL restore proof.
+  acceptance: operator_legacy_backup_attestation_accepted_without_retest; new_PostgreSQL_isolated_restore_and_application_rollback_receipts
+  evidence:
+  - https://github.com/Quantum-L9/l9-deploy/blob/b1bdaac50e22ddda526bd99203f498b6b4afd437/templates/consumer/stateful-container/.l9/deployment.yaml
+- id: A8
+  title: Admit exact Memory 3.0 release and hosted operating service
+  kind: explicit_authority_gate
+  owner: Quantum-L9/l9-graphiti-memory
+  state: not_proven
+  result: Produce exact wheel/sdist and release admission under global law; publication is distinct. Running service
+    admission additionally binds observed runtime identity, release, transport, health, and evidence.
+  acceptance: exact_release_admission_and_separate_service_admission_records
+  evidence:
+  - https://github.com/Quantum-L9/l9-graphiti-memory/blob/eb0bcbed1e1652529675af52584185d2f09dd737/release-work/product-release-binding.yaml
+- id: G0
+  title: Working shared Memory on C1
+  kind: primary_goal
+  owner: user
+  state: not_proven
+  acceptance: A5_exact_replacement_deployment_and_A6_two_agent_proof_and_A7_new_Postgres_recovery_pass;_legacy_Memory_retired
+- id: P1
+  title: Graphiti Neo4j Redis and full-capability enrichment
+  kind: optional_later
+  owner: Quantum-L9/l9-graphiti-memory
+  state: parked
+  wake_trigger: shared_canonical_memory_operates_and_graph_enrichment_is_requested
+  caution: current_graph_qualification_fails_on_deprecated_model_gpt_4_1_nano
+  evidence:
+  - https://github.com/Quantum-L9/l9-graphiti-memory/actions/runs/40304847918
+  result: Preserve legacy Graphiti and its Neo4j corpus on C1; optional graph enhancement is not a dependency of the
+    new canonical Postgres Memory 3.0 acceptance.
+- id: P2
+  title: Repair unrelated repository corpus scheduled PR automation
+  kind: optional_later
+  owner: Quantum-L9/l9-graphiti-memory
+  state: parked
+  wake_trigger: repository_corpus_projection_becomes_part_of_requested_Memory_release
+  caution: workflow_cannot_create_pull_requests_with_current_GitHub_Actions_permissions
+  evidence:
+  - https://github.com/Quantum-L9/l9-graphiti-memory/actions/runs/40328872941
+edges:
+- from: A0
+  to: A1
+  relation: governs
+- from: A0
+  to: A2
+  relation: governs
+- from: A1
+  to: A2
+  relation: enables
+- from: A1
+  to: A8
+  relation: enables
+- from: A2
+  to: A5
+  relation: prerequisite
+- from: A3
+  to: A5
+  relation: prerequisite
+- from: A4
+  to: A5
+  relation: prerequisite
+- from: A5
+  to: A6
+  relation: prerequisite
+- from: A5
+  to: A7
+  relation: prerequisite
+- from: A6
+  to: G0
+  relation: proves
+- from: A7
+  to: G0
+  relation: proves_durable_operation
+- from: A6
+  to: A8
+  relation: operational_evidence
+- from: A7
+  to: A8
+  relation: operational_evidence
+parallelizable_before_staging:
+- A2
+- A3
+- A4
+minimal_success_at: G0
+formal_release_and_service_admission: A8
+planning_notes:
+- Source code, CI results, and pull request merges are not C1 deployment evidence.
+- The Cog staging contract reserves port 18080 and its hostname; do not assume its live runtime state.
+- 3.0 source version is merged, but an exact 3.0 release and tag were not verified.
+- The Memory product-kind exception does not authorize running service admission by itself.
+- Existing stale READMEs describing PR96 as unmerged are superseded by main source and merged PR evidence.
+- C1 identity, legacy Memory 2.2.0, Graphiti, Neo4j and VM backup posture are grounded by authorized October 13 recon,
+  not assumed current live.
+- Only current-state freshness and new Memory PostgreSQL/secrets/restore preflight remain at A3; do not restart host
+  discovery.
+- The legacy Graphiti public MCP tool listing accepted unauthenticated calls on October 13; current exposure is unknown
+  and belongs to separate scoped security handling.
+- A verified Cognitive Runtime release v2 request reached and passed l9-deploy validation on October 23; reuse Core producer,
+  do not build a redundant one.
+- Governed Claude Mobile/Cursor bridge cutover would touch a consumer authority outside the four write-scoped repos,
+  requiring separately scoped approval.
+- October 26 operator explicitly authorized deleting and replacing the legacy C1 Memory 2.2.0 service/SQLite after verifying
+  the old backup; no additional old-backup restore test required.
+- Reusing existing TLS hostname memory.quantumaipartners.com and loopback 8200 is the simplest target after live Caddy
+  ownership checks; 8100 Graphiti and 18080 Cognitive Runtime remain protected.
+- New PostgreSQL data-backup and restore acceptance is distinct from the verified old SQLite backup and remains an operational
+  requirement.
+- Do not disable or delete the old Memory service until the new Memory 3.0 image, PostgreSQL, vault grants and l9-deploy
+  execution route are ready; then controlled switch and verify before removing obsolete files.
+campaign_revision: '1.2'
+evidence_update: 2026-10-26 user operator authorization and backup verification; no C1 mutation or independent backup
+  artifact inspection
+source_refs:
+  hetzner_c1_recon_2026_10_13: https://www.dropbox.com/scl/fi/051ob10wo07xb8pl5qyz9
+  memory_c1_execution_plan_2026_10_23: https://www.dropbox.com/scl/fi/2l3qe69gyjob1eyf4qr4r
+  cognitive_runtime_c1_checkpoint_2026_10_24: https://www.dropbox.com/scl/fi/ljitcgii8p641soe074xe
+  cognitive_runtime_current_profile: https://github.com/Quantum-L9/l9-cognitive-runtime/blob/94348537bb775d7fa1eb06f950d04dbde2442875/.l9/deployment.yaml
+observed_C1_2026_10_13:
+  status: historical_verified_not_current_live_check
+  hetzner_server_id: 114194366
+  server_name: C1
+  public_ipv4: 46.62.243.82
+  server_type: cpx32
+  private_network_memberships: []
+  attached_cloud_firewall:
+    id: 10430780
+    name: c1-k8s-firewall
+  ingress:
+    reverse_proxy: Caddy
+    public_ports:
+    - 80
+    - 443
+    legacy_http_route: memory.quantumaipartners.com
+    legacy_graphiti_loopback_port: 8100
+    legacy_memory_loopback_port: 8200
+  legacy_runtime:
+    memory_package_version: 2.2.0
+    memory_canonical_store: local SQLite
+    graphiti_neo4j_episode_count_observed: 6441
+  recovery:
+    daily_backup_window_utc: 22-02
+    vm_snapshot_id: 443133337
+    vm_snapshot_kind: crash_consistent
+    postgres_restore_proven: false
+  excluded_distinct_server:
+    hetzner_id: 119722208
+    public_ipv4: 89.167.34.78
+    name: L9-Memory
+  provenance:
+    archive: https://www.dropbox.com/scl/fi/051ob10wo07xb8pl5qyz9
+    sections:
+    - C1_AND_DECISIONS.md
+    - evidence/hetzner-api/servers.json
+    - evidence/hetzner-api/firewalls.json
+    - evidence/hetzner-api/networks.json
+    - evidence/hetzner-api/c1-snapshot/c1_snapshot_result.json
+remaining_targeted_preflight:
+- id: F1
+  subject: trusted C1 SSH host public key and runner authorized reach
+  status: refresh_live
+- id: F2
+  subject: current Caddy memory.quantumaipartners.com route and controlled reuse of loopback port 8200 after stopping
+    old Memory service
+  status: refresh_live
+- id: F3
+  subject: new isolated PostgreSQL store, database role, data-backup owner (old SQLite backup already verified by operator)
+  status: new_deployment_preparation
+- id: F4
+  subject: Infisical Memory runtime secret names, signing key grants and scoping
+  status: new_deployment_preparation
+- id: F5
+  subject: C1 actual firewall and listening ports vs runner expectations
+  status: refresh_live
+- id: F6
+  subject: new PostgreSQL isolated backup/restore and deployment rollback, not legacy SQLite backup retest
+  status: operational_acceptance
+operator_backup_decision:
+  date: '2026-10-26'
+  legacy_store_backup: completed_and_verified_by_user
+  legacy_store_deletion: authorized_on_C1_as_part_of_memory_3_0_replacement
+  old_store_restore_retest: waived_not_needed
+  migration: not_requested; new_empty_PostgreSQL_canonical_store
+  protected_neighbors:
+  - C1 /graphiti/* Caddy route
+  - Graphiti MCP 8100
+  - Neo4j
+  - l9-cognitive-runtime read_only 18080
+  - separate L9-Memory Hetzner VM
+  rollback_policy: keep_verified_legacy_backup; use bounded application rollback if new service fails after switch; do
+    not assume new PG data safely downgrades to SQLite

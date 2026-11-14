@@ -1,0 +1,470 @@
+[
+  {
+    "id": "P00",
+    "sequence": 1,
+    "title": "Architecture decision, source/authority inventory",
+    "owner": "Memory proposal; new ADR supersession",
+    "kind": "Separate architecture PR",
+    "objective": "Record full no-compatibility decision, source epochs and release blockers",
+    "acceptance_gate": "ADR/registry version and plan coverage, no arbitrary authority mutation",
+    "rollback": "No operational rollback, architecture proposal stays versioned",
+    "node_ids": [
+      "GOV-01",
+      "GOV-02",
+      "GOV-03",
+      "GOV-04",
+      "GOV-05",
+      "GOV-06",
+      "GOV-07",
+      "GOV-08",
+      "GOV-09",
+      "QA-01"
+    ],
+    "finding_ids": [],
+    "prerequisite_slices": [],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P01",
+    "sequence": 2,
+    "title": "Canonical data integrity and sensitive admission",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "F-010/F-012/U-012, explicit evidence and privacy-safe normalization",
+    "acceptance_gate": "Unit/integration privacy negative suite and no silent data loss",
+    "rollback": "Disable sensitive writes until proven, preserve canonical data",
+    "node_ids": [
+      "DATA-01",
+      "DATA-02",
+      "DATA-03",
+      "DATA-04",
+      "DATA-05",
+      "DATA-06"
+    ],
+    "finding_ids": [
+      "F-010",
+      "F-012",
+      "U-012"
+    ],
+    "prerequisite_slices": [
+      "P00"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P02",
+    "sequence": 3,
+    "title": "Auth0 OAuth resource server and Postgres security",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "RFC9728/Auth0 discovery, JWT, scopes, grants, rotation, PG backend",
+    "acceptance_gate": "Auth0 audience + PKCE integration and Postgres tenant denials",
+    "rollback": "Do not enable public service, refuse authentication if issuer fails",
+    "node_ids": [
+      "AUTH-01",
+      "AUTH-02",
+      "AUTH-03",
+      "AUTH-04",
+      "AUTH-05",
+      "AUTH-06",
+      "AUTH-07",
+      "AUTH-08",
+      "AUTH-14",
+      "AUTH-17",
+      "STOR-01",
+      "STOR-06",
+      "STOR-07",
+      "STOR-08",
+      "STOR-09"
+    ],
+    "finding_ids": [
+      "U-005",
+      "U-008",
+      "U-010",
+      "U-011"
+    ],
+    "prerequisite_slices": [
+      "P00"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P03",
+    "sequence": 4,
+    "title": "Native MCP wire/runtime and client behavior",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "MCP SDK or proven protocol, handler errors, offload, SDK clients",
+    "acceptance_gate": "Real installed wheel OAuth/PG MCP protocol and readiness concurrency",
+    "rollback": "Stay disabled for remote writes until protocol validation",
+    "node_ids": [
+      "MCP-01",
+      "MCP-02",
+      "MCP-04",
+      "MCP-05",
+      "MCP-06",
+      "MCP-07",
+      "MCP-08",
+      "MCP-09",
+      "MCP-12"
+    ],
+    "finding_ids": [
+      "F-001",
+      "F-003",
+      "F-004",
+      "F-015"
+    ],
+    "prerequisite_slices": [
+      "P00",
+      "P02"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P04",
+    "sequence": 5,
+    "title": "Complete evidence-bound identity and operator authority",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "Product/Release/Runtime/Actor/Surface, non-applicable Constellation, admin boundary",
+    "acceptance_gate": "Identity negative suite with Unknown and cryptographic provenance",
+    "rollback": "Fail closed on author attribution, do not downgrade trust",
+    "node_ids": [
+      "AUTH-09",
+      "AUTH-10",
+      "AUTH-11",
+      "AUTH-12",
+      "AUTH-13",
+      "AUTH-16",
+      "DATA-07"
+    ],
+    "finding_ids": [
+      "U-005",
+      "U-010"
+    ],
+    "prerequisite_slices": [
+      "P00",
+      "P02"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P05",
+    "sequence": 6,
+    "title": "Graphiti provider error transport",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "F-001/F-002/F-019/U-002, strict tool error and breaker",
+    "acceptance_gate": "Fake isError, breaker half-open, no phantom link tests",
+    "rollback": "Disable Graphiti projection if uncertain",
+    "node_ids": [
+      "PROJ-01",
+      "PROJ-02",
+      "PROJ-03",
+      "PROJ-04",
+      "PROJ-05",
+      "PROJ-06",
+      "PROJ-07",
+      "PROJ-08"
+    ],
+    "finding_ids": [
+      "F-001",
+      "F-002",
+      "F-019",
+      "U-002"
+    ],
+    "prerequisite_slices": [
+      "P00"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P06",
+    "sequence": 7,
+    "title": "Lifecycle capability, lease and deletion correctness",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "F-008/F-009/U-001/U-004/U-013, atomic canonical commits",
+    "acceptance_gate": "Postgres two-worker crash/lease/deletion/supersession suite",
+    "rollback": "Pause projection worker and preserve pending obligations",
+    "node_ids": [
+      "PROJ-09",
+      "LIFE-01",
+      "LIFE-02",
+      "LIFE-03",
+      "LIFE-04",
+      "LIFE-05",
+      "LIFE-06",
+      "LIFE-07",
+      "LIFE-08",
+      "LIFE-09",
+      "LIFE-10",
+      "LIFE-11",
+      "LIFE-12",
+      "STOR-02"
+    ],
+    "finding_ids": [
+      "F-008",
+      "F-009",
+      "U-001",
+      "U-004",
+      "U-013"
+    ],
+    "prerequisite_slices": [
+      "P00",
+      "P01",
+      "P02",
+      "P05"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P07",
+    "sequence": 8,
+    "title": "Reference-safe retention and adapter parity",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "F-013/F-015/F-018 and maintenance correctness",
+    "acceptance_gate": "Postgres full incoming refs and planner regression",
+    "rollback": "Disable apply-mode retention if unproven",
+    "node_ids": [
+      "DATA-09",
+      "DATA-10",
+      "RET-01",
+      "RET-02",
+      "RET-03",
+      "RET-04",
+      "RET-05",
+      "RET-06",
+      "STOR-05"
+    ],
+    "finding_ids": [
+      "F-013",
+      "F-015",
+      "F-018"
+    ],
+    "prerequisite_slices": [
+      "P00",
+      "P02",
+      "P03",
+      "P06"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P08",
+    "sequence": 9,
+    "title": "Provider qualification and remaining safety defects",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "Graphiti live qualification, Zep retire/qualify, F-011/F-020",
+    "acceptance_gate": "Live disposable provider, Shell guard, teardown receipts",
+    "rollback": "Do not activate unqualified provider or command guard bypass",
+    "node_ids": [
+      "DATA-08",
+      "PROJ-10",
+      "PROJ-11",
+      "PROJ-12",
+      "PROJ-13",
+      "HYG-01",
+      "HYG-03",
+      "QA-07"
+    ],
+    "finding_ids": [
+      "F-001",
+      "F-003",
+      "F-011",
+      "F-014",
+      "F-017",
+      "F-019",
+      "F-020",
+      "U-001",
+      "U-002"
+    ],
+    "prerequisite_slices": [
+      "P00",
+      "P03",
+      "P05",
+      "P06",
+      "P07"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P09",
+    "sequence": 10,
+    "title": "Remove obsolete compatibility routes and docs",
+    "owner": "Memory",
+    "kind": "New bounded PR",
+    "objective": "No Memory stdio, signed-agent, static bearer, SQLite-serving, old queue",
+    "acceptance_gate": "AST reachability scanner and active docs/test contracts",
+    "rollback": "Do not reopen old transport, rollback is new image with PG",
+    "node_ids": [
+      "GOV-10",
+      "GOV-11",
+      "AUTH-15",
+      "MCP-03",
+      "MCP-10",
+      "MCP-11",
+      "STOR-03",
+      "STOR-04",
+      "HYG-02",
+      "QA-03",
+      "QA-04"
+    ],
+    "finding_ids": [
+      "F-005",
+      "F-006",
+      "F-007",
+      "F-016"
+    ],
+    "prerequisite_slices": [
+      "P00",
+      "P01",
+      "P02",
+      "P03",
+      "P04"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P10",
+    "sequence": 11,
+    "title": "Retarget PR #101 and prove source-owned OCI carrier",
+    "owner": "Memory PR #101",
+    "kind": "Amend existing open PR #101, not a parallel carrier PR",
+    "objective": "OAuth-only C1 deployment profile, pinned OCI, PostgreSQL/Infisical/staging",
+    "acceptance_gate": "Exact-head release gate, temporary staging, no C1 mutation yet",
+    "rollback": "Do not merge/deploy if signed-only guard remains",
+    "node_ids": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-03",
+      "OPS-04",
+      "OPS-05",
+      "OPS-06",
+      "OPS-07",
+      "OPS-08",
+      "OPS-09",
+      "OPS-10",
+      "OPS-11",
+      "QA-09",
+      "QA-12",
+      "CUT-01"
+    ],
+    "finding_ids": [],
+    "prerequisite_slices": [
+      "P00",
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P06",
+      "P09"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "C784",
+    "sequence": 12,
+    "title": "Consumer PR #784 native OAuth/identity handoff",
+    "owner": "Cursor-Governance PR #784",
+    "kind": "Amend existing open PR #784 in separate repo",
+    "objective": "Claude/Cursor native OAuth, projection binding, no stdio bridge",
+    "acceptance_gate": "Real clients and surface uncertainty evidence, strict drift checks",
+    "rollback": "No client cutover before issuer and server proof",
+    "node_ids": [
+      "CONS-01",
+      "CONS-02",
+      "CONS-03",
+      "CONS-04",
+      "CONS-05",
+      "CONS-06",
+      "CONS-07",
+      "CONS-08",
+      "CONS-09",
+      "CONS-10",
+      "QA-08"
+    ],
+    "finding_ids": [],
+    "prerequisite_slices": [
+      "P00",
+      "P02",
+      "P03",
+      "P04",
+      "P09",
+      "P10"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  },
+  {
+    "id": "P12",
+    "sequence": 13,
+    "title": "Independent assurance, authorized release and C1 cutover",
+    "owner": "l9-deploy + operator",
+    "kind": "Operation/acceptance stage, NOT a coding PR",
+    "objective": "Independent audit, exact release, staging, hosted two-client, rollback, old retirement",
+    "acceptance_gate": "Full hosted and audit receipts for separate milestones",
+    "rollback": "Stop/redeploy forward-compatible OAuth image; keep PG backup",
+    "node_ids": [
+      "GOV-12",
+      "PROJ-14",
+      "QA-02",
+      "QA-05",
+      "QA-06",
+      "QA-10",
+      "QA-11",
+      "CUT-02",
+      "CUT-03",
+      "CUT-04",
+      "CUT-05",
+      "CUT-06",
+      "CUT-07",
+      "CUT-08",
+      "CUT-09",
+      "CUT-10",
+      "CUT-11",
+      "CUT-12",
+      "CUT-13",
+      "CUT-14",
+      "CUT-15"
+    ],
+    "finding_ids": [],
+    "prerequisite_slices": [
+      "P00",
+      "P03",
+      "P06",
+      "P07",
+      "P08",
+      "P10",
+      "C784"
+    ],
+    "status": "not_dispatched",
+    "publication": "make pr only for code PRs; P12 is an operation stage",
+    "merge": "operator authorized after CI and independent audit"
+  }
+]
