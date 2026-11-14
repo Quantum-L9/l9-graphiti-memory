@@ -130,11 +130,11 @@ The HTTP adapter discovers the live Graphiti tool inventory. It supports the cur
 Five states are kept apart throughout this repository. "Implemented",
 "supported", "verified", "released" and "deployed" are not interchangeable.
 
-| State | Identity (2026-10-14; `main` and Target rows 2026-11-13) | Agent transport |
+| State | Identity (2026-10-14; Target row 2026-11-13; `main` row 2026-11-14) | Agent transport |
 |---|---|---|
 | Current operational release | **2.5.0** (operator-designated) | local stdio MCP |
 | Package release line | **2.6.0**: `v2.6.0` tag and a published 2.6.0 artifact (`846f283`) exist; not designated the operational release | local stdio MCP; HTTP present but not a conforming Streamable HTTP server and authenticated only by static bearer tokens |
-| `main` | source version **3.0.0** (`pyproject.toml`, `src/l9_graphite_memory/version.py`; observed at `ae6e2c0`). No `v3.0.0` tag, no 3.0.0 admission receipt under `docs/receipts/`, no 3.0.0 artifact on PyPI; not an admitted release | stateless Streamable HTTP (`2025-11-25`, `2025-06-18`, ADR-098) with `bearer` (default) and `signed-agent` modes; neither mode is a hosted door (ADR-100) and there is no OAuth mode yet (issue #108); stdio unchanged (`2024-11-05`) |
+| `main` | source version **3.0.0** (`pyproject.toml`, `src/l9_graphite_memory/version.py`; observed at `cc10253`). No `v3.0.0` tag, no 3.0.0 admission receipt under `docs/receipts/`, no 3.0.0 artifact on PyPI; not an admitted release | stateless Streamable HTTP (`2025-11-25`, `2025-06-18`, ADR-098) with `bearer` (default), `signed-agent` and `oauth` modes; `oauth` (ADR-102, ADR-103) is the only hosted door (ADR-100) and the carrier image admits only it; stdio unchanged (`2024-11-05`) |
 | Target | **Memory 3.0.0**: first live release of the consolidated remote architecture | one hosted `MemoryService` over native MCP Streamable HTTP protected by Auth0 OAuth (ADR-100) |
 | Qualified deployment | **none** | no C1 deployment exists or is claimed |
 
@@ -181,12 +181,13 @@ agents                     Hetzner C1 hosting boundary (TLS reverse proxy)
 - Hostname, address, certificate, process supervisor and operating-system
   configuration are unverified until deployment evidence exists.
 
-What stands between `main` and a live 3.0.0: the OAuth resource server, which
-this source does not have (`http_auth_mode` admits only `bearer` and
-`signed-agent`), and the live PKCE receipt ADR-100 requires before it is
-treated as proven; until then the hosted carrier image refuses every auth mode
-and does not start (`Dockerfile`, `.l9/deployment.yaml`, issue #108). Also:
-release validation on exact bytes; the protocol suite and receipt shapes on PostgreSQL
+What stands between `main` and a live 3.0.0: the OAuth resource server
+(`http_auth_mode=oauth`, ADR-102) and its actor binding (ADR-103) are on
+`main`, the hosted carrier image admits only that mode (`Dockerfile`,
+`.l9/deployment.yaml`), and the live PKCE receipt ADR-100 requires passed
+against the live Auth0 tenant and a local server (issue #108). No hosted
+3.0.0 deployment exists, so the production tenant path has not been exercised
+against a deployed service. Also: release validation on exact bytes; the protocol suite and receipt shapes on PostgreSQL
 (cross-process sharing on PostgreSQL is proven, under signed-agent identity, by
 `tests/integration/test_remote_mcp_postgres_multiprocess.py`); release and service admission (the product classification is settled by ADR-094, 2026-10-15); C1
 deployment evidence; and consumer adoption, which each consumer owns.

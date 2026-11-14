@@ -176,10 +176,11 @@ over authenticated HTTPS MCP, backed by a new, empty PostgreSQL 16 database
 
 The hosted door is Auth0 OAuth only (ADR-100, 2026-10-27). Signed-agent HMAC
 and static bearer are not hosted doors and are not fallbacks, and Memory stdio
-is not a rollback of the hosted service. The OAuth mode does not exist in this
-repository yet (issue #108), so the hosted carrier refuses to start in every
-auth mode. The two modes described below remain in the package for local use;
-neither is how C1 is reached. What exists depends on the code you run:
+is not a rollback of the hosted service. The OAuth mode
+(`http_auth_mode=oauth`, ADR-102, ADR-103) is on `main`, and the hosted carrier
+admits only that mode and refuses every other (`Dockerfile`,
+`.l9/deployment.yaml`). The `bearer` and `signed-agent` modes described below
+remain in the package for local use; neither is how C1 is reached. What exists depends on the code you run:
 
 | Code | HTTP server |
 |---|---|
