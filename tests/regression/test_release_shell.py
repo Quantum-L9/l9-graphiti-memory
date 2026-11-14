@@ -204,8 +204,14 @@ def test_release_validation_supports_exact_prebuilt_artifact_consumption() -> No
     assert "L9_RELEASE_ARTIFACT_DIR" in script
     # The build happens only in the self-contained branch; publication mode
     # consumes the supplied directory as-is.
-    builds = [tokens for tokens in _validator_commands() if "build" in tokens and "-m" in tokens]
+    builds = [
+        tokens
+        for tokens in _validator_commands()
+        if "scripts/build_release_artifacts.sh" in tokens
+        or ("build" in tokens and "-m" in tokens)
+    ]
     assert len(builds) == 1, builds
+    assert "scripts/build_release_artifacts.sh" in builds[0], builds[0]
     assert '"$ART"' in builds[0] or "$ART" in builds[0], builds[0]
     assert 'ARTIFACT_MODE="publication"' in script
     assert "installed wheel digest matches validated artifact set" in script
@@ -313,7 +319,11 @@ def _index(steps: list[dict], predicate: Callable[[dict], bool]) -> int:
 
 def test_publish_builds_release_artifacts_exactly_once_before_validation() -> None:
     steps = _publish_steps()
-    builds = [i for i, s in enumerate(steps) if "python -m build" in str(s.get("run", ""))]
+    builds = [
+        i
+        for i, s in enumerate(steps)
+        if "scripts/build_release_artifacts.sh" in str(s.get("run", ""))
+    ]
     assert len(builds) == 1, builds
     build = builds[0]
     validate = _index(steps, lambda s: "scripts/validate_release.sh" in str(s.get("run", "")))
@@ -321,10 +331,11 @@ def test_publish_builds_release_artifacts_exactly_once_before_validation() -> No
         steps, lambda s: str(s.get("uses", "")).startswith("pypa/gh-action-pypi-publish")
     )
     assert build < validate < publish
-    assert "--outdir dist" in steps[build]["run"]
+    assert steps[build]["run"].split()[-1] == "dist"
     # Nothing between validation and publication rebuilds.
     for step in steps[validate + 1 :]:
         assert "python -m build" not in str(step.get("run", ""))
+        assert "build_release_artifacts" not in str(step.get("run", ""))
         assert "uv build" not in str(step.get("run", ""))
 
 

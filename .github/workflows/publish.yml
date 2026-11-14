@@ -54,9 +54,9 @@ jobs:
     env:
       L9_MEMORY_TEST_POSTGRES_DSN: host=localhost port=5432 user=postgres dbname=l9memtest
       L9_MEMORY_TEST_REDIS_URL: redis://localhost:6379/0
-      # Reproducible build epoch (audit P1-01): setuptools takes zip timestamps
-      # from SOURCE_DATE_EPOCH, so the digests recorded below are stable for a
-      # consumer pin. Reproducibility is not artifact identity, though: the
+      # Reproducible build epoch (audit P1-01): the build entry point stamps
+      # every wheel and sdist member with SOURCE_DATE_EPOCH, so the digests
+      # recorded below are stable for a consumer pin. Reproducibility is not artifact identity, though: the
       # bytes published are the bytes validated because they are the SAME
       # files, built once below and handed to validation and publication.
       SOURCE_DATE_EPOCH: "1784592000"
@@ -89,8 +89,13 @@ jobs:
       - run: mypy src/l9_graphite_memory
       # The one and only build of the release artifact set. Nothing after
       # this step builds; validation and publication consume these files.
+      # scripts/build_release_artifacts.sh is the repository's single build
+      # recipe (also used by release-container.yml and validate_release.sh):
+      # it makes the wheel and sdist byte-reproducible for this commit and
+      # SOURCE_DATE_EPOCH, so they can equal the digests an admission receipt
+      # recorded before the tag.
       - name: Build release artifacts once (wheel and sdist)
-        run: python -m build --outdir dist
+        run: bash scripts/build_release_artifacts.sh dist
       - name: Record candidate artifact digests
         run: sha256sum dist/* | tee build-digests.txt
       # ADR-094: publication checks the product contract against the same

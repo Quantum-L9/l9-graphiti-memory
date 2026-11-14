@@ -58,10 +58,14 @@ class ReproducibilityError(Exception):
 def source_date_epoch(value: str | None) -> int:
     """Parse SOURCE_DATE_EPOCH, failing closed when it is unset or not an integer."""
     if value is None or value.strip() == "":
-        raise ReproducibilityError("SOURCE_DATE_EPOCH is unset; a release build needs a fixed epoch")
+        raise ReproducibilityError(
+            "SOURCE_DATE_EPOCH is unset; a release build needs a fixed epoch"
+        )
     text = value.strip()
     if not text.isdigit():
-        raise ReproducibilityError(f"SOURCE_DATE_EPOCH must be a non-negative integer, got {value!r}")
+        raise ReproducibilityError(
+            f"SOURCE_DATE_EPOCH must be a non-negative integer, got {value!r}"
+        )
     epoch = int(text)
     if epoch < _ZIP_EPOCH_FLOOR:
         raise ReproducibilityError(
@@ -136,7 +140,9 @@ def canonical_sdist(data: bytes, epoch: int) -> bytes:
             out.addfile(info, io.BytesIO(payload) if payload is not None else None)
 
     gz_bytes = io.BytesIO()
-    with gzip.GzipFile(filename="", mode="wb", fileobj=gz_bytes, compresslevel=COMPRESSION_LEVEL, mtime=0) as gz:
+    with gzip.GzipFile(
+        filename="", mode="wb", fileobj=gz_bytes, compresslevel=COMPRESSION_LEVEL, mtime=0
+    ) as gz:
         gz.write(tar_bytes.getvalue())
     return gz_bytes.getvalue()
 
@@ -154,7 +160,9 @@ def _assert_sdist_canonical_shape(data: bytes, epoch: int) -> None:
             names.append(member.name)
             leaked = _TIME_PAX_KEYS & set(member.pax_headers)
             if leaked:
-                raise ReproducibilityError(f"sdist member {member.name} carries pax time records {sorted(leaked)}")
+                raise ReproducibilityError(
+                    f"sdist member {member.name} carries pax time records {sorted(leaked)}"
+                )
             if member.mtime != epoch or member.uid or member.gid or member.uname or member.gname:
                 raise ReproducibilityError(f"sdist member {member.name} is not normalised")
         if names != sorted(names):
@@ -202,12 +210,16 @@ def canonical_bytes(path: Path, epoch: int) -> bytes:
     if path.name.endswith(".tar.gz"):
         result = canonical_sdist(data, epoch)
         if _sdist_content(result) != _sdist_content(data):
-            raise ReproducibilityError(f"{path.name}: canonical sdist content differs from the build")
+            raise ReproducibilityError(
+                f"{path.name}: canonical sdist content differs from the build"
+            )
         _assert_sdist_canonical_shape(result, epoch)
     elif path.name.endswith(".whl"):
         result = canonical_wheel(data, epoch)
         if _wheel_content(result) != _wheel_content(data):
-            raise ReproducibilityError(f"{path.name}: canonical wheel content differs from the build")
+            raise ReproducibilityError(
+                f"{path.name}: canonical wheel content differs from the build"
+            )
         with zipfile.ZipFile(io.BytesIO(result)) as zf:
             bad = zf.testzip()
         if bad is not None:

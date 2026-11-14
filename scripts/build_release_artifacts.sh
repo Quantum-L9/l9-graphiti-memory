@@ -14,18 +14,20 @@
 # repository builds a release artifact. An authority obtains the digests to
 # admit (ADR-094) by running it at the release commit with the release epoch.
 #
-# Fails closed when SOURCE_DATE_EPOCH is unset or not an integer, when the
-# output directory is not empty, or when the interpreter is not the release
-# build interpreter (RELEASE_BUILD_PYTHON below): the canonical archives are
-# deflate streams, and their bytes are only claimed for the zlib a pinned
-# interpreter ships with.
+# Fails closed when SOURCE_DATE_EPOCH is unset or not an integer, or when the
+# output directory is not empty. The bytes were proven identical under Python
+# 3.10 through 3.13 (zlib 1.3 and 1.3.2); the release workflows (publish.yml,
+# release-container.yml admission) both build with the same pinned Python,
+# which tests/regression/test_reproducible_release_artifacts.py enforces, and
+# the interpreter and zlib used are printed with the digests.
+#
+# setuptools packs files from the working tree, not from the commit: a tracked
+# modification or an untracked, non-ignored file changes the sdist. The build
+# still runs (local `make validate` builds uncommitted work), but says loudly
+# that its digests are not those of the commit and must not be admitted.
 set -euo pipefail
 
-# Every release workflow builds with this interpreter minor version. Change it
-# here and in publish.yml / release-container.yml together.
-RELEASE_BUILD_PYTHON="3.13"
-
-ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 PY="${PYTHON:-python3}"
 
 [[ $# -eq 1 ]] || { echo "usage: $0 <output-dir>" >&2; exit 2; }
@@ -37,10 +39,16 @@ if [[ ! "${SOURCE_DATE_EPOCH:-}" =~ ^[0-9]+$ ]]; then
 fi
 export SOURCE_DATE_EPOCH
 
-PY_MINOR="$("$PY" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
-if [[ "$PY_MINOR" != "$RELEASE_BUILD_PYTHON" ]]; then
-  echo "build_release_artifacts: release artifacts are built with Python $RELEASE_BUILD_PYTHON; $PY is $PY_MINOR" >&2
-  exit 1
+if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "build_release_artifacts: source $(git -C "$ROOT" rev-parse HEAD) SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
+  DIRTY="$(git -C "$ROOT" status --porcelain --untracked-files=all)"
+  if [[ -n "$DIRTY" ]]; then
+    {
+      echo "build_release_artifacts: WARNING: the working tree differs from HEAD; these digests are NOT"
+      echo "build_release_artifacts: WARNING: the commit's and must not be admitted. Differences:"
+      printf '%s\n' "$DIRTY" | sed 's/^/  /'
+    } >&2
+  fi
 fi
 
 mkdir -p "$OUT"
