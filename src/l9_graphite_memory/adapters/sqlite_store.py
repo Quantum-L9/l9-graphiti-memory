@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import threading
 from collections.abc import Iterator
@@ -61,10 +62,13 @@ from l9_graphite_memory.ports.service_capability import (
     ServiceWriteCapability,
     require_service_write_capability,
 )
+from l9_graphite_memory.redaction import STORE_UNAVAILABLE
 from l9_graphite_memory.schema import schema_registry
 
 # Register built-in migrations.
 from l9_graphite_memory.schema import upcasters as _upcasters  # noqa: F401
+
+log = logging.getLogger("l9.memory.store.sqlite")
 
 _SCHEMA_VERSION = 9
 
@@ -474,11 +478,13 @@ class SQLiteRecordStore:
                 "schema_version": _SCHEMA_VERSION,
             }
         except sqlite3.Error as exc:
+            # A stable reason code, never the exception text (U-011).
+            log.warning("canonical store health probe failed: %s", type(exc).__name__)
             return {
                 "name": self.name,
                 "healthy": False,
                 "path": str(self.path),
-                "error": str(exc),
+                "reason": STORE_UNAVAILABLE,
             }
 
     @staticmethod

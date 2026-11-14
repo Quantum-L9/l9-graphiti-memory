@@ -46,6 +46,12 @@ class TokenPrincipalConfig(BaseModel):
 class MemorySettings(BaseModel):
     """Resolved process settings with explicit security and degradation behavior."""
 
+    # Every field that carries a credential, a connection coordinate (host,
+    # user, URL, DSN) or an unstructured bag is ``repr=False``: a repr or a log
+    # of settings must not print it (U-011). ``model_dump`` is unchanged, since
+    # callers need the values. tests/unit/test_secret_disclosure.py fails when
+    # a new secret-shaped field is repr-visible.
+
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     data_dir: Path = Field(default_factory=lambda: Path("~/.local/share/l9-memory").expanduser())
@@ -55,7 +61,7 @@ class MemorySettings(BaseModel):
     # agent and worker reads and writes one canonical store (ADR-072).
     store_backend: Literal["sqlite", "postgres"] = "sqlite"
     database_path: Path | None = None
-    postgres_dsn: str | None = None
+    postgres_dsn: str | None = Field(default=None, repr=False)
     postgres_statement_timeout_ms: int = Field(default=30_000, ge=1_000, le=600_000)
     # Selecting a different backend points at a different canonical store.
     # Startup refuses when the configured store is empty while a prior ledger
@@ -83,22 +89,22 @@ class MemorySettings(BaseModel):
     # model binding stays outside this package (ADR-080). Unset means every
     # quarantined record is reported as unreviewed by scheduled maintenance.
     quarantine_review_provider: str | None = None
-    graphiti_mcp_url: str | None = None
-    graphiti_mcp_token: str | None = None
+    graphiti_mcp_url: str | None = Field(default=None, repr=False)
+    graphiti_mcp_token: str | None = Field(default=None, repr=False)
     # Bounded name lookup for Graphiti episodes without a provider uuid
     # (ADR-091); raise it for groups holding more episodes.
     graphiti_episode_lookup_limit: int = Field(default=1_000, ge=1, le=100_000)
-    zep_api_key: str | None = None
-    zep_api_url: str | None = None
+    zep_api_key: str | None = Field(default=None, repr=False)
+    zep_api_url: str | None = Field(default=None, repr=False)
     projection_required: bool = False
 
     # Structural graph intelligence over the Graphiti projection (ADR-086).
     # A separate least-privilege reader credential; never Graphiti's writer.
     graph_intelligence_backend: Literal["none", "neo4j"] = "none"
     graph_intelligence_required: bool = False
-    graph_neo4j_uri: str | None = None
+    graph_neo4j_uri: str | None = Field(default=None, repr=False)
     graph_neo4j_database: str = "neo4j"
-    graph_neo4j_user: str | None = None
+    graph_neo4j_user: str | None = Field(default=None, repr=False)
     graph_neo4j_password: str | None = Field(default=None, repr=False)
     graph_query_timeout_ms: int = Field(default=3_000, ge=10, le=30_000)
     graph_gds_max_nodes: int = Field(default=50_000, ge=1, le=5_000_000)
@@ -118,15 +124,15 @@ class MemorySettings(BaseModel):
     active_deployment_id: str | None = None
     active_trust_domain: str | None = None
     active_environment: Literal["development", "test", "staging", "production"] = "development"
-    active_redis_url_env: str | None = None
-    active_redis_url_file: Path | None = None
-    active_redis_password_file: Path | None = None
-    active_redis_secret_reference: str | None = None
-    active_redis_host: str | None = None
+    active_redis_url_env: str | None = Field(default=None, repr=False)
+    active_redis_url_file: Path | None = Field(default=None, repr=False)
+    active_redis_password_file: Path | None = Field(default=None, repr=False)
+    active_redis_secret_reference: str | None = Field(default=None, repr=False)
+    active_redis_host: str | None = Field(default=None, repr=False)
     active_redis_port: int = Field(default=6379, ge=1, le=65_535)
     active_redis_database: int = Field(default=0, ge=0, le=15)
     active_redis_tls: bool = True
-    active_redis_username: str | None = None
+    active_redis_username: str | None = Field(default=None, repr=False)
     active_key_prefix: str = "l9gm:active"
     active_context_ttl_seconds: int = Field(default=60, ge=1, le=86_400)
     active_presence_ttl_seconds: int = Field(default=30, ge=1, le=86_400)
@@ -157,7 +163,7 @@ class MemorySettings(BaseModel):
     # Ceiling on a signed agent assertion's remaining lifetime over HTTP. The
     # token is reusable until it expires, so its lifetime bounds replay.
     http_agent_assertion_max_ttl_seconds: int = Field(default=3600, ge=60, le=86_400)
-    auth_tokens: dict[str, TokenPrincipalConfig] = Field(default_factory=dict)
+    auth_tokens: dict[str, TokenPrincipalConfig] = Field(default_factory=dict, repr=False)
     local_principal_id: str = "local-operator"
     local_tenant_id: str = "local"
     local_organization_id: str = "local"
@@ -184,7 +190,7 @@ class MemorySettings(BaseModel):
     json_logs: bool = True
 
     config_source: str = "defaults"
-    extra: dict[str, Any] = Field(default_factory=dict)
+    extra: dict[str, Any] = Field(default_factory=dict, repr=False)
 
     @field_validator(
         "data_dir",

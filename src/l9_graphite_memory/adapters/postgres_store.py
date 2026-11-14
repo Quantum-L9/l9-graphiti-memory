@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -53,6 +54,7 @@ from l9_graphite_memory.errors import (
     IdempotencyConflict,
     PhaseLockSnapshotConflict,
     ProjectionLinkConflict,
+    StoreConnectionError,
     StoreError,
 )
 from l9_graphite_memory.ports.phase_lock import PhaseLockPrecondition, snapshot_digest
@@ -60,6 +62,7 @@ from l9_graphite_memory.ports.service_capability import (
     ServiceWriteCapability,
     require_service_write_capability,
 )
+from l9_graphite_memory.redaction import STORE_UNAVAILABLE, redact_connection_error
 from l9_graphite_memory.schema import schema_registry
 
 # Register built-in migrations.
@@ -71,6 +74,8 @@ else:  # pragma: no cover - runtime alias
     _Connection = Any
 
 _SCHEMA_VERSION = 9
+
+log = logging.getLogger("l9.memory.store.postgres")
 
 
 # Fixed query text. Retrieval varies only by selecting one of these constants,
@@ -163,6 +168,9 @@ class PostgresRecordStore:
 
     # -- connection management ------------------------------------------------
 
+    def _redact(self, text: str) -> str:
+        return redact_connection_error(text, self.dsn)
+
     def _connection(self) -> Any:
         connection = getattr(self._local, "connection", None)
         if connection is None or connection.closed:
@@ -170,7 +178,13 @@ class PostgresRecordStore:
             try:
                 connection = psycopg2.connect(self.dsn)
             except psycopg2.Error as exc:
-                raise StoreError(f"postgres connection failed: {exc}") from exc
+                # The driver's text and its traceback quote the DSN (URI form)
+                # or the host, port and user it tried, so neither the message
+                # nor the chained cause may leave this frame (U-011).
+                raise StoreConnectionError(
+                    f"postgres connection failed ({type(exc).__name__}): {self._redact(str(exc))}",
+                    driver_error=type(exc).__name__,
+                ) from None
             connection.autocommit = False
             with connection.cursor() as cursor:
                 cursor.execute("SET statement_timeout = %s", (self.statement_timeout_ms,))
@@ -189,8 +203,8 @@ class PostgresRecordStore:
                 yield cursor
             connection.commit()
         except psycopg2.Error as exc:
-            connection.rollback()
-            raise StoreError(f"postgres read failed: {exc}") from exc
+            self._rollback(connection)
+            raise StoreError(f"postgres read failed: {self._redact(str(exc))}") from exc
 
     @contextmanager
     def _transaction(self) -> Iterator[Any]:
@@ -201,8 +215,26 @@ class PostgresRecordStore:
                 yield cursor
             connection.commit()
         except Exception:
-            connection.rollback()
+            self._rollback(connection)
             raise
+
+    @staticmethod
+    def _rollback(connection: Any) -> None:
+        """Roll back unless the server already closed the connection.
+
+        A rollback on a connection the server dropped raises its own driver
+        error, which would replace the StoreError the caller handles (a probe
+        answered 500 instead of 503 while the database was down). A closed
+        connection has nothing to roll back; the next use reconnects.
+        """
+
+        if connection.closed:
+            return
+        try:
+            connection.rollback()
+        except _driver().Error:
+            if not connection.closed:
+                raise
 
     # -- lifecycle ------------------------------------------------------------
 
@@ -419,7 +451,9 @@ class PostgresRecordStore:
                     (_SCHEMA_VERSION, datetime.now(timezone.utc)),
                 )
         except psycopg2.Error as exc:
-            raise StoreError(f"postgres schema initialization failed: {exc}") from exc
+            raise StoreError(
+                f"postgres schema initialization failed: {self._redact(str(exc))}"
+            ) from exc
         self._initialized = True
 
     def _backfill_source_selectors(self, tx: Any) -> None:
@@ -554,7 +588,10 @@ class PostgresRecordStore:
                 "schema_version": _SCHEMA_VERSION,
             }
         except StoreError as exc:
-            return {"name": self.name, "healthy": False, "error": str(exc)}
+            # The probe answer carries a stable reason code, never the
+            # exception text; the detail goes to the log, redacted (U-011).
+            log.warning("canonical store health probe failed: %s", self._redact(str(exc)))
+            return {"name": self.name, "healthy": False, "reason": STORE_UNAVAILABLE}
 
     # -- serialization --------------------------------------------------------
 
