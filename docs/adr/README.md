@@ -127,6 +127,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-101 | [Derived Suite Validation Replaces the V-001 Pass-Count Pin](ADR-101-derived-suite-count-validation.md) | Accepted |
 | ADR-102 | [OAuth Resource Server for the Streamable HTTP Transport](ADR-102-oauth-resource-server-for-streamable-http.md) | Proposed; accepted when merged by the decision owner |
 | ADR-103 | [OAuth Actor Binding, Server-Verified Consent, and User-Only Subjects](ADR-103-oauth-actor-binding-and-user-subjects.md) | Proposed; accepted when merged by the decision owner |
+| ADR-104 | [Core Repository Execution V2](ADR-104-core-repository-execution-v2.md) | Proposed; accepted when merged by the decision owner |
 
 ## Pending target amendments (Memory 3.0.0)
 
@@ -164,8 +165,9 @@ Auth0 tenant proof is not part of this record.
 | 2026-10-16 | ADR-098 | Administrator-only tools (`memory.distill`, `memory.bootstrap`) unreachable over HTTP for a signed agent; the client refuses them | restatement of existing invariants |
 | 2026-10-27 | ADR-100 | Supersede hosted Memory stdio, signed-agent HMAC, and static bearer; retain Streamable HTTP under Auth0 | decision accepted; code removal and Auth0 tenant proof are not in this record |
 | 2026-10-27 | ADR-100 | Publish the resource identifier `https://memory.quantumaipartners.com/mcp` as the Auth0 audience | identifier only; issuer domain, client ids, and the live PKCE receipt remain unbound |
-| 2026-11-13 | ADR-102 | `http_auth_mode=oauth` resource server: issuer-key signature, exact issuer, Memory audience, one `/mcp` endpoint, RFC 9728 metadata, subject-keyed grants; receipt tool added | implemented in source; live PKCE receipt owed; carrier not pinned; OAuth writes still refused (issue #108) |
-| 2026-11-13 | ADR-103 | OAuth actor from an operator binding for the verified (subject, client id) pair; client id carried as `oauth_client_id`; consent from the verified subject is server explicit evidence; user-less (client-credentials) tokens refused | implemented in source; live tenant not exercised; carrier not pinned |
+| 2026-11-13 | ADR-102 | `http_auth_mode=oauth` resource server: issuer-key signature, exact issuer, Memory audience, one `/mcp` endpoint, RFC 9728 metadata, subject-keyed grants; receipt tool added | merged on `main` (#113); live PKCE receipt passed six of six checks against the live Auth0 tenant and a local server (issue #108 comment 6862806068, 2026-11-13T19:25:56Z, receipt sha256 `8e0eeb4ed9cb8853b71e448cc38b0ea0fd801372eddc04b2d3f39e6f671b02ad`); hosted carrier pinned to OAuth in `.l9/deployment.yaml` and the Dockerfile entrypoint (#121, in #117); OAuth writes admitted only through ADR-103 actor bindings (#119); no hosted 3.0.0 deployment exists and the production tenant path has not been exercised against a deployed service |
+| 2026-11-13 | ADR-103 | OAuth actor from an operator binding for the verified (subject, client id) pair; client id carried as `oauth_client_id`; consent from the verified subject is server explicit evidence; user-less (client-credentials) tokens refused | merged on `main` (#119, in #113); hosted carrier pinned to OAuth (#121, in #117); its tests use no live tenant, and no binding has been exercised against a deployed service, because no hosted 3.0.0 deployment exists |
+| 2026-11-14 | ADR-104 | Core repository execution V2: `.l9/repo-workflow.json` (`l9.repo-execution/v2`, facade `make-v1`), root `Makefile` byte-equal to Core's generated facade, repository recipes in `Repo.mk`; alignment scan judges only this repository's files; bootstrapped uv on PATH for every phase; `repo-suite-base` resolves the ADR-101 merge-base without substituting `HEAD` | merged on `main` (#120); record proposed |
 
 ## Validation
 
@@ -175,4 +177,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-103 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-104 ledger and all mandatory sections.
