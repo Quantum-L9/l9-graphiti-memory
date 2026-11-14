@@ -1,0 +1,626 @@
+[
+  {
+    "id": "F-001",
+    "severity": "HIGH",
+    "audit_disposition": "CONFIRMED",
+    "title": "Graphiti tool failures flagged with MCP isError are recorded as successful projections with a durable link",
+    "source_location": [
+      "src/l9_graphite_memory/transport.py :: HttpMcpTransport.call_tool (content[0].text parsed; isError never read)",
+      "src/l9_graphite_memory/transport.py :: write (str result wrapped as {'result': text})",
+      "src/l9_graphite_memory/adapters/graphiti_projection.py :: _settle_write (checks only 'error' key; falls back to episode_name_locator)",
+      "src/l9_graphite_memory/services/outbox_worker.py :: run_once project branch"
+    ],
+    "node_ids": [
+      "MCP-05",
+      "PROJ-02",
+      "PROJ-06",
+      "PROJ-07",
+      "PROJ-08",
+      "PROJ-10"
+    ],
+    "pr_slices": [
+      "P03",
+      "P05",
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-002",
+    "severity": "MEDIUM",
+    "audit_disposition": "CONFIRMED",
+    "title": "Circuit breaker wedges permanently in HALF_OPEN when the probe's outcome is never reported",
+    "source_location": [
+      "src/l9_graphite_memory/circuit_breaker.py :: can_execute HALF_OPEN branch returns False",
+      "src/l9_graphite_memory/transport.py :: _rpc (_ensure_session after probe admitted; raises without record_failure)",
+      "src/l9_graphite_memory/transport.py :: _rpc_once session-retry path"
+    ],
+    "node_ids": [
+      "PROJ-04",
+      "PROJ-05"
+    ],
+    "pr_slices": [
+      "P05"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-003",
+    "severity": "MEDIUM",
+    "audit_disposition": "CONFIRMED",
+    "title": "Missing required tool arguments are reported as -32601 'method not found' and misclassified by remote_client as CONTRACT_MISMATCH",
+    "source_location": [
+      "src/l9_graphite_memory/server.py :: MCPServer.handle except KeyError => -32601",
+      "src/l9_graphite_memory/mcp_tools.py :: _write_request args['namespace'], _consent_from_payload value['purpose']",
+      "src/l9_graphite_memory/remote_client.py :: _rpc_failure (-32601 => CONTRACT_MISMATCH)"
+    ],
+    "node_ids": [
+      "MCP-04",
+      "HYG-03"
+    ],
+    "pr_slices": [
+      "P03",
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-004",
+    "severity": "MEDIUM",
+    "audit_disposition": "CONFIRMED",
+    "title": "HTTP transport runs synchronous blocking I/O inside async handlers",
+    "source_location": [
+      "src/l9_graphite_memory/server.py :: mcp_endpoint/healthz/readyz (async def; sync server.handle, service.health)",
+      "src/l9_graphite_memory/runtime.py :: readiness (sync health, capability_report)",
+      "src/l9_graphite_memory/adapters/sqlite_store.py (sqlite3, 30 s busy)",
+      "src/l9_graphite_memory/transport.py (urllib, 30 s)"
+    ],
+    "node_ids": [
+      "MCP-06",
+      "MCP-07"
+    ],
+    "pr_slices": [
+      "P03"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-005",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "SQLite _transaction masks the real failure when BEGIN IMMEDIATE itself fails",
+    "source_location": [
+      "src/l9_graphite_memory/adapters/sqlite_store.py :: _transaction"
+    ],
+    "node_ids": [
+      "STOR-03",
+      "HYG-02"
+    ],
+    "pr_slices": [
+      "P09"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-006",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "Stdio agent door omits the assertion-lifetime ceiling the HTTP door enforces",
+    "source_location": [
+      "src/l9_graphite_memory/server.py :: _agent_door_principal",
+      "src/l9_graphite_memory/authz/remote_agent.py :: authenticate (max_ttl + skew)",
+      "src/l9_graphite_memory/authz/signed_assertion.py :: _EXP_RE \\d{1,12}; nonce never checked for reuse"
+    ],
+    "node_ids": [
+      "HYG-02"
+    ],
+    "pr_slices": [
+      "P09"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-007",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "SQLiteRecordStore.close() closes only the calling thread's connection and flips the shared initialized flag",
+    "source_location": [
+      "src/l9_graphite_memory/adapters/sqlite_store.py :: close, health"
+    ],
+    "node_ids": [
+      "STOR-03",
+      "HYG-02"
+    ],
+    "pr_slices": [
+      "P09"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-008",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "Retirement drops the live link and writes the ADR-076 receipt in two separate store operations",
+    "source_location": [
+      "src/l9_graphite_memory/services/outbox_worker.py :: run_once retire branch"
+    ],
+    "node_ids": [
+      "LIFE-05",
+      "LIFE-06",
+      "LIFE-12"
+    ],
+    "pr_slices": [
+      "P06"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-009",
+    "severity": "MEDIUM",
+    "audit_disposition": "CONFIRMED",
+    "title": "Canonical lifecycle mutation complete_deletion (and link/retirement writes) bypass the ServiceWriteCapability gate",
+    "source_location": [
+      "src/l9_graphite_memory/ports/record_store.py :: complete_deletion, update_outbox, save_projection_link, save_projection_link_if_active, delete_projection_link, save_projection_retirement, save_maintenance_run (no capability parameter)",
+      "src/l9_graphite_memory/services/outbox_worker.py :: run_once erase branch calls store.complete_deletion(...) directly; maintenance/service.py :: store.save_maintenance_run"
+    ],
+    "node_ids": [
+      "LIFE-01",
+      "LIFE-02",
+      "LIFE-03",
+      "LIFE-05",
+      "LIFE-07",
+      "LIFE-12"
+    ],
+    "pr_slices": [
+      "P06"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-010",
+    "severity": "MEDIUM",
+    "audit_disposition": "CONFIRMED",
+    "title": "PII regexes irreversibly redact non-PII numerics (Unix epochs, 9-digit identifiers); only redacted content is persisted",
+    "source_location": [
+      "src/l9_graphite_memory/admission/normalization.py :: _PII_PATTERNS phone/ssn",
+      "src/l9_graphite_memory/services/memory_service.py :: _admit (content=normalization.redacted_content)"
+    ],
+    "node_ids": [
+      "DATA-01",
+      "DATA-03",
+      "DATA-06"
+    ],
+    "pr_slices": [
+      "P01"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-011",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "memory_guard read-only shell classifier accepts mutating commands",
+    "source_location": [
+      "src/l9_graphite_memory/memory_guard.py :: _READ_ONLY_SHELL"
+    ],
+    "node_ids": [
+      "DATA-08"
+    ],
+    "pr_slices": [
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-012",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "MCP write path stamps EXPLICIT evidence on every write, making the identity/preference 'requires explicit evidence' rules vacuous",
+    "source_location": [
+      "src/l9_graphite_memory/mcp_tools.py :: _write_request evidence=(EvidenceRef(kind=EXPLICIT,...),)",
+      "src/l9_graphite_memory/admission/engine.py :: explicit-evidence checks",
+      "src/l9_graphite_memory/services/generated_data.py :: same pattern"
+    ],
+    "node_ids": [
+      "DATA-04",
+      "DATA-06"
+    ],
+    "pr_slices": [
+      "P01"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-013",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "Store parity: in-memory candidate window is limit*10 while SQLite/Postgres use limit*20",
+    "source_location": [
+      "src/l9_graphite_memory/adapters/in_memory_store.py :: search_records [: request.limit * 10]",
+      "src/l9_graphite_memory/adapters/sqlite_store.py / postgres_store.py :: LIMIT request.limit*20",
+      "src/l9_graphite_memory/retrieval/planner.py docstring 'limit * 20'"
+    ],
+    "node_ids": [
+      "DATA-09",
+      "STOR-05"
+    ],
+    "pr_slices": [
+      "P07"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-014",
+    "severity": "MEDIUM",
+    "audit_disposition": "CONFIRMED",
+    "title": "Zep-backed active projection target reports unhealthy until the first successful call, so /readyz stays 503 until traffic arrives",
+    "source_location": [
+      "src/l9_graphite_memory/zep_transport.py :: health (healthy only if _last_connectivity_ok is True)",
+      "src/l9_graphite_memory/projections/runtime.py :: health (active target unhealthy => healthy=False)",
+      "src/l9_graphite_memory/runtime.py :: readiness (projection selected => required; ready=selected and healthy)",
+      "src/l9_graphite_memory/adapters/factory.py :: zep wiring"
+    ],
+    "node_ids": [
+      "PROJ-11",
+      "PROJ-13"
+    ],
+    "pr_slices": [
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-015",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "generated_data_capabilities() hard-codes store_ready/ready=True without probing",
+    "source_location": [
+      "src/l9_graphite_memory/services/generated_data.py :: generated_data_capabilities"
+    ],
+    "node_ids": [
+      "MCP-07",
+      "DATA-10",
+      "RET-06"
+    ],
+    "pr_slices": [
+      "P03",
+      "P07"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-016",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "Legacy write-queue drain treats a REJECTED receipt as delivered and removes the pending file; record+unlink is not atomic",
+    "source_location": [
+      "src/l9_graphite_memory/migration/legacy_write_queue.py :: drain, _record_drain"
+    ],
+    "node_ids": [
+      "STOR-04",
+      "HYG-02"
+    ],
+    "pr_slices": [
+      "P09"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-017",
+    "severity": "MEDIUM",
+    "audit_disposition": "CONFIRMED",
+    "title": "Zep write silently truncates the episode body to 10,000 chars while the projection link attests the full content digest",
+    "source_location": [
+      "src/l9_graphite_memory/zep_transport.py :: write data=body[:10_000]",
+      "src/l9_graphite_memory/adapters/graphiti_projection.py :: project_rendered (content_digest of full normalized_text recorded on link)",
+      "src/l9_graphite_memory/services/outbox_worker.py :: link_metadata render_content_digest"
+    ],
+    "node_ids": [
+      "PROJ-11",
+      "PROJ-12"
+    ],
+    "pr_slices": [
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-018",
+    "severity": "MEDIUM",
+    "audit_disposition": "CONFIRMED",
+    "title": "Reference-aware retention only counts references inside the loaded record window, so referenced expired records can be archived",
+    "source_location": [
+      "src/l9_graphite_memory/curation/retention.py :: reference_counts (known = passed records only)",
+      "src/l9_graphite_memory/maintenance/service.py :: _load (ACTIVE only, limit=max_records, recorded_at<=watermark)",
+      "src/l9_graphite_memory/maintenance/planner.py :: _plan_archive (candidates = eligible - consumed)"
+    ],
+    "node_ids": [
+      "RET-01",
+      "RET-02",
+      "RET-03",
+      "RET-04",
+      "RET-05"
+    ],
+    "pr_slices": [
+      "P07"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-019",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "Every JSON-RPC error from Graphiti counts as a circuit failure (promoted from U-006)",
+    "source_location": [
+      "src/l9_graphite_memory/transport.py :: _rpc ('error' in decoded => record_failure)"
+    ],
+    "node_ids": [
+      "PROJ-03",
+      "PROJ-05",
+      "HYG-03"
+    ],
+    "pr_slices": [
+      "P05",
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "F-020",
+    "severity": "LOW",
+    "audit_disposition": "CONFIRMED",
+    "title": "_run_sync schedules teardown with create_task without retaining the task (promoted from U-007)",
+    "source_location": [
+      "src/l9_graphite_memory/runtime.py :: _run_sync"
+    ],
+    "node_ids": [
+      "HYG-01"
+    ],
+    "pr_slices": [
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-001",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "Lease expiry mid-provider-call may orphan a provider episode when the surviving link locator is a provider uuid",
+    "source_location": [],
+    "node_ids": [
+      "PROJ-09",
+      "PROJ-10",
+      "LIFE-03",
+      "LIFE-04",
+      "LIFE-12"
+    ],
+    "pr_slices": [
+      "P06",
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-002",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "write() forwards 'metadata' to Graphiti add_memory, which the official tool may not declare",
+    "source_location": [],
+    "node_ids": [
+      "PROJ-01",
+      "PROJ-10"
+    ],
+    "pr_slices": [
+      "P05",
+      "P08"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-004",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "Concurrent erase events may double-call complete_deletion",
+    "source_location": [],
+    "node_ids": [
+      "LIFE-08",
+      "LIFE-09",
+      "LIFE-12"
+    ],
+    "pr_slices": [
+      "P06"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-005",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "local_is_admin honored on HTTP auth-disabled Tier-3 principal",
+    "source_location": [],
+    "node_ids": [
+      "DATA-07",
+      "STOR-08"
+    ],
+    "pr_slices": [
+      "P02",
+      "P04"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-008",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "Secret refresh (SIGHUP / interval) never reaches already-constructed authenticators or settings",
+    "source_location": [
+      "src/l9_graphite_memory/secrets.py :: refresh_secrets/install_sighup_reload (overwrite os.environ)",
+      "src/l9_graphite_memory/server.py :: SignedAgentAuthenticator.from_environment read once at create_http_app"
+    ],
+    "node_ids": [
+      "STOR-07"
+    ],
+    "pr_slices": [
+      "P02"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-010",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "Tier-3 local principal namespace is settable from L9_MEMORY_NAMESPACE / GRAPHITI_GROUP_ID env with write authority",
+    "source_location": [
+      "src/l9_graphite_memory/group_resolver.py :: resolve_group explicit branch",
+      "src/l9_graphite_memory/runtime.py :: local_principal_for_resolution"
+    ],
+    "node_ids": [
+      "DATA-07",
+      "STOR-08"
+    ],
+    "pr_slices": [
+      "P02",
+      "P04"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-011",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "MemorySettings exposes graphiti_mcp_token, zep_api_key and postgres_dsn in repr/model_dump (only graph_neo4j_password has repr=False)",
+    "source_location": [
+      "src/l9_graphite_memory/config/models.py"
+    ],
+    "node_ids": [
+      "STOR-06"
+    ],
+    "pr_slices": [
+      "P02"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-012",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "MCP consent granted_at defaults to now, so identity/preference writes with a past valid_from are always REJECTED",
+    "source_location": [
+      "src/l9_graphite_memory/mcp_tools.py :: _consent_from_payload",
+      "src/l9_graphite_memory/contracts/privacy.py :: permits (granted_at > at)"
+    ],
+    "node_ids": [
+      "DATA-05",
+      "DATA-06"
+    ],
+    "pr_slices": [
+      "P01"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  },
+  {
+    "id": "U-013",
+    "severity": "UNVERIFIED",
+    "audit_disposition": "UNVERIFIED",
+    "title": "Deferred supersession of a quarantined record may never be applied on release",
+    "source_location": [
+      "src/l9_graphite_memory/services/memory_service.py :: _admit (effective_supersedes=() when QUARANTINED; warning promises deferral)",
+      "lifecycle QUARANTINED->ACTIVE path (unread tail)"
+    ],
+    "node_ids": [
+      "LIFE-10",
+      "LIFE-12"
+    ],
+    "pr_slices": [
+      "P06"
+    ],
+    "closure_type": "code_fix_or_proven_unreachable",
+    "implementation_verification": "NOT_RUN",
+    "tests_on_corrected_SHA": "NOT_RUN",
+    "source_audit_basis": "auditor_source_trace_at_eb0bcbed1e1652529675af52584185d2f09dd737"
+  }
+]

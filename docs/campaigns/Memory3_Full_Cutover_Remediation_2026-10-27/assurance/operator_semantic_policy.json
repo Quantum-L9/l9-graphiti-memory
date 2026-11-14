@@ -1,0 +1,127 @@
+{
+  "authority_ref": "operator-directive-2026-10-27:no-historical-compatibility-full-cutover",
+  "assertions": [
+    {
+      "id": "transport-oauth-only",
+      "kind": "equals",
+      "file": "remediation_graph.json",
+      "pointer": "/decisions/transport",
+      "value": "oauth_mcp_streamable_http_only"
+    },
+    {
+      "id": "no-compat",
+      "kind": "equals",
+      "file": "remediation_graph.json",
+      "pointer": "/decisions/historical_compatibility",
+      "value": "none"
+    },
+    {
+      "id": "canonical-db",
+      "kind": "equals",
+      "file": "remediation_graph.json",
+      "pointer": "/decisions/canonical_store",
+      "value": "one_fresh_PostgreSQL_16"
+    },
+    {
+      "id": "no-stdio",
+      "kind": "equals",
+      "file": "remediation_graph.json",
+      "pointer": "/decisions/old_Memory_stdio",
+      "value": "remove"
+    },
+    {
+      "id": "no-HMAC",
+      "kind": "equals",
+      "file": "remediation_graph.json",
+      "pointer": "/decisions/old_signed_agent_HMAC",
+      "value": "remove"
+    },
+    {
+      "id": "no-sqlite",
+      "kind": "equals",
+      "file": "remediation_graph.json",
+      "pointer": "/decisions/sqlite_hosted_fallback",
+      "value": "remove"
+    },
+    {
+      "id": "dashboard-transit",
+      "kind": "matches_file",
+      "file": "remediation_graph.json",
+      "pointer": "/decisions/transport",
+      "other_file": "dashboard.json",
+      "other_pointer": "/decisions/transport"
+    },
+    {
+      "id": "dashboard-goal",
+      "kind": "matches_file",
+      "file": "remediation_graph.json",
+      "pointer": "/milestones/core_hosted",
+      "other_file": "dashboard.json",
+      "other_pointer": "/milestones/core_hosted"
+    },
+    {
+      "id": "distinct-nodes",
+      "kind": "unique_field",
+      "file": "remediation_graph.json",
+      "pointer": "/nodes",
+      "field": "id"
+    },
+    {
+      "id": "decision-precedes-supersession",
+      "kind": "edge_exists",
+      "file": "remediation_graph.json",
+      "source": "GOV-02",
+      "target": "GOV-03",
+      "relation": "must_precede"
+    },
+    {
+      "id": "identity-precedes-old-auth-retirement",
+      "kind": "edge_exists",
+      "file": "remediation_graph.json",
+      "source": "AUTH-13",
+      "target": "AUTH-15",
+      "relation": "must_precede"
+    },
+    {
+      "id": "native-auth-precedes-stdio-retirement",
+      "kind": "edge_exists",
+      "file": "remediation_graph.json",
+      "source": "AUTH-15",
+      "target": "MCP-03",
+      "relation": "must_precede"
+    },
+    {
+      "id": "no-fallback-check-before-stage",
+      "kind": "edge_exists",
+      "file": "remediation_graph.json",
+      "source": "QA-03",
+      "target": "CUT-01",
+      "relation": "must_precede"
+    },
+    {
+      "id": "two-client-before-handover",
+      "kind": "edge_exists",
+      "file": "remediation_graph.json",
+      "source": "CUT-03",
+      "target": "CUT-05",
+      "relation": "must_precede"
+    },
+    {
+      "id": "no-reversed-handover",
+      "kind": "edge_absent",
+      "file": "remediation_graph.json",
+      "source": "CUT-07",
+      "target": "CUT-05",
+      "relation": "must_precede"
+    }
+  ],
+  "must_remain_unchanged": [
+    "C1_RECON_EVIDENCE.md",
+    "OPERATOR_DECISION_2026-10-26.md"
+  ],
+  "allowed_changed_paths": [
+    "CAMPAIGN.md",
+    "campaign_graph.yaml",
+    "MANIFEST.sha256"
+  ]
+}

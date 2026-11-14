@@ -1,0 +1,33 @@
+flowchart TD
+  P00["P00: Architecture decision, source/authority inventory"]
+  P01["P01: Canonical data integrity and sensitive admission"]
+  P02["P02: Auth0 OAuth resource server and Postgres security"]
+  P03["P03: Native MCP wire/runtime and client behavior"]
+  P04["P04: Complete evidence-bound identity and operator authority"]
+  P05["P05: Graphiti provider error transport"]
+  P06["P06: Lifecycle capability, lease and deletion correctness"]
+  P07["P07: Reference-safe retention and adapter parity"]
+  P08["P08: Provider qualification and remaining safety defects"]
+  P09["P09: Remove obsolete compatibility routes and docs"]
+  P10["P10: Retarget PR #101 and prove source-owned OCI carrier"]
+  C784["C784: Consumer PR #784 native OAuth/identity handoff"]
+  P12["P12: Independent assurance, authorized release and C1 cutover"]
+  P00 --> P01
+  P01 --> P02
+  P02 --> P03
+  P03 --> P04
+  P04 --> P05
+  P05 --> P06
+  P06 --> P07
+  P07 --> P08
+  P08 --> P09
+  P09 --> P10
+  P10 --> C784
+  C784 --> P12
+  P10 --> CHECK["Real Auth0 + client stage"]
+  C784 --> CHECK
+  CHECK --> P12
+  P12 --> H["Core hosted CUT-13"]
+  P12 --> R["Full remediation CUT-14"]
+  H --> AD["Final independent admission CUT-15"]
+  R --> AD

@@ -1,0 +1,29 @@
+Two pull requests are open. Neither is merged, and neither is a release admission. The pack still owns 83 of 143 nodes in this repo. Cursor-Governance, Auth0, and the C1 cutover stay outside that set.
+
+## Open
+
+| Slice | Pull request | What is in the branch | What is still open |
+|---|---|---|---|
+| P00 | [#102](https://github.com/Quantum-L9/l9-graphiti-memory/pull/102) | ADR-100. Hosted stdio, signed-agent HMAC, and static bearer are superseded in ADR-038, ADR-064, ADR-082, ADR-083, and ADR-098. Historical decision text is unchanged. `AGENTS.md` invariants 1–10 are unchanged. | Review and merge. No runtime deletion. |
+| P03 + P04 | [#103](https://github.com/Quantum-L9/l9-graphiti-memory/pull/103) | Missing tool arguments return `-32602`. Unknown tools stay `-32601`. `isError: true` is a failure for the remote client and the Graphiti transport. Tool and health work uses a pool of 8 workers. OAuth client id does not resolve an actor, a surface, or an operator grant. A consequential OAuth write refuses without server-verified actor evidence. | Protocol SDK selection, installed-wheel OAuth and PostgreSQL proof, and the P02 resource server. P04 in the pack still depends on P00 and P02. This branch does not wait on P02. |
+
+Publish further code through `make pr`, one bounded pull request at a time, each with contract impact, wiring, tests, and `bash scripts/validate_release.sh`.
+
+## Not started
+
+| Slice | What lands here |
+|---|---|
+| P01 | Sensitive admission: PII normalization, real explicit evidence, consent time (F-010, F-012, U-012). |
+| P02 | OAuth resource server and Postgres-only security. Code starts after the AUTH-01 tenant receipt. |
+| P05 | Graphiti error transport: circuit breaker and phantom links (F-001, F-002, F-019). The `isError` refusal itself is already in #103. |
+| P06 | Lifecycle atomics: capability gate, leases, retirement, deletion, quarantine supersession. |
+| P07 | Reference-safe retention and store parity (F-013, F-015, F-018). |
+| P08 | Provider qualification, Zep keep-or-remove, shell guard, teardown task (F-011, F-014, F-017, F-020). |
+| P09 | Delete signed-agent, static bearer, stdio MCP, SQLite server, write queue, and the docs and tests that still describe them. Waits until P01–P04 exist. |
+| P10 | Retarget open PR #101 in place. It still pins signed-agent mode. |
+
+## Not work in this repo
+
+- **AUTH-01 and AUTH-07** are external proofs: a live Auth0 PKCE audience grant, then real Claude and Cursor client registrations. No source file closes them. #103 does not claim that receipt. A public probe on 2026-10-27 did not obtain either AUTH-01 proof. The record is `assurance/AUTH-01_PROBE_2026-10-27.md`. The live host is still Memory 2.2.0, and no tenant domain, client, or audience is named.
+- **C784** amends Cursor-Governance PR #784.
+- **P12** is not a coding pull request. Independent audit, release admission, and the C1 switch belong to a reviewer, the operator, and `l9-deploy`.

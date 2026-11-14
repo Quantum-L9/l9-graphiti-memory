@@ -1,0 +1,463 @@
+flowchart LR
+  subgraph AUTH["AUTH: Auth0 OAuth resource protection, principal and full identity assurance"]
+    AUTH_01["AUTH-01 Auth0 tenant resource-parameter and client proof"]
+    AUTH_02["AUTH-02 OAuth protected resource metadata (RFC9728)"]
+    AUTH_03["AUTH-03 Authorization-server discovery and client metadata contract"]
+    AUTH_04["AUTH-04 Native resource server middleware"]
+    AUTH_05["AUTH-05 Cryptographic token verification JWKS/JWT"]
+    AUTH_06["AUTH-06 OAuth scopes, tool risk and resource binding"]
+    AUTH_07["AUTH-07 Auth0 client registrations for Claude and Cursor"]
+    AUTH_08["AUTH-08 Server-derived principal and namespace grants"]
+    AUTH_09["AUTH-09 ActorIdentity source and assurance binding"]
+    AUTH_10["AUTH-10 SurfaceIdentity evidence and Unknown discipline"]
+    AUTH_11["AUTH-11 Memory ProductIdentity, ReleaseIdentity, RuntimeIdentity proof"]
+    AUTH_12["AUTH-12 Constellation identity explicit non-applicability"]
+    AUTH_13["AUTH-13 One complete evidence-bound identity assertion"]
+    AUTH_14["AUTH-14 Token, grant and JWKS revocation/rotation"]
+    AUTH_15["AUTH-15 Remove signed-agent, static bearer, human stdio HTTP doors"]
+    AUTH_16["AUTH-16 Operator/admin workflow separated from agent OAuth"]
+    AUTH_17["AUTH-17 No token exfiltration, logs or config persistence"]
+  end
+  subgraph CONS["CONS: Cursor/Claude host-native OAuth clients and honest surface proof"]
+    CONS_01["CONS-01 Cursor-Governance PR #784 refresh to settled server contract"]
+    CONS_02["CONS-02 Cursor native remote MCP OAuth login"]
+    CONS_03["CONS-03 Claude account-managed connector registration"]
+    CONS_04["CONS-04 Real Claude Code Mobile session acceptance"]
+    CONS_05["CONS-05 Cursor/Claude complete identity assertion provenance"]
+    CONS_06["CONS-06 One governance bootstrap and thin native adapters"]
+    CONS_07["CONS-07 Remove CG Memory stdio, signed-key bootstrap and bridge"]
+    CONS_08["CONS-08 Shared memory cross-client write and denial proof"]
+    CONS_09["CONS-09 Client disconnect revocation and reconnect"]
+    CONS_10["CONS-10 Non-core consumer claims remain individually qualified"]
+  end
+  subgraph CUT["CUT: Operator-controlled C1 switching, persistence and acceptance"]
+    CUT_01["CUT-01 Authorize isolated staging exposure only after core gates"]
+    CUT_02["CUT-02 Real Auth0 -> Memory -> PostgreSQL staging proof"]
+    CUT_03["CUT-03 Cross-client and Claude Code Mobile staging proof"]
+    CUT_04["CUT-04 New PG restore and rollback rehearsal"]
+    CUT_05["CUT-05 Operator go/no-go for exact C1 handover"]
+    CUT_06["CUT-06 Stop only old Memory 2.2 listener"]
+    CUT_07["CUT-07 Activate one OAuth Memory service on same C1 route"]
+    CUT_08["CUT-08 Post-switch Cursor/Claude, grants and restart"]
+    CUT_09["CUT-09 Production token/revocation/outage rehearsal"]
+    CUT_10["CUT-10 Remove old SQLite files only after proven cutover"]
+    CUT_11["CUT-11 Decommission old client transport paths"]
+    CUT_12["CUT-12 Observe postcutover operations and PG recovery"]
+    CUT_13["CUT-13 Core hosted shared Memory outcome"]
+    CUT_14["CUT-14 Full correctness and provider/maintenance remediation outcome"]
+    CUT_15["CUT-15 Final semantic and operational admission by owners"]
+  end
+  subgraph DATA["DATA: Non-destructive PII/consent/evidence integrity"]
+    DATA_01["DATA-01 Prevent ambiguous integer PII corruption"]
+    DATA_02["DATA-02 Ambiguous PII policy explicit quarantine or evidence"]
+    DATA_03["DATA-03 Normalized content, digest and provenance integrity"]
+    DATA_04["DATA-04 Explicit evidence cannot be fabricated by MCP"]
+    DATA_05["DATA-05 Purpose-bound consent semantics and timestamps"]
+    DATA_06["DATA-06 End-to-end sensitive admission negative matrix"]
+    DATA_07["DATA-07 Namespace and local privilege threat closure"]
+    DATA_08["DATA-08 Memory guard hostile shell default-deny"]
+    DATA_09["DATA-09 Adapter candidate-window and retrieval parity"]
+    DATA_10["DATA-10 Generated-data capabilities are evidence-derived"]
+  end
+  subgraph GOV["GOV: Authority, ADR supersession, identity topology and source audit"]
+    GOV_01["GOV-01 Revision-bound authority and source census"]
+    GOV_02["GOV-02 Admit full-cutover decision to working plan"]
+    GOV_03["GOV-03 Supersede conflicting legacy ADRs explicitly"]
+    GOV_04["GOV-04 Reconfirm Memory Dependency hosted-service exception"]
+    GOV_05["GOV-05 Identity dimensions and provenances contract"]
+    GOV_06["GOV-06 Threat model native OAuth agent/machine distinction"]
+    GOV_07["GOV-07 No-legacy-data cutover disposition"]
+    GOV_08["GOV-08 Cross-repository ownership / PR disposition"]
+    GOV_09["GOV-09 Source coverage census and audit closure routing"]
+    GOV_10["GOV-10 Obsolete documentation, examples, configuration inventory"]
+    GOV_11["GOV-11 Material compatibility break and fresh release semantic identity"]
+    GOV_12["GOV-12 Independent plan admission and source closure"]
+  end
+  subgraph HYG["HYG: Residual command/teardown/error taxonomy safety"]
+    HYG_01["HYG-01 Async close cannot fire and forget teardown"]
+    HYG_02["HYG-02 Remove dead auth/stdio/SQLite docs and test golden files"]
+    HYG_03["HYG-03 Client and transport failure taxonomy consistency"]
+  end
+  subgraph LIFE["LIFE: MemoryService capabilities, leases, retirement and deletion atomics"]
+    LIFE_01["LIFE-01 Complete canonical mutation method and bypass census"]
+    LIFE_02["LIFE-02 Service-owned outbox result application"]
+    LIFE_03["LIFE-03 Lease-aware atomic projection link and delivery settle"]
+    LIFE_04["LIFE-04 Provider side effects compensable across lost leases"]
+    LIFE_05["LIFE-05 Atomic retirement link/receipt/outbox settlement"]
+    LIFE_06["LIFE-06 Retirement retries are idempotent and audit-preserving"]
+    LIFE_07["LIFE-07 Verified deletion completion requires capability"]
+    LIFE_08["LIFE-08 Idempotent deletion receipt and status replay"]
+    LIFE_09["LIFE-09 Concurrent erase across targets and workers"]
+    LIFE_10["LIFE-10 Deferred quarantine supersession honored atomically"]
+    LIFE_11["LIFE-11 Historical state, restore and reproject contract"]
+    LIFE_12["LIFE-12 PostgreSQL 16 transaction and race integration suite"]
+  end
+  subgraph MCP["MCP: Single MCP Streamable HTTP protocol, no Memory stdio"]
+    MCP_01["MCP-01 Pin supported native MCP protocol revisions"]
+    MCP_02["MCP-02 Native MCP SDK/transport selection"]
+    MCP_03["MCP-03 Eliminate stdio MCP endpoint, launcher and advertised installers"]
+    MCP_04["MCP-04 UnknownTool vs invalid-argument error dispatch"]
+    MCP_05["MCP-05 MCP tool-result envelope and client exceptions"]
+    MCP_06["MCP-06 Bounded executor offload on HTTP handler edge"]
+    MCP_07["MCP-07 Healthz/readiness reflect real selected capabilities"]
+    MCP_08["MCP-08 Streamable HTTP protocol and transport negative suite"]
+    MCP_09["MCP-09 Native Python client OAuth and result semantics"]
+    MCP_10["MCP-10 Retain/retire TypeScript SDK with explicit scope"]
+    MCP_11["MCP-11 MCP tool inventory and legacy alias trim"]
+    MCP_12["MCP-12 Installed-wheel and true TCP PostgreSQL contract"]
+  end
+  subgraph OPS["OPS: Memory-owned carrier and l9-deploy operational preflight"]
+    OPS_01["OPS-01 Retarget open PR #101 deployment profile to OAuth-only"]
+    OPS_02["OPS-02 Pinned image and reproducible installed artifact"]
+    OPS_03["OPS-03 C1 host/port/Caddy ownership freshness check"]
+    OPS_04["OPS-04 Fresh isolated PostgreSQL 16 database and role"]
+    OPS_05["OPS-05 Memory-specific Infisical secrets and OAuth configuration"]
+    OPS_06["OPS-06 TLS proxy and public OAuth metadata routes"]
+    OPS_07["OPS-07 Real PostgreSQL health with injected carrier faults"]
+    OPS_08["OPS-08 New PostgreSQL backup and isolated restore rehearsal"]
+    OPS_09["OPS-09 Release runner and publisher readiness"]
+    OPS_10["OPS-10 Disposable externally reachable staging proof"]
+    OPS_11["OPS-11 Runtime config drift and managed restart"]
+  end
+  subgraph PROJ["PROJ: Graphiti provider correctness and conditional Zep qualification"]
+    PROJ_01["PROJ-01 Pin Graphiti add_memory tool schema and metadata semantics"]
+    PROJ_02["PROJ-02 Honor MCP tool isError on all Graphiti responses"]
+    PROJ_03["PROJ-03 Distinguish provider semantic and availability faults"]
+    PROJ_04["PROJ-04 Half-open probe timeout recovery and single-probe rule"]
+    PROJ_05["PROJ-05 Session handshake failures settle breaker state"]
+    PROJ_06["PROJ-06 Positive provider acceptance required for projection link"]
+    PROJ_07["PROJ-07 Outbox integrated isError and erase proof"]
+    PROJ_08["PROJ-08 Reconcile pre-existing phantom links safely"]
+    PROJ_09["PROJ-09 Graphiti provider call idempotency and duplicate episodes"]
+    PROJ_10["PROJ-10 Graphiti real provider qualification in isolated scope"]
+    PROJ_11["PROJ-11 Explicit Zep disposition: retire or qualify, no automatic fallback"]
+    PROJ_12["PROJ-12 If retained, Zep delivered bytes equal digested bytes"]
+    PROJ_13["PROJ-13 If retained, Zep readiness probes real reachability"]
+    PROJ_14["PROJ-14 Projection provider target manifest and activation gate"]
+  end
+  subgraph QA["QA: Source, tests, regressions, independent evidence and no-false-green checks"]
+    QA_01["QA-01 Map all audit findings to verified fix or proven removal"]
+    QA_02["QA-02 Finish 144-module source audit with range reads"]
+    QA_03["QA-03 Forbidden compatibility reachability scanner"]
+    QA_04["QA-04 Integrated critical negative controls"]
+    QA_05["QA-05 Provider/outbox fault-injected integration"]
+    QA_06["QA-06 PostgreSQL 16 multi-process concurrency stress"]
+    QA_07["QA-07 Provider and maintenance qualification, conditional truth"]
+    QA_08["QA-08 Actual Claude/Cursor OAuth and surface evidence matrix"]
+    QA_09["QA-09 Canonical release validation exact-head receipt"]
+    QA_10["QA-10 Independent per-PR code audit, CI and review closure"]
+    QA_11["QA-11 Independent full-graph acceptance and unknown disposition"]
+    QA_12["QA-12 Exact source/OCI/runtime identity provenance receipts"]
+  end
+  subgraph RET["RET: Global reference-safe retention and maintenance"]
+    RET_01["RET-01 Full incoming-reference semantics"]
+    RET_02["RET-02 Persisted incoming-reference count query"]
+    RET_03["RET-03 Retention planner uses global reference evidence"]
+    RET_04["RET-04 Retention apply race/authorization proof"]
+    RET_05["RET-05 Retention and maintenance full Postgres proof"]
+    RET_06["RET-06 Maintenance readout reflects required capability state"]
+  end
+  subgraph STOR["STOR: Postgres-only runtime, secrets and legacy storage removal"]
+    STOR_01["STOR-01 PostgreSQL-only canonical server and RLS isolation"]
+    STOR_02["STOR-02 Postgres lifecycle adapter atomic persistence tests"]
+    STOR_03["STOR-03 Remove production SQLite storage and old transaction path"]
+    STOR_04["STOR-04 Remove legacy deferred write queue and migration CLI"]
+    STOR_05["STOR-05 In-memory test adapter remains nonproduction only"]
+    STOR_06["STOR-06 Secret model redaction and telemetry hygiene"]
+    STOR_07["STOR-07 Infisical rotation applied to active authenticators"]
+    STOR_08["STOR-08 Operational principal/env override lockdown"]
+    STOR_09["STOR-09 Provider credentials and key lifecycle isolated by role"]
+  end
+  GOV_01 --> GOV_02
+  GOV_02 --> GOV_03
+  GOV_01 --> GOV_04
+  GOV_04 --> GOV_05
+  GOV_02 --> GOV_05
+  GOV_05 --> GOV_06
+  GOV_02 --> GOV_07
+  GOV_03 --> GOV_08
+  GOV_04 --> GOV_08
+  GOV_01 --> GOV_09
+  GOV_03 --> GOV_10
+  MCP_08 --> GOV_10
+  AUTH_15 --> GOV_10
+  GOV_03 --> GOV_11
+  MCP_08 --> GOV_11
+  STOR_03 --> GOV_11
+  QA_11 --> GOV_12
+  CUT_15 --> GOV_12
+  GOV_06 --> AUTH_01
+  GOV_08 --> AUTH_01
+  AUTH_01 --> AUTH_02
+  GOV_03 --> AUTH_02
+  AUTH_01 --> AUTH_03
+  AUTH_02 --> AUTH_03
+  AUTH_02 --> AUTH_04
+  AUTH_03 --> AUTH_04
+  AUTH_04 --> AUTH_05
+  AUTH_05 --> AUTH_06
+  AUTH_01 --> AUTH_07
+  AUTH_06 --> AUTH_07
+  AUTH_05 --> AUTH_08
+  AUTH_06 --> AUTH_08
+  GOV_05 --> AUTH_09
+  GOV_06 --> AUTH_09
+  AUTH_08 --> AUTH_09
+  GOV_05 --> AUTH_10
+  AUTH_09 --> AUTH_10
+  GOV_04 --> AUTH_11
+  GOV_05 --> AUTH_11
+  AUTH_11 --> AUTH_12
+  AUTH_09 --> AUTH_13
+  AUTH_10 --> AUTH_13
+  AUTH_11 --> AUTH_13
+  AUTH_12 --> AUTH_13
+  AUTH_05 --> AUTH_14
+  AUTH_08 --> AUTH_14
+  AUTH_04 --> AUTH_15
+  AUTH_08 --> AUTH_15
+  AUTH_13 --> AUTH_15
+  AUTH_08 --> AUTH_16
+  AUTH_13 --> AUTH_16
+  AUTH_04 --> AUTH_17
+  AUTH_07 --> AUTH_17
+  AUTH_01 --> MCP_01
+  GOV_03 --> MCP_01
+  MCP_01 --> MCP_02
+  AUTH_04 --> MCP_02
+  MCP_02 --> MCP_03
+  AUTH_15 --> MCP_03
+  MCP_02 --> MCP_04
+  MCP_02 --> MCP_05
+  MCP_02 --> MCP_06
+  MCP_06 --> MCP_07
+  MCP_02 --> MCP_08
+  AUTH_05 --> MCP_08
+  MCP_05 --> MCP_09
+  AUTH_07 --> MCP_09
+  MCP_05 --> MCP_10
+  GOV_08 --> MCP_10
+  MCP_04 --> MCP_11
+  MCP_08 --> MCP_11
+  MCP_06 --> MCP_12
+  AUTH_08 --> MCP_12
+  MCP_08 --> MCP_12
+  GOV_02 --> DATA_01
+  DATA_01 --> DATA_02
+  DATA_01 --> DATA_03
+  DATA_02 --> DATA_03
+  GOV_05 --> DATA_04
+  DATA_04 --> DATA_05
+  GOV_03 --> DATA_05
+  DATA_03 --> DATA_06
+  DATA_05 --> DATA_06
+  AUTH_08 --> DATA_07
+  AUTH_16 --> DATA_07
+  GOV_02 --> DATA_08
+  STOR_01 --> DATA_09
+  MCP_07 --> DATA_10
+  GOV_09 --> PROJ_01
+  PROJ_01 --> PROJ_02
+  PROJ_02 --> PROJ_03
+  PROJ_03 --> PROJ_04
+  PROJ_04 --> PROJ_05
+  PROJ_02 --> PROJ_06
+  PROJ_03 --> PROJ_06
+  PROJ_06 --> PROJ_07
+  PROJ_07 --> PROJ_08
+  PROJ_01 --> PROJ_09
+  LIFE_03 --> PROJ_09
+  PROJ_07 --> PROJ_10
+  PROJ_09 --> PROJ_10
+  GOV_09 --> PROJ_11
+  PROJ_11 --> PROJ_12
+  PROJ_11 --> PROJ_13
+  PROJ_10 --> PROJ_14
+  RET_05 --> PROJ_14
+  QA_07 --> PROJ_14
+  GOV_03 --> LIFE_01
+  GOV_09 --> LIFE_01
+  LIFE_01 --> LIFE_02
+  LIFE_02 --> LIFE_03
+  PROJ_06 --> LIFE_03
+  LIFE_03 --> LIFE_04
+  LIFE_02 --> LIFE_05
+  LIFE_03 --> LIFE_05
+  LIFE_05 --> LIFE_06
+  LIFE_01 --> LIFE_07
+  LIFE_02 --> LIFE_07
+  LIFE_07 --> LIFE_08
+  LIFE_08 --> LIFE_09
+  LIFE_03 --> LIFE_09
+  LIFE_02 --> LIFE_10
+  DATA_05 --> LIFE_10
+  LIFE_10 --> LIFE_11
+  LIFE_05 --> LIFE_11
+  LIFE_04 --> LIFE_12
+  LIFE_06 --> LIFE_12
+  LIFE_09 --> LIFE_12
+  LIFE_10 --> LIFE_12
+  GOV_03 --> RET_01
+  RET_01 --> RET_02
+  STOR_01 --> RET_02
+  RET_02 --> RET_03
+  RET_03 --> RET_04
+  LIFE_02 --> RET_04
+  RET_04 --> RET_05
+  MCP_07 --> RET_06
+  RET_05 --> RET_06
+  GOV_07 --> STOR_01
+  GOV_04 --> STOR_01
+  STOR_01 --> STOR_02
+  LIFE_07 --> STOR_02
+  STOR_01 --> STOR_03
+  GOV_07 --> STOR_03
+  GOV_07 --> STOR_04
+  STOR_01 --> STOR_04
+  STOR_01 --> STOR_05
+  DATA_09 --> STOR_05
+  AUTH_17 --> STOR_06
+  AUTH_14 --> STOR_07
+  AUTH_08 --> STOR_08
+  STOR_01 --> STOR_08
+  STOR_01 --> STOR_09
+  STOR_06 --> STOR_09
+  MCP_06 --> HYG_01
+  MCP_03 --> HYG_02
+  AUTH_15 --> HYG_02
+  STOR_03 --> HYG_02
+  STOR_04 --> HYG_02
+  GOV_10 --> HYG_02
+  PROJ_03 --> HYG_03
+  MCP_04 --> HYG_03
+  MCP_05 --> HYG_03
+  AUTH_15 --> OPS_01
+  MCP_03 --> OPS_01
+  STOR_01 --> OPS_01
+  MCP_12 --> OPS_01
+  OPS_01 --> OPS_02
+  GOV_11 --> OPS_02
+  GOV_07 --> OPS_03
+  OPS_03 --> OPS_04
+  STOR_01 --> OPS_04
+  OPS_03 --> OPS_05
+  AUTH_07 --> OPS_05
+  STOR_09 --> OPS_05
+  OPS_03 --> OPS_06
+  AUTH_02 --> OPS_06
+  OPS_01 --> OPS_06
+  OPS_02 --> OPS_07
+  OPS_04 --> OPS_07
+  MCP_07 --> OPS_07
+  OPS_04 --> OPS_08
+  STOR_02 --> OPS_08
+  OPS_07 --> OPS_09
+  QA_09 --> OPS_09
+  OPS_07 --> OPS_10
+  OPS_06 --> OPS_10
+  AUTH_07 --> OPS_10
+  OPS_02 --> OPS_11
+  OPS_05 --> OPS_11
+  STOR_07 --> OPS_11
+  MCP_08 --> CONS_01
+  AUTH_13 --> CONS_01
+  GOV_08 --> CONS_01
+  CONS_01 --> CONS_02
+  AUTH_07 --> CONS_02
+  AUTH_07 --> CONS_03
+  OPS_10 --> CONS_03
+  CONS_03 --> CONS_04
+  AUTH_10 --> CONS_04
+  AUTH_13 --> CONS_05
+  CONS_02 --> CONS_05
+  CONS_04 --> CONS_05
+  CONS_01 --> CONS_06
+  CONS_05 --> CONS_06
+  CONS_06 --> CONS_07
+  MCP_03 --> CONS_07
+  CONS_02 --> CONS_08
+  CONS_04 --> CONS_08
+  CONS_05 --> CONS_08
+  OPS_10 --> CONS_08
+  CONS_08 --> CONS_09
+  AUTH_14 --> CONS_09
+  CONS_08 --> CONS_10
+  MCP_10 --> CONS_10
+  GOV_09 --> QA_01
+  GOV_09 --> QA_02
+  AUTH_15 --> QA_03
+  MCP_03 --> QA_03
+  STOR_03 --> QA_03
+  STOR_04 --> QA_03
+  HYG_02 --> QA_03
+  AUTH_13 --> QA_04
+  DATA_06 --> QA_04
+  DATA_07 --> QA_04
+  MCP_08 --> QA_04
+  PROJ_10 --> QA_05
+  LIFE_12 --> QA_05
+  LIFE_12 --> QA_06
+  MCP_12 --> QA_06
+  STOR_02 --> QA_06
+  PROJ_10 --> QA_07
+  RET_05 --> QA_07
+  PROJ_11 --> QA_07
+  CONS_09 --> QA_08
+  AUTH_13 --> QA_08
+  QA_03 --> QA_09
+  QA_04 --> QA_09
+  OPS_02 --> QA_09
+  MCP_12 --> QA_09
+  DATA_06 --> QA_09
+  QA_09 --> QA_10
+  QA_02 --> QA_10
+  QA_10 --> QA_11
+  QA_06 --> QA_11
+  QA_08 --> QA_11
+  CUT_14 --> QA_11
+  QA_09 --> QA_12
+  AUTH_11 --> QA_12
+  OPS_02 --> QA_12
+  OPS_07 --> CUT_01
+  QA_04 --> CUT_01
+  QA_03 --> CUT_01
+  OPS_05 --> CUT_01
+  CUT_01 --> CUT_02
+  OPS_10 --> CUT_02
+  CONS_02 --> CUT_02
+  CUT_02 --> CUT_03
+  CONS_08 --> CUT_03
+  QA_08 --> CUT_03
+  CUT_02 --> CUT_04
+  OPS_08 --> CUT_04
+  CUT_03 --> CUT_05
+  CUT_04 --> CUT_05
+  OPS_03 --> CUT_05
+  OPS_09 --> CUT_05
+  CUT_05 --> CUT_06
+  CUT_06 --> CUT_07
+  QA_12 --> CUT_07
+  CUT_07 --> CUT_08
+  CONS_09 --> CUT_08
+  CUT_08 --> CUT_09
+  OPS_11 --> CUT_09
+  CUT_08 --> CUT_10
+  CUT_09 --> CUT_10
+  GOV_07 --> CUT_10
+  CONS_07 --> CUT_11
+  CUT_08 --> CUT_11
+  CUT_08 --> CUT_12
+  CUT_10 --> CUT_12
+  CUT_11 --> CUT_13
+  CUT_12 --> CUT_13
+  CUT_09 --> CUT_13
+  QA_07 --> CUT_14
+  QA_06 --> CUT_14
+  QA_02 --> CUT_14
+  HYG_03 --> CUT_14
+  DATA_08 --> CUT_14
+  RET_06 --> CUT_14
+  PROJ_14 --> CUT_14
+  CUT_13 --> CUT_15
+  CUT_14 --> CUT_15
+  QA_11 --> CUT_15

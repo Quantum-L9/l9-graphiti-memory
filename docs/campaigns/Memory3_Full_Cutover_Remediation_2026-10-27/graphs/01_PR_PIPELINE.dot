@@ -1,0 +1,30 @@
+digraph P {
+graph [rankdir=LR,bgcolor="white",pad="0.22",nodesep="0.2",ranksep="0.33",fontname="DejaVu Sans"];
+node [shape=box,style="rounded,filled",fontname="DejaVu Sans",fontsize=10,color="#6f7f99",penwidth=1.1,margin="0.11,0.08"];
+edge [color="#8795a8",arrowsize=0.6];
+P00 [label="P00 | 10 nodes\nArchitecture decision, source/authority inventory",fillcolor="#e9e4f5"];
+P01 [label="P01 | 6 nodes\nCanonical data integrity and sensitive admission",fillcolor="#e0f2e5"];
+P02 [label="P02 | 15 nodes\nAuth0 OAuth resource server and Postgres security",fillcolor="#e0f2e5"];
+P03 [label="P03 | 9 nodes\nNative MCP wire/runtime and client behavior",fillcolor="#e0f2e5"];
+P04 [label="P04 | 7 nodes\nComplete evidence-bound identity and operator authority",fillcolor="#e0f2e5"];
+P05 [label="P05 | 8 nodes\nGraphiti provider error transport",fillcolor="#fff0d5"];
+P06 [label="P06 | 14 nodes\nLifecycle capability, lease and deletion correctness",fillcolor="#fff0d5"];
+P07 [label="P07 | 9 nodes\nReference-safe retention and adapter parity",fillcolor="#fff0d5"];
+P08 [label="P08 | 8 nodes\nProvider qualification and remaining safety defects",fillcolor="#fff0d5"];
+P09 [label="P09 | 11 nodes\nRemove obsolete compatibility routes and docs",fillcolor="#dfeefa"];
+P10 [label="P10 | 14 nodes\nRetarget PR #101 and prove source-owned OCI carrier",fillcolor="#dfeefa"];
+C784 [label="C784 | 11 nodes\nConsumer PR #784 native OAuth/identity handoff",fillcolor="#dfeefa"];
+P12 [label="P12 | 21 nodes\nIndependent assurance, authorized release and C1 cutover",fillcolor="#e9e4f5"];
+P00 -> P01 [penwidth=1.35];
+P01 -> P02 [penwidth=1.35];
+P02 -> P03 [penwidth=1.35];
+P03 -> P04 [penwidth=1.35];
+P04 -> P05 [penwidth=1.35];
+P05 -> P06 [penwidth=1.35];
+P06 -> P07 [penwidth=1.35];
+P07 -> P08 [penwidth=1.35];
+P08 -> P09 [penwidth=1.35];
+P09 -> P10 [penwidth=1.35];
+P10 -> C784 [penwidth=1.35];
+C784 -> P12 [penwidth=1.35];
+}

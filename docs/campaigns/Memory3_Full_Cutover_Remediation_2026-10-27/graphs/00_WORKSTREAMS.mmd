@@ -1,0 +1,17 @@
+flowchart LR
+  GOV["GOV • authority and full-cutover law"] --> DATA["DATA • truthful canonical ingestion"]
+  GOV --> AUTH["AUTH • Auth0 and complete identity"]
+  AUTH --> MCP["MCP • native HTTP only"]
+  DATA --> CORE["Core correctness gates"]
+  MCP --> CORE
+  CORE --> OPS["PR101 • OAuth-only carrier"]
+  OPS --> CONS["PR784 • Cursor and Claude native clients"]
+  CONS --> CUT["C1 • authorized switch"]
+  CUT --> HOSTED["CUT-13 • hosted core"]
+  GOV --> PROJ["PROJ • Graphiti response integrity"]
+  PROJ --> LIFE["LIFE • atomic lifecycle"]
+  LIFE --> RET["RET • reference-safe retention"]
+  RET --> QA["QA • full independent audit"]
+  QA --> FULL["CUT-14 • full correctness"]
+  HOSTED --> FINAL["CUT-15 • final admission"]
+  FULL --> FINAL
