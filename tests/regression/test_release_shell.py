@@ -207,8 +207,7 @@ def test_release_validation_supports_exact_prebuilt_artifact_consumption() -> No
     builds = [
         tokens
         for tokens in _validator_commands()
-        if "scripts/build_release_artifacts.sh" in tokens
-        or ("build" in tokens and "-m" in tokens)
+        if "scripts/build_release_artifacts.sh" in tokens or ("build" in tokens and "-m" in tokens)
     ]
     assert len(builds) == 1, builds
     assert "scripts/build_release_artifacts.sh" in builds[0], builds[0]
