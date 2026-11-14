@@ -191,4 +191,3 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 ## Pending before the 3.0.0 tag
 
 - The 3.0.0 admission receipt `docs/receipts/l9-memory-release-3.0.0.md` (ADR-094; checked by `tools/assurance/verify_release_admission.py`). It is the operator's decision and can only be written after the tag's commit exists.
-
