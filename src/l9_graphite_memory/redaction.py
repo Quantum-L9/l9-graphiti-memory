@@ -80,7 +80,11 @@ def dsn_components(dsn: str) -> tuple[str, ...]:
         user, _, password = userinfo.partition(":")
         values.extend([user, password, unquote(user), unquote(password)])
         host = (match.group("host") or "").strip("[]")
-        values.extend([host, match.group("port") or "", match.group("path") or ""])
+        port = match.group("port") or ""
+        path = match.group("path") or ""
+        # libpq percent-decodes every URI component before it uses or reports
+        # it, so the decoded form is what a driver message carries.
+        values.extend([host, port, path, unquote(host), unquote(port), unquote(path)])
         for pair in (match.group("query") or "").split("&"):
             name, _, value = pair.partition("=")
             if name in _IDENTIFYING or _SECRET_NAME.search(name):

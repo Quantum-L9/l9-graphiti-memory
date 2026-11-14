@@ -69,6 +69,17 @@ HOSTILE_DSNS: dict[str, tuple[str, tuple[str, ...]]] = {
         ),
         ("S3cr%40t:Uri", "S3cr@t:Uri", "QuerySecret9", HOST, USER, DB),
     ),
+    "uri, percent-encoded host and database": (
+        f"postgresql://{USER}:EncodedPw7@l9%2Du011%2Dnowhere.invalid/memdb%5Fu011%2Dprod",
+        (
+            "EncodedPw7",
+            "l9%2Du011%2Dnowhere.invalid",
+            HOST,
+            "memdb%5Fu011%2Dprod",
+            "memdb_u011-prod",
+            USER,
+        ),
+    ),
     "uri, broken (unterminated IPv6 host)": (
         f"postgresql://{USER}:BrokenUriPw@[{HOST}",
         ("BrokenUriPw", HOST, USER),
@@ -107,6 +118,11 @@ def test_driver_style_messages_are_scrubbed_with_and_without_the_dsn(case: str) 
     ]
     for message in messages:
         _assert_clean(redact_connection_error(message, dsn), secrets, "redacted message")
+    # A driver reports components as it decoded them, not as the URI spelled them.
+    for secret in (HOST, "memdb_u011-prod"):
+        if secret in secrets:
+            decoded = f'FATAL:  database "{secret}" does not exist'
+            _assert_clean(redact_connection_error(decoded, dsn), (secret,), "decoded component")
     # Without the DSN, the generic layer still strips labelled credentials.
     generic = redact_connection_error(f"failed for {dsn}")
     for marker in ("Hunter2Bare", "QuerySecret9", "S3cr%40t:Uri", "BrokenUriPw", "BrokenKwPw"):
