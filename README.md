@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-10-14
+updated: 2026-11-14
 /L9_META -->
 
 # L9 Graphiti Memory
@@ -271,7 +271,7 @@ bash scripts/preflight.sh
 bash scripts/validate_release.sh
 ```
 
-`validate_release.sh` builds and installs the wheel, runs installed-package smoke checks, and writes evidence to the untracked `build/release-validation/` workspace (override with `L9_RELEASE_EVIDENCE_DIR`); it never writes the tracked `validation/` tree. Live provider, production migration, hosted CodeQL, branch-protection, and credential-rotation proofs remain external release gates.
+`validate_release.sh` builds and installs the wheel, runs installed-package smoke checks, and writes evidence to the untracked `build/release-validation/` workspace (override with `L9_RELEASE_EVIDENCE_DIR`); it never writes the tracked `validation/` tree. Live provider, Gate staging, production migration, branch-protection and release-environment, and credential-rotation proofs are not proven by local validation. For 3.0.0 each remaining-proof item (RP-001 to RP-009) is classified in `docs/REMAINING_PRODUCTION_PROOF.md` ("3.0.0 classification"), separately for the package and the hosted carrier. That classification is proposed for the decision owner's acceptance, and none of its open items is represented as a local pass.
 
 ## Documentation
 

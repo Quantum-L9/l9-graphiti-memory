@@ -6,10 +6,12 @@ layer: documentation
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-11-14
 /L9_META -->
 
 # Remaining Production Proof
+
+> This is the 2.2.0 statement, kept as written. For the 3.0.0 release, each item is classified in `docs/REMAINING_PRODUCTION_PROOF.md` ("3.0.0 classification"). That classification is proposed for the decision owner's acceptance.
 
 The package is internally aligned and self-policing. Its local architecture, source tree, contracts, manifests, tests, ADRs, alignment gates, wheel, and clean-room rebuild are proven. Production release remains blocked because the authoritative TransportPacket package, production Gate client, dispatch-receipt schema, provider credentials, production-like migration environment, hosted repository controls, and external secret manager were not available inside the pack.
 
