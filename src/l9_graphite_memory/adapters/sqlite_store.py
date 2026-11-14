@@ -133,6 +133,18 @@ CREATE TABLE IF NOT EXISTS {table} (
 )
 """
 
+# Schema-7 -> schema-8 rekey target, rendered once from the closed DDL above so
+# the executed statement is a module constant, never formatted at the call site.
+_PROJECTION_LINKS_V8_DDL = _PROJECTION_LINKS_DDL.format(table="projection_links_v8")
+
+# Outbox lease columns added to pre-lease databases: a closed, in-code mapping
+# from column name to its complete DDL statement. No identifier is interpolated.
+_OUTBOX_LEASE_COLUMN_DDL: tuple[tuple[str, str], ...] = (
+    ("lease_id", "ALTER TABLE outbox_events ADD COLUMN lease_id TEXT"),
+    ("lease_owner", "ALTER TABLE outbox_events ADD COLUMN lease_owner TEXT"),
+    ("lease_expires_at", "ALTER TABLE outbox_events ADD COLUMN lease_expires_at TEXT"),
+)
+
 
 def _json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), default=str)
@@ -339,9 +351,9 @@ class SQLiteRecordStore:
             outbox_columns = {
                 str(row[1]) for row in tx.execute("PRAGMA table_info(outbox_events)").fetchall()
             }
-            for column in ("lease_id", "lease_owner", "lease_expires_at"):
+            for column, column_ddl in _OUTBOX_LEASE_COLUMN_DDL:
                 if column not in outbox_columns:
-                    tx.execute(f"ALTER TABLE outbox_events ADD COLUMN {column} TEXT")
+                    tx.execute(column_ddl)
             self._backfill_source_selectors(tx)
             tx.execute(
                 "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)",
@@ -366,7 +378,7 @@ class SQLiteRecordStore:
         }
         if not columns or "target_identity" in columns:
             return
-        tx.execute(_PROJECTION_LINKS_DDL.format(table="projection_links_v8"))
+        tx.execute(_PROJECTION_LINKS_V8_DDL)
         tx.execute(
             """
             INSERT INTO projection_links_v8 (
