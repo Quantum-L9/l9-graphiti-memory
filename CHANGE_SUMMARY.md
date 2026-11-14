@@ -181,7 +181,7 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 - ADR-104: Core repository execution V2 (`.l9/repo-workflow.json`, Core's `make-v1` facade as the root `Makefile`, recipes in `Repo.mk`); the alignment scan judges only this repository's files (#120)
 - Six code-scanning findings on `main` cleared (#116)
 - Release and hosted-door statements in the tracked documents made true for 3.0.0 (#112)
-- Remaining-proof items RP-001 to RP-009 classified for the 3.0.0 release scope, package and hosted carrier separately, as CLOSED, NOT APPLICABLE TO THIS RELEASE, or OPEN — ACCEPTED RESIDUAL RISK. The classification is proposed for the decision owner's acceptance, and `VALIDATION.md` and the status documents follow it (`docs/REMAINING_PRODUCTION_PROOF.md`)
+- Remaining-proof items RP-001 to RP-009 classified for the 3.0.0 release scope, package and hosted carrier separately, as CLOSED, NOT APPLICABLE TO THIS RELEASE, or OPEN — ACCEPTED RESIDUAL RISK. The classification is proposed for the decision owner's acceptance, and `VALIDATION.md` and the status documents follow it (`docs/REMAINING_PRODUCTION_PROOF.md`). Release evidence derives each external finding's blocking flag and `production_release_status` from `release-work/remaining-proof-classification.json` and fails closed; the non-blocked status is `ADMISSIBLE_WITH_ACCEPTED_RESIDUAL_RISK` (ADR-105). The 2026-10-27 source audit's 29 items are classified at 3.0.0 in the same document (#127)
 
 ### Dependencies
 

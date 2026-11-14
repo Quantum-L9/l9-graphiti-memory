@@ -46,6 +46,7 @@ The tracked `validation/validation_report.yaml` reports release `2.5.0`, not
 - RP-001 is CLOSED for the package.
 - RP-002 to RP-006 are NOT APPLICABLE TO THIS RELEASE for the hosted carrier, because it has no Gate egress, its projection, graph and active-memory backends are pinned off, and its store starts empty.
 - For the package, RP-002 to RP-006 are OPEN — ACCEPTED RESIDUAL RISK. RP-007 and RP-008 are OPEN — ACCEPTED RESIDUAL RISK for this release.
+- The 2026-10-27 source audit (F-001 to F-020, U-*) is classified in the same document, "Audit findings of 2026-10-27, status at 3.0.0". Its item U-011 (the unauthenticated readiness probes return store error text and the record count on the hosted carrier) is referred to the decision owner as a blocker candidate. It is not proposed as residual risk, and the generated status does not cover it.
 - RP-009, the release decision, is discharged only by the decision owner merging the 3.0.0 admission receipt (`docs/receipts/l9-memory-release-3.0.0.md`, ADR-094).
 - That classification is proposed for acceptance by the decision owner. Merging it on the default branch is that acceptance. Until then the 2.2.0 outcome below stands.
 - No 3.0.0 deployment exists. Release admission, service admission and deployment are separate decisions.
