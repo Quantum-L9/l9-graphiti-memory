@@ -204,5 +204,43 @@ class SelectorIndexTests(unittest.TestCase):
         self.assertEqual(rows, [])
 
 
+class SelectorIndexTableNameTests(unittest.TestCase):
+    """The table name comes from the inspected file and is bound, never quoted in."""
+
+    def test_a_table_name_with_a_double_quote_is_inspected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            database = Path(temp) / "quoted.sqlite3"
+            connection = sqlite3.connect(database)
+            try:
+                connection.executescript(
+                    """
+                    CREATE TABLE "odd""selectors" (
+                        record_id TEXT NOT NULL,
+                        selector_type TEXT NOT NULL,
+                        selector_value TEXT NOT NULL
+                    );
+                    CREATE INDEX idx_odd ON "odd""selectors" (selector_type, selector_value);
+                    """
+                )
+                connection.commit()
+            finally:
+                connection.close()
+
+            completed = subprocess.run(
+                [sys.executable, str(VERIFIER), "--database", str(database)],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=30,
+            )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(
+            result["selector_tables"],
+            {'odd"selectors': ["record_id", "selector_type", "selector_value"]},
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
