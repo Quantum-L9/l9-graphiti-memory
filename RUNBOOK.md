@@ -1052,4 +1052,23 @@ circuit-breaker on dispatch — `send_to_gate` does not authorize those.
 bash scripts/validate_release.sh
 ```
 
-The command writes real evidence to `validation/` and exits nonzero on a hard failure. It does not claim live provider, hosted CI, production migration, or credential-rotation proof without those environments.
+The command writes evidence to the untracked `build/release-validation/` (never the tracked `validation/` tree) and exits nonzero on a hard failure. It does not claim live provider, hosted CI, production migration, or credential-rotation proof without those environments.
+
+Release artifacts are built only by `scripts/build_release_artifacts.sh` (also
+used by `publish.yml` and the `release-container.yml` admission job). For one
+commit and `SOURCE_DATE_EPOCH` it yields byte-identical wheel and sdist on any
+machine, checkout time and umask (ADR-022 amendment 2026-11-14). To obtain the
+digests an admission receipt (`docs/receipts/l9-memory-release-<version>.md`,
+ADR-094) names, before the tag:
+
+```bash
+git clone https://github.com/Quantum-L9/l9-graphiti-memory release-src
+cd release-src && git checkout <release commit>
+uv sync --frozen --no-install-project --no-build --extra dev
+SOURCE_DATE_EPOCH=1784592000 PYTHON=.venv/bin/python \
+  bash scripts/build_release_artifacts.sh ../release-dist
+sha256sum ../release-dist/*
+```
+
+The script prints the source commit; if it warns that the working tree differs
+from that commit, the digests are not admissible.

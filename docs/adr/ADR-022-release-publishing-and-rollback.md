@@ -128,3 +128,76 @@ that alters the bytes fails closed.
 No new authority, schema or approval is introduced: the authority, the subject
 set and the receipt form already exist (ADR-094, the release binding, the
 2.6.0 receipt). This amendment adds enforcement only.
+
+## Amendment — one reproducible build recipe for the admitted artifacts (2026-11-14)
+
+**Decision date:** 2026-11-14 (#125).
+
+### The gap
+
+The admission gate of the 2026-10-15 amendment passes only when the receipt's
+wheel and sdist sha256 equal the files a workflow builds from the tag. Two
+workflows build them independently from a fresh checkout: `publish.yml` and the
+`admission` job of `release-container.yml`. setuptools' sdist was not
+reproducible: each member carried its checkout mtime and its umask-dependent
+mode (0644 or 0664), the build-time members (PKG-INFO, SOURCES.txt, setup.cfg)
+carried the build time, and pax records carried both as fractional seconds. The
+wheel carried umask-dependent modes. For commit `78d2205` one wheel came with
+four different sdist digests (two CI matrix legs, a worktree build, a
+`git archive` export build) whose extracted contents were identical. The build
+backend also floated: `setuptools>=68` resolved to whatever release was current
+at build time. So no receipt written before a run could match the sdist that
+run built, the two workflows could not match each other, and the
+"admit the tuple the publish job reports, then re-run" consequence above could
+not hold either: the re-run rebuilds and gets new bytes. This is also why the
+2.6.0 sdist on PyPI differs from the admitted one.
+
+### Decision
+
+1. `scripts/build_release_artifacts.sh` is the single build recipe for the
+   release artifact set. `publish.yml`, the `release-container.yml` admission
+   job and `scripts/validate_release.sh` build only through it; none calls
+   `python -m build` directly.
+2. It requires an integer `SOURCE_DATE_EPOCH` (fail closed), builds with the
+   exactly pinned backend (`[build-system] requires = ["setuptools==84.2.1"]`),
+   then `tools/assurance/reproducible_artifacts.py` rewrites both archives into
+   a canonical form: sdist members sorted, mtime = `SOURCE_DATE_EPOCH`,
+   uid/gid 0 with empty names, modes 0644 / 0755 by executable bit, no pax time
+   records, gzip header mtime 0 and no file name, deflate level 9; wheel entries
+   in build order with `SOURCE_DATE_EPOCH` timestamps and 0100644 / 0100755
+   attributes. The rewrite proves the member set, types, executable bits and
+   bytes unchanged, and the result is checked to be a fixed point.
+3. For one commit and one epoch the bytes are identical across checkout time,
+   umask and Python 3.10 through 3.13 (proven in #125). Both release workflows
+   still build with the same pinned Python, and a contract test keeps them
+   equal.
+4. setuptools packs the working tree, so the recipe prints the source commit
+   and warns, naming the paths, when the tree differs from it; such digests are
+   not admissible.
+5. The authority obtains the digests to admit before the tag by running
+   `SOURCE_DATE_EPOCH=1784592000 bash scripts/build_release_artifacts.sh <dir>`
+   on a clean checkout of the release commit. The receipt can then merge before
+   the tag is pushed, and the tag-push run publishes in one pass. The two-pass
+   sequence of the 2026-10-15 amendment remains valid when the receipt is not
+   yet merged at tag time.
+
+### Consequences
+
+Changing the build backend version, the canonical form or the compression
+level changes the digests of every later build of a commit; a receipt binds the
+recipe of the commit it admits. The admission verifier, its semantics and the
+receipt form are unchanged.
+
+### Rollback
+
+Revert the recipe and route the three build sites back to `python -m build`.
+The admission gate then returns to the pre-amendment state, in which the sdist
+digest cannot be predicted.
+
+### Validation
+
+`tests/regression/test_reproducible_release_artifacts.py`: canonical form on
+synthetic archives, an end-to-end build of two copies of the tracked tree
+under different mtimes and umasks with identical digests, fail-closed epoch
+handling, and workflow contract checks (single recipe, same Python and epoch,
+exactly pinned backend).
