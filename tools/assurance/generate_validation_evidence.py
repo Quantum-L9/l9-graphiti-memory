@@ -205,8 +205,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 143 -> 144 for the ADR-082 2026-10-16 amendment:
         # remote_client.py.
         # Re-pinned 144 -> 145 for ADR-102: authz/oauth.py.
-        "145 production files pass",
-        r"PASS: 145 production Python files",
+        # Re-pinned 145 -> 147 for U-011: redaction.py (the one DSN and
+        # connection-error redaction path) and public_probe.py (the public
+        # /healthz and /readyz bodies).
+        "147 production files pass",
+        r"PASS: 147 production Python files",
     ),
     CheckSpec(
         "V-012",
