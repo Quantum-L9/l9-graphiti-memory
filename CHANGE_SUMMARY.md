@@ -116,7 +116,7 @@ Tag `v2.6.0` (peeled commit `846f283`, #86). Admission receipt: `docs/receipts/l
 - Release validation made observational and artifact-exact (#77, #78)
 - Stale root alignment artifacts removed (#75)
 
-Known defect in the published artifact: the sdist on PyPI for 2.6.0 (`7507070e…`) is not the sdist the receipt admitted (`537ff040…`). Found and closed for later releases by the admission-receipt publish gate in 3.0.0 (#98).
+Known defect in the published artifact: the sdist on PyPI for 2.6.0 (`7507070e…`) is not the sdist the receipt admitted (`537ff040…`). Found and closed for later releases by the admission-receipt publish gate in 3.0.0 (#98). Cause, found later: the sdist was not reproducible (members carried checkout mtimes and umask-dependent modes, generated members the build time), so the published rebuild could not match the admitted bytes; fixed by the single reproducible build recipe (ADR-022 amendment 2026-11-14, #125).
 
 ## 3.0.0 — hosted Memory candidate (unreleased)
 
@@ -174,6 +174,7 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 - ADR-099: inventory and `L9_META` enforcement retired; `candidate_integrity` is the tracked-byte digest compared after validation, `UNVERIFIED` when git cannot enumerate (#99)
 - ADR-101: V-001 is derived from the run (no failures or errors, every collected node accounted for, skips on a committed allow-list, no node lost since the merge-base) instead of an exact pass count; missing input is `UNKNOWN`, never `PASS`. Release validation checks out full history (#109)
 - Publication gated on the exact-release admission receipt read from the protected default branch (ADR-022 amendment, #98)
+- Release wheel and sdist byte-reproducible through one build recipe, `scripts/build_release_artifacts.sh`, used by `publish.yml`, `release-container.yml` and `validate_release.sh`; build backend pinned to `setuptools==84.2.1` (ADR-022 amendment 2026-11-14, #125)
 - ProductTopology rebound to `.github` Semantic Foundation v3.21.0, claiming the hosted-Memory product-kind exception (ADR-094 amendment, #97)
 - A failing validation step prints its log (`cdf7fa5`); the alignment walk no longer races `git gc` (`4f1284a`)
 - Admitted-tag release publication procedure documented (#88); 2.6.0 admission recorded (#87)
@@ -190,4 +191,4 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 
 ## Pending before the 3.0.0 tag
 
-- The 3.0.0 admission receipt `docs/receipts/l9-memory-release-3.0.0.md` (ADR-094; checked by `tools/assurance/verify_release_admission.py`). It is the operator's decision and can only be written after the tag's commit exists.
+- The 3.0.0 admission receipt `docs/receipts/l9-memory-release-3.0.0.md` (ADR-094; checked by `tools/assurance/verify_release_admission.py`). It is the operator's decision and can only be written after the tag's commit exists. Its digests come from `SOURCE_DATE_EPOCH=1784592000 bash scripts/build_release_artifacts.sh <dir>` on a clean checkout of that commit (#125).

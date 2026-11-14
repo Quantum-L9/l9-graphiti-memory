@@ -78,7 +78,7 @@ jobs:
       - name: Sync locked environment
         run: uv sync --frozen --no-install-project --no-build --extra dev
       - name: Build the candidate wheel and sdist (not published here)
-        run: .venv/bin/python -m build --outdir dist
+        run: PYTHON=.venv/bin/python bash scripts/build_release_artifacts.sh dist
       - name: Check out the release admission record (default branch)
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:

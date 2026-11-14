@@ -237,10 +237,11 @@ printf 'All shell files parse.\n' > "$OUT/logs/shell_syntax.txt"
 
 # --- Release artifact set ------------------------------------------------------
 if [[ "$ARTIFACT_MODE" == "self-contained" ]]; then
-  # Build the wheel and sdist once with the locked `build` package (dev extra)
-  # into the untracked evidence workspace. uv-managed environments do not ship
-  # pip by default (ADR-069).
-  run wheel_build python3 -m build --outdir "$ART"
+  # Build the wheel and sdist once, through the repository's single release
+  # build recipe (the one publish.yml and release-container.yml use), with the
+  # locked `build` package (dev extra) into the untracked evidence workspace.
+  # uv-managed environments do not ship pip by default (ADR-069).
+  run wheel_build env PYTHON=python3 bash scripts/build_release_artifacts.sh "$ART"
   rm -rf "$ROOT/build/lib" "$ROOT/build/bdist".*
   find "$ROOT/src" -maxdepth 1 -type d -name "*.egg-info" -exec rm -rf {} +
 fi
