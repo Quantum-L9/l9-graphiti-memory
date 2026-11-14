@@ -279,22 +279,23 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         epoch = source_date_epoch(os.environ.get("SOURCE_DATE_EPOCH"))
-        print(
+        sys.stdout.write(
             f"reproducible-artifacts: SOURCE_DATE_EPOCH={epoch} python={sys.version.split()[0]} "
-            f"zlib={zlib.ZLIB_RUNTIME_VERSION} level={COMPRESSION_LEVEL}"
+            f"zlib={zlib.ZLIB_RUNTIME_VERSION} level={COMPRESSION_LEVEL}\n"
         )
         if args.command == "canonicalize":
-            for line in canonicalize(args.artifact_dir, epoch):
-                print(line)
+            sys.stdout.write(
+                "".join(f"{line}\n" for line in canonicalize(args.artifact_dir, epoch))
+            )
             return 0
         drift = check(args.artifact_dir, epoch)
     except ReproducibilityError as exc:
-        print(f"reproducible-artifacts: FAIL: {exc}", file=sys.stderr)
+        sys.stderr.write(f"reproducible-artifacts: FAIL: {exc}\n")
         return 1
     if drift:
-        print(f"reproducible-artifacts: FAIL: not canonical: {', '.join(drift)}", file=sys.stderr)
+        sys.stderr.write(f"reproducible-artifacts: FAIL: not canonical: {', '.join(drift)}\n")
         return 1
-    print("reproducible-artifacts: PASS: artifact set is canonical")
+    sys.stdout.write("reproducible-artifacts: PASS: artifact set is canonical\n")
     return 0
 
 
