@@ -86,7 +86,43 @@ carrier until the change that removes them.
 | Notification / client response | `202`, empty body. |
 | `GET`, `DELETE` | `405`, `Allow: POST`. No standalone stream, no session. |
 | Session | None. No `MCP-Session-Id` is issued or read. |
-| Probes | `GET /healthz`, `GET /readyz` (unauthenticated, as in 2.6.0). FastAPI's default `/docs`, `/redoc` and `/openapi.json` are also served unauthenticated; their exposure is a deployment decision. |
+| Probes | `GET /healthz`, `GET /readyz` (unauthenticated, as in 2.6.0; public body since 3.0.0, see §1a). FastAPI's default `/docs`, `/redoc` and `/openapi.json` are also served unauthenticated; their exposure is a deployment decision. |
+
+### 1a. Probe bodies are public (3.0.0, U-011)
+
+`/healthz` and `/readyz` carry no credential, so their bodies are public and
+are built by allowlist (`src/l9_graphite_memory/public_probe.py`), never by
+dumping the internal health report. Status codes are unchanged: `/healthz`
+answers `503` when `status` is `failed`, `/readyz` answers `200` only when
+`readiness.ready`, and a canonical store that becomes unreachable is a `503`
+on both (before 3.0.0 a dropped PostgreSQL connection could surface as `500`).
+
+| Field | Public body |
+|---|---|
+| top level | `status`, `package_version`, `schema_version`, `contract_version`, `degraded_reasons`, `checked_at` |
+| `store`, `projection`, `gate` | `name`, the booleans `configured`/`enabled`/`selected`/`required`/`healthy`/`ready` that the component reports, and `reason` when it is a stable code (`store_unavailable`) |
+| `graph` (`/readyz`, when a graph service exists) | `enabled`, `healthy`, `required`, `ready` |
+| `active_memory.store`, `active_memory.bus`, `readiness.families[]` | `name`, `selected`, `required`, `healthy`, `ready`, `reasons`, and `detail` reduced to `shared_store` |
+| `readiness` | `status`, `ready`, `full_capability`, `package_version`, `schema_version`, `contract_version`, `families`, `degraded_reasons`, `checked_at` |
+
+**Removed from the unauthenticated bodies (breaking):** `store.records`,
+`store.schema_version`, `store.path`, `store.error`, `outbox_backlog`,
+projection `targets`/`runtime_mode`/tool lists, the graph capability report
+beyond its four booleans, and every family's adapter `detail` except
+`shared_store`. No count, no path, no URL, and nothing derived from an
+exception's text is published. Every consumer in this repository reads only
+fields that remain (`status`, `package_version`, `store.name`,
+`store.healthy`, `graph.ready`, `active_memory.{store,bus}.{healthy,ready}`,
+`readiness.{ready,status,families[].name,families[].healthy}`,
+`families[canonical].detail.shared_store`).
+
+The full report stays available to an authenticated caller through the
+`memory.health` MCP tool (behind the `/mcp` door). The detail of a store
+failure goes to the server log through the one redaction path
+(`src/l9_graphite_memory/redaction.py`), which strips passwords, URI userinfo,
+secret query parameters and the DSN's own host, port, user and database. A
+server that cannot open its store exits non-zero with a message naming
+`L9_MEMORY_POSTGRES_DSN` and the class of failure, never its value.
 
 ## 2. Signed-agent authentication (`L9_MEMORY_HTTP_AUTH_MODE=signed-agent`)
 
