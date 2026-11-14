@@ -30,7 +30,7 @@ updated: 2026-07-22
 
 ## Purpose
 
-Publish an annotated tag that already names an admitted commit, then finish the one workflow that tag starts and the host Release that workflow does not create. The tag object is the release identity. A new pull request, a rebuilt tag, or a second workflow run is a different release.
+Publish an annotated tag that already names an admitted commit, then finish the publication workflow for that tag and the host Release that workflow does not create. The tag object is the release identity. A source pull request, a rebuilt tag, or a run against any other tag is a different release. The only repeated run is the one the repository's release decision defines: where it requires an exact-release admission receipt (ADR-022, amendment 2026-10-15, in `Quantum-L9/l9-graphiti-memory`), the tag-push run stops at the admission gate and prints the observed tuple, and after the receipt merges the same tag is published by one `workflow_dispatch` run. This skill does not write or merge that receipt.
 
 ## Activation boundary
 
@@ -41,7 +41,7 @@ Use this skill only when the operator names an existing annotated tag and its ad
 1. The operator's latest instruction naming the tag, the tag-object SHA, and the peeled commit.
 2. The local annotated tag object.
 3. The remote tag object returned by the host.
-4. The repository's release decision for required assets, then the workflow run that the tag push started.
+4. The repository's release decision for required assets and publication passes, then the workflow runs for this tag: the run the tag push started and, where the decision defines it, the `workflow_dispatch` run of the same tag after the admission receipt merges.
 5. `Unknown`. Inference never supplies a SHA, a digest, or a publication claim.
 
 ## Sequence
@@ -50,8 +50,8 @@ Use this skill only when the operator names an existing annotated tag and its ad
 2. Run the same script with `--remote owner/name --bind-origin`. `REMOTE_ABSENT` permits a push only when that command also reports origin as the same `owner/name`. `MATCH` means the tag is already on that host; go to step 5. Any other result stops the publication. Do not push to a different origin.
 3. Publish that one ref to the bound origin. Load [publication-plane.md](references/publication-plane.md) and follow it. Write the receipt, then push, as two commands. No `--force` and no `--tags`. `make pr` pushes the current branch and cannot publish a tag. Do not create the tag object through the host API.
 4. Run the script again with `--remote` and `--require-remote`. Continue only on `MATCH` for both the tag object and the peeled commit.
-5. Watch the single workflow run created by that tag push. Do not dispatch another run. If the run is waiting on an environment reviewer, stop and give the operator the run URL, the job URL, the environment name, and the reviewer. Resume that same run after the operator approves it.
-6. After that run succeeds, compare its artifact digests to the admitted checksums. Record package publication from the run and the package registry. A local rebuild is not publication evidence.
+5. Watch the workflow run created by that tag push. If the run is waiting on an environment reviewer, stop and give the operator the run URL, the job URL, the environment name, and the reviewer. Resume that same run after the operator approves it. If the run stops at the exact-release admission gate, nothing was published: report the tuple it printed (version, source revision, wheel sha256, sdist sha256) to the operator and stop. After the operator confirms the admission receipt for that tuple is merged on the default branch, start one `workflow_dispatch` run of the publish workflow with the same tag and watch it. Do not dispatch while a run for the tag is in progress or waiting, before the receipt is merged, for a different tag, or to retry a failure of any other kind.
+6. After the publishing run succeeds, compare its artifact digests to the admitted checksums. Record package publication from the run and the package registry. A local rebuild is not publication evidence.
 7. Create the host Release only after step 6 succeeds. Read [github-release.md](references/github-release.md). Bind the Release to the peeled commit and attach the assets the repository's release decision names.
 8. Confirm the Release tag, target commit, and asset names. Report `RELEASE_VERIFIED` only when steps 4, 6, and 8 all hold.
 
@@ -63,6 +63,8 @@ The core sequence assumes the L9 publication plane evaluates the push. When that
 
 - A pending environment approval is not success.
 - A successful package workflow without the host Release is not `RELEASE_VERIFIED`.
+- A run stopped at the admission gate is not publication. The tuple it prints admits nothing.
+- A dispatched run whose rebuilt digests differ from the merged receipt stops before the registry. Do not edit the receipt to match on your own authority.
 - A remote tag whose object or peel differs is a stop. Do not force it onto the admitted object.
 - A receipt written in the same command as the push is not in force for that push. The hook reads the receipt before the command runs.
 - A transport failure after a publish-path receipt is written still requires the receipt to be removed before the stop is reported.
