@@ -774,7 +774,13 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
     if oauth_server is not None:
         for path in MCP_ENDPOINT_PATHS:
             if path not in served_paths:
-                app.add_api_route(path, noncanonical_endpoint, methods=["POST", "GET", "DELETE"])
+                # Every method: the spelling is not an endpoint at all, so no
+                # verb may answer 405 and suggest another one would work.
+                app.add_api_route(
+                    path,
+                    noncanonical_endpoint,
+                    methods=["POST", "GET", "DELETE", "PUT", "PATCH", "OPTIONS", "HEAD"],
+                )
         resource_metadata = oauth_server.metadata
 
         def protected_resource_metadata() -> Any:

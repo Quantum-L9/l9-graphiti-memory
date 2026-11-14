@@ -42,12 +42,34 @@ The system defends against:
 ## Remote HTTP: Memory 3.0.0 trust boundary
 
 The target is one `MemoryService` hosted on the operator's C1 environment and
-reached by multiple agents over authenticated HTTPS MCP (ADR-038). It is not
-deployed. Its transport and identity exist in the 3.0.0 release candidate
-(ADR-098; source 3.0.0, unmerged and untagged); the released 2.5.0/2.6.0 HTTP server does not meet
-this boundary and must not be exposed to remote agents.
+reached by multiple agents over native MCP Streamable HTTP protected by Auth0
+OAuth (ADR-100, accepted 2026-10-27). It is not deployed. The released
+2.5.0/2.6.0 HTTP server does not meet this boundary and must not be exposed to
+remote agents.
 
-### Identity trust chain
+### Hosted door (ADR-100)
+
+- The hosted credential is an Auth0 access token for the one Memory resource
+  (RFC 8707 `resource`, Auth0 audience); the resource identifier is
+  `MEMORY_RESOURCE_IDENTIFIER` in `src/l9_graphite_memory/version.py`. A token
+  with the wrong resource, issuer or audience is a failed authentication.
+- Signed-agent HMAC, static bearer and Memory stdio are not hosted doors and
+  are not fallbacks. Restoring any of them as a hosted door needs a new ADR.
+- A verified OAuth principal is not an actor and not a surface; consequential
+  actor attribution fails closed when the actor is unproved.
+- Not implemented yet: `main` (source version 3.0.0, no `v3.0.0` tag, not a
+  release) has the Streamable HTTP transport (ADR-098) but `http_auth_mode`
+  admits only `bearer` and `signed-agent`, and no live PKCE receipt exists.
+  The hosted carrier image therefore refuses every auth mode and does not
+  start (`Dockerfile`, `.l9/deployment.yaml`, issue #108). Nothing in this
+  document claims that OAuth works.
+
+The subsections below through "Transport and default-deny" describe the
+`signed-agent` and `bearer` code that is still in the tree. Since ADR-100 it
+is legacy code, not the hosted contract; its presence does not close or
+authorize any listener.
+
+### Signed-agent identity chain (legacy code, not a hosted door)
 
 1. Each agent holds its own securely provisioned signing key.
 2. On every request it sends a short-lived signed agent assertion
@@ -71,9 +93,9 @@ this boundary and must not be exposed to remote agents.
 One key per agent, never shared between independently authorized agents.
 Credentials are not audience-bound, so each deployment needs its own keys: a
 key shared with another deployment or with a local stdio door makes its
-credentials valid there too. Keys are not provisioned by this repository;
-durable per-agent keys and a server-side grant map rendered from the
-authorized agent registry are prerequisites of the 3.0.0 deployment.
+credentials valid there too. Keys are not provisioned by this repository.
+Per-agent keys and a grant map are inputs of `signed-agent` mode only; since
+ADR-100 they are not prerequisites of the hosted 3.0.0 deployment.
 
 ### Credential replay
 
@@ -86,9 +108,8 @@ that carries the credential (ADR-083 and ADR-098, 2026-10-14).
 
 ### Administrator authority
 
-Policy for 3.0.0: ordinary remote agent grants do not set `is_admin`, the
-agent endpoint runs `signed-agent` mode only, and administrative operations
-are separately governed. The candidate enforces it for signed agents: a grant
+In `signed-agent` mode ordinary remote agent grants do not set `is_admin` and
+administrative operations are separately governed. The 3.0.0 source enforces it for signed agents: a grant
 with `is_admin` stops the server at startup in `signed-agent` mode and on
 auth-disabled loopback HTTP serving the agent door (ADR-098;
 `test_remote_mcp_http.py`, `test_installed_wheel_lifecycle.py`). Bearer-mode
@@ -111,10 +132,10 @@ Tier-3 local principal, which is an administrator when
   a URL get `400` and are never echoed.
 - `/healthz`, `/readyz` and FastAPI's default `/docs`, `/redoc` and
   `/openapi.json` are unauthenticated in every version, including the
-  candidate. Their exposure beyond the host is a deployment decision that has
+  3.0.0 source. Their exposure beyond the host is a deployment decision that has
   not been made.
 
-### Gaps on 2.5.0, 2.6.0 and `main@441b741`
+### Gaps on 2.5.0 and 2.6.0
 
 The HTTP server there authenticates only by static bearer tokens (not an
 agent identity, and able to carry administrator flags), has no `Origin`
@@ -127,7 +148,7 @@ for development only.
 
 Generated MCP config files contain only executable and argument data. Tokens, Zep keys, Graphiti credentials, and Infisical machine identity values remain in the runtime environment or external secret manager.
 
-For the 3.0.0 remote deployment the runtime secrets are the agent signing-key map (`L9_MEMORY_AGENT_SIGNING_KEYS_JSON`), the grant map (`L9_MEMORY_AGENT_GRANTS_JSON`, not secret in content but integrity-critical) and the PostgreSQL connection string (`L9_MEMORY_POSTGRES_DSN`). They are delivered through the operator's existing secret path, owned by the deployment campaign; this repository defines the inputs and holds none of the values.
+For the hosted 3.0.0 deployment the runtime secret this source defines is the PostgreSQL connection string (`L9_MEMORY_POSTGRES_DSN`), which the carrier requires. The Auth0 issuer and audience settings of the OAuth resource server are not defined in this source yet (issue #108). The agent signing-key map (`L9_MEMORY_AGENT_SIGNING_KEYS_JSON`) and the grant map (`L9_MEMORY_AGENT_GRANTS_JSON`, not secret in content but integrity-critical) are inputs of the legacy `signed-agent` mode, not of the hosted service (ADR-100). Secrets are delivered through the operator's existing secret path, owned by the deployment campaign; this repository defines the inputs and holds none of the values.
 
 ## Reporting
 

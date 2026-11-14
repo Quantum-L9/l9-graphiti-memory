@@ -24,11 +24,14 @@ Every surface in the diagram below is an adapter into the same
 operator-controlled Hetzner C1 environment behind a trusted TLS reverse proxy,
 reached by Cursor, Claude Code and other authorized agents on different
 machines through authenticated MCP Streamable HTTP, and backed by one new,
-empty PostgreSQL canonical store. Each request carries the calling agent's own
-signed evidence; the server derives the principal and its grants from
-server-side configuration, and `MemoryService` enforces tenant and namespace
-authorization (ADR-038, ADR-083, ADR-098). The target adds no second store,
-control plane, identity authority or provider path; it is a deployment of the
+empty PostgreSQL canonical store. Each request carries an Auth0 access token
+bound to the one Memory resource; signed-agent HMAC, static bearer and Memory
+stdio are not hosted doors and are not fallbacks (ADR-100, superseding the
+hosted provisions of ADR-038, ADR-083 and ADR-098). Caller identity stays
+server-derived, a verified OAuth principal is not an actor or a surface, and
+`MemoryService` enforces tenant and namespace authorization. This source has
+no OAuth mode yet (issue #108). The target adds no second store,
+control plane, authorization server or provider path; it is a deployment of the
 same adapter and service. Redis, Graphiti, Neo4j and vector projections remain
 optional, separately qualified capabilities (ADR-097).
 
@@ -36,12 +39,12 @@ optional, separately qualified capabilities (ADR-097).
 
 | | Agent transport |
 |---|---|
-| 2.5.0 (operational) and 2.6.0 / `main@441b741` | local stdio MCP launched on the agent's machine; the HTTP adapter is not a conforming Streamable HTTP server and has only static bearer principals |
-| ADR-098, in the 3.0.0 release candidate (source 3.0.0; PR #94 integrated; unmerged, untagged) | adds the stateless Streamable HTTP server and signed-agent HTTP identity; stdio unchanged |
+| 2.5.0 (operational) and 2.6.0 | local stdio MCP launched on the agent's machine; the HTTP adapter is not a conforming Streamable HTTP server and has only static bearer principals |
+| `main` (source version 3.0.0; no `v3.0.0` tag) | adds the stateless Streamable HTTP server (ADR-098) with `bearer` and `signed-agent` modes; stdio unchanged. Since ADR-100 neither mode, nor stdio, is a hosted door; no OAuth mode exists yet (issue #108) |
 | Memory 3.0.0 | not released, not deployed |
 
 Open before 3.0.0 is live: the protocol suite and receipt shapes on PostgreSQL (ADR-082;
-cross-process sharing on PostgreSQL is proven by `tests/integration/test_remote_mcp_postgres_multiprocess.py`), key and grant provisioning, C1
+cross-process sharing on PostgreSQL is proven by `tests/integration/test_remote_mcp_postgres_multiprocess.py`), the OAuth resource server and its live PKCE receipt (ADR-100, issue #108), C1
 deployment evidence, consumer adoption, and release and service admission (the classification below is settled).
 
 The ProductKind is still `dependency`. Under the admitted exception

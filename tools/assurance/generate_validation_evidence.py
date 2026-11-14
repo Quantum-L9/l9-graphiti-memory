@@ -421,8 +421,16 @@ _REPORT_LIMIT: Final = 10
 _SUMMARY_COUNT = re.compile(
     r"(\d+) (passed|failed|skipped|xfailed|xpassed|errors?|warnings?|deselected|rerun)"
 )
-# One count, then ", count" repeats: linear, no nested optional quantifier.
-_SUMMARY_LINE = re.compile(r"^=*\s*\d+ [a-z]+(?:, \d+ [a-z]+)* in [0-9.]+s\b")
+# pytest 9 reports unittest ``subTest`` and ``subtests`` results as their own
+# summary items ("11 subtests passed"). They are counted under a separate
+# "subtests <outcome>" key, never folded into the test-case counts that rule 2
+# compares with JUnit.
+_SUBTEST_COUNT = re.compile(r"(\d+) subtests (passed|failed|skipped|xfailed|xpassed)")
+# One count, then ", count" repeats: linear, no nested optional quantifier. A
+# count's label is one word, or "subtests" and one word (pytest 9).
+_SUMMARY_LINE = re.compile(
+    r"^=*\s*\d+ (?:subtests )?[a-z]+(?:, \d+ (?:subtests )?[a-z]+)* in [0-9.]+s\b"
+)
 _COLLECT_SUMMARY = re.compile(
     r"^(?:(?P<count>\d+) tests? collected|no tests collected)(?P<rest>.*?) in [0-9.]+s\b"
 )
@@ -668,6 +676,9 @@ def parse_terminal_summary(text: str) -> dict[str, int]:
             for number, word in _SUMMARY_COUNT.findall(stripped):
                 name = {"error": "errors", "warning": "warnings"}.get(word, word)
                 counts[name] = counts.get(name, 0) + int(number)
+            for number, word in _SUBTEST_COUNT.findall(stripped):
+                name = f"subtests {word}"
+                counts[name] = counts.get(name, 0) + int(number)
             return counts
     raise SuiteEvidenceError("pytest log has no final summary line")
 
@@ -724,7 +735,7 @@ def evaluate_suite(root: Path, evidence_dir: Path, profile: str) -> SuiteVerdict
 
     # 1. Zero failures and zero errors, in every view of the run.
     if summary is not None:
-        for name in ("failed", "errors", "xpassed"):
+        for name in ("failed", "errors", "xpassed", "subtests failed", "subtests xpassed"):
             if summary.get(name, 0):
                 verdict.violations.append(f"pytest summary reports {summary[name]} {name}")
     if cases is not None:

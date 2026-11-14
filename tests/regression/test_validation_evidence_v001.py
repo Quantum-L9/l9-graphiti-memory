@@ -222,6 +222,25 @@ def test_an_unexpected_xpass_fails(tmp_path: Path) -> None:
     assert "1 xpassed" in actual
 
 
+def test_a_pytest9_summary_with_subtests_is_read(tmp_path: Path) -> None:
+    # pytest 9 reports unittest subTest results as their own summary item.
+    summary = "2 passed, 1 skipped, 11 subtests passed in 1.00s"
+    root, evidence = _write(tmp_path, _clean_cases(), summary=summary)
+    status, actual = _status(root, evidence)
+    assert status == "PASS", actual
+    counts = MODULE.parse_terminal_summary(summary)
+    assert counts == {"passed": 2, "skipped": 1, "subtests passed": 11}
+
+
+@pytest.mark.parametrize("word", ["failed", "xpassed"])
+def test_a_failed_or_xpassed_subtest_fails(tmp_path: Path, word: str) -> None:
+    summary = f"2 passed, 1 skipped, 1 subtests {word}, 10 subtests passed in 1.00s"
+    root, evidence = _write(tmp_path, _clean_cases(), summary=summary)
+    status, actual = _status(root, evidence)
+    assert status == "FAIL"
+    assert f"pytest summary reports 1 subtests {word}" in actual
+
+
 def test_an_undeclared_xfail_fails(tmp_path: Path) -> None:
     cases = [*_clean_cases(), ("tests/unit/test_a.py::test_known_bug", "xfailed", "bug 12")]
     root, evidence = _write(tmp_path, cases)
