@@ -148,3 +148,65 @@ def test_digits_inside_an_alphanumeric_token_are_not_ambiguous(text: str) -> Non
     assert result.redacted_content == text
     assert result.pii_types == ()
     assert result.unresolved_ambiguous == ()
+
+
+# A "token" for the phone and SSN redactors is a maximal run of ASCII letters
+# and digits, the same boundary ``_AMBIGUOUS_NUMERIC`` uses. A digit run that
+# starts or ends inside a longer token is part of an identifier, not a number.
+@pytest.mark.parametrize(
+    "text",
+    [
+        # The exact value CI returned redacted (PR #113, validate (3.10)).
+        "durable remote record 44bfc17397974647a97d512d261c35ca",
+        # Hyphenated UUIDs whose groups carry phone/SSN-shaped digit runs.
+        "record 1a2b3c17-3979-7464-7a97-d512d261c35c",
+        "record ab012345-6789-4abc-8def-0123456789ab",
+        "record c2125551-2120-4555-8121-212555121200",
+        # 40-character (git sha) and 64-character (sha256) hex digests.
+        "commit 3e1a21255512124d7f2a9b17397974647a97d512",
+        "sha256 9f12125551212ab17397974647a97d512d261c35ca123456789cdef0012345678",
+        # Digit runs adjacent to letters on one side only.
+        "id a12125551212",
+        "id 12125551212a",
+        "id x212-555-1212",
+        "id 212-555-1212y",
+        "id k123-45-6789",
+        "id 123-45-6789k",
+        # base32 / base64-ish tokens.
+        "token MZXW6YTB12125551212OI",
+        "token dGVzd1739797464Zm9v",
+    ],
+)
+def test_digit_runs_inside_an_identifier_token_are_not_phone_or_ssn(text: str) -> None:
+    result = normalize_candidate(text)
+    assert result.redacted_content == text
+    assert result.pii_types == ()
+    assert result.unresolved_ambiguous == ()
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("call 212-555-1212.", "call [PHONE_REDACTED]."),
+        ("call 212-555-1212, then", "call [PHONE_REDACTED], then"),
+        ("call (212) 555-1212!", "call [PHONE_REDACTED]!"),
+        ("call +1 (212) 555-1212", "call [PHONE_REDACTED]"),
+        ("call +1-212-555-1212;", "call [PHONE_REDACTED];"),
+        ("call +1.212.555.1212", "call [PHONE_REDACTED]"),
+        ("call 212.555.1212)", "call [PHONE_REDACTED])"),
+        ("call 212 555 1212", "call [PHONE_REDACTED]"),
+        ("(212)555-1212", "[PHONE_REDACTED]"),
+        ("tel:+12125551212", "tel:[PHONE_REDACTED]"),
+        ("phone=212-555-1212&x=1", "phone=[PHONE_REDACTED]&x=1"),
+        ("call 212-555-1212x204", "call [PHONE_REDACTED]x204"),
+        ("call 212-555-1212 ext. 204", "call [PHONE_REDACTED] ext. 204"),
+        ("ssn 123-45-6789.", "ssn [SSN_REDACTED]."),
+        ("ssn:123 45 6789", "ssn:[SSN_REDACTED]"),
+    ],
+)
+def test_real_phone_and_ssn_shapes_are_redacted_at_any_punctuation_boundary(
+    text: str, expected: str
+) -> None:
+    result = normalize_candidate(text)
+    assert result.redacted_content == expected
+    assert result.unresolved_ambiguous == ()

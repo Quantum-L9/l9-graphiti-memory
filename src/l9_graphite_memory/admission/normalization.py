@@ -24,6 +24,15 @@ _ZERO_WIDTH = re.compile("[\u200b\u200c\u200d\ufeff]")
 _WHITESPACE = re.compile(r"[ \t]+")
 _BLANK_LINES = re.compile(r"\n{3,}")
 
+#: A token, for the phone and SSN redactors below, is a maximal run of ASCII
+#: letters and digits -- the same boundary ``_AMBIGUOUS_NUMERIC`` uses. A match
+#: may neither begin nor end inside a longer token; punctuation, whitespace and
+#: the ends of the string separate tokens. A phone match that opens with ``+``
+#: or ``(`` already begins at a boundary.
+_DIGIT_TOKEN_START = r"(?<![0-9A-Za-z])"
+_PHONE_TOKEN_START = r"(?:" + _DIGIT_TOKEN_START + r"(?=\d)|(?=[+(]))"
+_TOKEN_END = r"(?![0-9A-Za-z])"
+
 _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
     (
         "email",
@@ -38,21 +47,30 @@ _PII_PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
         # unprefixed 10-digit run is deliberately absent: it is as likely an
         # epoch or an identifier, so it takes the ambiguous path below and is
         # held redacted until the caller declares what it is.
+        #
+        # The number must stand as its own token (``_PHONE_TOKEN_START`` /
+        # ``_TOKEN_END``): a digit run inside a hex digest, UUID or record id
+        # (``44bfc17397974647a97d...``) is an identifier, not a phone number.
+        # The one letter allowed to abut the end is an ``x`` extension
+        # (``212-555-1212x204``), which stays redacted.
         re.compile(
-            r"(?<!\d)(?:"
+            _PHONE_TOKEN_START + r"(?:"
             r"\+?1[\s.\-]?(?:\(\d{3}\)|\d{3})[\s.\-]?\d{3}[\s.\-]?\d{4}"
             r"|\(\d{3}\)[\s.\-]?\d{3}[\s.\-]?\d{4}"
             r"|\d{3}[\s.\-]\d{3}[\s.\-]?\d{4}"
             r"|\d{3}[\s.\-]?\d{3}[\s.\-]\d{4}"
-            r")(?!\d)"
+            r")(?:" + _TOKEN_END + r"|(?=[xX]\d{1,6}" + _TOKEN_END + r"))"
         ),
         "[PHONE_REDACTED]",
     ),
     (
         # Any 3-2-4 grouping with at least one separator. A bare 9-digit run
-        # takes the ambiguous path, never the raw-storage path.
+        # takes the ambiguous path, never the raw-storage path. Same token
+        # boundary as the phone pattern: ``ab012345-6789-...`` is a UUID.
         "ssn",
-        re.compile(r"(?<!\d)\d{3}(?:[\-\s]\d{2}[\-\s]?|\d{2}[\-\s])\d{4}(?!\d)"),
+        re.compile(
+            _DIGIT_TOKEN_START + r"\d{3}(?:[\-\s]\d{2}[\-\s]?|\d{2}[\-\s])\d{4}" + _TOKEN_END
+        ),
         "[SSN_REDACTED]",
     ),
     ("openai_key", re.compile(r"\bsk-[A-Za-z0-9_\-]{20,}\b"), "[SECRET_REDACTED]"),
