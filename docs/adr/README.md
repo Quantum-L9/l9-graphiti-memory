@@ -6,7 +6,7 @@ layer: adr
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-10-14
+updated: 2026-11-14
 /L9_META -->
 
 # Architecture Decision Records
@@ -128,6 +128,7 @@ This directory is the binding decision ledger for the v2 memory replatform. The 
 | ADR-102 | [OAuth Resource Server for the Streamable HTTP Transport](ADR-102-oauth-resource-server-for-streamable-http.md) | Proposed; accepted when merged by the decision owner |
 | ADR-103 | [OAuth Actor Binding, Server-Verified Consent, and User-Only Subjects](ADR-103-oauth-actor-binding-and-user-subjects.md) | Proposed; accepted when merged by the decision owner |
 | ADR-104 | [Core Repository Execution V2](ADR-104-core-repository-execution-v2.md) | Proposed; accepted when merged by the decision owner |
+| ADR-105 | [Reviewed Remaining-Proof Classification in Release Evidence](ADR-105-reviewed-remaining-proof-classification-in-release-evidence.md) | Proposed; accepted when merged by the decision owner |
 
 ## Pending target amendments (Memory 3.0.0)
 
@@ -169,6 +170,7 @@ Auth0 tenant proof is not part of this record.
 | 2026-11-13 | ADR-103 | OAuth actor from an operator binding for the verified (subject, client id) pair; client id carried as `oauth_client_id`; consent from the verified subject is server explicit evidence; user-less (client-credentials) tokens refused | merged on `main` (#119, in #113); hosted carrier pinned to OAuth (#121, in #117); its tests use no live tenant, and no binding has been exercised against a deployed service, because no hosted 3.0.0 deployment exists |
 | 2026-11-14 | ADR-104 | Core repository execution V2: `.l9/repo-workflow.json` (`l9.repo-execution/v2`, facade `make-v1`), root `Makefile` byte-equal to Core's generated facade, repository recipes in `Repo.mk`; alignment scan judges only this repository's files; bootstrapped uv on PATH for every phase; `repo-suite-base` resolves the ADR-101 merge-base without substituting `HEAD` | merged on `main` (#120); record proposed |
 | 2026-11-14 | ADR-022 | One reproducible build recipe (`scripts/build_release_artifacts.sh`) for the admitted wheel and sdist: exactly pinned setuptools, canonical archives (sorted members, `SOURCE_DATE_EPOCH` times, normalised owners and modes, gzip mtime 0); all three build sites use it; the authority computes digests before the tag | proposed (#125) |
+| 2026-11-14 | ADR-105 | Release evidence reads the reviewed remaining-proof classification (`release-work/remaining-proof-classification.json`): external findings B-001..B-005 stay recorded; `blocks_production_release` and `production_release_status` are computed from it, failing closed to `BLOCKED_ON_EXTERNAL_VALIDATION`; non-blocked status `ADMISSIBLE_WITH_ACCEPTED_RESIDUAL_RISK` | proposed (#127) |
 
 ## Validation
 
@@ -178,4 +180,4 @@ Run:
 python tools/assurance/validate_adrs.py
 ```
 
-The validator requires a contiguous ADR-001 through ADR-104 ledger and all mandatory sections.
+The validator requires a contiguous ADR-001 through ADR-105 ledger and all mandatory sections.

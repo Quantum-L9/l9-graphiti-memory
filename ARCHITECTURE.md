@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-10-14
+updated: 2026-11-14
 /L9_META -->
 
 # Architecture
@@ -45,7 +45,7 @@ optional, separately qualified capabilities (ADR-097).
 
 Open before 3.0.0 is live: the protocol suite and receipt shapes on PostgreSQL (ADR-082;
 cross-process sharing on PostgreSQL is proven by `tests/integration/test_remote_mcp_postgres_multiprocess.py`), the production tenant path exercised against a deployed service (the OAuth resource server is on `main` and its live PKCE receipt passed against a local server, issue #108), C1
-deployment evidence, consumer adoption, and release and service admission (the classification below is settled).
+deployment evidence, consumer adoption, and release and service admission (the classification below is settled). The remaining-proof items RP-001 to RP-009 are classified for the 3.0.0 release scope in `docs/REMAINING_PRODUCTION_PROOF.md`. That classification is proposed for the decision owner's acceptance; its open items are residual risk of the release, not proofs.
 
 The ProductKind is still `dependency`. Under the admitted exception
 `l9.product-kind-exception/memory-hosted-service@1` (`.github` v3.21.0;

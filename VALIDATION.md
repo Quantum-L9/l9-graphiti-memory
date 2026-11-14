@@ -5,8 +5,8 @@ path: VALIDATION.md
 layer: repository
 owner: memory-control-plane
 status: active
-version: 2.2.0
-updated: 2026-07-22
+version: 3.0.0
+updated: 2026-11-14
 /L9_META -->
 
 # Validation
@@ -40,10 +40,25 @@ The tracked `validation/validation_report.yaml` reports release `2.5.0`, not
 
 ## Outcome
 
+### 3.0.0 release position
+
+- Release outcome proposed for 3.0.0: **ADMISSIBLE_WITH_ACCEPTED_RESIDUAL_RISK**, the same string the release evidence generator writes (ADR-105). Under the per-item classification in `docs/REMAINING_PRODUCTION_PROOF.md` ("3.0.0 classification"), no remaining-proof item blocks admitting the release of the package `l9-graphite-memory` 3.0.0 and its hosted carrier as profiled in `.l9/deployment.yaml`.
+- RP-001 is CLOSED for the package.
+- RP-002 to RP-006 are NOT APPLICABLE TO THIS RELEASE for the hosted carrier, because it has no Gate egress, its projection, graph and active-memory backends are pinned off, and its store starts empty.
+- For the package, RP-002 to RP-006 are OPEN — ACCEPTED RESIDUAL RISK. RP-007 and RP-008 are OPEN — ACCEPTED RESIDUAL RISK for this release.
+- The 2026-10-27 source audit (F-001 to F-020, U-*) is classified in the same document, "Audit findings of 2026-10-27, status at 3.0.0". Its item U-011 (the unauthenticated readiness probes return store error text and the record count on the hosted carrier) is referred to the decision owner as a blocker candidate. It is not proposed as residual risk, and the generated status does not cover it.
+- RP-009, the release decision, is discharged only by the decision owner merging the 3.0.0 admission receipt (`docs/receipts/l9-memory-release-3.0.0.md`, ADR-094).
+- That classification is proposed for acceptance by the decision owner. Merging it on the default branch is that acceptance. Until then the 2.2.0 outcome below stands.
+- No 3.0.0 deployment exists. Release admission, service admission and deployment are separate decisions.
+
+The generated release evidence (`tools/assurance/generate_validation_evidence.py`, ADR-105) still records five external findings, B-001 to B-005, each stating what local evidence cannot prove. Whether each one blocks this release, and the report's `production_release_status`, are computed from `release-work/remaining-proof-classification.json`, the machine-readable form of the classification. Anything that file does not settle fails closed to `BLOCKED_ON_EXTERNAL_VALIDATION`. `ADMISSIBLE_WITH_ACCEPTED_RESIDUAL_RISK` does not claim that production validation happened.
+
+### 2.2.0 outcome, as produced
+
 - Local deterministic outcome: **PASS**
 - Recursive L9 alignment outcome: **PASS**
 - Review-package outcome: **APPROVED_WITH_EXTERNAL_BLOCKERS**
-- Production release outcome: **BLOCKED_ON_EXTERNAL_VALIDATION**
+- Production release outcome: **BLOCKED_ON_EXTERNAL_VALIDATION** (2.2.0; for 3.0.0 see above)
 
 The source tree, canonical stores, compatibility surfaces, constellation boundary, local receipt guard, CLI, MCP inventory, assurance gates, wheel, and isolated-wheel smoke pass. External provider, Gate, hosted repository, secret-rotation, and production-migration checks remain explicitly blocked rather than being represented as local passes.
 
@@ -99,7 +114,7 @@ The benchmark exercises the in-memory canonical write, search, and hydration pat
 
 ## Remaining production proof
 
-The canonical remaining-proof statement is maintained in `docs/REMAINING_PRODUCTION_PROOF.md`.
+The canonical remaining-proof statement is maintained in `docs/REMAINING_PRODUCTION_PROOF.md`. Its "3.0.0 classification" section classifies each item below for the 3.0.0 release scope. The table and the paragraph after it are the 2.2.0 record, as produced.
 
 The package is internally aligned and self-policing, but the injected Gate boundary is intentionally generic because the canonical Gate and TransportPacket APIs were not available inside the pack. Substituting guessed shared contracts would create a beautifully typed counterfeit. The next valid move is wiring those authoritative dependencies in staging and proving the complete packet lifecycle.
 
@@ -115,7 +130,7 @@ The package is internally aligned and self-policing, but the injected Gate bound
 | `RP-008` | secret loading, rotation, revocation, and no-plaintext persistence |
 | `RP-009` | consolidated evidence review and production release decision |
 
-Until these release-blocking issues close with the required evidence, production status remains `BLOCKED_ON_EXTERNAL_VALIDATION`.
+For 2.2.0: until these release-blocking issues close with the required evidence, production status remains `BLOCKED_ON_EXTERNAL_VALIDATION`. For 3.0.0 the per-item classification in `docs/REMAINING_PRODUCTION_PROOF.md` replaces this sentence once the decision owner merges it.
 
 ## Structured evidence
 

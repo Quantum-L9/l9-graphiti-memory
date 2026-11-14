@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-07-22
+updated: 2026-11-14
 /L9_META -->
 
 # Roadmap
@@ -37,7 +37,7 @@ External release gates are tracked by the remaining-proof issue pack:
 8. `RP-008`: external secret lifecycle proof
 9. `RP-009`: consolidated production release decision
 
-The authoritative rationale and evidence contract are in `docs/REMAINING_PRODUCTION_PROOF.md`.
+The authoritative rationale and evidence contract are in `docs/REMAINING_PRODUCTION_PROOF.md`. Its "3.0.0 classification" section classifies each item for the 3.0.0 release, as CLOSED, NOT APPLICABLE TO THIS RELEASE, or OPEN — ACCEPTED RESIDUAL RISK, and proposes that classification for the decision owner's acceptance.
 
 ## Post-v2.2 candidates
 
