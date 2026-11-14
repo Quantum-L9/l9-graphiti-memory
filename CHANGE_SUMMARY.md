@@ -120,7 +120,7 @@ Known defect in the published artifact: the sdist on PyPI for 2.6.0 (`7507070e�
 
 ## 3.0.0 — hosted Memory candidate (unreleased)
 
-Covers `v2.6.0..main@ae6e2c0` (89 commits; #87, #88, #91, #92, #96 integrating #93/#94/#95, #97–#106, #109). Status: version carriers say `3.0.0` (`52cf4ec`); no `v3.0.0` tag, no admission receipt, no deployment. The 2.7.0 identifier that appears in ADR-098 and older commits was #94's source version; it was never tagged or published and is integrated here.
+Covers `v2.6.0..main@cc10253` (97 commits; #87, #88, #91, #92, #96 integrating #93/#94/#95, #97–#106, #109, then #112–#117 and #120 integrating #118/#119/#121/#122, and #123). Status: version carriers say `3.0.0` (`52cf4ec`); no `v3.0.0` tag, no admission receipt, no deployment. The 2.7.0 identifier that appears in ADR-098 and older commits was #94's source version; it was never tagged or published and is integrated here.
 
 ### Breaking changes and migration
 
@@ -137,8 +137,9 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 
 - ADR-098 (#94 via #96): MCP Streamable HTTP is the remote transport. It also added a signed-agent HMAC HTTP identity; a signed-agent grant carrying `is_admin` stops the server at startup (`3530d0f`).
 - ADR-100 (#102): the hosted Memory service is OAuth-only native MCP Streamable HTTP. Memory stdio, signed-agent HMAC and static bearer are not hosted doors and not fallbacks. ADR-098's signed-agent identity and bearer mode are superseded for the hosted service; that code stays in the tree as legacy until a later change removes it.
-- The Auth0 resource identifier is published in ADR-100 (#106); the issuer domain and client ids are not bound.
-- `main` has no OAuth resource-server mode. ADR-100 requires a live PKCE audience receipt before resource-server code counts as proven; no such receipt exists.
+- The Auth0 resource identifier is published in ADR-100 (#106); the carrier pins the issuer (`.l9/deployment.yaml`, #121).
+- OAuth resource-server mode `http_auth_mode=oauth` (ADR-102, #113): issuer-key signature, exact issuer, Memory audience, one `/mcp` endpoint, RFC 9728 metadata, subject-keyed grants, and the operator tool `tools/assurance/oauth_pkce_receipt.py`. The live PKCE receipt passed six of six checks against the live Auth0 tenant and a local server (issue #108 comment 6862806068, 2026-11-13T19:25:56Z, receipt sha256 `8e0eeb4ed9cb8853b71e448cc38b0ea0fd801372eddc04b2d3f39e6f671b02ad`); no deployed service was exercised.
+- OAuth actor path (ADR-103, #119): an actor only from an operator binding (`L9_MEMORY_OAUTH_ACTORS_JSON`) for the verified (subject, client id) pair; consent from the verified subject is server explicit evidence; client-credentials (user-less) tokens are refused.
 - An OAuth client id does not resolve an actor, a surface or an operator grant; every state-changing MCP tool is refused without OAuth actor evidence (allowlist of read-only handlers) (#103).
 - `RemoteMemoryClient`: `l9-memory` lifecycle commands run against a hosted `MemoryService` with `--remote-url` / `L9_MEMORY_REMOTE_URL`, same argv, receipts and exit codes; no local store is opened (#100). It carries the signed-agent door's identity, which ADR-100 supersedes for the hosted service.
 
@@ -154,9 +155,11 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 ### OCI carrier and deployment profile (#101)
 
 - `Dockerfile` builds `l9-memory-server` (`server` + `postgres` extras, linux/amd64, uid 10001, port 8200); dependencies install from wheels only; base images pinned by digest
-- The entrypoint guard requires the PostgreSQL store and pins graph, active memory and projection off. Since ADR-100 it refuses every HTTP auth mode (signed-agent and bearer by name, anything else pending the OAuth mode of #108), so the image never answers `/readyz` or `/mcp` with `200`
-- `.l9/deployment.yaml`: v2 deployment profile targeting C1 with external ingress and a required external PostgreSQL; no auth mode pinned
+- The entrypoint guard requires the PostgreSQL store and pins graph, active memory and projection off. Since #121 it admits only `L9_MEMORY_HTTP_AUTH_MODE=oauth` and refuses signed-agent, bearer and any other mode (ADR-100, ADR-102)
+- `.l9/deployment.yaml`: v2 deployment profile targeting C1 with external ingress and a required external PostgreSQL; the hosted carrier is pinned to the OAuth door (#121)
 - `.github/workflows/release-container.yml` reuses `l9-ci-core` `container-release@89c9bc4` behind the ADR-094 exact-release admission; carrier test failures fail the job
+- C1 data plane: PostgreSQL 16 as an operator-provisioned external store on the `l9-runtime` network, a backup path that dumps from a pinned image on that network, and the cutover runbook to match (#117)
+- Release workflows runnable for 3.0.0: the annotated-tag admission check, the admission interpreter, the nightly setup-uv gate, and third-party actions in `publish.yml` pinned to full SHAs (#115); `release-dispatch.yml` dispatches the container release as the repository bot so the requester and the production approver differ (#118)
 
 ### Admission and projection fixes
 
@@ -164,6 +167,7 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 - Graphiti `isError` results are refused instead of unwrapped as a write; only the official queued-success shape is accepted; socket faults count on the circuit breaker and a stuck half-open breaker re-arms (#105)
 - ADR-097 active-memory composition and five-family full-capability readiness, with positive probe evidence required (#91)
 - 28 RECON-0 repositories registered as exact-remote namespaces; an exact remote match outranks enclosing path hints (#92)
+- Phone and SSN redactors match only at alphanumeric token boundaries, so a digit run inside a hex identifier is no longer stored as a phone number (#123)
 
 ### Assurance
 
@@ -173,18 +177,17 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 - ProductTopology rebound to `.github` Semantic Foundation v3.21.0, claiming the hosted-Memory product-kind exception (ADR-094 amendment, #97)
 - A failing validation step prints its log (`cdf7fa5`); the alignment walk no longer races `git gc` (`4f1284a`)
 - Admitted-tag release publication procedure documented (#88); 2.6.0 admission recorded (#87)
+- ADR-104: Core repository execution V2 (`.l9/repo-workflow.json`, Core's `make-v1` facade as the root `Makefile`, recipes in `Repo.mk`); the alignment scan judges only this repository's files (#120)
+- Six code-scanning findings on `main` cleared (#116)
+- Release and hosted-door statements in the tracked documents made true for 3.0.0 (#112)
 
 ### Dependencies
 
-- `pyjwt` 2.13.0 → 2.15.0 (#93); `src/` does not import it
-- No change to `[project]` dependencies or extras in `pyproject.toml` between `v2.6.0` and `main`
+- `pyjwt` 2.13.0 → 2.15.0 (#93); `src/l9_graphite_memory/authz/oauth.py` imports it for OAuth token validation (#113)
+- `[project]` dependencies unchanged since `v2.6.0`; the `server` extra gains `cryptography>=50.0,<51` and `PyJWT>=2.13,<3` (#113, #122), and the `dev` extra moves to `pytest-asyncio>=1.3,<2` (#122)
 - New: container base images (digest-pinned) and `l9-ci-core` `container-release@89c9bc4` (#101)
+- Known vulnerabilities cleared in `uv.lock`: cryptography 46.0.7 → 50.0.2 (constraint `>=50.0,<51`), certifi → 2026.10.23, pytest 8.4.2 → 9.0.3 with pytest-asyncio 1.3.0 (#122)
 
 ## Pending before the 3.0.0 tag
 
-Open and NOT on `main` at `ae6e2c0`. Nothing here is shipped; each item is folded into the 3.0.0 entry only when it merges.
-
-- #112 — documentation truth
-- #113 — OAuth resource-server mode (ADR-102)
-- Unpublished campaign lanes (no pull request yet): OAuth actor path (issue #108 section 3); C1 PostgreSQL data plane and runbook; code-scanning cleanup; hosted carrier pin (issue #108 section 2)
-- 3.0.0 release validation run and admission receipt (`docs/receipts/l9-memory-release-3.0.0.md`), written by the operator's release procedure
+- The 3.0.0 admission receipt `docs/receipts/l9-memory-release-3.0.0.md` (ADR-094; checked by `tools/assurance/verify_release_admission.py`). It is the operator's decision and can only be written after the tag's commit exists.

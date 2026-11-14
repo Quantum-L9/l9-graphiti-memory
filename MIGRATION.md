@@ -110,7 +110,7 @@ This section states what changes for an operator and how to return to 2.6.0.
 | Surface | 2.6.0 | 3.0.0 | Who is affected |
 |---|---|---|---|
 | HTTP MCP transport | answers `2024-11-05`; notifications get `200` | stateless Streamable HTTP `2025-11-25` / `2025-06-18`; absent or unsupported `MCP-Protocol-Version` gets `400` (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`) | HTTP callers: breaking. This is the reason for the major version. |
-| HTTP authentication | static bearer tokens | in source: `bearer` (default, unchanged) or opt-in `signed-agent`; a signed-agent grant carrying `is_admin` stops the server at startup. Neither is the hosted door: the hosted service admits only Auth0 OAuth (ADR-100), and this source has no OAuth mode yet (issue #108) | operators enabling `signed-agent`; the hosted service |
+| HTTP authentication | static bearer tokens | in source: `bearer` (default, unchanged) or opt-in `signed-agent`; a signed-agent grant carrying `is_admin` stops the server at startup. Neither is the hosted door: the hosted service admits only Auth0 OAuth (ADR-100), which is `http_auth_mode=oauth` (ADR-102, ADR-103) | operators enabling `signed-agent`; the hosted service |
 | stdio MCP | `2024-11-05` | unchanged | nobody |
 | Canonical store schema | 9 | 9 (unchanged) | nobody |
 | PostgreSQL first start | concurrent cold starts on one empty schema could fail | serialized by an advisory lock | multi-process deployments |
@@ -131,9 +131,9 @@ export L9_MEMORY_POSTGRES_DSN=...        # runtime secret, never tracked
 
 A configured but unusable DSN stops the server; it never falls back to a local
 file. `l9-graphite-memory==3.0.0` is not on PyPI until the release is admitted
-and published, and the hosted carrier image does not start until the OAuth
-mode exists: it refuses `bearer`, `signed-agent` and an unset auth mode
-(ADR-100, `Dockerfile`, issue #108). Any other environment (an existing store, a backend change) needs its
+and published, and the hosted carrier image starts only in the OAuth mode: it
+refuses `bearer`, `signed-agent` and an unset auth mode (ADR-100, ADR-102,
+`Dockerfile`). Any other environment (an existing store, a backend change) needs its
 own authorized lifecycle plan (ADR-077).
 
 ### Rollback

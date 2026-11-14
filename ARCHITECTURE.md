@@ -30,7 +30,7 @@ stdio are not hosted doors and are not fallbacks (ADR-100, superseding the
 hosted provisions of ADR-038, ADR-083 and ADR-098). Caller identity stays
 server-derived, a verified OAuth principal is not an actor or a surface, and
 `MemoryService` enforces tenant and namespace authorization. This source has
-no OAuth mode yet (issue #108). The target adds no second store,
+the OAuth mode (`http_auth_mode=oauth`, ADR-102, ADR-103). The target adds no second store,
 control plane, authorization server or provider path; it is a deployment of the
 same adapter and service. Redis, Graphiti, Neo4j and vector projections remain
 optional, separately qualified capabilities (ADR-097).
@@ -40,11 +40,11 @@ optional, separately qualified capabilities (ADR-097).
 | | Agent transport |
 |---|---|
 | 2.5.0 (operational) and 2.6.0 | local stdio MCP launched on the agent's machine; the HTTP adapter is not a conforming Streamable HTTP server and has only static bearer principals |
-| `main` (source version 3.0.0; no `v3.0.0` tag) | adds the stateless Streamable HTTP server (ADR-098) with `bearer` and `signed-agent` modes; stdio unchanged. Since ADR-100 neither mode, nor stdio, is a hosted door; no OAuth mode exists yet (issue #108) |
+| `main` (source version 3.0.0; no `v3.0.0` tag) | adds the stateless Streamable HTTP server (ADR-098) with `bearer`, `signed-agent` and `oauth` modes; stdio unchanged. Since ADR-100 only `oauth` (ADR-102, ADR-103) is a hosted door; neither other mode, nor stdio, is one |
 | Memory 3.0.0 | not released, not deployed |
 
 Open before 3.0.0 is live: the protocol suite and receipt shapes on PostgreSQL (ADR-082;
-cross-process sharing on PostgreSQL is proven by `tests/integration/test_remote_mcp_postgres_multiprocess.py`), the OAuth resource server and its live PKCE receipt (ADR-100, issue #108), C1
+cross-process sharing on PostgreSQL is proven by `tests/integration/test_remote_mcp_postgres_multiprocess.py`), the production tenant path exercised against a deployed service (the OAuth resource server is on `main` and its live PKCE receipt passed against a local server, issue #108), C1
 deployment evidence, consumer adoption, and release and service admission (the classification below is settled).
 
 The ProductKind is still `dependency`. Under the admitted exception

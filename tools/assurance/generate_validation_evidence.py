@@ -108,8 +108,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 100 -> 101 for ADR-101 (derived V-001 suite validation).
         # Re-pinned 101 -> 102 for ADR-102 (OAuth resource server).
         # Re-pinned 102 -> 103 for ADR-103 (OAuth actor binding).
-        "103 ADRs complete and indexed",
-        r"PASS: 103 ADRs",
+        # Re-pinned 103 -> 104 for ADR-104 (Core repository execution V2).
+        "104 ADRs complete and indexed",
+        r"PASS: 104 ADRs",
     ),
     CheckSpec(
         "V-004",

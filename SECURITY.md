@@ -57,12 +57,13 @@ remote agents.
   are not fallbacks. Restoring any of them as a hosted door needs a new ADR.
 - A verified OAuth principal is not an actor and not a surface; consequential
   actor attribution fails closed when the actor is unproved.
-- Not implemented yet: `main` (source version 3.0.0, no `v3.0.0` tag, not a
-  release) has the Streamable HTTP transport (ADR-098) but `http_auth_mode`
-  admits only `bearer` and `signed-agent`, and no live PKCE receipt exists.
-  The hosted carrier image therefore refuses every auth mode and does not
-  start (`Dockerfile`, `.l9/deployment.yaml`, issue #108). Nothing in this
-  document claims that OAuth works.
+- Implemented, not deployed: `main` (source version 3.0.0, no `v3.0.0` tag,
+  not a release) has the OAuth resource server (`http_auth_mode=oauth`,
+  ADR-102) with operator-bound actors (ADR-103), and the hosted carrier image
+  admits only that mode (`Dockerfile`, `.l9/deployment.yaml`). The live PKCE
+  receipt passed against the live Auth0 tenant and a local server (issue
+  #108). No hosted 3.0.0 deployment exists, so nothing in this document claims
+  that OAuth works on a deployed service.
 
 The subsections below through "Transport and default-deny" describe the
 `signed-agent` and `bearer` code that is still in the tree. Since ADR-100 it
@@ -148,7 +149,7 @@ for development only.
 
 Generated MCP config files contain only executable and argument data. Tokens, Zep keys, Graphiti credentials, and Infisical machine identity values remain in the runtime environment or external secret manager.
 
-For the hosted 3.0.0 deployment the runtime secret this source defines is the PostgreSQL connection string (`L9_MEMORY_POSTGRES_DSN`), which the carrier requires. The Auth0 issuer and audience settings of the OAuth resource server are not defined in this source yet (issue #108). The agent signing-key map (`L9_MEMORY_AGENT_SIGNING_KEYS_JSON`) and the grant map (`L9_MEMORY_AGENT_GRANTS_JSON`, not secret in content but integrity-critical) are inputs of the legacy `signed-agent` mode, not of the hosted service (ADR-100). Secrets are delivered through the operator's existing secret path, owned by the deployment campaign; this repository defines the inputs and holds none of the values.
+For the hosted 3.0.0 deployment the runtime secret this source defines is the PostgreSQL connection string (`L9_MEMORY_POSTGRES_DSN`), which the carrier requires. The Auth0 issuer of the OAuth resource server is pinned in `.l9/deployment.yaml` and is not a secret; `L9_MEMORY_OAUTH_GRANTS_JSON` and `L9_MEMORY_OAUTH_ACTORS_JSON` are integrity-critical operator inputs (ADR-102, ADR-103). The agent signing-key map (`L9_MEMORY_AGENT_SIGNING_KEYS_JSON`) and the grant map (`L9_MEMORY_AGENT_GRANTS_JSON`, not secret in content but integrity-critical) are inputs of the legacy `signed-agent` mode, not of the hosted service (ADR-100). Secrets are delivered through the operator's existing secret path, owned by the deployment campaign; this repository defines the inputs and holds none of the values.
 
 ## Reporting
 
