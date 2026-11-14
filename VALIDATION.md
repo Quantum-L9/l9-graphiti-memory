@@ -42,7 +42,7 @@ The tracked `validation/validation_report.yaml` reports release `2.5.0`, not
 
 ### 3.0.0 release position
 
-- Release outcome proposed for 3.0.0: **ADMISSIBLE_WITH_RESIDUAL_RISK**. Under the per-item classification in `docs/REMAINING_PRODUCTION_PROOF.md` ("3.0.0 classification"), no remaining-proof item blocks admitting the release of the package `l9-graphite-memory` 3.0.0 and its hosted carrier as profiled in `.l9/deployment.yaml`.
+- Release outcome proposed for 3.0.0: **ADMISSIBLE_WITH_ACCEPTED_RESIDUAL_RISK**, the same string the release evidence generator writes (ADR-105). Under the per-item classification in `docs/REMAINING_PRODUCTION_PROOF.md` ("3.0.0 classification"), no remaining-proof item blocks admitting the release of the package `l9-graphite-memory` 3.0.0 and its hosted carrier as profiled in `.l9/deployment.yaml`.
 - RP-001 is CLOSED for the package.
 - RP-002 to RP-006 are NOT APPLICABLE TO THIS RELEASE for the hosted carrier, because it has no Gate egress, its projection, graph and active-memory backends are pinned off, and its store starts empty.
 - For the package, RP-002 to RP-006 are OPEN — ACCEPTED RESIDUAL RISK. RP-007 and RP-008 are OPEN — ACCEPTED RESIDUAL RISK for this release.
@@ -50,7 +50,7 @@ The tracked `validation/validation_report.yaml` reports release `2.5.0`, not
 - That classification is proposed for acceptance by the decision owner. Merging it on the default branch is that acceptance. Until then the 2.2.0 outcome below stands.
 - No 3.0.0 deployment exists. Release admission, service admission and deployment are separate decisions.
 
-The generated release evidence (`tools/assurance/generate_validation_evidence.py`) still records five external findings, B-001 to B-005, with `blocks_production_release: true` and `production_release_status: BLOCKED_ON_EXTERNAL_VALIDATION`. Those records state what local evidence cannot prove, and that remains true. They do not encode the 3.0.0 classification. Where they differ on whether an item blocks this release, the reviewed classification governs. `docs/REMAINING_PRODUCTION_PROOF.md` explains how they coexist.
+The generated release evidence (`tools/assurance/generate_validation_evidence.py`, ADR-105) still records five external findings, B-001 to B-005, each stating what local evidence cannot prove. Whether each one blocks this release, and the report's `production_release_status`, are computed from `release-work/remaining-proof-classification.json`, the machine-readable form of the classification. Anything that file does not settle fails closed to `BLOCKED_ON_EXTERNAL_VALIDATION`. `ADMISSIBLE_WITH_ACCEPTED_RESIDUAL_RISK` does not claim that production validation happened.
 
 ### 2.2.0 outcome, as produced
 
