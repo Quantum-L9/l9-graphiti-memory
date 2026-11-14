@@ -192,7 +192,7 @@ The Neo4j adapter serves bounded traversal, neighborhood, and shortest-path disc
 
 Graph analytics (ADR-089) run in GDS stream mode only over an ephemeral catalog graph projected from the authorized, temporally valid scope and dropped in `finally`; nothing is written back. Centrality, communities, FastRP embeddings, and structural similarity are deterministic (fixed seeds, single-threaded); link prediction is alpha, feature-gated, scored over in-scope common neighbours, and never materialized.
 
-Consumers reach graph intelligence through `MemorySDK.graph` and the typed `memory.graph.*` MCP tools (ADR-090); `memory.graph.capabilities` and the `/readyz` `graph` section report backend health, served capabilities, and algorithm gates as separate dimensions, and `observability.graph_metrics` counts operations, latency, cardinality, scope denials, rehydration drops, provider failures, partial receipts, and GDS cleanup failures without recording content. See `docs/graph-intelligence/USAGE.md`.
+Consumers reach graph intelligence through `MemorySDK.graph` and the typed `memory.graph.*` MCP tools (ADR-090); `memory.graph.capabilities` reports backend health, served capabilities, and algorithm gates as separate dimensions (the unauthenticated `/readyz` `graph` section carries only `enabled`, `healthy`, `required` and `ready`, `docs/REMOTE_MCP_CONTRACT.md` §1a), and `observability.graph_metrics` counts operations, latency, cardinality, scope denials, rehydration drops, provider failures, partial receipts, and GDS cleanup failures without recording content. See `docs/graph-intelligence/USAGE.md`.
 
 ## Projection erasure
 

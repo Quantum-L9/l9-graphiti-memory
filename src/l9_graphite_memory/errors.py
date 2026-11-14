@@ -37,6 +37,19 @@ class StoreError(L9MemoryError):
     """The canonical record store failed."""
 
 
+class StoreConnectionError(StoreError):
+    """The canonical store could not be reached with the configured connection.
+
+    ``driver_error`` names the driver's exception class only. The driver's own
+    text quotes the connection string or its host, port and user, so it never
+    travels on this exception (U-011).
+    """
+
+    def __init__(self, message: str, *, driver_error: str) -> None:
+        super().__init__(message)
+        self.driver_error = driver_error
+
+
 class ProjectionLinkConflict(StoreError):
     """A projection link changed between being read and being replaced."""
 

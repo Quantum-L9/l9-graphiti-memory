@@ -65,9 +65,13 @@ from l9_graphite_memory.errors import (
     AuthenticationError,
     ConfigurationError,
     L9MemoryError,
+    StoreConnectionError,
+    StoreError,
 )
 from l9_graphite_memory.mcp_tools import MCPToolApplication, tool_definitions
 from l9_graphite_memory.observability import configure_logging, get_logger
+from l9_graphite_memory.public_probe import public_health, public_readiness
+from l9_graphite_memory.redaction import redact_connection_error
 from l9_graphite_memory.runtime import (
     MemoryRuntime,
     build_runtime,
@@ -82,6 +86,8 @@ from l9_graphite_memory.version import (
 )
 
 log = get_logger("l9.memory.mcp")
+
+POSTGRES_DSN_VARIABLE = "L9_MEMORY_POSTGRES_DSN"
 JSONRPC_VERSION = "2.0"
 SERVER_INFO = {
     "name": "l9-graphite-memory",
@@ -792,11 +798,14 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
             PROTECTED_RESOURCE_METADATA_PATH, protected_resource_metadata, methods=["GET"]
         )
 
+    # Both probes are unauthenticated, so their bodies are public: built by
+    # allowlist in public_probe, never a dump of the internal report (U-011).
+    # The full report is the authenticated memory.health tool's.
     @app.get("/healthz")
     async def healthz() -> JSONResponse:
         report = await await_health(runtime.service.health)
         code = 200 if report.status.value != "failed" else 503
-        return JSONResponse(status_code=code, content=report.model_dump(mode="json"))
+        return JSONResponse(status_code=code, content=public_health(report))
 
     @app.get("/readyz")
     async def readyz() -> JSONResponse:
@@ -804,14 +813,10 @@ def create_http_app(runtime: MemoryRuntime) -> Any:
         # canonical and an enabled projection always gate; graph and active
         # memory gate only when the deployment marks them required.
         readiness = await runtime.readiness()
-        content = (await await_health(runtime.service.health)).model_dump(mode="json")
-        if runtime.graph_service is not None:
-            content["graph"] = readiness.family("graph").detail
-        content["active_memory"] = {
-            "store": readiness.family("active_store").model_dump(mode="json"),
-            "bus": readiness.family("awareness_bus").model_dump(mode="json"),
-        }
-        content["readiness"] = readiness.model_dump(mode="json")
+        health = await await_health(runtime.service.health)
+        content = public_readiness(
+            health, readiness, graph_present=runtime.graph_service is not None
+        )
         return JSONResponse(status_code=200 if readiness.ready else 503, content=content)
 
     return app
@@ -884,6 +889,28 @@ def http_server(runtime: MemoryRuntime, *, host: str, port: int) -> Any:
     return uvicorn.Server(config)
 
 
+def _startup_refusal(exc: StoreError) -> str:
+    """Why the canonical store refused startup, without the value that failed.
+
+    Names the variable and the class of failure. The driver's text (which
+    quotes the DSN, or its host, port and user) is never printed: a connection
+    failure is reported by class alone, any other store failure through the
+    shared redaction path (U-011).
+    """
+
+    if isinstance(exc, StoreConnectionError):
+        kind = {
+            "ProgrammingError": "the DSN is malformed",
+            "OperationalError": "the database is unreachable or refused the connection",
+        }.get(exc.driver_error, "the connection could not be opened")
+        return (
+            f"l9-memory-server: cannot start: postgres connection failed "
+            f"({exc.driver_error}): {kind}; check {POSTGRES_DSN_VARIABLE}"
+        )
+    detail = redact_connection_error(str(exc), os.environ.get(POSTGRES_DSN_VARIABLE))
+    return f"l9-memory-server: cannot start: canonical store failed: {detail}"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="L9 Graphite Memory MCP server")
     parser.add_argument("--transport", choices=["stdio", "http", "sse"], default="stdio")
@@ -893,7 +920,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     load_secrets_sync()
-    runtime = build_runtime(args.config)
+    try:
+        runtime = build_runtime(args.config)
+    except StoreError as exc:
+        sys.stderr.write(_startup_refusal(exc) + "\n")
+        return 70
     configure_logging(runtime.settings.log_level, json_output=runtime.settings.json_logs)
     try:
         if args.transport == "stdio":

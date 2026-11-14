@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
@@ -111,6 +112,7 @@ from l9_graphite_memory.projections.runtime import (
     ProjectionTargetBinding,
     graph_projection_target,
 )
+from l9_graphite_memory.redaction import STORE_UNAVAILABLE
 from l9_graphite_memory.retrieval import ContextBudgetAllocator, RetrievalPlanner
 from l9_graphite_memory.version import MEMORY_SCHEMA_VERSION, PACKAGE_VERSION
 
@@ -128,6 +130,8 @@ _SUPERSEDABLE_STATES: frozenset[MemoryState] = frozenset(
 #: them. Releasing a quarantined record needs ADMIN unless a review verdict
 #: that clears the review policy accompanies it, in which case MAINTAIN
 #: suffices and the verdict is recorded as evidence (ADR-080).
+log = logging.getLogger("l9.memory.service")
+
 _LIFECYCLE_TRANSITIONS: dict[tuple[MemoryState, MemoryState], AuthorizationAction] = {
     (MemoryState.ACTIVE, MemoryState.SUPERSEDED): AuthorizationAction.MAINTAIN,
     (MemoryState.ACTIVE, MemoryState.ARCHIVED): AuthorizationAction.MAINTAIN,
@@ -1968,6 +1972,20 @@ class MemoryService:
     def health(self) -> HealthReport:
         store_health = self.store.health()
         projection_health = self.projections.health()
+        # The backlog is read from the canonical store, so a store that went
+        # away between the probe and this read must report unhealthy (503),
+        # not escape as an unhandled error (500). StoreError text is already
+        # redacted by the adapter; only the reason code is published (U-011).
+        try:
+            outbox_backlog = self.store.outbox_backlog()
+        except StoreError as exc:
+            log.warning("canonical store outbox backlog unavailable: %s", exc)
+            outbox_backlog = 0
+            store_health = {
+                "name": store_health.get("name", "store"),
+                "healthy": False,
+                "reason": STORE_UNAVAILABLE,
+            }
         degraded: list[str] = []
         if not store_health.get("healthy"):
             status = OperationStatus.FAILED
@@ -1983,7 +2001,7 @@ class MemoryService:
             schema_version=MEMORY_SCHEMA_VERSION,
             store=store_health,
             projection=projection_health,
-            outbox_backlog=self.store.outbox_backlog(),
+            outbox_backlog=outbox_backlog,
             degraded_reasons=tuple(degraded),
             checked_at=self.clock.now(),
         )

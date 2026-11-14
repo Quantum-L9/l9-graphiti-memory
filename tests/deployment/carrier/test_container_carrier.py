@@ -583,6 +583,98 @@ def test_readiness_follows_the_canonical_postgres_store(tmp_path, database, issu
         _wait_ready(c)
 
 
+def _keys(value: object) -> set[str]:
+    if isinstance(value, dict):
+        return set(value) | {key for item in value.values() for key in _keys(item)}
+    if isinstance(value, list):
+        return {key for item in value for key in _keys(item)}
+    return set()
+
+
+def _assert_public_probe_body(response: Any, database: Database) -> None:
+    """An unauthenticated probe body: no count, no exception text, no coordinate (U-011)."""
+
+    body = response.json()
+    leaked = _keys(body) & {"records", "error", "path", "outbox_backlog"}
+    assert not leaked, f"public probe body carries {leaked}: {response.text[:600]}"
+    for secret in (database.password, database.container, "user=postgres", "port=5432"):
+        assert secret not in response.text, f"{secret!r} in a public probe body"
+
+
+def test_unauthenticated_probes_disclose_no_count_or_store_coordinate(
+    tmp_path, database, issuer
+) -> None:
+    with carrier(tmp_path, database, issuer) as c:
+        _wait_ready(c)
+        _written(c, issuer, "a record whose count the public probes must not publish")
+        for path in ("/readyz", "/healthz"):
+            response = httpx2.get(f"{c.url}{path}", timeout=10)
+            assert response.status_code == 200, path
+            _assert_public_probe_body(response, database)
+            assert response.json()["store"] == {"name": "postgres", "healthy": True}
+        _docker("stop", database.container)
+        try:
+            _wait_not_ready(c)
+            for path in ("/readyz", "/healthz"):
+                response = httpx2.get(f"{c.url}{path}", timeout=10)
+                # The store is gone: a 503 the probes report, never a 500.
+                assert response.status_code == 503, (path, response.text[:600])
+                _assert_public_probe_body(response, database)
+                assert response.json()["store"] == {
+                    "name": "postgres",
+                    "healthy": False,
+                    "reason": "store_unavailable",
+                }
+        finally:
+            _docker("start", database.container)
+            _wait_for_postgres(database.container)
+        _wait_ready(c)
+        logs = _docker("logs", c.container, check=False)
+    output = logs.stdout + logs.stderr
+    assert "health probe failed" in output, "the store failure detail was not logged"
+    assert database.password not in output
+    assert database.container not in output
+
+
+def _unusable_dsns(database: Database) -> dict[str, str]:
+    return {
+        "a malformed URI": f"postgresql://postgres:{database.password}@[{database.container}",
+        "a malformed keyword DSN": (
+            f"host={database.container} user=postgres password={database.password} dbname"
+        ),
+        "a wrong password": (
+            f"host={database.container} port=5432 user=postgres "
+            f"password='{database.password} wrong' dbname=postgres connect_timeout=5"
+        ),
+    }
+
+
+@pytest.mark.parametrize("case", ["a malformed URI", "a malformed keyword DSN", "a wrong password"])
+def test_a_failed_start_with_an_unusable_dsn_logs_no_part_of_it(
+    tmp_path, database, issuer, case
+) -> None:
+    dsn = _unusable_dsns(database)[case]
+    started = _start(tmp_path, database, issuer, L9_MEMORY_POSTGRES_DSN=dsn)
+    try:
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            running = _docker("inspect", "-f", "{{.State.Running}}", started.container)
+            if running.stdout.strip() != "true":
+                break
+            time.sleep(0.5)
+        else:
+            pytest.fail(f"{case}: the container kept running with an unusable DSN")
+        exit_code = _docker("inspect", "-f", "{{.State.ExitCode}}", started.container)
+        assert exit_code.stdout.strip() not in {"", "0"}, case
+    finally:
+        logs = _stop(started)
+    assert "L9_MEMORY_POSTGRES_DSN" in logs, logs[-2000:]
+    assert "postgres connection failed" in logs, logs[-2000:]
+    assert database.password not in logs, f"{case}: the password reached the container log"
+    assert database.container not in logs, f"{case}: the database host reached the log"
+    assert "Traceback" not in logs, logs[-2000:]
+
+
 def _refused_requests(issuer: Issuer) -> dict[str, dict[str, str]]:
     fake = issuer.fake
     now = int(time.time())

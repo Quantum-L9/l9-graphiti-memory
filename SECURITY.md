@@ -135,6 +135,19 @@ Tier-3 local principal, which is an administrator when
   `/openapi.json` are unauthenticated in every version, including the
   3.0.0 source. Their exposure beyond the host is a deployment decision that has
   not been made.
+- Since 3.0.0 the `/healthz` and `/readyz` bodies are public allowlists
+  (`docs/REMOTE_MCP_CONTRACT.md` §1a): component names, health and readiness
+  booleans and stable reason codes only — no record count, backlog, path, URL
+  or exception text. Before 3.0.0 they published the canonical record count
+  and, during a store outage, the driver's error text with the database host,
+  port and user (U-011). The full report is the authenticated `memory.health`
+  tool's.
+- Connection strings and connection errors pass one redaction path
+  (`src/l9_graphite_memory/redaction.py`) before any log line or raised
+  message; a server that cannot open its store names `L9_MEMORY_POSTGRES_DSN`
+  and the class of failure, never the value. Settings fields that carry a
+  credential or a connection coordinate are `repr=False`, and
+  `tests/unit/test_secret_disclosure.py` fails on a new repr-visible one.
 
 ### Gaps on 2.5.0 and 2.6.0
 

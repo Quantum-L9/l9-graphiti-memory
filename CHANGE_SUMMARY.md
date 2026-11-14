@@ -131,6 +131,7 @@ Read `MIGRATION.md` "Upgrading from 2.6.0 to 3.0.0". In summary:
 - The root inventory `MANIFEST.md` / `manifest.json` and the `L9_META` tools (`apply_l9_meta`, `check_l9_meta`, `generate_manifest`, `validate_manifest`, `l9_meta`) are removed; a tracked root `MANIFEST.md` or `manifest.json` is now forbidden (ADR-099 supersedes ADR-062, #99).
 - The TypeScript client is npm `3.0.0` (was `2.0.0`), requires a 2.7.0+ server, and no longer defaults to `2025-03-26` (`d673ada`). Its version number is not the Memory version.
 - `validate_product_topology.py --release-version` rejects a release below the `3.0.0` floor for the hosted-Memory kind exception (#97).
+- **Breaking:** the unauthenticated `/healthz` and `/readyz` bodies are public allowlists (`docs/REMOTE_MCP_CONTRACT.md` §1a): `store.records`, `store.schema_version`, `store.path`, `store.error`, `outbox_backlog` and adapter `detail` are removed; status codes and the fields in-repo consumers read are kept; a store lost mid-probe is a 503 instead of a 500; the full report stays on the authenticated `memory.health` tool; DSNs and connection errors pass one redaction path, a bad `L9_MEMORY_POSTGRES_DSN` stops startup without printing it, and secret-shaped settings are `repr=False` (U-011).
 - `MIGRATION.md`'s 2.6.0 → 3.0.0 table predates ADR-100 and still lists `signed-agent` as an opt-in HTTP mode. For the hosted service ADR-100 governs (next section).
 
 ### Hosted door (ADR-098, ADR-100)

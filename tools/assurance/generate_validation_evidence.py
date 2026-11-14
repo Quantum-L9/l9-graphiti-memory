@@ -110,8 +110,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 102 -> 103 for ADR-103 (OAuth actor binding).
         # Re-pinned 103 -> 104 for ADR-104 (Core repository execution V2).
         # Re-pinned 104 -> 105 for ADR-105 (reviewed remaining-proof classification).
-        "105 ADRs complete and indexed",
-        r"PASS: 105 ADRs",
+        # Re-pinned 105 -> 106 for ADR-106 (public probe bodies, U-011).
+        "106 ADRs complete and indexed",
+        r"PASS: 106 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -206,8 +207,11 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 143 -> 144 for the ADR-082 2026-10-16 amendment:
         # remote_client.py.
         # Re-pinned 144 -> 145 for ADR-102: authz/oauth.py.
-        "145 production files pass",
-        r"PASS: 145 production Python files",
+        # Re-pinned 145 -> 147 for U-011: redaction.py (the one DSN and
+        # connection-error redaction path) and public_probe.py (the public
+        # /healthz and /readyz bodies).
+        "147 production files pass",
+        r"PASS: 147 production Python files",
     ),
     CheckSpec(
         "V-012",

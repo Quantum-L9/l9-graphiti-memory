@@ -627,7 +627,9 @@ hosted memory.
    Expected: the container is `Up` and healthy with `127.0.0.1:8200->8200/tcp`;
    the listener on 8200 belongs to Docker, not to the legacy process;
    `/readyz` answers 200 with `package_version` `3.0.0` (the legacy service is
-   2.2.0); and the revision label equals the commit of the tag
+   2.2.0) and its body carries no `records` key (3.0.0 probe bodies are public
+   allowlists, `docs/REMOTE_MCP_CONTRACT.md` §1a; the record count is on the
+   authenticated `memory.health` tool); and the revision label equals the commit of the tag
    (`git rev-parse 'v3.0.0^{commit}'` in a checkout). Then check the public
    route through the host's existing proxy:
 
@@ -1014,7 +1016,11 @@ their own evidence: `canonical` (always required), `projection` (required
 when enabled), `graph` (`L9_MEMORY_GRAPH_REQUIRED`), `active_store` and
 `awareness_bus` (`L9_MEMORY_ACTIVE_REQUIRED`). Each carries `selected`,
 `required`, `healthy` and `ready`; `ready` is the aggregate, and
-`full_capability` is true only when every family is selected and healthy. A
+`full_capability` is true only when every family is selected and healthy.
+Over HTTP the body is public: each family keeps only those booleans, its
+`reasons` and `detail.shared_store`, never adapter detail
+(`docs/REMOTE_MCP_CONTRACT.md` §1a); `l9-memory readiness` prints the full
+report. A
 required family that is absent or unhealthy is `failed`, never green; an
 optional unhealthy family is `partial`. `l9-memory health` and `memory.health`
 keep the canonical-plus-projection shape consumers already bind to.
