@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.5.0
-updated: 2026-07-22
+updated: 2026-11-14
 /L9_META -->
 
 # L9 Recursive Alignment
@@ -39,4 +39,4 @@ pytest -q
 bash scripts/validate_release.sh
 ```
 
-Production alignment proof remains blocked on the external evidence defined in `docs/REMAINING_PRODUCTION_PROOF.md` and issue-pack IDs `RP-003` through `RP-009`. RP-001 binds TransportPacket; RP-002 binds `GateClient` from the same package. A live Gate smoke is still required for release closure.
+Production alignment proof remains blocked on the external evidence defined in `docs/REMAINING_PRODUCTION_PROOF.md` and issue-pack IDs `RP-003` through `RP-009`. RP-001 binds TransportPacket; RP-002 binds `GateClient` from the same package. A live Gate smoke is still required for release closure. For 3.0.0 each item is classified in `docs/REMAINING_PRODUCTION_PROOF.md` ("3.0.0 classification"); that classification is proposed for the decision owner's acceptance.

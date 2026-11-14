@@ -6,7 +6,7 @@ layer: repository
 owner: memory-control-plane
 status: active
 version: 2.2.0
-updated: 2026-10-14
+updated: 2026-11-14
 /L9_META -->
 
 # Security
@@ -162,7 +162,7 @@ for development only.
 
 Generated MCP config files contain only executable and argument data. Tokens, Zep keys, Graphiti credentials, and Infisical machine identity values remain in the runtime environment or external secret manager.
 
-For the hosted 3.0.0 deployment the runtime secret this source defines is the PostgreSQL connection string (`L9_MEMORY_POSTGRES_DSN`), which the carrier requires. The Auth0 issuer of the OAuth resource server is pinned in `.l9/deployment.yaml` and is not a secret; `L9_MEMORY_OAUTH_GRANTS_JSON` and `L9_MEMORY_OAUTH_ACTORS_JSON` are integrity-critical operator inputs (ADR-102, ADR-103). The agent signing-key map (`L9_MEMORY_AGENT_SIGNING_KEYS_JSON`) and the grant map (`L9_MEMORY_AGENT_GRANTS_JSON`, not secret in content but integrity-critical) are inputs of the legacy `signed-agent` mode, not of the hosted service (ADR-100). Secrets are delivered through the operator's existing secret path, owned by the deployment campaign; this repository defines the inputs and holds none of the values.
+For the hosted 3.0.0 deployment the runtime secret this source defines is the PostgreSQL connection string (`L9_MEMORY_POSTGRES_DSN`), which the carrier requires. The Auth0 issuer of the OAuth resource server is pinned in `.l9/deployment.yaml` and is not a secret; `L9_MEMORY_OAUTH_GRANTS_JSON` and `L9_MEMORY_OAUTH_ACTORS_JSON` are integrity-critical operator inputs (ADR-102, ADR-103). The agent signing-key map (`L9_MEMORY_AGENT_SIGNING_KEYS_JSON`) and the grant map (`L9_MEMORY_AGENT_GRANTS_JSON`, not secret in content but integrity-critical) are inputs of the legacy `signed-agent` mode, not of the hosted service (ADR-100). Secrets are delivered through the operator's existing secret path, owned by the deployment campaign; this repository defines the inputs and holds none of the values. Loading from Infisical in a deployed carrier, rotation, revocation and no-plaintext persistence on the host are not proven. RP-008 is OPEN — ACCEPTED RESIDUAL RISK for 3.0.0, proposed for the decision owner's acceptance (`docs/REMAINING_PRODUCTION_PROOF.md`). Audit item U-011 is referred to the decision owner as a blocker candidate. `MemorySettings` does not hide `postgres_dsn` or the provider tokens from `repr`, and the unauthenticated `/readyz` and `/healthz` return the store's connection-error text and record count (same document, audit table).
 
 ## Reporting
 

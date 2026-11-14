@@ -1,0 +1,38 @@
+{
+  "schema": "l9-graphiti-memory/remaining-proof-classification@1",
+  "release": "3.0.0",
+  "scope": "package l9-graphite-memory 3.0.0 and its hosted carrier as profiled in .l9/deployment.yaml",
+  "status": "proposed for acceptance by the decision owner; merging this file on the default branch is that acceptance",
+  "document": "docs/REMAINING_PRODUCTION_PROOF.md",
+  "decision_record": "docs/adr/ADR-105-reviewed-remaining-proof-classification-in-release-evidence.md",
+  "classes": {
+    "CLOSED": "evidence in the tree or a named GitHub record satisfies the item's own required proof",
+    "NOT_APPLICABLE_TO_THIS_RELEASE": "a configuration fact removes the item from this scope",
+    "OPEN_ACCEPTED_RESIDUAL_RISK": "unproven; proposed for acceptance by the decision owner as residual risk of this release",
+    "OPEN_RELEASE_DECISION": "the release decision itself; discharged only by the admission receipt"
+  },
+  "items": [
+    {"item": "RP-001", "scope": "package", "classification": "CLOSED"},
+    {"item": "RP-001", "scope": "hosted carrier", "classification": "NOT_APPLICABLE_TO_THIS_RELEASE"},
+    {"item": "RP-002", "scope": "package", "classification": "OPEN_ACCEPTED_RESIDUAL_RISK"},
+    {"item": "RP-002", "scope": "hosted carrier", "classification": "NOT_APPLICABLE_TO_THIS_RELEASE"},
+    {"item": "RP-003", "scope": "package", "classification": "OPEN_ACCEPTED_RESIDUAL_RISK"},
+    {"item": "RP-003", "scope": "hosted carrier", "classification": "NOT_APPLICABLE_TO_THIS_RELEASE"},
+    {"item": "RP-004", "scope": "package", "classification": "OPEN_ACCEPTED_RESIDUAL_RISK"},
+    {"item": "RP-004", "scope": "hosted carrier", "classification": "NOT_APPLICABLE_TO_THIS_RELEASE"},
+    {"item": "RP-005", "scope": "package", "classification": "OPEN_ACCEPTED_RESIDUAL_RISK"},
+    {"item": "RP-005", "scope": "hosted carrier", "classification": "NOT_APPLICABLE_TO_THIS_RELEASE"},
+    {"item": "RP-006", "scope": "package", "classification": "OPEN_ACCEPTED_RESIDUAL_RISK"},
+    {"item": "RP-006", "scope": "hosted carrier", "classification": "NOT_APPLICABLE_TO_THIS_RELEASE"},
+    {"item": "RP-007", "scope": "repository", "classification": "OPEN_ACCEPTED_RESIDUAL_RISK"},
+    {"item": "RP-008", "scope": "package and hosted carrier", "classification": "OPEN_ACCEPTED_RESIDUAL_RISK"},
+    {"item": "RP-009", "scope": "release", "classification": "OPEN_RELEASE_DECISION"}
+  ],
+  "external_findings": {
+    "B-001": ["RP-001", "RP-002", "RP-003"],
+    "B-002": ["RP-004", "RP-005"],
+    "B-003": ["RP-006"],
+    "B-004": ["RP-007"],
+    "B-005": ["RP-008"]
+  }
+}

@@ -109,8 +109,9 @@ CHECKS: Final[tuple[CheckSpec, ...]] = (
         # Re-pinned 101 -> 102 for ADR-102 (OAuth resource server).
         # Re-pinned 102 -> 103 for ADR-103 (OAuth actor binding).
         # Re-pinned 103 -> 104 for ADR-104 (Core repository execution V2).
-        "104 ADRs complete and indexed",
-        r"PASS: 104 ADRs",
+        # Re-pinned 104 -> 105 for ADR-105 (reviewed remaining-proof classification).
+        "105 ADRs complete and indexed",
+        r"PASS: 105 ADRs",
     ),
     CheckSpec(
         "V-004",
@@ -346,7 +347,14 @@ EXTERNAL_BLOCKERS: Final[tuple[dict[str, str], ...]] = (
     {
         "id": "B-001",
         "check": "canonical TransportPacket and Gate integration",
-        "reason": "canonical package import path, constructor, and production Gate receipt schema are unavailable in this pack",
+        # The authoritative TransportPacket package is bound and exercised in
+        # CI (RP-001, ADR-026); what local evidence still cannot prove is the
+        # Gate client against a live Gate and the production receipt.
+        "reason": (
+            "the authoritative TransportPacket package is bound (RP-001); the Gate client "
+            "adapter is tested only against a stub client, and no credentialed Gate "
+            "staging rehearsal has run"
+        ),
         "required_evidence": "credentialed staging dispatch of root and follow-up packets with trace and lineage proof",
     },
     {
@@ -374,6 +382,125 @@ EXTERNAL_BLOCKERS: Final[tuple[dict[str, str], ...]] = (
         "required_evidence": "load, rotation, revocation, and no-plaintext-persistence evidence",
     },
 )
+
+# ADR-105: whether an external finding blocks this release is read from the
+# reviewed classification, never hard-coded. Anything the classification does
+# not settle -- a missing or unreadable file, a version that is not this
+# release, a finding without an entry, an unknown class or scope -- leaves the
+# finding blocking and the report BLOCKED_ON_EXTERNAL_VALIDATION.
+CLASSIFICATION: Final = Path("release-work") / "remaining-proof-classification.json"
+CLASSIFICATION_SCHEMA: Final = "l9-graphiti-memory/remaining-proof-classification@1"
+PACKAGE_VERSION_FILE: Final = Path("src") / "l9_graphite_memory" / "version.py"
+NON_BLOCKING_CLASSES: Final = frozenset(
+    {"CLOSED", "NOT_APPLICABLE_TO_THIS_RELEASE", "OPEN_ACCEPTED_RESIDUAL_RISK"}
+)
+KNOWN_CLASSES: Final = NON_BLOCKING_CLASSES | {"OPEN_RELEASE_DECISION"}
+KNOWN_SCOPES: Final = frozenset(
+    {"package", "hosted carrier", "package and hosted carrier", "repository", "release"}
+)
+BLOCKED_STATUS: Final = "BLOCKED_ON_EXTERNAL_VALIDATION"
+# Admissible, not validated: the external proofs did not run. The status says
+# only that every recorded external finding is classified as non-blocking for
+# this release by the reviewed classification.
+ADMISSIBLE_STATUS: Final = "ADMISSIBLE_WITH_ACCEPTED_RESIDUAL_RISK"
+
+
+@dataclass(frozen=True, slots=True)
+class Classification:
+    path: str
+    sha256: str | None
+    problems: tuple[str, ...]
+    entries: tuple[dict[str, str], ...]
+    findings: dict[str, tuple[str, ...]]
+
+
+def _package_version(root: Path) -> str | None:
+    path = root / PACKAGE_VERSION_FILE
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    match = re.search(r'^PACKAGE_VERSION(?::\s*Final)?\s*=\s*"([^"]+)"', text, re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def load_classification(root: Path) -> Classification:
+    path = root / CLASSIFICATION
+    label = CLASSIFICATION.as_posix()
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        return Classification(label, None, (f"{label} is missing or unreadable",), (), {})
+    digest = "sha256:" + hashlib.sha256(raw).hexdigest()
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        return Classification(label, digest, (f"{label} is not valid JSON",), (), {})
+    if not isinstance(data, dict):
+        return Classification(label, digest, (f"{label} is not an object",), (), {})
+    problems: list[str] = []
+    if data.get("schema") != CLASSIFICATION_SCHEMA:
+        problems.append(f"schema is {data.get('schema')!r}, expected {CLASSIFICATION_SCHEMA!r}")
+    release = data.get("release")
+    if release != RELEASE:
+        problems.append(f"classification release {release!r} is not this release {RELEASE!r}")
+    package_version = _package_version(root)
+    if package_version is None:
+        problems.append(f"PACKAGE_VERSION not readable from {PACKAGE_VERSION_FILE.as_posix()}")
+    elif release != package_version:
+        problems.append(
+            f"classification release {release!r} is not PACKAGE_VERSION {package_version!r}"
+        )
+    entries: list[dict[str, str]] = []
+    items = data.get("items")
+    if not isinstance(items, list):
+        problems.append("items is not a list")
+        items = []
+    for entry in items:
+        if not (
+            isinstance(entry, dict)
+            and all(isinstance(entry.get(key), str) for key in ("item", "scope", "classification"))
+        ):
+            problems.append(f"malformed item entry {entry!r}")
+            continue
+        entries.append({key: str(entry[key]) for key in ("item", "scope", "classification")})
+    findings: dict[str, tuple[str, ...]] = {}
+    mapping = data.get("external_findings")
+    if not isinstance(mapping, dict):
+        problems.append("external_findings is not an object")
+        mapping = {}
+    for finding_id, mapped in mapping.items():
+        if isinstance(mapped, list) and mapped and all(isinstance(x, str) for x in mapped):
+            findings[str(finding_id)] = tuple(mapped)
+        else:
+            problems.append(f"external_findings[{finding_id!r}] is not a non-empty list of items")
+    return Classification(label, digest, tuple(problems), tuple(entries), findings)
+
+
+def classify_finding(
+    finding_id: str, classification: Classification
+) -> tuple[bool, list[dict[str, str]], list[str]]:
+    """Return (blocks, the classification rows, the reasons it still blocks)."""
+    reasons = list(classification.problems)
+    rows: list[dict[str, str]] = []
+    items = classification.findings.get(finding_id)
+    if not items:
+        reasons.append(f"{finding_id} has no classification entry")
+        return True, rows, reasons
+    for item in items:
+        matched = [entry for entry in classification.entries if entry["item"] == item]
+        if not matched:
+            reasons.append(f"{item} has no classification entry")
+        for entry in matched:
+            rows.append(dict(entry))
+            label = f"{item} ({entry['scope']})"
+            if entry["classification"] not in KNOWN_CLASSES:
+                reasons.append(f"{label} has unknown class {entry['classification']!r}")
+            elif entry["classification"] not in NON_BLOCKING_CLASSES:
+                reasons.append(f"{label} is {entry['classification']}")
+            if entry["scope"] not in KNOWN_SCOPES:
+                reasons.append(f"{label} has unknown scope")
+    return bool(reasons), rows, reasons
 
 
 def _sha256(path: Path) -> str:
@@ -936,11 +1063,15 @@ def generate(root: Path, evidence_dir: Path) -> int:
     unknown = [row for row in checks if row["status"] == "UNKNOWN"]
     status = "BLOCKED_ON_VALIDATION" if failed or unknown else "APPROVED_WITH_FINDINGS"
 
+    classification = load_classification(root)
     findings: list[dict[str, object]] = []
     for blocker in EXTERNAL_BLOCKERS:
+        blocks, rows, reasons = classify_finding(blocker["id"], classification)
         findings.append(
             {
-                "blocks_production_release": True,
+                "blocks_production_release": blocks,
+                "blocking_reasons": reasons,
+                "release_classification": rows,
                 "confidence": "confirmed",
                 "evidence": "external execution not available in the local pack",
                 "finding_id": blocker["id"],
@@ -953,8 +1084,16 @@ def generate(root: Path, evidence_dir: Path) -> int:
             }
         )
 
+    blocking = sum(1 for finding in findings if finding["blocks_production_release"])
+    if failed or unknown:
+        production_status = "BLOCKED_ON_VALIDATION"
+    elif blocking:
+        production_status = BLOCKED_STATUS
+    else:
+        production_status = ADMISSIBLE_STATUS
     report = {
         "blocked_external_checks": len(findings),
+        "external_findings_blocking": blocking,
         "checks_failed": len(failed),
         "checks_passed": sum(1 for row in checks if row["status"] == "PASS"),
         "checks_unknown": len(unknown),
@@ -963,9 +1102,12 @@ def generate(root: Path, evidence_dir: Path) -> int:
             "and explicit external blocker declarations"
         ),
         "local_deterministic_status": "PASS" if not failed and not unknown else "FAIL",
-        "production_release_status": "BLOCKED_ON_EXTERNAL_VALIDATION"
-        if not failed and not unknown
-        else "BLOCKED_ON_VALIDATION",
+        "production_release_status": production_status,
+        "release_classification": {
+            "path": classification.path,
+            "problems": list(classification.problems),
+            "sha256": classification.sha256,
+        },
         "release": RELEASE,
         "repository": REPOSITORY,
         "review_package_status": status,
@@ -981,7 +1123,8 @@ def generate(root: Path, evidence_dir: Path) -> int:
         sys.stdout.write(f"FAIL: checks_failed={len(failed)} checks_unknown={len(unknown)}\n")
         return 1
     sys.stdout.write(
-        f"PASS: {len(checks)} local checks evidenced; {len(findings)} external blockers recorded\n"
+        f"PASS: {len(checks)} local checks evidenced; {len(findings)} external findings "
+        f"recorded, {blocking} blocking; production release status {production_status}\n"
     )
     return 0
 

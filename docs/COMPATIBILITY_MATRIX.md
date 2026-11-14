@@ -6,7 +6,7 @@ layer: documentation
 owner: memory-control-plane
 status: active
 version: 2.3.0
-updated: 2026-10-14
+updated: 2026-11-14
 /L9_META -->
 
 # Compatibility Matrix
@@ -39,8 +39,8 @@ updated: 2026-10-14
 | `client cursor verify` (2.3) | probed the generated entry only | with `--path` (or an existing default config) probes the entry as written on disk; receipt carries `argv_source` and `config_path` | corrected |
 | HTTP MCP transport (ADR-098; on `main` at source version 3.0.0, untagged, not a release) | at 2.6.0: `initialize` answered `2024-11-05`; notifications got `200 {"status":"ok"}`; no Origin, Accept, or version-header checks; static bearer only | in 3.0.0 source: stateless Streamable HTTP `2025-11-25`/`2025-06-18`: `202` for notifications, `405` for GET/DELETE, `403` bad Origin, `400` absent/unsupported `MCP-Protocol-Version` or batch; `signed-agent` mode verifies the stdio agent evidence per request (ADR-098, `docs/REMOTE_MCP_CONTRACT.md`); neither `bearer` nor `signed-agent` is a hosted door (ADR-100) | intentional correctness break for HTTP callers; stdio unchanged |
 | agent MCP transport | local stdio entry (`client cursor install`) | stdio code unchanged in every version; OAuth-protected native Streamable HTTP to one hosted `MemoryService` is the Memory 3.0.0 target, not deployed, and for that hosted service stdio is not a door or a fallback (ADR-100, superseding the hosted provisions of ADR-038, ADR-064, ADR-082, ADR-083; ADR-094) | local stdio preserved; remote target pending |
-| TransportPacket | injected protocol only; shared package unknown | `constellation-node-sdk` from `Quantum-L9/Gate_SDK` `v1.0.1` (`>=1.0.1,<1.1.0`, Python `>=3.12` extra); upgrade by bumping the git tag and supported range together | RP-001 bound |
-| Gate client | injected protocol only; package unknown | same pin; `CanonicalGateClient` wraps `GateClient.send_to_gate` / `/v1/health`. Auth and node identity come from `GATE_URL` / `L9_NODE_NAME` / signing env. No peer URL, destination argument, retry, or circuit-breaker | RP-002 bound |
+| TransportPacket | injected protocol only; shared package unknown | `constellation-node-sdk` from `Quantum-L9/Gate_SDK` `v1.0.1` (`>=1.0.1,<1.1.0`, Python `>=3.12` extra); upgrade by bumping the git tag and supported range together | RP-001 CLOSED for the package (3.0.0 classification, `docs/REMAINING_PRODUCTION_PROOF.md`) |
+| Gate client | injected protocol only; package unknown | same pin; `CanonicalGateClient` wraps `GateClient.send_to_gate` / `/v1/health`. Auth and node identity come from `GATE_URL` / `L9_NODE_NAME` / signing env. No peer URL, destination argument, retry, or circuit-breaker | RP-002 adapter bound; tested against a stub client, not a live Gate: OPEN — ACCEPTED RESIDUAL RISK for the package, NOT APPLICABLE to the hosted carrier (3.0.0 classification) |
 
 ## Release and transport states
 
