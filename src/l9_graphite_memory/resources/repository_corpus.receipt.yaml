@@ -3,18 +3,18 @@ projection:
   artifact_ref: l9.projection/memory-repository-corpus@1
   view_ref: l9.repository-view/memory-namespace-l9@1
   source_repository: Quantum-L9/.github
-  source_revision: 9b27869dd893fcd28f76f99c9184a90435542c76
+  source_revision: 496842bf029996a75f17fd1533baa79029bc95db
   sources:
     repository_registry:
       artifact_ref: l9.repository-registry/global@1
-      digest: sha256:d940346433309a0b51dcc921a290bd19b57ddb4b9c4d17cbb3a8bfc7be90a686
+      digest: sha256:1c46e31f17a5c63ecd11db407ff210d4f6959fd1a4b86012306369eff38cd0ce
     repository_classes:
       artifact_ref: l9.repository-classes/global@1
       digest: sha256:1ba62a3e03423a35a55fd08dcc53bd8ce377d5c2406da32cc741ee7a385b7cdd
 output:
   path: src/l9_graphite_memory/resources/repository_corpus.yaml
   schema: l9.projection.memory-repository-corpus/v1
-  digest: sha256:7e23270ea9ef1028bdad8ea6a5f34cb7fce24a277c0fc659ff57809a5d89f149
+  digest: sha256:85bac14cf1ff092b336328d8c3f30bf582104150486d0c50a979c7539af7f05d
 generator:
   id: l9-graphiti-memory.repository-corpus-projector/v1
   deterministic: true
