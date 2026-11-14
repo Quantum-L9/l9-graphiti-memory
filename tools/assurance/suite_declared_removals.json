@@ -2,5 +2,46 @@
 	"schema": "l9.suite-declared-removals/v1",
 	"authority": "docs/adr/ADR-101-derived-suite-count-validation.md",
 	"note": "A test node id collected at the merge-base with origin/main but absent from the candidate's collection fails V-001 unless it is listed here with the reason for its removal. Entries for ids already gone from origin/main are inert and may be dropped by any later change.",
-	"removals": []
+	"removals": [
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[the complete hosted profile]",
+			"reason": "Behaviour no longer exists: the hosted profile now pins L9_MEMORY_HTTP_AUTH_MODE=oauth (ADR-102), so the complete profile serves instead of refusing. Its serving is proven by test_readiness_follows_the_canonical_postgres_store and test_oauth_admits_bound_subjects_and_refuses_every_bad_credential; the refusal of a profile with no auth mode is proven by test_the_container_refuses_to_serve_a_misconfigured_store_or_door[no auth mode]."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[signed-agent auth in the profile]",
+			"reason": "Renamed test function, same case: covered by tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[signed-agent auth in the profile], which asserts the same refusal message."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[signed-agent auth in runtime.env]",
+			"reason": "Renamed function and case id: covered by tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[signed-agent auth from runtime.env alone] (profile without an auth mode, runtime.env naming signed-agent), which asserts the same refusal message."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[bearer-only auth in the profile]",
+			"reason": "Renamed function and case id: covered by tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[bearer auth in the profile], which asserts the same refusal message."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[bearer tokens in runtime.env]",
+			"reason": "Renamed function and case id, coverage restored: tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[bearer auth from runtime.env alone] (profile without an auth mode, runtime.env naming bearer with its static token map) asserts the same refusal message."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[no PostgreSQL DSN]",
+			"reason": "Renamed test function, same case: covered by tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[no PostgreSQL DSN], which asserts the same refusal message."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[a SQLite store]",
+			"reason": "Renamed test function, same case: covered by tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[a SQLite store], which asserts the same refusal message."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[auth disabled]",
+			"reason": "Renamed test function, same case: covered by tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[auth disabled], which asserts the same refusal message."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[a stale graph backend in runtime.env]",
+			"reason": "Renamed test function, same case: covered by tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[a stale graph backend in runtime.env], which asserts the same refusal message."
+		},
+		{
+			"node_id": "tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_without_a_hosted_door_or_store[a stale active-memory backend in runtime.env]",
+			"reason": "Renamed test function, same case: covered by tests/deployment/carrier/test_container_carrier.py::test_the_container_refuses_to_serve_a_misconfigured_store_or_door[a stale active-memory backend in runtime.env], which asserts the same refusal message."
+		}
+	]
 }
