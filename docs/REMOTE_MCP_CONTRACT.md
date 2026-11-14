@@ -88,7 +88,7 @@ carrier until the change that removes them.
 | Session | None. No `MCP-Session-Id` is issued or read. |
 | Probes | `GET /healthz`, `GET /readyz` (unauthenticated, as in 2.6.0; public body since 3.0.0, see §1a). FastAPI's default `/docs`, `/redoc` and `/openapi.json` are also served unauthenticated; their exposure is a deployment decision. |
 
-### 1a. Probe bodies are public (3.0.0, U-011)
+### 1a. Probe bodies are public (3.0.0, U-011, ADR-106)
 
 `/healthz` and `/readyz` carry no credential, so their bodies are public and
 are built by allowlist (`src/l9_graphite_memory/public_probe.py`), never by
